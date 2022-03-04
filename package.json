@@ -1,0 +1,21 @@
+{
+	"name": "borobot",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"dev": "node index.js",
+		"prod": "nodemon index.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"discord.js": "^13.6.0",
+		"dotenv": "^14.2.0",
+		"mongoose": "^6.1.8",
+		"nodemon": "^2.0.15",
+		"wokcommands": "^1.5.3"
+	}
+}
