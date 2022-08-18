@@ -1,7 +1,12 @@
-const { ActionRowBuilder, SelectMenuBuilder, SelectMenuOptionBuilder, SlashCommandBuilder } = require('discord.js');
+const { ActionRowBuilder, CommandInteraction, SelectMenuBuilder, SelectMenuOptionBuilder, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('menu').setDescription('Select a menu'),
+
+	/**
+	 *
+	 * @param {CommandInteraction} interaction
+	 */
 	async execute(interaction) {
 		const menu = new SelectMenuBuilder()
 			.setCustomId('menu')

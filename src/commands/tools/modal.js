@@ -1,7 +1,12 @@
-const { ActionRowBuilder, ModalBuilder, SlashCommandBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const { ActionRowBuilder, CommandInteraction, ModalBuilder, SlashCommandBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('modal').setDescription('Open a modal'),
+
+	/**
+	 *
+	 * @param {CommandInteraction} interaction
+	 */
 	async execute(interaction) {
 		const modal = new ModalBuilder().setCustomId('modal').setTitle('Modal');
 

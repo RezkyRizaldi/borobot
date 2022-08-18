@@ -1,7 +1,12 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { CommandInteraction, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('reactor').setDescription('Reacts to the message you reply to with the emoji you provide.'),
+
+	/**
+	 *
+	 * @param {CommandInteraction} interaction
+	 */
 	async execute(interaction) {
 		const message = await interaction.reply({ content: 'React here!', fetchReply: true });
 

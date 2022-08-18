@@ -1,7 +1,13 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { Client, CommandInteraction, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('embed').setDescription('Send an embed'),
+
+	/**
+	 *
+	 * @param {CommandInteraction} interaction
+	 * @param {Client} client
+	 */
 	async execute(interaction, client) {
 		const embed = new EmbedBuilder()
 			.setTitle('Test Embed')

@@ -1,7 +1,14 @@
-const { InteractionType } = require('discord.js');
+const { Client, CommandInteraction, InteractionType } = require('discord.js');
 
 module.exports = {
 	name: 'interactionCreate',
+
+	/**
+	 *
+	 * @param {CommandInteraction} interaction
+	 * @param {Client} client
+	 * @returns
+	 */
 	async execute(interaction, client) {
 		if (interaction.isChatInputCommand()) {
 			const { commands } = client;

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { CommandInteraction, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -6,6 +6,11 @@ module.exports = {
 		.setDescription('Kick a member from the server.')
 		.addUserOption((option) => option.setName('member').setDescription('The member to kick.').setRequired(true))
 		.addStringOption((option) => option.setName('reason').setDescription('The reason for kicking the member.')),
+
+	/**
+	 *
+	 * @param {CommandInteraction} interaction
+	 */
 	async execute(interaction) {
 		const user = interaction.options.getUser('member');
 		let reason = interaction.options.getString('reason') || 'No reason provided';

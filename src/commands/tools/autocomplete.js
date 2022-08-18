@@ -1,10 +1,15 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { CommandInteraction, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('autocomplete')
 		.setDescription('Return a list of autocomplete options.')
 		.addStringOption((option) => option.setName('type').setDescription('The input to complete.').setAutocomplete(true).setRequired(true)),
+
+	/**
+	 *
+	 * @param {CommandInteraction} interaction
+	 */
 	async autocomplete(interaction) {
 		const focusedValue = interaction.options.getFocused();
 		const choices = ['faq', 'install', 'collection', 'promise', 'debug'];
