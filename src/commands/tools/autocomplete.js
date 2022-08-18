@@ -5,6 +5,7 @@ module.exports = {
 		.setName('autocomplete')
 		.setDescription('Return a list of autocomplete options.')
 		.addStringOption((option) => option.setName('type').setDescription('The input to complete.').setAutocomplete(true).setRequired(true)),
+	type: 'Autocomplete',
 
 	/**
 	 *

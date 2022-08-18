@@ -1,7 +1,8 @@
 const { Client, CommandInteraction, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
-	data: new SlashCommandBuilder().setName('ping').setDescription("Test the bot's latency"),
+	data: new SlashCommandBuilder().setName('ping').setDescription("Test the bot's latency."),
+	type: 'Chat Input',
 
 	/**
 	 *

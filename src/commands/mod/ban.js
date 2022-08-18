@@ -1,11 +1,13 @@
-const { CommandInteraction, SlashCommandBuilder } = require('discord.js');
+const { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('ban')
 		.setDescription('Ban a member from the server.')
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addUserOption((option) => option.setName('member').setDescription('The member to ban.').setRequired(true))
 		.addStringOption((option) => option.setName('reason').setDescription('The reason for baning the member.')),
+	type: 'Chat Input',
 
 	/**
 	 *

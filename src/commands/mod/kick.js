@@ -1,11 +1,13 @@
-const { CommandInteraction, SlashCommandBuilder } = require('discord.js');
+const { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('kick')
 		.setDescription('Kick a member from the server.')
+		.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
 		.addUserOption((option) => option.setName('member').setDescription('The member to kick.').setRequired(true))
 		.addStringOption((option) => option.setName('reason').setDescription('The reason for kicking the member.')),
+	type: 'Chat Input',
 
 	/**
 	 *

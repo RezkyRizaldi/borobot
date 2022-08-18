@@ -1,7 +1,8 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, CommandInteraction, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
-	data: new SlashCommandBuilder().setName('button').setDescription('Send a button'),
+	data: new SlashCommandBuilder().setName('button').setDescription('Send a button.'),
+	type: 'Button',
 
 	/**
 	 *

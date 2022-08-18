@@ -2,6 +2,7 @@ const { CommandInteraction, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('reactor').setDescription('Reacts to the message you reply to with the emoji you provide.'),
+	type: 'Chat Input',
 
 	/**
 	 *

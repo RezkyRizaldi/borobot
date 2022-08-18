@@ -7,6 +7,7 @@ module.exports = {
 		.addUserOption((option) => option.setName('member').setDescription('The member to timeout.').setRequired(true))
 		.addIntegerOption((option) => option.setName('time').setDescription('The amount of time to timeout the member.'))
 		.addStringOption((option) => option.setName('reason').setDescription('The reason for timeouting the member.')),
+	type: 'Chat Input',
 
 	/**
 	 *

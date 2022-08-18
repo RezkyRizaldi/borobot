@@ -1,7 +1,8 @@
 const { ActionRowBuilder, CommandInteraction, SelectMenuBuilder, SelectMenuOptionBuilder, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
-	data: new SlashCommandBuilder().setName('menu').setDescription('Select a menu'),
+	data: new SlashCommandBuilder().setName('menu').setDescription('Select a menu.'),
+	type: 'Select Menu',
 
 	/**
 	 *

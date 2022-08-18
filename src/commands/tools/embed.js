@@ -1,7 +1,8 @@
 const { Client, CommandInteraction, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
-	data: new SlashCommandBuilder().setName('embed').setDescription('Send an embed'),
+	data: new SlashCommandBuilder().setName('embed').setDescription('Send an embed.'),
+	type: 'Chat Input',
 
 	/**
 	 *
@@ -11,7 +12,7 @@ module.exports = {
 	async execute(interaction, client) {
 		const embed = new EmbedBuilder()
 			.setTitle('Test Embed')
-			.setDescription('This is a test embed')
+			.setDescription('This is a test embed.')
 			.setColor(0xfcc9b9)
 			.setImage(client.user.displayAvatarURL({ dynamic: true }))
 			.setThumbnail(client.user.displayAvatarURL({ dynamic: true }))

@@ -2,6 +2,7 @@ const { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } = require
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('permission').setDescription("This command requires the 'ADMINISTRATOR' permission.").setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+	type: 'Chat Input',
 
 	/**
 	 *
