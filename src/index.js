@@ -1,5 +1,6 @@
-require('dotenv').config();
+const Ascii = require('ascii-table');
 const { Client, Collection } = require('discord.js');
+require('dotenv').config();
 const fs = require('fs');
 
 const client = new Client({ intents: 32767 });
@@ -13,7 +14,7 @@ const funcFolders = fs.readdirSync('./src/functions');
 for (const folder of funcFolders) {
 	const funcFiles = fs.readdirSync(`./src/functions/${folder}`).filter((file) => file.endsWith('.js'));
 	for (const file of funcFiles) {
-		require(`./functions/${folder}/${file}`)(client);
+		require(`./functions/${folder}/${file}`)(client, Ascii);
 	}
 }
 

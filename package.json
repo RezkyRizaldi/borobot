@@ -4,7 +4,7 @@
 	"description": "A simple Discord Bot build with discord.js v14",
 	"main": "src/index.js",
 	"scripts": {
-		"test": "node ."
+		"test": "nodemon ."
 	},
 	"keywords": [],
 	"author": "Muhamad Rezky Rizaldi",
@@ -16,5 +16,8 @@
 		"discord-api-types": "^0.37.2",
 		"discord.js": "^14.2.0",
 		"dotenv": "^16.0.1"
+	},
+	"devDependencies": {
+		"nodemon": "^2.0.19"
 	}
 }
