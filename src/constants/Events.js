@@ -1,7 +1,6 @@
 module.exports = {
 	Events: [
-		'apiRequest',
-		'apiResponse',
+		'applicationCommandPermissionsUpdate',
 		'channelCreate',
 		'channelDelete',
 		'channelPinsUpdate',
