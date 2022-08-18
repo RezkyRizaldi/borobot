@@ -1,5 +1,10 @@
+const { Client } = require('discord.js');
 const fs = require('fs');
 
+/**
+ *
+ * @param {Client} client
+ */
 module.exports = (client) => {
 	client.handleComponents = async () => {
 		const componentFolders = fs.readdirSync('./src/components');
