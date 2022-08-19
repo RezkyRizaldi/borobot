@@ -51,6 +51,6 @@ module.exports = {
 				},
 			]);
 
-		await LeaveLogger.send({ embeds: [message] });
+		await LeaveLogger.send({ embeds: [message] }).catch((err) => console.error(err));
 	},
 };

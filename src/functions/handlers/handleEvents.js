@@ -7,11 +7,10 @@ const { Events } = require('../../constants/Events');
 /**
  *
  * @param {Client} client
- * @param {AsciiTable} Ascii
  */
-module.exports = (client, Ascii) => {
+module.exports = (client) => {
 	client.handleEvents = async () => {
-		const table = new Ascii('Events');
+		const table = new AsciiTable('Events');
 		table.setHeading('Name', 'Instance', 'Status');
 		let total;
 		const eventFolders = fs.readdirSync('./src/events');
@@ -22,7 +21,7 @@ module.exports = (client, Ascii) => {
 					for (const file of eventFiles) {
 						const event = require(`../../events/${folder}/${file}`);
 
-						if (!Events.includes(event.name)) {
+						if (!Events.includes(event.name) || !event.name) {
 							table.addRow(`${eventFiles.indexOf(file) + 1}.`, event.name || file, `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`, '❌ -> invalid event name.');
 							continue;
 						}

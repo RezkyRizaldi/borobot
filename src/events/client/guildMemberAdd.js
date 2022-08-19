@@ -51,6 +51,6 @@ module.exports = {
 				},
 			]);
 
-		await WelcomeLogger.send({ embeds: [message] });
+		await WelcomeLogger.send({ embeds: [message] }).catch((err) => console.error(err));
 	},
 };

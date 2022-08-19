@@ -26,31 +26,39 @@ module.exports = {
 			.setTimestamp(Date.now())
 			.setFooter({ text: client.user.tag, iconURL: client.user.displayAvatarURL({ dynamic: true }) });
 
-		if (member) {
-			let i = 0;
-			const filteredMessages = [];
-			messages.filter((message) => {
-				if (message.author.id === member.id && amount > i) {
-					filteredMessages.push(message);
-					i++;
-				}
-			});
+		if (messages.first().deletable) {
+			if (member) {
+				let i = 0;
+				const filteredMessages = [];
+				messages.filter((message) => {
+					if (message.author.id === member.id && amount > i) {
+						filteredMessages.push(message);
+						i++;
+					}
+				});
 
-			await channel
-				.bulkDelete(filteredMessages, true)
-				.then((messages) => {
-					response.setDescription(`Deleted ${messages.size} messages from ${member}.`);
-					interaction.reply({ embeds: [response] });
-				})
-				.catch((err) => console.error(err));
+				await channel
+					.bulkDelete(filteredMessages, true)
+					.then((messages) => {
+						response.setTitle('Successfully Deleted');
+						response.setDescription(`Deleted ${messages.size} messages from ${member}.`);
+						interaction.reply({ embeds: [response] });
+					})
+					.catch((err) => console.error(err));
+			} else {
+				await channel
+					.bulkDelete(amount, true)
+					.then((messages) => {
+						response.setTitle('Successfully Deleted');
+						response.setDescription(`Deleted ${messages.size} messages.`);
+						interaction.reply({ embeds: [response] });
+					})
+					.catch((err) => console.error(err));
+			}
 		} else {
-			await channel
-				.bulkDelete(amount, true)
-				.then((messages) => {
-					response.setDescription(`Deleted ${messages.size} messages.`);
-					interaction.reply({ embeds: [response] });
-				})
-				.catch((err) => console.error(err));
+			response.setTitle('Something Went Wrong');
+			response.setDescription("Message can't be deleted. Please check my permissions.");
+			interaction.reply({ embeds: [response] });
 		}
 	},
 };

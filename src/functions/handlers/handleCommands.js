@@ -8,11 +8,10 @@ const fs = require('fs');
 /**
  *
  * @param {Client} client
- * @param {AsciiTable} Ascii
  */
-module.exports = (client, Ascii) => {
+module.exports = (client) => {
 	client.handleCommands = async () => {
-		const table = new Ascii();
+		const table = new AsciiTable();
 		table.setHeading('Name', 'Category', 'Type', 'Status');
 		const { commands, commandArray } = client;
 		const commandFolders = fs.readdirSync('./src/commands');

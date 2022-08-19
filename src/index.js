@@ -1,9 +1,10 @@
-const Ascii = require('ascii-table');
-const { Client, Collection } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 require('dotenv').config();
 const fs = require('fs');
 
-const client = new Client({ intents: 32767 });
+const { Guilds, GuildMessages, MessageContent } = GatewayIntentBits;
+const { Message } = Partials;
+const client = new Client({ intents: [Guilds, GuildMessages, MessageContent], partials: [Message] });
 client.commands = new Collection();
 client.buttons = new Collection();
 client.selectMenus = new Collection();
@@ -14,7 +15,7 @@ const funcFolders = fs.readdirSync('./src/functions');
 for (const folder of funcFolders) {
 	const funcFiles = fs.readdirSync(`./src/functions/${folder}`).filter((file) => file.endsWith('.js'));
 	for (const file of funcFiles) {
-		require(`./functions/${folder}/${file}`)(client, Ascii);
+		require(`./functions/${folder}/${file}`)(client);
 	}
 }
 
