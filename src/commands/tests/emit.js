@@ -14,6 +14,10 @@ module.exports = {
 				{
 					name: 'guildMemberRemove',
 					value: 'guildMemberRemove',
+				},
+				{
+					name: 'guildMemberUpdate',
+					value: 'guildMemberUpdate',
 				}
 			)
 		),

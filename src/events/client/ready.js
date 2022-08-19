@@ -1,4 +1,4 @@
-const { Client } = require('discord.js');
+const { ActivityType, Client } = require('discord.js');
 
 module.exports = {
 	name: 'ready',
@@ -10,5 +10,6 @@ module.exports = {
 	 */
 	async execute(client) {
 		console.log(`Logged in as ${client.user.tag}!`);
+		client.user.setActivity('with you!', { type: ActivityType.Playing });
 	},
 };
