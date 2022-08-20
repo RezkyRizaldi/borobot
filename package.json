@@ -16,7 +16,8 @@
 		"chalk": "^5.0.1",
 		"discord-api-types": "^0.37.3",
 		"discord.js": "^14.2.0",
-		"dotenv": "^16.0.1"
+		"dotenv": "^16.0.1",
+		"pluralize": "^8.0.0"
 	},
 	"devDependencies": {
 		"nodemon": "^2.0.19"
