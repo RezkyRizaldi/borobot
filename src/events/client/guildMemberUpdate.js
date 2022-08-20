@@ -1,7 +1,7 @@
 const Canvas = require('@napi-rs/canvas');
 const { AttachmentBuilder, EmbedBuilder, GuildMember } = require('discord.js');
 
-const { applyText } = require('../../utils/applyText');
+const { applyText } = require('../../utils');
 
 module.exports = {
 	name: 'guildMemberUpdate',

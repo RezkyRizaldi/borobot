@@ -1,4 +1,6 @@
-const { ApplicationCommandType, Client, CommandInteraction, ContextMenuCommandBuilder, EmbedBuilder } = require('discord.js');
+const { ApplicationCommandType, CommandInteraction, ContextMenuCommandBuilder, EmbedBuilder } = require('discord.js');
+
+const { applyActivity, applyPresence, applyTimestamp } = require('../../utils');
 
 module.exports = {
 	data: new ContextMenuCommandBuilder().setName('User Info').setType(ApplicationCommandType.User),
@@ -7,74 +9,87 @@ module.exports = {
 	/**
 	 *
 	 * @param {CommandInteraction} interaction
-	 * @param {Client} client
 	 */
-	async execute(interaction, client) {
-		const target = await interaction.guild.members.fetch(interaction.targetId).catch((err) => console.error(err));
+	async execute(interaction) {
+		const target = await interaction.guild.members.fetch(interaction.user.id).catch((err) => console.error(err));
+		const userRoles = target.roles.icon
+			? `${target.roles.icon} `
+			: '' +
+					target.roles.cache
+						.map((role) => `${role}`)
+						.join(', ')
+						.replace(', @everyone', '') || '_None_';
+
+		const userClientStatus = target.presence?.clientStatus
+			? Object.keys(target.presence.clientStatus)
+					.map((status) => `${status.charAt(0).toUpperCase()}${status.slice(1)}`)
+					.join(', ')
+			: '_None_';
+
+		const userActivity = target.presence?.activities.map((activity) => `${applyActivity(activity.type)} ${activity.name} at ${applyTimestamp(activity.timestamps.start)}`).join('\n') || '_None_';
 
 		const response = new EmbedBuilder()
-			.setTitle(`${target.user.username}'s User Profile`)
-			.setColor(0xfcc9b9)
-			.setThumbnail(target.user.displayAvatarURL({ dynamic: true, size: 512 }))
+			.setTitle(`ℹ️ ${target.user.username}'s User Info`)
+			.setColor(target.displayHexColor || 0xfcc9b9)
+			.setThumbnail(target.user.displayAvatarURL({ dynamic: true }))
 			.setFooter({
-				text: target.user.tag,
-				iconURL: client.user.displayAvatarURL({ dynamic: true }),
+				text: target.client.user.tag,
+				iconURL: target.client.user.displayAvatarURL({ dynamic: true }),
 			})
 			.setTimestamp(Date.now())
 			.setFields([
 				{
-					name: 'User ID',
+					name: '🆔 ID',
 					value: target.user.id,
 					inline: true,
 				},
 				{
-					name: 'Roles',
-					value:
-						target.roles.cache
-							.map((role) => role.toString())
-							.join(' ')
-							.replace('@everyone', ' ') || 'None',
-					inline: true,
-				},
-				{
-					name: 'User Tag',
+					name: '🏷️ Tag',
 					value: target.user.tag,
 					inline: true,
 				},
 				{
-					name: 'Nickname',
-					value: target.nickname || 'None',
+					name: '👥 Nickname',
+					value: target.nickname || target.displayName || '_None_',
 					inline: true,
 				},
 				{
-					name: 'Member Since',
-					value: `<t:${Math.floor(target.joinedTimestamp / 1000)}:R>`,
+					name: '🔐 Roles',
+					value: userRoles,
+				},
+				{
+					name: '📆 Member Since',
+					value: applyTimestamp(target.joinedTimestamp),
 					inline: true,
 				},
 				{
-					name: 'Account Created',
-					value: `<t:${Math.floor(target.user.createdTimestamp / 1000)}:R>`,
+					name: '🎊 Account Created',
+					value: applyTimestamp(target.user.createdTimestamp),
 					inline: true,
 				},
 				{
-					name: 'Account Type',
+					name: '📇 Account Type',
 					value: target.user.bot ? 'Bot' : 'User',
 					inline: true,
 				},
 				{
-					name: 'Status',
-					value: target.presence.status,
+					name: '⭕ Presence Status',
+					value: applyPresence(target.presence?.status) || '⚫ Offline',
 					inline: true,
 				},
 				{
-					name: 'Activity',
-					value: target.presence.activities[0] ? target.presence.activities[0].name : 'None',
+					name: '🚀 Nitro Status',
+					value: target.premiumSince ? `Boosting since ${applyTimestamp(target.premiumSinceTimestamp)}` : 'Not Boosting',
 					inline: true,
 				},
 				{
-					name: 'Platform',
-					value: target.presence.clientStatus ? Object.keys(target.presence.clientStatus).join(', ') : 'None',
+					name: '📶 Online Device',
+					value: userClientStatus,
 					inline: true,
+				},
+				{
+					name: '🎭 Activity',
+					value: userActivity,
 				},
 			]);
 

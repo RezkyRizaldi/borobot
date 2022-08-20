@@ -1,8 +1,6 @@
 const AsciiTable = require('ascii-table');
-const { Client } = require('discord.js');
+const { Client, Events } = require('discord.js');
 const fs = require('fs');
-
-const { Events } = require('../../constants/Events');
 
 /**
  *
@@ -21,7 +19,7 @@ module.exports = (client) => {
 					for (const file of eventFiles) {
 						const event = require(`../../events/${folder}/${file}`);
 
-						if (!Events.includes(event.name) || !event.name) {
+						if (!event.name in Events || !event.name) {
 							table.addRow(`${eventFiles.indexOf(file) + 1}.`, event.name || file, `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`, '❌ -> invalid event name.');
 							continue;
 						}
