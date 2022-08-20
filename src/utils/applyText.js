@@ -1,13 +1,18 @@
-module.exports = {
-	applyText: (canvas, text) => {
-		const context = canvas.getContext('2d');
+const { Canvas } = require('@napi-rs/canvas');
 
-		let fontSize = 70;
+/**
+ *
+ * @param {Canvas} canvas
+ * @param {String} text
+ */
+module.exports = (canvas, text) => {
+	const context = canvas.getContext('2d');
 
-		do {
-			context.font = `${(fontSize -= 10)}px sans-serif`;
-		} while (context.measureText(text).width > canvas.width - 300);
+	let fontSize = 70;
 
-		return context.font;
-	},
+	do {
+		context.font = `${(fontSize -= 10)}px sans-serif`;
+	} while (context.measureText(text).width > canvas.width - 300);
+
+	return context.font;
 };
