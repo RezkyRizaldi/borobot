@@ -1,6 +1,6 @@
-const { ApplicationCommandType, CommandInteraction, ContextMenuCommandBuilder, EmbedBuilder } = require('discord.js');
+const { ApplicationCommandType, ContextMenuCommandBuilder, ContextMenuCommandInteraction, EmbedBuilder, italic, time, TimestampStyles } = require('discord.js');
 
-const { applyActivity, applyPresence, applyTimestamp } = require('../../utils');
+const { applyActivity, applyPresence } = require('../../utils');
 
 module.exports = {
 	data: new ContextMenuCommandBuilder().setName('User Info').setType(ApplicationCommandType.User),
@@ -8,32 +8,33 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {CommandInteraction} interaction
+	 * @param {ContextMenuCommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const target = await interaction.guild.members.fetch(interaction.user.id).catch((err) => console.error(err));
+		const target = await interaction.guild.members.fetch(interaction.targetId).catch((err) => console.error(err));
+
 		const userRoles = target.roles.icon
 			? `${target.roles.icon} `
 			: '' +
 					target.roles.cache
 						.map((role) => `${role}`)
 						.join(', ')
-						.replace(', @everyone', '') || '_None_';
+						.replace(', @everyone', '') || italic('None');
 
 		const userClientStatus = target.presence?.clientStatus
 			? Object.keys(target.presence.clientStatus)
 					.map((status) => `${status.charAt(0).toUpperCase()}${status.slice(1)}`)
 					.join(', ')
-			: '_None_';
+			: italic('None');
 
-		const userActivity = target.presence?.activities.map((activity) => `${applyActivity(activity.type)} ${activity.name} at ${applyTimestamp(activity.timestamps.start)}`).join('\n') || '_None_';
+		const userActivity = target.presence?.activities.map((activity) => `${applyActivity(activity.type)} ${activity.name} at ${time(activity.timestamps.start, TimestampStyles.RelativeTime)}`).join('\n') || italic('None');
 
-		const response = new EmbedBuilder()
+		const embed = new EmbedBuilder()
 			.setTitle(`ℹ️ ${target.user.username}'s User Info`)
 			.setColor(target.displayHexColor || 0xfcc9b9)
 			.setThumbnail(target.user.displayAvatarURL({ dynamic: true }))
 			.setFooter({
-				text: target.client.user.tag,
+				text: target.client.user.username,
 				iconURL: target.client.user.displayAvatarURL({ dynamic: true }),
 			})
 			.setTimestamp(Date.now())
@@ -54,17 +55,17 @@ module.exports = {
 					inline: true,
 				},
 				{
-					name: '🔐 Roles',
+					name: `🔐 Roles${target.roles.cache.size > 0 ? ` (${target.roles.cache.size - 1})` : ''}`,
 					value: userRoles,
 				},
 				{
 					name: '📆 Member Since',
-					value: applyTimestamp(target.joinedTimestamp),
+					value: time(target.joinedAt, TimestampStyles.RelativeTime),
 					inline: true,
 				},
 				{
 					name: '🎊 Account Created',
-					value: applyTimestamp(target.user.createdTimestamp),
+					value: time(target.user.createdAt, TimestampStyles.RelativeTime),
 					inline: true,
 				},
 				{
@@ -79,7 +80,7 @@ module.exports = {
 				},
 				{
 					name: '🚀 Nitro Status',
-					value: target.premiumSince ? `Boosting since ${applyTimestamp(target.premiumSinceTimestamp)}` : 'Not Boosting',
+					value: target.premiumSince ? `Boosting since ${time(target.premiumSinceTimestamp, TimestampStyles.RelativeTime)}` : 'Not Boosting',
 					inline: true,
 				},
 				{
@@ -93,6 +94,10 @@ module.exports = {
 				},
 			]);
 
-		await interaction.reply({ embeds: [response], ephemeral: true });
+		await interaction
+			.deferReply({ fetchReply: true })
+			.then(() => interaction.editReply({ embeds: [embed] }))
+			.catch((err) => console.error(err))
+			.finally(() => setTimeout(() => interaction.deleteReply(), 10000));
 	},
 };

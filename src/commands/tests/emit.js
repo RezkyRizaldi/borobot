@@ -1,4 +1,4 @@
-const { Client, CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { CommandInteraction, Events, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -8,16 +8,16 @@ module.exports = {
 		.addStringOption((option) =>
 			option.setName('event').setDescription('The event to emit.').setRequired(true).addChoices(
 				{
-					name: 'guildMemberAdd',
-					value: 'guildMemberAdd',
+					name: Events.GuildMemberAdd,
+					value: Events.GuildMemberAdd,
 				},
 				{
-					name: 'guildMemberRemove',
-					value: 'guildMemberRemove',
+					name: Events.GuildMemberRemove,
+					value: Events.GuildMemberRemove,
 				},
 				{
-					name: 'guildMemberUpdate',
-					value: 'guildMemberUpdate',
+					name: Events.GuildMemberUpdate,
+					value: Events.GuildMemberUpdate,
 				}
 			)
 		),
@@ -26,12 +26,15 @@ module.exports = {
 	/**
 	 *
 	 * @param {CommandInteraction} interaction
-	 * @param {Client} client
 	 */
-	async execute(interaction, client) {
+	async execute(interaction) {
 		const event = interaction.options.getString('event');
-		await interaction.deferReply({ fetchReply: true });
-		client.emit(event, interaction.member);
-		await interaction.editReply({ content: `Emitted ${event} event.`, ephemeral: true });
+		await interaction
+			.deferReply({ fetchReply: true, ephemeral: true })
+			.then(() => {
+				interaction.client.emit(event, interaction.member);
+				interaction.editReply({ content: `Emitted ${event} event.` });
+			})
+			.catch((err) => console.error(err));
 	},
 };

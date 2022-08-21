@@ -1,6 +1,6 @@
-const { ChannelType, CommandInteraction, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { ChannelType, CommandInteraction, EmbedBuilder, hyperlink, italic, SlashCommandBuilder, time, TimestampStyles, userMention } = require('discord.js');
 const pluralize = require('pluralize');
-const { applyAFKTimeout, applyNSFWLevel, applyTier, applyTimestamp, applyVerificationLevel } = require('../../utils');
+const { applyAFKTimeout, applyNSFWLevel, applyTier, applyVerificationLevel } = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('serverinfo').setDescription('Get info about the server.'),
@@ -11,8 +11,11 @@ module.exports = {
 	 * @param {CommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const { guild, client } = interaction;
-		const botColor = (await guild.members.fetch(client.user.id)).displayHexColor;
+		const { client, guild } = interaction;
+		const botColor = await guild.members
+			.fetch(client.user.id)
+			.then((res) => res.displayHexColor)
+			.catch((err) => console.error(err));
 		const textChannel = guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildText).size;
 		const voiceChannel = guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildVoice).size;
 		const channelCount = textChannel + voiceChannel;
@@ -21,92 +24,112 @@ module.exports = {
 		const roleCount = guild.roles.cache.size;
 		const inviteURLs = await guild.invites
 			.fetch()
-			.then((invites) => invites.map((invite) => `[Click Here](${invite.url}) (Used ${invite.uses}, ${invite.expiresTimestamp ? `expired ${applyTimestamp(invite.expiresTimestamp)}` : 'Permanent'})`).join('\n'));
+			.then((invites) =>
+				invites
+					.map(
+						(invite) =>
+							`${hyperlink('URL', invite.url, 'Click here to get the guild invite URL')} (Used ${pluralize('time', invite.uses, true)}, ${
+								invite.expiresTimestamp ? `expired ${time(new Date(invite.expiresTimestamp), TimestampStyles.RelativeTime)}` : 'Permanent'
+							})`
+					)
+					.join('\n')
+			)
+			.catch((err) => console.error(err));
 
-		const embed = new EmbedBuilder()
-			.setTitle(`ℹ️ ${guild.name} Server Info`)
-			.setThumbnail(guild.iconURL({ dynamic: true }))
-			.setDescription(guild.description || '_No description_')
-			.setColor(botColor || 0xfcc9b9)
-			.setFooter({
-				text: client.user.tag,
-				iconURL: client.user.displayAvatarURL({ dynamic: true }),
+		await interaction
+			.deferReply({ fetchReply: true })
+			.then(() => {
+				const embed = new EmbedBuilder()
+					.setTitle(`ℹ️ ${guild.name} Server Info`)
+					.setThumbnail(guild.iconURL({ dynamic: true }))
+					.setDescription(guild.description || italic('No description'))
+					.setColor(botColor || 0xfcc9b9)
+					.setFooter({
+						text: client.user.username,
+						iconURL: client.user.displayAvatarURL({ dynamic: true }),
+					})
+					.setTimestamp(Date.now())
+					.setFields([
+						{
+							name: '🆔 ID',
+							value: guild.id,
+							inline: true,
+						},
+						{
+							name: '👑 Owner',
+							value: userMention(guild.ownerId),
+							inline: true,
+						},
+						{
+							name: '🚀 Boost Level',
+							value: applyTier(guild.premiumTier),
+							inline: true,
+						},
+						{
+							name: '📆 Created At',
+							value: time(guild.createdAt, TimestampStyles.RelativeTime),
+							inline: true,
+						},
+						{
+							name: `👥 Members${guild.memberCount > 0 ? ` (${guild.memberCount})` : ''}`,
+							value: `${pluralize('Online', onlineMemberCount, true)} | ${pluralize('Booster', guild.premiumSubscriptionCount, true)}`,
+							inline: true,
+						},
+						{
+							name: '😀 Emoji & Sticker',
+							value: `${pluralize('Emoji', emojiCount, true)} | ${pluralize('Sticker', guild.stickers.cache.size, true)}`,
+							inline: true,
+						},
+						{
+							name: '🔐 Roles',
+							value: pluralize('Role', roleCount, true),
+						},
+						{
+							name: `💬 Channels${channelCount > 0 ? ` (${channelCount})` : ''}`,
+							value: `${textChannel} Text | ${voiceChannel} Voice\nRules Channel: ${guild.rulesChannel || italic('None')}\nSystem Channel: ${guild.systemChannel || italic('None')}\nPublic Updates Channel: ${
+								guild.publicUpdatesChannel || italic('None')
+							}\nAFK Channel: ${`${guild.afkChannel} (${applyAFKTimeout(guild.afkTimeout)})` || italic('None')}\nWidget Channel: ${guild.widgetChannel || italic('None')}`,
+						},
+						{
+							name: '🔮 Features',
+							value: guild.features.length ? guild.features.join(', ') : italic('None'),
+							inline: true,
+						},
+						{
+							name: '⚠️ Verification Level',
+							value: applyVerificationLevel(guild.verificationLevel),
+							inline: true,
+						},
+						{
+							name: '🔒 NSFW Level',
+							value: applyNSFWLevel(guild.nsfwLevel),
+							inline: true,
+						},
+						{
+							name: '🖼️ Assets',
+							value: `Icon: ${guild.icon ? hyperlink('Icon URL', guild.iconURL({ dynamic: true }), 'Click here to view the guild icon') : italic('None')}\nBanner: ${
+								guild.banner ? hyperlink('Banner URL', guild.bannerURL({ dynamic: true }), 'Click here to view the guild banner') : italic('None')
+							}\nSplash: ${guild.splash ? hyperlink('Splash URL', guild.splashURL({ dynamic: true }), 'Click here to view the guild splash') : italic('None')}\nDiscovery Splash: ${
+								guild.discoverySplash ? hyperlink('Discovery Splash URL', guild.discoverySplashURL({ dynamic: true }), 'Click here to view the guild discovery splash') : italic('None')
+							}`,
+							inline: true,
+						},
+						{
+							name: '🔗 Invite URL',
+							value: `Vanity URL: ${guild.vanityURLCode ? `${hyperlink('URL', guild.vanityURLCode, 'Click here to get the guild vanity URL')} (Used ${pluralize('time', guild.vanityURLUses, true)})` : italic('None')}\nDefault URL:${
+								`\n${inviteURLs}` || italic('None')
+							}`,
+							inline: true,
+						},
+						{
+							name: '🔠 Misc',
+							value: `Partnered: ${guild.partnered ? 'Yes' : 'No'}\nVerified: ${guild.verified ? 'Yes' : 'No'}`,
+						},
+					]);
+
+				interaction.editReply({ embeds: [embed] });
 			})
-			.setTimestamp(Date.now())
-			.setFields([
-				{
-					name: '🆔 ID',
-					value: guild.id,
-					inline: true,
-				},
-				{
-					name: '👑 Owner',
-					value: `<@${guild.ownerId}>`,
-					inline: true,
-				},
-				{
-					name: '🚀 Boost Level',
-					value: applyTier(guild.premiumTier),
-					inline: true,
-				},
-				{
-					name: '📆 Created',
-					value: applyTimestamp(guild.createdTimestamp),
-					inline: true,
-				},
-				{
-					name: `👥 Members (${guild.memberCount})`,
-					value: `${pluralize('Online', onlineMemberCount, true)} | ${pluralize('Booster', guild.premiumSubscriptionCount, true)}`,
-					inline: true,
-				},
-				{
-					name: '😀 Emoji & Sticker',
-					value: `${pluralize('Emoji', emojiCount, true)} | ${pluralize('Sticker', guild.stickers.cache.size, true)}`,
-					inline: true,
-				},
-				{
-					name: '🔐 Roles',
-					value: pluralize('Role', roleCount, true),
-				},
-				{
-					name: `💬 Channels (${channelCount})`,
-					value: `${textChannel} Text | ${voiceChannel} Voice\nRules Channel: ${guild.rulesChannel || '_None_'}\nSystem Channel: ${guild.systemChannel || '_None_'}\nPublic Updates Channel: ${
-						guild.publicUpdatesChannel || '_None_'
-					}\nAFK Channel: ${`${guild.afkChannel} (${applyAFKTimeout(guild.afkTimeout)})` || '_None_'}\nWidget Channel: ${guild.widgetChannel || '_None_'}`,
-				},
-				{
-					name: '🔮 Features',
-					value: guild.features.length ? guild.features.join(', ') : '_None_',
-					inline: true,
-				},
-				{
-					name: '⚠️ Verification Level',
-					value: applyVerificationLevel(guild.verificationLevel),
-					inline: true,
-				},
-				{
-					name: '🔒 NSFW Level',
-					value: applyNSFWLevel(guild.nsfwLevel),
-					inline: true,
-				},
-				{
-					name: '🖼️ Assets',
-					value: `Icon: ${guild.icon ? `[Icon URL](${guild.iconURL({ dynamic: true })})` : '_None_'}\nBanner: ${guild.banner ? `[Banner URL](${guild.bannerURL({ dynamic: true })})` : '_None_'}\nSplash: ${
-						guild.splash ? `[Splash URL](${guild.splashURL({ dynamic: true })})` : '_None_'
-					}\nDiscovery Splash: ${guild.discoverySplash ? `[Discovery Splash URL](${guild.discoverySplashURL({ dynamic: true })})` : '_None_'}`,
-					inline: true,
-				},
-				{
-					name: '🔗 Invite URL',
-					value: `Vanity URL: ${guild.vanityURLCode ? `[Click Here](${guild.vanityURLCode}) (Used ${pluralize('time', guild.vanityURLUses, true)})` : '_None_'}\nDefault URL:${`\n${inviteURLs}` || '_None_'}`,
-					inline: true,
-				},
-				{
-					name: '🔠 Misc',
-					value: `Partnered: ${guild.partnered ? 'Yes' : 'No'}\nVerified: ${guild.verified ? 'Yes' : 'No'}`,
-				},
-			]);
-
-		await interaction.reply({ embeds: [embed] });
+			.catch((err) => console.error(err))
+			.finally(() => setTimeout(() => interaction.deleteReply(), 10000));
 	},
 };

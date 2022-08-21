@@ -1,32 +1,44 @@
-const { Collection, EmbedBuilder, Message, Snowflake, WebhookClient } = require('discord.js');
+const { bold, cleanCodeBlockContent, codeBlock, Collection, EmbedBuilder, Events, italic, Message, Snowflake, time, TimestampStyles, WebhookClient } = require('discord.js');
 
 module.exports = {
-	name: 'messageDeleteBulk',
+	name: Events.MessageBulkDelete,
 
 	/**
 	 *
 	 * @param {Collection<Snowflake, Message>} messages
 	 */
 	async execute(messages) {
+		const botColor = await messages
+			.first()
+			.guild.members.fetch(messages.first().client.user.id)
+			.then((res) => res.displayHexColor)
+			.catch((err) => console.error(err));
+
 		const MessageLogger = new WebhookClient({
 			id: process.env.MESSAGE_WEBHOOK_ID,
 			token: process.env.MESSAGE_WEBHOOK_TOKEN,
 		});
 
-		const embed = new EmbedBuilder().setColor(0xfcc9b9).setTimestamp(Date.now());
+		const embed = new EmbedBuilder()
+			.setColor(botColor || 0xfcc9b9)
+			.setTimestamp(Date.now())
+			.setFooter({
+				text: messages.first().client.user.username,
+				iconURL: messages.first().client.user.displayAvatarURL({ dynamic: true }),
+			});
 
 		if (messages.first().partial || !messages.first().author) {
 			embed.setTitle('Messages Deleted');
-			embed.setDescription(`${messages.size} messages was **deleted** in ${messages.first().channel} at <t:${Math.floor(Date.now() / 1000)}:R>`);
+			embed.setDescription(`${messages.size} messages was ${bold('deleted')} in ${messages.first().channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
 		} else {
 			embed.setAuthor({
 				name: 'Messages Deleted',
 				iconURL: messages.first().author.displayAvatarURL({ dynamic: true }),
 			});
-			embed.setDescription(`${messages.size} messages by ${messages.first().author} was **deleted** in ${messages.first().channel} at <t:${Math.floor(Date.now() / 1000)}:R>`);
+			embed.setDescription(`${messages.size} messages by ${messages.first().author} was ${bold('deleted')} in ${messages.first().channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
 			embed.setFields({
 				name: 'Deleted Messages',
-				value: messages.map((message) => (message.content.includes('://') ? message.content : ('```css\n' + message.content + '```').slice(0, 4096))).join('\n') || 'No Content',
+				value: messages.map((message) => (message.content.includes('://') ? message.content : message.embeds.length > 0 ? italic('No Content') : codeBlock('css', cleanCodeBlockContent(message.content)))).join('\n'),
 			});
 
 			if (messages.first().attachments.size >= 1) {

@@ -1,14 +1,13 @@
-const { Client, EmbedBuilder, GuildMember, WebhookClient } = require('discord.js');
+const { EmbedBuilder, Events, GuildMember, time, TimestampStyles, WebhookClient } = require('discord.js');
 
 module.exports = {
-	name: 'guildMemberAdd',
+	name: Events.GuildMemberAdd,
 
 	/**
 	 *
 	 * @param {GuildMember} member
-	 * @param {Client} client
 	 */
-	async execute(member, client) {
+	async execute(member) {
 		const { user, guild } = member;
 
 		member.roles.add(process.env.MEMBER_ROLE_ID);
@@ -19,34 +18,29 @@ module.exports = {
 		});
 
 		const message = new EmbedBuilder()
-			.setTitle(`Welcome to ${guild.name}`)
+			.setTitle(`👋 Welcome to ${guild.name}`)
 			.setDescription(`hope you enjoy here, ${member}!`)
-			.setColor(0xfcc9b9)
+			.setColor(member.displayHexColor || 0xfcc9b9)
 			.setThumbnail(user.displayAvatarURL({ dynamic: true }))
-			.setAuthor({
-				name: client.user.username,
-				iconURL: client.user.displayAvatarURL({ dynamic: true, size: 512 }),
-				url: 'https://youtube.com/c/NotReallyClips',
-			})
 			.setFooter({
-				text: client.user.tag,
-				iconURL: client.user.displayAvatarURL({ dynamic: true }),
+				text: member.client.user.username,
+				iconURL: member.client.user.displayAvatarURL({ dynamic: true }),
 			})
 			.setTimestamp(Date.now())
 			.setFields([
 				{
-					name: 'Member ID',
+					name: '🆔 Member ID',
 					value: user.id,
 					inline: true,
 				},
 				{
-					name: 'Account Created',
-					value: `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`,
+					name: '🎊 Account Created',
+					value: time(user.createdAt, TimestampStyles.RelativeTime),
 					inline: true,
 				},
 				{
-					name: 'Joined At',
-					value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>`,
+					name: '📆 Joined At',
+					value: time(member.joinedAt, TimestampStyles.RelativeTime),
 					inline: true,
 				},
 			]);

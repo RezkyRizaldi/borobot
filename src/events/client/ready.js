@@ -1,7 +1,7 @@
-const { ActivityType, Client } = require('discord.js');
+const { ActivityType, Client, Events } = require('discord.js');
 
 module.exports = {
-	name: 'ready',
+	name: Events.ClientReady,
 	once: true,
 
 	/**
