@@ -1,11 +1,11 @@
-const { EmbedBuilder, Events, GuildMember, time, TimestampStyles, WebhookClient } = require('discord.js');
+const { EmbedBuilder, Events, time, TimestampStyles, WebhookClient } = require('discord.js');
 
 module.exports = {
 	name: Events.GuildMemberRemove,
 
 	/**
 	 *
-	 * @param {GuildMember} member
+	 * @param {import('discord.js').GuildMember} member
 	 */
 	async execute(member) {
 		const { user, guild } = member;

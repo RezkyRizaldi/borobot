@@ -1,42 +1,28 @@
-const { Client } = require('discord.js');
+const AsciiTable = require('ascii-table');
 const fs = require('fs');
+const path = require('path');
 
 /**
  *
- * @param {Client} client
+ * @param {import('discord.js').Client} client
  */
 module.exports = (client) => {
 	client.handleComponents = async () => {
-		const componentFolders = fs.readdirSync('./src/components');
-		for (const folder of componentFolders) {
-			const componentFiles = fs.readdirSync(`./src/components/${folder}`).filter((file) => file.endsWith('.js'));
+		const table = new AsciiTable('Components');
+		table.setHeading('Name', 'Status');
+		const componentPath = path.join(__dirname, '..', '..', 'components');
+		const componentFiles = fs.readdirSync(componentPath).filter((file) => file.endsWith('.js'));
+		for (const file of componentFiles) {
+			const { components } = client;
+			const filePath = path.join(componentPath, file);
+			const component = require(filePath);
 
-			const { buttons, selectMenus, modals } = client;
-			switch (folder) {
-				case 'buttons':
-					for (const file of componentFiles) {
-						const button = require(`../../components/${folder}/${file}`);
-						buttons.set(button.data.name, button);
-					}
-					break;
+			table.setTitle(`Components${componentFiles.length > 0 ? ` (${componentFiles.length})` : ''}`);
+			table.addRow(component.data.name, '✅');
 
-				case 'selectMenus':
-					for (const file of componentFiles) {
-						const selectMenu = require(`../../components/${folder}/${file}`);
-						selectMenus.set(selectMenu.data.name, selectMenu);
-					}
-					break;
-
-				case 'modals':
-					for (const file of componentFiles) {
-						const modal = require(`../../components/${folder}/${file}`);
-						modals.set(modal.data.name, modal);
-					}
-					break;
-
-				default:
-					break;
-			}
+			components.set(component.data.name, component);
 		}
+
+		console.log(table.toString());
 	};
 };

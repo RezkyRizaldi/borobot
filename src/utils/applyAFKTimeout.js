@@ -1,11 +1,7 @@
+const pluralize = require('pluralize');
+
 /**
  *
  * @param {Number} time
  */
-module.exports = (time) => {
-	if (time < 3600) {
-		return `${time / 60} minute${time / 60 > 1 ? 's' : ''}`;
-	} else {
-		return `${time / 3600} hour`;
-	}
-};
+module.exports = (time) => (time < 3600 ? pluralize('minute', time / 60, true) : pluralize('hour', time / 3600, true));

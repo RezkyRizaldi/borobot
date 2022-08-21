@@ -1,4 +1,4 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, CommandInteraction, SlashCommandBuilder } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('button').setDescription('Send a button.'),
@@ -6,7 +6,7 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {CommandInteraction} interaction
+	 * @param {import('discord.js').ButtonInteraction} interaction
 	 */
 	async execute(interaction) {
 		const button = new ButtonBuilder().setCustomId('youtube').setLabel('YouTube').setStyle(ButtonStyle.Primary);

@@ -1,24 +1,12 @@
-const { PresenceStatus } = require('discord.js');
-
 /**
  *
- * @param {PresenceStatus} presenceStatus
+ * @param {import('discord.js').PresenceStatus} presenceStatus
  */
 module.exports = (presenceStatus) => {
-	switch (presenceStatus) {
-		case 'online':
-			return `🟢 Online`;
-
-		case 'idle':
-			return `🌙 Idle`;
-
-		case 'dnd':
-			return `🔴 Do Not Disturb`;
-
-		case 'invisible':
-			return `⚫ Offline`;
-
-		default:
-			break;
-	}
+	return {
+		online: '🟢 Online',
+		idle: '🌙 Idle',
+		dnd: '🔴 Do Not Disturb',
+		invisible: '⚫ Offline',
+	}[presenceStatus];
 };

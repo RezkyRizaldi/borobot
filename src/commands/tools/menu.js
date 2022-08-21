@@ -1,4 +1,4 @@
-const { ActionRowBuilder, CommandInteraction, SelectMenuBuilder, SelectMenuOptionBuilder, SlashCommandBuilder } = require('discord.js');
+const { ActionRowBuilder, SelectMenuBuilder, SelectMenuOptionBuilder, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('menu').setDescription('Select a menu.'),
@@ -6,7 +6,7 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {CommandInteraction} interaction
+	 * @param {import('discord.js').SelectMenuInteraction} interaction
 	 */
 	async execute(interaction) {
 		const menu = new SelectMenuBuilder()
@@ -22,7 +22,7 @@ module.exports = {
 				new SelectMenuOptionBuilder({
 					label: 'Option 2',
 					value: 'https://twitter.com/rezkyrizaldii',
-				})
+				}),
 			);
 
 		await interaction.reply({

@@ -1,4 +1,4 @@
-const { CommandInteraction, SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -9,7 +9,7 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {CommandInteraction} interaction
+	 * @param {import('discord.js').AutocompleteInteraction} interaction
 	 */
 	async autocomplete(interaction) {
 		const focusedValue = interaction.options.getFocused();
@@ -18,6 +18,11 @@ module.exports = {
 
 		await interaction.respond(filtered.map((choice) => ({ name: choice, value: choice })));
 	},
+
+	/**
+	 *
+	 * @param {import('discord.js').AutocompleteInteraction} interaction
+	 */
 	async execute(interaction) {
 		const option = interaction.options.getString('type');
 

@@ -1,5 +1,3 @@
-const { CommandInteraction } = require('discord.js');
-
 module.exports = {
 	data: {
 		name: 'youtube',
@@ -7,7 +5,7 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {CommandInteraction} interaction
+	 * @param {import('discord.js').CommandInteraction} interaction
 	 */
 	async execute(interaction) {
 		await interaction.reply({

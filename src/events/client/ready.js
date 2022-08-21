@@ -1,4 +1,4 @@
-const { ActivityType, Client, Events } = require('discord.js');
+const { ActivityType, Events } = require('discord.js');
 
 module.exports = {
 	name: Events.ClientReady,
@@ -6,7 +6,7 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {Client} client
+	 * @param {import('discord.js').Client} client
 	 */
 	async execute(client) {
 		console.log(`Logged in as ${client.user.tag}!`);

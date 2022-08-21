@@ -1,16 +1,14 @@
-const { EmbedBuilder, Events, GuildMember, time, TimestampStyles, WebhookClient } = require('discord.js');
+const { EmbedBuilder, Events, time, TimestampStyles, WebhookClient } = require('discord.js');
 
 module.exports = {
 	name: Events.GuildMemberAdd,
 
 	/**
 	 *
-	 * @param {GuildMember} member
+	 * @param {import('discord.js').GuildMember} member
 	 */
 	async execute(member) {
 		const { user, guild } = member;
-
-		member.roles.add(process.env.MEMBER_ROLE_ID);
 
 		const WelcomeLogger = new WebhookClient({
 			id: process.env.WELCOME_WEBHOOK_ID,
@@ -21,30 +19,40 @@ module.exports = {
 			.setTitle(`👋 Welcome to ${guild.name}`)
 			.setDescription(`hope you enjoy here, ${member}!`)
 			.setColor(member.displayHexColor || 0xfcc9b9)
-			.setThumbnail(user.displayAvatarURL({ dynamic: true }))
 			.setFooter({
 				text: member.client.user.username,
 				iconURL: member.client.user.displayAvatarURL({ dynamic: true }),
 			})
-			.setTimestamp(Date.now())
-			.setFields([
-				{
-					name: '🆔 Member ID',
-					value: user.id,
-					inline: true,
-				},
-				{
-					name: '🎊 Account Created',
-					value: time(user.createdAt, TimestampStyles.RelativeTime),
-					inline: true,
-				},
-				{
-					name: '📆 Joined At',
-					value: time(member.joinedAt, TimestampStyles.RelativeTime),
-					inline: true,
-				},
-			]);
+			.setTimestamp(Date.now());
 
-		await WelcomeLogger.send({ embeds: [message] }).catch((err) => console.error(err));
+		await member.roles
+			.add(process.env.MEMBER_ROLE_ID)
+			.then(() => {
+				message.setThumbnail(user.displayAvatarURL({ dynamic: true }));
+				message.setFields([
+					{
+						name: '🆔 Member ID',
+						value: user.id,
+						inline: true,
+					},
+					{
+						name: '🎊 Account Created',
+						value: time(user.createdAt, TimestampStyles.RelativeTime),
+						inline: true,
+					},
+					{
+						name: '📆 Joined At',
+						value: time(member.joinedAt, TimestampStyles.RelativeTime),
+						inline: true,
+					},
+				]);
+
+				WelcomeLogger.send({ embeds: [message] });
+			})
+			.then(() => member.send({ embeds: [message] }))
+			.catch((err) => {
+				console.error(err);
+				console.log(`Could not send a DM to ${member.user.tag}`);
+			});
 	},
 };

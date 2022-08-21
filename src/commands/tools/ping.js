@@ -1,4 +1,4 @@
-const { CommandInteraction, EmbedBuilder, inlineCode, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, inlineCode, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('ping').setDescription("Test the bot's latency."),
@@ -6,7 +6,7 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {CommandInteraction} interaction
+	 * @param {import('discord.js').CommandInteraction} interaction
 	 */
 	async execute(interaction) {
 		const botColor = await interaction.guild.members

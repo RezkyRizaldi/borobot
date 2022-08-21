@@ -1,4 +1,4 @@
-const { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { bold, inlineCode, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -11,32 +11,40 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {CommandInteraction} interaction
+	 * @param {import('discord.js').ChatInputCommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const user = interaction.options.getUser('member');
-		let reason = interaction.options.getString('reason') || 'No reason provided';
-		const member = await interaction.guild.members.fetch(user.id).catch((err) => console.error(err));
+		const member = interaction.options.getMember('member');
+		const reason = interaction.options.getString('reason') || 'No reason';
 
-		if (!user) {
-			await interaction.reply({ content: 'You must specify a member to kick.', ephemeral: true });
-			return;
+		if (!member) {
+			return interaction.reply({ content: 'You must specify a member to kick.', ephemeral: true });
 		}
 
-		if (!user.kickable) {
-			await interaction.reply({ content: 'You cannot kick this member.', ephemeral: true });
-			return;
+		if (member.id === interaction.user.id) {
+			return interaction.reply({ content: "You can't kick yourself.", ephemeral: true });
 		}
 
-		await member.kick(reason).catch((err) => console.error(err));
-		await interaction.reply({ content: `Successfully kicked ${user.tag}.`, ephemeral: true });
-		await user
-			.send({
-				content: `You have been kicked from ${interaction.guild.name} for ${reason}.`,
-			})
+		if (!member.kickable) {
+			return interaction.reply({ content: 'You cannot kick this member.', ephemeral: true });
+		}
+
+		await interaction.guild.members
+			.fetch(member.id)
+			.then((m) => m.kick(reason))
+			.catch((err) => console.error(err));
+
+		await interaction
+			.reply({ content: `Successfully kicked ${member.tag}.`, ephemeral: true })
+			.then(() =>
+				member.send({
+					content: `You have been ${bold('kicked')} from ${interaction.guild.name} for ${inlineCode(reason)}.`,
+				}),
+			)
 			.catch((err) => {
 				console.error(err);
-				console.log(`Could not send a DM to ${user.tag}.`);
+				console.log(`Could not send a DM to ${member.tag}.`);
+				interaction.followUp({ content: `Could not send a DM to ${member.tag}.`, ephemeral: true });
 			});
 	},
 };

@@ -1,4 +1,4 @@
-const { ChannelType, CommandInteraction, EmbedBuilder, hyperlink, italic, SlashCommandBuilder, time, TimestampStyles, userMention } = require('discord.js');
+const { ChannelType, EmbedBuilder, hyperlink, italic, SlashCommandBuilder, time, TimestampStyles, userMention } = require('discord.js');
 const pluralize = require('pluralize');
 const { applyAFKTimeout, applyNSFWLevel, applyTier, applyVerificationLevel } = require('../../utils');
 
@@ -8,7 +8,7 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {CommandInteraction} interaction
+	 * @param {import('discord.js').CommandInteraction} interaction
 	 */
 	async execute(interaction) {
 		const { client, guild } = interaction;
@@ -30,9 +30,9 @@ module.exports = {
 						(invite) =>
 							`${hyperlink('URL', invite.url, 'Click here to get the guild invite URL')} (Used ${pluralize('time', invite.uses, true)}, ${
 								invite.expiresTimestamp ? `expired ${time(new Date(invite.expiresTimestamp), TimestampStyles.RelativeTime)}` : 'Permanent'
-							})`
+							})`,
 					)
-					.join('\n')
+					.join('\n'),
 			)
 			.catch((err) => console.error(err));
 

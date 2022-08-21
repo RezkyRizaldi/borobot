@@ -1,4 +1,4 @@
-const { ApplicationCommandType, ContextMenuCommandBuilder, ContextMenuCommandInteraction, EmbedBuilder, hyperlink } = require('discord.js');
+const { ApplicationCommandType, ContextMenuCommandBuilder, EmbedBuilder, hyperlink } = require('discord.js');
 
 module.exports = {
 	data: new ContextMenuCommandBuilder().setName('Avatar').setType(ApplicationCommandType.User),
@@ -6,7 +6,7 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {ContextMenuCommandInteraction} interaction
+	 * @param {import('discord.js').ContextMenuCommandInteraction} interaction
 	 */
 	async execute(interaction) {
 		const embed = await interaction.guild.members

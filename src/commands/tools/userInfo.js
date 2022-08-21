@@ -1,4 +1,4 @@
-const { ApplicationCommandType, ContextMenuCommandBuilder, ContextMenuCommandInteraction, EmbedBuilder, italic, time, TimestampStyles } = require('discord.js');
+const { ApplicationCommandType, ContextMenuCommandBuilder, EmbedBuilder, italic, time, TimestampStyles } = require('discord.js');
 
 const { applyActivity, applyPresence } = require('../../utils');
 
@@ -8,7 +8,7 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {ContextMenuCommandInteraction} interaction
+	 * @param {import('discord.js').ContextMenuCommandInteraction} interaction
 	 */
 	async execute(interaction) {
 		const target = await interaction.guild.members.fetch(interaction.targetId).catch((err) => console.error(err));
@@ -21,11 +21,11 @@ module.exports = {
 						.join(', ')
 						.replace(', @everyone', '') || italic('None');
 
-		const userClientStatus = target.presence?.clientStatus
-			? Object.keys(target.presence.clientStatus)
-					.map((status) => `${status.charAt(0).toUpperCase()}${status.slice(1)}`)
-					.join(', ')
-			: italic('None');
+		const userClientStatus =
+			target.presence?.clientStatus &&
+			Object.keys(target.presence.clientStatus)
+				.map((status) => `${status.charAt(0).toUpperCase()}${status.slice(1)}`)
+				.join(', ');
 
 		const userActivity = target.presence?.activities.map((activity) => `${applyActivity(activity.type)} ${activity.name} at ${time(activity.timestamps.start, TimestampStyles.RelativeTime)}`).join('\n') || italic('None');
 
@@ -85,7 +85,7 @@ module.exports = {
 				},
 				{
 					name: '📶 Online Device',
-					value: userClientStatus,
+					value: userClientStatus || italic('None'),
 					inline: true,
 				},
 				{

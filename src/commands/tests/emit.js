@@ -1,4 +1,4 @@
-const { CommandInteraction, Events, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { Events, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -18,14 +18,14 @@ module.exports = {
 				{
 					name: Events.GuildMemberUpdate,
 					value: Events.GuildMemberUpdate,
-				}
-			)
+				},
+			),
 		),
 	type: 'Chat Input',
 
 	/**
 	 *
-	 * @param {CommandInteraction} interaction
+	 * @param {import('discord.js').CommandInteraction} interaction
 	 */
 	async execute(interaction) {
 		const event = interaction.options.getString('event');

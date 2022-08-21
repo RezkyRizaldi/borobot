@@ -5,26 +5,12 @@ const { ActivityType } = require('discord.js');
  * @param {ActivityType} type
  */
 module.exports = (type) => {
-	switch (type) {
-		case ActivityType.Playing:
-			return 'Playing';
-
-		case ActivityType.Streaming:
-			return 'Streaming';
-
-		case ActivityType.Listening:
-			return 'Listening to';
-
-		case ActivityType.Watching:
-			return 'Watching';
-
-		case ActivityType.Custom:
-			return 'Custom Status';
-
-		case ActivityType.Competing:
-			return 'Competing in';
-
-		default:
-			break;
-	}
+	return {
+		[ActivityType.Playing]: 'Playing',
+		[ActivityType.Streaming]: 'Streaming',
+		[ActivityType.Listening]: 'Listening to',
+		[ActivityType.Watching]: 'Watching',
+		[ActivityType.Custom]: 'Custom',
+		[ActivityType.Competing]: 'Competing in',
+	}[type];
 };

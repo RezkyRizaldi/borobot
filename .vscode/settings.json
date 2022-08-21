@@ -1,0 +1,5 @@
+{
+	"prettier.trailingComma": "all",
+	"prettier.singleQuote": true,
+	"javascript.preferences.quoteStyle": "auto"
+}

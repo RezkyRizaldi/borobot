@@ -1,5 +1,5 @@
 const Canvas = require('@napi-rs/canvas');
-const { AttachmentBuilder, EmbedBuilder, GuildMember } = require('discord.js');
+const { AttachmentBuilder, EmbedBuilder } = require('discord.js');
 
 const { applyText } = require('../../utils');
 
@@ -8,8 +8,8 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {GuildMember} oldMember
-	 * @param {GuildMember} newMember
+	 * @param {import('discord.js').GuildMember} oldMember
+	 * @param {import('discord.js').GuildMember} newMember
 	 */
 	async execute(oldMember, newMember) {
 		const { guild } = newMember;
@@ -56,7 +56,7 @@ module.exports = {
 
 			await guild.systemChannel.send({ embeds: [embed], files: [attachment] }).catch((err) => console.error(err));
 
-			embed.setDescription(`Thank you for boosting test!`);
+			embed.setDescription('Thank you for boosting test!');
 			await newMember.send({ embeds: [embed] }).catch((err) => {
 				console.error(err);
 				console.log(`Could not send a DM to ${newMember.user.tag}.`);

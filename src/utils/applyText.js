@@ -1,13 +1,10 @@
-const { Canvas } = require('@napi-rs/canvas');
-
 /**
  *
- * @param {Canvas} canvas
+ * @param {import('@napi-rs/canvas').Canvas} canvas
  * @param {String} text
  */
 module.exports = (canvas, text) => {
 	const context = canvas.getContext('2d');
-
 	let fontSize = 70;
 
 	do {
