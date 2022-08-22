@@ -10,10 +10,7 @@ module.exports = {
 	 */
 	async execute(interaction) {
 		const message = await interaction.reply({ content: 'React here!', fetchReply: true });
-
-		const filter = (user) => {
-			return user.id === interaction.user.id;
-		};
+		const filter = (user) => user.id === interaction.user.id;
 
 		message
 			.awaitReactions({ filter, max: 4, time: 10000, errors: ['time'] })

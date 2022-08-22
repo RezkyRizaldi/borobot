@@ -9,10 +9,7 @@ module.exports = {
 	 * @param {import('discord.js').CommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const botColor = await interaction.guild.members
-			.fetch(interaction.client.user.id)
-			.then((res) => res.displayHexColor)
-			.catch((err) => console.error(err));
+		const botColor = await interaction.guild.members.fetch(interaction.client.user.id).then((res) => res.displayHexColor);
 
 		const embed = new EmbedBuilder()
 			.setTitle('Test Embed')

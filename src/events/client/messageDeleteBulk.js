@@ -11,8 +11,7 @@ module.exports = {
 		const botColor = await messages
 			.first()
 			.guild.members.fetch(messages.first().client.user.id)
-			.then((res) => res.displayHexColor)
-			.catch((err) => console.error(err));
+			.then((res) => res.displayHexColor);
 
 		const MessageLogger = new WebhookClient({
 			id: process.env.MESSAGE_WEBHOOK_ID,

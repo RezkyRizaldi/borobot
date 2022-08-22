@@ -18,11 +18,9 @@ module.exports = {
 		const { channel, options } = interaction;
 		const amount = options.getInteger('amount');
 		const member = options.getMember('member');
-		const messages = await channel.messages.fetch();
-		const botColor = await interaction.guild.members
-			.fetch(interaction.client.user.id)
-			.then((res) => res.displayHexColor)
-			.catch((err) => console.error(err));
+		const messages = await channel.messages.fetch().then((m) => m);
+		const botColor = await interaction.guild.members.fetch(interaction.client.user.id).then((res) => res.displayHexColor);
+
 		const response = new EmbedBuilder()
 			.setColor(botColor || 0xfcc9b9)
 			.setTimestamp(Date.now())
@@ -37,7 +35,7 @@ module.exports = {
 			return interaction
 				.reply({ embeds: [response] })
 				.catch((err) => console.error(err))
-				.finally(() => setTimeout(() => interaction.deleteReply(), 10000));
+				.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 		}
 
 		if (member) {
@@ -56,18 +54,18 @@ module.exports = {
 				return interaction
 					.reply({ embeds: [response] })
 					.catch((err) => console.error(err))
-					.finally(() => setTimeout(() => interaction.deleteReply(), 10000));
+					.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 			}
 
 			return channel
 				.bulkDelete(filteredMessages, true)
-				.then((msg) => {
+				.then(async (msg) => {
 					response.setTitle('Message Deleted');
 					response.setDescription(`Deleted ${pluralize('message', msg.size, true)} from ${member}.`);
-					interaction.reply({ embeds: [response] });
+					await interaction.reply({ embeds: [response] });
 				})
 				.catch((err) => console.error(err))
-				.finally(() => setTimeout(() => interaction.deleteReply(), 10000));
+				.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 		}
 
 		if (amount > 50) {
@@ -76,7 +74,7 @@ module.exports = {
 			return interaction
 				.reply({ embeds: [response] })
 				.catch((err) => console.error(err))
-				.finally(() => setTimeout(() => interaction.deleteReply(), 10000));
+				.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 		}
 
 		await channel
@@ -90,8 +88,8 @@ module.exports = {
 				console.error(err);
 				response.setTitle('Something Went Wrong');
 				response.setDescription(err.message);
-				interaction.reply({ embeds: [response] }).then(() => setTimeout(() => interaction.deleteReply(), 10000));
+				interaction.reply({ embeds: [response] }).then(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 			})
-			.finally(() => setTimeout(() => interaction.deleteReply(), 10000));
+			.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 	},
 };

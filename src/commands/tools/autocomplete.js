@@ -21,7 +21,7 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {import('discord.js').AutocompleteInteraction} interaction
+	 * @param {import('discord.js').ChatInputCommandInteraction} interaction
 	 */
 	async execute(interaction) {
 		const option = interaction.options.getString('type');

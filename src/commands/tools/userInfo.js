@@ -11,7 +11,7 @@ module.exports = {
 	 * @param {import('discord.js').ContextMenuCommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const target = await interaction.guild.members.fetch(interaction.targetId).catch((err) => console.error(err));
+		const target = await interaction.guild.members.fetch(interaction.targetId).then((member) => member);
 
 		const userRoles = target.roles.icon
 			? `${target.roles.icon} `
@@ -51,11 +51,11 @@ module.exports = {
 				},
 				{
 					name: '👥 Nickname',
-					value: target.nickname || target.displayName || '_None_',
+					value: target.nickname || target.displayName || italic('None'),
 					inline: true,
 				},
 				{
-					name: `🔐 Roles${target.roles.cache.size > 0 ? ` (${target.roles.cache.size - 1})` : ''}`,
+					name: `🔐 Roles${target.roles.cache.size > 0 && ` (${target.roles.cache.size - 1})`}`,
 					value: userRoles,
 				},
 				{

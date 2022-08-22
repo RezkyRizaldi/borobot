@@ -23,7 +23,7 @@ module.exports = (client) => {
 				const command = require(filePath);
 				commands.set(command.data.name, command);
 				commandArray.push(command.data.toJSON());
-				table.setTitle(`Commands${file.length > 0 ? ` (${file.length})` : ''}`);
+				table.setTitle(`Commands${file.length > 0 && ` (${file.length})`}`);
 				table.addRow(command.data.name || file, folder, command.type || 'None', '✅');
 				table.sort((a, b) => a[0].localeCompare(b[0]));
 			}

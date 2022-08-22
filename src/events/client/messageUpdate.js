@@ -19,10 +19,7 @@ module.exports = {
 		const oldResponse = oldMessage.cleanContent.slice(0, 1024) + (oldMessage.cleanContent.length > 1024 ? '...' : '');
 		const newResponse = newMessage.cleanContent.slice(0, 1024) + (newMessage.cleanContent.length > 1024 ? '...' : '');
 
-		const botColor = await oldMessage.guild.members
-			.fetch(oldMessage.client.user.id)
-			.then((res) => res.displayHexColor)
-			.catch((err) => console.error(err));
+		const botColor = await oldMessage.guild.members.fetch(oldMessage.client.user.id).then((res) => res.displayHexColor);
 
 		const MessageLogger = new WebhookClient({
 			id: process.env.MESSAGE_WEBHOOK_ID,
@@ -41,7 +38,7 @@ module.exports = {
 			embed.setTitle('Message Edited');
 			embed.setDescription(`A message was ${bold('edited')} in ${oldMessage.channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
 
-			MessageLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
+			return MessageLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
 		}
 
 		embed.setAuthor({

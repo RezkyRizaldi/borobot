@@ -25,15 +25,15 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {import('discord.js').CommandInteraction} interaction
+	 * @param {import('discord.js').ChatInputCommandInteraction} interaction
 	 */
 	async execute(interaction) {
 		const event = interaction.options.getString('event');
 		await interaction
 			.deferReply({ fetchReply: true, ephemeral: true })
-			.then(() => {
+			.then(async () => {
 				interaction.client.emit(event, interaction.member);
-				interaction.editReply({ content: `Emitted ${event} event.` });
+				await interaction.editReply({ content: `Emitted ${event} event.` });
 			})
 			.catch((err) => console.error(err));
 	},

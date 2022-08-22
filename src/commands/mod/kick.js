@@ -17,25 +17,19 @@ module.exports = {
 		const member = interaction.options.getMember('member');
 		const reason = interaction.options.getString('reason') || 'No reason';
 
-		if (!member) {
-			return interaction.reply({ content: 'You must specify a member to kick.', ephemeral: true });
-		}
+		if (!member) return interaction.reply({ content: 'You must specify a member to kick.', ephemeral: true });
 
-		if (!member.kickable) {
-			return interaction.reply({ content: "You don't have appropiate permissions to kick this member.", ephemeral: true });
-		}
+		if (!member.kickable) return interaction.reply({ content: "You don't have appropiate permissions to kick this member.", ephemeral: true });
 
-		if (member.id === interaction.user.id) {
-			return interaction.reply({ content: "You can't kick yourself.", ephemeral: true });
-		}
+		if (member.id === interaction.user.id) return interaction.reply({ content: "You can't kick yourself.", ephemeral: true });
 
 		await member
 			.kick(reason)
-			.then((m) => interaction.reply({ content: `Successfully ${bold('kicked')} ${m}.`, ephemeral: true }))
-			.catch((err) => {
+			.then(async (m) => await interaction.reply({ content: `Successfully ${bold('kicked')} ${m}.`, ephemeral: true }))
+			.catch(async (err) => {
 				console.error(err);
 				console.log(`Could not send a DM to ${member}.`);
-				interaction.followUp({ content: `Could not send a DM to ${member}.`, ephemeral: true });
+				await interaction.followUp({ content: `Could not send a DM to ${member}.`, ephemeral: true });
 			});
 	},
 };

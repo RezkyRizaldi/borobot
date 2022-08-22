@@ -8,10 +8,7 @@ module.exports = {
 	 * @param {import('discord.js').Message} message
 	 */
 	async execute(message) {
-		const botColor = await message.guild.members
-			.fetch(message.client.user.id)
-			.then((res) => res.displayHexColor)
-			.catch((err) => console.error(err));
+		const botColor = await message.guild.members.fetch(message.client.user.id).then((res) => res.displayHexColor);
 
 		const MessageLogger = new WebhookClient({
 			id: process.env.MESSAGE_WEBHOOK_ID,
@@ -30,7 +27,7 @@ module.exports = {
 			embed.setTitle('Message Deleted');
 			embed.setDescription(`A message was ${bold('deleted')} in ${message.channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
 
-			MessageLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
+			return MessageLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
 		}
 
 		embed.setDescription(`A message by ${message.author} was ${bold('deleted')} in ${message.channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);

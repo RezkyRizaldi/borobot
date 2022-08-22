@@ -16,12 +16,13 @@ module.exports = {
 			.fetch(client.user.id)
 			.then((res) => res.displayHexColor)
 			.catch((err) => console.error(err));
-		const textChannel = guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildText).size;
-		const voiceChannel = guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildVoice).size;
-		const channelCount = textChannel + voiceChannel;
-		const onlineMemberCount = guild.members.cache.filter((member) => member.presence !== null).size;
-		const emojiCount = guild.emojis.cache.size;
-		const roleCount = guild.roles.cache.size;
+		const categoryChannel = await guild.channels.fetch().then((c) => c.filter((channel) => channel.type === ChannelType.GuildCategory).size);
+		const textChannel = await guild.channels.fetch().then((c) => c.filter((channel) => channel.type === ChannelType.GuildText).size);
+		const voiceChannel = await guild.channels.fetch().then((c) => c.filter((channel) => channel.type === ChannelType.GuildVoice).size);
+		const onlineMemberCount = await guild.members.fetch({ withPresences: true }).then((m) => m.filter((member) => member.presence !== null).size);
+		const emojiCount = await guild.emojis.fetch().then((emoji) => emoji.size);
+		const roleCount = await guild.roles.fetch().then((role) => role.size);
+		const stickerCount = await guild.stickers.fetch().then((sticker) => sticker.size);
 		const inviteURLs = await guild.invites
 			.fetch()
 			.then((invites) =>
@@ -71,13 +72,13 @@ module.exports = {
 							inline: true,
 						},
 						{
-							name: `👥 Members${guild.memberCount > 0 ? ` (${guild.memberCount})` : ''}`,
+							name: `👥 Members${guild.memberCount > 0 && ` (${guild.memberCount})`}`,
 							value: `${pluralize('Online', onlineMemberCount, true)} | ${pluralize('Booster', guild.premiumSubscriptionCount, true)}`,
 							inline: true,
 						},
 						{
 							name: '😀 Emoji & Sticker',
-							value: `${pluralize('Emoji', emojiCount, true)} | ${pluralize('Sticker', guild.stickers.cache.size, true)}`,
+							value: `${pluralize('Emoji', emojiCount, true)} | ${pluralize('Sticker', stickerCount, true)}`,
 							inline: true,
 						},
 						{
@@ -85,8 +86,8 @@ module.exports = {
 							value: pluralize('Role', roleCount, true),
 						},
 						{
-							name: `💬 Channels${channelCount > 0 ? ` (${channelCount})` : ''}`,
-							value: `${textChannel} Text | ${voiceChannel} Voice\nRules Channel: ${guild.rulesChannel || italic('None')}\nSystem Channel: ${guild.systemChannel || italic('None')}\nPublic Updates Channel: ${
+							name: `💬 Channels${guild.channels.channelCountWithoutThreads > 0 && ` (${guild.channels.channelCountWithoutThreads})`}`,
+							value: `${categoryChannel} Category | ${textChannel} Text | ${voiceChannel} Voice\nRules Channel: ${guild.rulesChannel || italic('None')}\nSystem Channel: ${guild.systemChannel || italic('None')}\nPublic Updates Channel: ${
 								guild.publicUpdatesChannel || italic('None')
 							}\nAFK Channel: ${`${guild.afkChannel} (${applyAFKTimeout(guild.afkTimeout)})` || italic('None')}\nWidget Channel: ${guild.widgetChannel || italic('None')}`,
 						},

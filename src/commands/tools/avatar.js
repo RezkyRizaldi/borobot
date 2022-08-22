@@ -27,8 +27,8 @@ module.exports = {
 
 		await interaction
 			.deferReply({ fetchReply: true })
-			.then(() => interaction.editReply({ embeds: [embed] }))
+			.then(async () => await interaction.editReply({ embeds: [embed] }))
 			.catch((err) => console.error(err))
-			.finally(() => setTimeout(() => interaction.deleteReply(), 10000));
+			.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 	},
 };

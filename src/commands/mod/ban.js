@@ -58,21 +58,15 @@ module.exports = {
 		const deleteMessages = interaction.options.getInteger('delete_messages');
 		const reason = interaction.options.getString('reason') || 'No reason';
 
-		if (!member) {
-			return interaction.reply({ content: 'You must specify a member to ban.', ephemeral: true });
-		}
+		if (!member) return interaction.reply({ content: 'You must specify a member to ban.', ephemeral: true });
 
-		if (!member.bannable) {
-			return interaction.reply({ content: "You don't have appropiate permissions to ban this member.", ephemeral: true });
-		}
+		if (!member.bannable) return interaction.reply({ content: "You don't have appropiate permissions to ban this member.", ephemeral: true });
 
-		if (member.id === interaction.user.id) {
-			return interaction.reply({ content: "You can't ban yourself.", ephemeral: true });
-		}
+		if (member.id === interaction.user.id) return interaction.reply({ content: "You can't ban yourself.", ephemeral: true });
 
 		await member
 			.ban({ days: deleteMessages, reason })
-			.then((m) => interaction.reply({ content: `Successfully ${bold('banned')} ${m.user.tag}.`, ephemeral: true }))
+			.then(async (m) => await interaction.reply({ content: `Successfully ${bold('banned')} ${m.user.tag}.`, ephemeral: true }))
 			.catch((err) => console.error(err));
 	},
 };

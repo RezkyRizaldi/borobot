@@ -9,10 +9,7 @@ module.exports = {
 	 * @param {import('discord.js').CommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const botColor = await interaction.guild.members
-			.fetch(interaction.client.user.id)
-			.then((res) => res.displayHexColor)
-			.catch((err) => console.error(err));
+		const botColor = await interaction.guild.members.fetch(interaction.client.user.id).then((res) => res.displayHexColor);
 
 		const embed = new EmbedBuilder()
 			.setColor(botColor || 0xfcc9b9)
@@ -24,12 +21,12 @@ module.exports = {
 
 		await interaction
 			.deferReply({ fetchReply: true })
-			.then((message) => {
+			.then(async (message) => {
 				embed.setDescription(`API Latency: ${inlineCode(`${Math.round(interaction.client.ws.ping)}ms`)}\nClient Ping: ${inlineCode(`${message.createdTimestamp - interaction.createdTimestamp}ms`)}`);
 
-				interaction.editReply({ embeds: [embed] });
+				await interaction.editReply({ embeds: [embed] });
 			})
 			.catch((err) => console.error(err))
-			.finally(() => setTimeout(() => interaction.deleteReply(), 10000));
+			.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 	},
 };

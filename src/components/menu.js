@@ -5,7 +5,7 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {import('discord.js').CommandInteraction} interaction
+	 * @param {import('discord.js').SelectMenuInteraction} interaction
 	 */
 	async execute(interaction) {
 		await interaction.reply({

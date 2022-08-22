@@ -17,7 +17,7 @@ module.exports = (client) => {
 			const filePath = path.join(componentPath, file);
 			const component = require(filePath);
 
-			table.setTitle(`Components${componentFiles.length > 0 ? ` (${componentFiles.length})` : ''}`);
+			table.setTitle(`Components${componentFiles.length > 0 && ` (${componentFiles.length})`}`);
 			table.addRow(component.data.name, '✅');
 
 			components.set(component.data.name, component);

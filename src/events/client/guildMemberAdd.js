@@ -30,28 +30,31 @@ module.exports = {
 			console.log(`Could not send a DM to ${member.user.tag}`);
 		});
 
-		await member.roles.add(process.env.MEMBER_ROLE_ID).then(() => {
-			message.setColor(member.displayHexColor || 0xfcc9b9);
-			message.setThumbnail(user.displayAvatarURL({ dynamic: true }));
-			message.setFields([
-				{
-					name: '🆔 Member ID',
-					value: user.id,
-					inline: true,
-				},
-				{
-					name: '🎊 Account Created',
-					value: time(user.createdAt, TimestampStyles.RelativeTime),
-					inline: true,
-				},
-				{
-					name: '📆 Joined At',
-					value: time(member.joinedAt, TimestampStyles.RelativeTime),
-					inline: true,
-				},
-			]);
+		await member.roles
+			.add(process.env.MEMBER_ROLE_ID)
+			.then(async () => {
+				message.setColor(member.displayHexColor || 0xfcc9b9);
+				message.setThumbnail(user.displayAvatarURL({ dynamic: true }));
+				message.setFields([
+					{
+						name: '🆔 Member ID',
+						value: user.id,
+						inline: true,
+					},
+					{
+						name: '🎊 Account Created',
+						value: time(user.createdAt, TimestampStyles.RelativeTime),
+						inline: true,
+					},
+					{
+						name: '📆 Joined At',
+						value: time(member.joinedAt, TimestampStyles.RelativeTime),
+						inline: true,
+					},
+				]);
 
-			WelcomeLogger.send({ embeds: [message] });
-		});
+				await WelcomeLogger.send({ embeds: [message] });
+			})
+			.catch((err) => console.error(err));
 	},
 };
