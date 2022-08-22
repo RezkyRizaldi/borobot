@@ -1,5 +1,5 @@
 const Canvas = require('@napi-rs/canvas');
-const { AttachmentBuilder, EmbedBuilder } = require('discord.js');
+const { AttachmentBuilder, EmbedBuilder, WebhookClient } = require('discord.js');
 
 const { applyText } = require('../../utils');
 
@@ -15,19 +15,14 @@ module.exports = {
 		const { guild } = newMember;
 
 		const embed = new EmbedBuilder()
-			.setTitle('Welcome!')
-			.setAuthor({
-				name: 'Server Boosted',
-				iconURL: guild.iconURL({ dynamic: true, size: 512 }),
-			})
-			.setThumbnail(newMember.user.displayAvatarURL({ extension: 'jpg' }))
 			.setFooter({
-				text: `ID: ${newMember.id}`,
-				iconURL: newMember.user.displayAvatarURL({ extension: 'jpg' }),
+				text: newMember.client.user.username,
+				iconURL: newMember.client.user.displayAvatarURL({ dynamic: true }),
 			})
 			.setTimestamp(Date.now())
 			.setColor('#fcc9b9');
 
+		// If the member has boosted the server
 		if (!oldMember.premiumSince && newMember.premiumSince) {
 			const canvas = Canvas.createCanvas(700, 250);
 			const context = canvas.getContext('2d');
@@ -51,6 +46,11 @@ module.exports = {
 
 			const attachment = new AttachmentBuilder(await canvas.encode('png'), { name: 'nitro.png' });
 
+			embed.setAuthor({
+				name: 'Server Boosted',
+				iconURL: guild.iconURL({ dynamic: true }),
+			});
+			embed.setThumbnail(newMember.user.displayAvatarURL({ dynamic: true }));
 			embed.setDescription(`Welcome to test, ${newMember.displayName}!`);
 			embed.setImage('attachment://nitro.png');
 
@@ -61,6 +61,39 @@ module.exports = {
 				console.error(err);
 				console.log(`Could not send a DM to ${newMember.user.tag}.`);
 			});
+		}
+
+		// If the member roles have changed
+		const RoleAddLogger = new WebhookClient({
+			id: process.env.MEMBER_ROLE_ADD_WEBHOOK_ID,
+			token: process.env.MEMBER_ROLE_ADD_WEBHOOK_TOKEN,
+		});
+
+		const removedRoles = oldMember.roles.cache.filter((role) => !newMember.roles.cache.has(role.id));
+		if (removedRoles.size > 0) {
+			embed.setAuthor({
+				name: 'Roles Removed',
+				iconURL: oldMember.displayAvatarURL({ dynamic: true }),
+			});
+			embed.setDescription(`The roles ${removedRoles.map((role) => `${role}`).join(', ')} were removed from ${oldMember}.`);
+
+			return RoleAddLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
+		}
+
+		const RoleRemoveLogger = new WebhookClient({
+			id: process.env.MEMBER_ROLE_REMOVE_WEBHOOK_ID,
+			token: process.env.MEMBER_ROLE_REMOVE_WEBHOOK_TOKEN,
+		});
+
+		const addedRoles = newMember.roles.cache.filter((role) => !oldMember.roles.cache.has(role.id));
+		if (addedRoles.size > 0) {
+			embed.setAuthor({
+				name: 'Roles Added',
+				iconURL: newMember.displayAvatarURL({ dynamic: true }),
+			});
+			embed.setDescription(`The roles ${addedRoles.map((role) => `${role}`).join(', ')} were added to ${newMember}.`);
+
+			return RoleRemoveLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
 		}
 	},
 };

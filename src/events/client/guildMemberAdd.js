@@ -11,8 +11,8 @@ module.exports = {
 		const { user, guild } = member;
 
 		const WelcomeLogger = new WebhookClient({
-			id: process.env.WELCOME_WEBHOOK_ID,
-			token: process.env.WELCOME_WEBHOOK_TOKEN,
+			id: process.env.MEMBER_GUILD_WELCOME_WEBHOOK_ID,
+			token: process.env.MEMBER_GUILD_WELCOME_WEBHOOK_TOKEN,
 		});
 
 		const message = new EmbedBuilder()

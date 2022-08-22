@@ -11,8 +11,8 @@ module.exports = {
 		const botColor = await message.guild.members.fetch(message.client.user.id).then((res) => res.displayHexColor);
 
 		const MessageLogger = new WebhookClient({
-			id: process.env.MESSAGE_WEBHOOK_ID,
-			token: process.env.MESSAGE_WEBHOOK_TOKEN,
+			id: process.env.MESSAGE_DELETE_WEBHOOK_ID,
+			token: process.env.MESSAGE_DELETE_WEBHOOK_TOKEN,
 		});
 
 		const embed = new EmbedBuilder()

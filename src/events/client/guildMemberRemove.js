@@ -11,8 +11,8 @@ module.exports = {
 		const { user, guild } = member;
 
 		const LeaveLogger = new WebhookClient({
-			id: process.env.LEAVE_WEBHOOK_ID,
-			token: process.env.LEAVE_WEBHOOK_TOKEN,
+			id: process.env.MEMBER_GUILD_LEAVE_WEBHOOK_ID,
+			token: process.env.MEMBER_GUILD_LEAVE_WEBHOOK_TOKEN,
 		});
 
 		const message = new EmbedBuilder()

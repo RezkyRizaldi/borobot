@@ -22,7 +22,7 @@ module.exports = {
 		await interaction
 			.deferReply({ fetchReply: true })
 			.then(async (message) => {
-				embed.setDescription(`API Latency: ${inlineCode(`${Math.round(interaction.client.ws.ping)}ms`)}\nClient Ping: ${inlineCode(`${message.createdTimestamp - interaction.createdTimestamp}ms`)}`);
+				embed.setDescription(`Websocket heartbeat: ${inlineCode(`${Math.round(interaction.client.ws.ping)}ms`)}\nRoundtrip latency: ${inlineCode(`${message.createdTimestamp - interaction.createdTimestamp}ms`)}`);
 
 				await interaction.editReply({ embeds: [embed] });
 			})
