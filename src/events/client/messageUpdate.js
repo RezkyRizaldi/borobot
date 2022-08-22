@@ -34,6 +34,8 @@ module.exports = {
 				iconURL: client.user.displayAvatarURL({ dynamic: true }),
 			});
 
+		if (!oldMessage.guild) return;
+
 		if (oldMessage.partial || !oldMessage.author) {
 			embed.setTitle('Message Edited');
 			embed.setDescription(`A message was ${bold('edited')} in ${oldMessage.channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);

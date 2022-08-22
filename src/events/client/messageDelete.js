@@ -1,4 +1,4 @@
-const { bold, cleanCodeBlockContent, codeBlock, EmbedBuilder, Events, italic, time, TimestampStyles, WebhookClient, hyperlink } = require('discord.js');
+const { AuditLogEvent, bold, cleanCodeBlockContent, codeBlock, EmbedBuilder, Events, italic, time, TimestampStyles, WebhookClient, hyperlink } = require('discord.js');
 
 module.exports = {
 	name: Events.MessageDelete,
@@ -23,6 +23,8 @@ module.exports = {
 				iconURL: message.client.user.displayAvatarURL({ dynamic: true }),
 			});
 
+		if (!message.guild) return;
+
 		if (message.partial || !message.author) {
 			embed.setTitle('Message Deleted');
 			embed.setDescription(`A message was ${bold('deleted')} in ${message.channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
@@ -30,7 +32,14 @@ module.exports = {
 			return MessageLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
 		}
 
-		embed.setDescription(`A message by ${message.author} was ${bold('deleted')} in ${message.channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
+		const deleteLog = await message.guild
+			.fetchAuditLogs({
+				limit: 1,
+				type: AuditLogEvent.MessageDelete,
+			})
+			.then((audit) => audit.entries.first());
+
+		embed.setDescription(`A message from ${message.author} was ${bold('deleted')} by ${deleteLog.executor} in ${message.channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
 		embed.setFields({
 			name: 'Deleted Message',
 			value: message.content.includes('://') ? message.content : message.embeds.length > 0 || message.components.length > 0 ? italic('No Content, maybe an embed or component.') : codeBlock('css', cleanCodeBlockContent(message.content)),

@@ -1,4 +1,4 @@
-const { EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { bold, EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const pluralize = require('pluralize');
 
 module.exports = {
@@ -32,10 +32,7 @@ module.exports = {
 		if (!messages.first().deletable) {
 			response.setTitle('Something Went Wrong');
 			response.setDescription("You don't have appropiate permissions to delete messages.");
-			return interaction
-				.reply({ embeds: [response] })
-				.catch((err) => console.error(err))
-				.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
+			return interaction.reply({ embeds: [response], ephemeral: true }).catch((err) => console.error(err));
 		}
 
 		if (member) {
@@ -50,46 +47,38 @@ module.exports = {
 
 			if (filteredMessages.length > 50) {
 				response.setTitle('Amount Too Large');
-				response.setDescription('You can only delete up to 50 messages at a time.');
-				return interaction
-					.reply({ embeds: [response] })
-					.catch((err) => console.error(err))
-					.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
+				response.setDescription(`You can only delete up to ${bold('50')} messages at a time.`);
+				return interaction.reply({ embeds: [response], ephemeral: true }).catch((err) => console.error(err));
 			}
 
 			return channel
 				.bulkDelete(filteredMessages, true)
 				.then(async (msg) => {
 					response.setTitle('Message Deleted');
-					response.setDescription(`Deleted ${pluralize('message', msg.size, true)} from ${member}.`);
-					await interaction.reply({ embeds: [response] });
+					response.setDescription(`Deleted ${bold(`${msg.size}`)} ${pluralize('message', msg.size)} from ${member}.`);
+					await interaction.reply({ embeds: [response], ephemeral: true });
 				})
-				.catch((err) => console.error(err))
-				.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
+				.catch((err) => console.error(err));
 		}
 
 		if (amount > 50) {
 			response.setTitle('Amount Too Large');
-			response.setDescription('You can only delete up to 50 messages at a time.');
-			return interaction
-				.reply({ embeds: [response] })
-				.catch((err) => console.error(err))
-				.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
+			response.setDescription(`You can only delete up to ${bold('50')} messages at a time.`);
+			return interaction.reply({ embeds: [response], ephemeral: true }).catch((err) => console.error(err));
 		}
 
 		await channel
 			.bulkDelete(amount, true)
 			.then((msg) => {
 				response.setTitle('Message Deleted');
-				response.setDescription(`Deleted ${pluralize('message', msg.size, true)}.`);
-				interaction.reply({ embeds: [response] });
+				response.setDescription(`Deleted ${bold(`${msg.size}`)} ${pluralize('message', msg.size)}.`);
+				interaction.reply({ embeds: [response], ephemeral: true });
 			})
 			.catch((err) => {
 				console.error(err);
 				response.setTitle('Something Went Wrong');
 				response.setDescription(err.message);
-				interaction.reply({ embeds: [response] }).then(() => setTimeout(async () => await interaction.deleteReply(), 10000));
-			})
-			.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
+				interaction.reply({ embeds: [response], ephemeral: true });
+			});
 	},
 };

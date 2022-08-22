@@ -1,4 +1,4 @@
-const { bold, cleanCodeBlockContent, codeBlock, EmbedBuilder, Events, italic, time, TimestampStyles, WebhookClient } = require('discord.js');
+const { AuditLogEvent, bold, cleanCodeBlockContent, codeBlock, EmbedBuilder, Events, italic, time, TimestampStyles, WebhookClient } = require('discord.js');
 
 module.exports = {
 	name: Events.MessageBulkDelete,
@@ -26,6 +26,8 @@ module.exports = {
 				iconURL: messages.first().client.user.displayAvatarURL({ dynamic: true }),
 			});
 
+		if (!messages.first().guild) return;
+
 		if (messages.first().partial || !messages.first().author) {
 			embed.setTitle('Messages Deleted');
 			embed.setDescription(`${messages.size} messages was ${bold('deleted')} in ${messages.first().channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
@@ -33,11 +35,18 @@ module.exports = {
 			return MessageLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
 		}
 
+		const bulkDeleteLog = await messages
+			.first()
+			.guild.fetchAuditLogs({ limit: 1, type: AuditLogEvent.MessageBulkDelete })
+			.then((audit) => audit.entries.first());
+
 		embed.setAuthor({
 			name: 'Messages Deleted',
 			iconURL: messages.first().author.displayAvatarURL({ dynamic: true }),
 		});
-		embed.setDescription(`${messages.size} messages by ${messages.first().author} was ${bold('deleted')} in ${messages.first().channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
+		embed.setDescription(
+			`${messages.size} messages from ${messages.first().author} was ${bold('deleted')} by ${bulkDeleteLog.executor} in ${messages.first().channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`,
+		);
 		embed.setFields({
 			name: 'Deleted Messages',
 			value: messages

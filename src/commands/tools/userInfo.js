@@ -18,8 +18,8 @@ module.exports = {
 			: '' +
 					target.roles.cache
 						.map((role) => `${role}`)
-						.join(', ')
-						.replace(', @everyone', '') || italic('None');
+						.filter((r) => r !== interaction.guild.roles.everyone.name)
+						.join(', ') || italic('None');
 
 		const userClientStatus =
 			target.presence?.clientStatus &&

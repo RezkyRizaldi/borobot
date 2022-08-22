@@ -1,5 +1,6 @@
 const Canvas = require('@napi-rs/canvas');
-const { AttachmentBuilder, EmbedBuilder, WebhookClient } = require('discord.js');
+const { AttachmentBuilder, AuditLogEvent, EmbedBuilder, time, TimestampStyles, WebhookClient } = require('discord.js');
+const pluralize = require('pluralize');
 
 const { applyText } = require('../../utils');
 
@@ -64,36 +65,95 @@ module.exports = {
 		}
 
 		// If the member roles have changed
-		const RoleAddLogger = new WebhookClient({
-			id: process.env.MEMBER_ROLE_ADD_WEBHOOK_ID,
-			token: process.env.MEMBER_ROLE_ADD_WEBHOOK_TOKEN,
-		});
+		const roleLog = await guild.fetchAuditLogs({ type: AuditLogEvent.MemberRoleUpdate }).then((audit) => audit.entries.first());
 
-		const removedRoles = oldMember.roles.cache.filter((role) => !newMember.roles.cache.has(role.id));
-		if (removedRoles.size > 0) {
-			embed.setAuthor({
-				name: 'Roles Removed',
-				iconURL: oldMember.displayAvatarURL({ dynamic: true }),
+		if (roleLog.target.id === newMember.id) {
+			const RoleAddLogger = new WebhookClient({
+				id: process.env.MEMBER_ROLE_ADD_WEBHOOK_ID,
+				token: process.env.MEMBER_ROLE_ADD_WEBHOOK_TOKEN,
 			});
-			embed.setDescription(`The roles ${removedRoles.map((role) => `${role}`).join(', ')} were removed from ${oldMember}.`);
 
-			return RoleAddLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
+			const removedRoles = oldMember.roles.cache.filter((role) => !newMember.roles.cache.has(role.id));
+			if (removedRoles.size > 0) {
+				embed.setAuthor({
+					name: 'Roles Removed',
+					iconURL: oldMember.displayAvatarURL({ dynamic: true }),
+				});
+				embed.setDescription(
+					`The ${pluralize('role', removedRoles.size)} ${removedRoles.map((role) => `${role}`).join(', ')} have been removed from ${oldMember} by ${roleLog.executor} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}.`,
+				);
+
+				return RoleAddLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
+			}
+
+			const RoleRemoveLogger = new WebhookClient({
+				id: process.env.MEMBER_ROLE_REMOVE_WEBHOOK_ID,
+				token: process.env.MEMBER_ROLE_REMOVE_WEBHOOK_TOKEN,
+			});
+
+			const addedRoles = newMember.roles.cache.filter((role) => !oldMember.roles.cache.has(role.id));
+			if (addedRoles.size > 0) {
+				embed.setAuthor({
+					name: 'Roles Added',
+					iconURL: newMember.displayAvatarURL({ dynamic: true }),
+				});
+				embed.setDescription(
+					`The ${pluralize('role', removedRoles.size)} ${addedRoles.map((role) => `${role}`).join(', ')} have been added to ${newMember} by ${roleLog.executor} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}.`,
+				);
+
+				return RoleRemoveLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
+			}
 		}
 
-		const RoleRemoveLogger = new WebhookClient({
-			id: process.env.MEMBER_ROLE_REMOVE_WEBHOOK_ID,
-			token: process.env.MEMBER_ROLE_REMOVE_WEBHOOK_TOKEN,
-		});
+		// If the member timed out by a moderator
+		if (newMember.isCommunicationDisabled()) {
+			const TimeoutLogger = new WebhookClient({
+				id: process.env.MEMBER_GUILD_TIMEOUT_WEBHOOK_ID,
+				token: process.env.MEMBER_GUILD_TIMEOUT_WEBHOOK_TOKEN,
+			});
 
-		const addedRoles = newMember.roles.cache.filter((role) => !oldMember.roles.cache.has(role.id));
-		if (addedRoles.size > 0) {
+			const timeoutLog = await guild
+				.fetchAuditLogs({
+					limit: 1,
+					type: AuditLogEvent.MemberUpdate,
+				})
+				.then((audit) => audit.entries.first());
+
 			embed.setAuthor({
-				name: 'Roles Added',
+				name: 'Member Timed Out',
 				iconURL: newMember.displayAvatarURL({ dynamic: true }),
 			});
-			embed.setDescription(`The roles ${addedRoles.map((role) => `${role}`).join(', ')} were added to ${newMember}.`);
+			embed.setDescription(`${newMember} has been timed out by ${timeoutLog.executor} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
+			embed.setFields([
+				{
+					name: '📄 Reason',
+					value: timeoutLog.reason || 'No reason',
+				},
+			]);
 
-			return RoleRemoveLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
+			if (timeoutLog.target.id === newMember.id) return TimeoutLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
+		}
+
+		if (!newMember.isCommunicationDisabled()) {
+			const TimeoutRemoveLogger = new WebhookClient({
+				id: process.env.MEMBER_GUILD_TIMEOUT_REMOVE_WEBHOOK_ID,
+				token: process.env.MEMBER_GUILD_TIMEOUT_REMOVE_WEBHOOK_TOKEN,
+			});
+
+			const timeoutRemoveLog = await guild
+				.fetchAuditLogs({
+					limit: 1,
+					type: AuditLogEvent.MemberUpdate,
+				})
+				.then((audit) => audit.entries.first());
+
+			embed.setAuthor({
+				name: 'Member Timeout Removed',
+				iconURL: newMember.displayAvatarURL({ dynamic: true }),
+			});
+			embed.setDescription(`${newMember} timeout has been removed by ${timeoutRemoveLog.executor} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
+
+			if (timeoutRemoveLog.target.id === newMember.id) return TimeoutRemoveLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
 		}
 	},
 };
