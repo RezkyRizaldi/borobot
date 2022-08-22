@@ -54,40 +54,29 @@ module.exports = {
 			return interaction.reply({ content: 'You must specify a member to do a timeout.', ephemeral: true });
 		}
 
-		if (member.id === interaction.user.id) {
-			return interaction.reply({ content: "You can't timeout yourself.", ephemeral: true });
-		}
-
 		if (!member.moderatable) {
 			return interaction.reply({ content: "You don't have appropiate permissions to timeout this member.", ephemeral: true });
 		}
 
-		if (member.isCommunicationDisabled()) {
-			return interaction.reply({ content: `This member is already timeouted. Available back ${time(member.communicationDisabledUntil, TimestampStyles.RelativeTime)}`, ephemeral: true });
+		if (member.id === interaction.user.id) {
+			return interaction.reply({ content: "You can't timeout yourself.", ephemeral: true });
 		}
 
-		await interaction.guild.members
-			.fetch(member.id)
-			.then((m) => m.timeout(duration, reason))
-			.catch((err) => console.error(err));
+		if (member.isCommunicationDisabled()) {
+			return interaction.reply({ content: `This member is already timed out. Available back ${time(member.communicationDisabledUntil, TimestampStyles.RelativeTime)}`, ephemeral: true });
+		}
 
-		await interaction
-			.reply({ content: `Successfully timed out ${member}. Available back ${time(member.communicationDisabledUntil, TimestampStyles.RelativeTime)}.`, ephemeral: true })
-			.then(() =>
-				member
-					.send({
-						content: `You have been ${bold('timed out')} from ${bold(interaction.guild.name)} for ${inlineCode(reason)}. Come back ${time(member.communicationDisabledUntil, TimestampStyles.RelativeTime)}.`,
-					})
-					.then((msg) => {
-						setTimeout(() => {
-							msg.edit({ content: `You are now available back in ${bold(interaction.guild.name)}.` }).catch((err) => console.error(err));
-						}, member.communicationDisabledUntilTimestamp);
-					}),
-			)
+		await member
+			.timeout(duration, reason)
+			.then((m) => {
+				interaction.reply({ content: `Successfully ${bold('timed out')} ${m}. Available back ${time(m.communicationDisabledUntil, TimestampStyles.RelativeTime)}.`, ephemeral: true });
+
+				m.send({ content: `You have been ${bold('timed out')} from ${bold(interaction.guild.name)} for ${inlineCode(reason)}.` });
+			})
 			.catch((err) => {
 				console.error(err);
-				console.log(`Could not send a DM to ${member.user.tag}.`);
-				interaction.followUp({ content: `Could not send a DM to ${member.user.tag}.`, ephemeral: true });
+				console.log(`Could not send a DM to ${member}.`);
+				interaction.followUp({ content: `Could not send a DM to ${member}.`, ephemeral: true });
 			});
 	},
 };

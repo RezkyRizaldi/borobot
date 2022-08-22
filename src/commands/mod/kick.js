@@ -1,4 +1,4 @@
-const { bold, inlineCode, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { bold, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -21,30 +21,21 @@ module.exports = {
 			return interaction.reply({ content: 'You must specify a member to kick.', ephemeral: true });
 		}
 
+		if (!member.kickable) {
+			return interaction.reply({ content: "You don't have appropiate permissions to kick this member.", ephemeral: true });
+		}
+
 		if (member.id === interaction.user.id) {
 			return interaction.reply({ content: "You can't kick yourself.", ephemeral: true });
 		}
 
-		if (!member.kickable) {
-			return interaction.reply({ content: 'You cannot kick this member.', ephemeral: true });
-		}
-
-		await interaction.guild.members
-			.fetch(member.id)
-			.then((m) => m.kick(reason))
-			.catch((err) => console.error(err));
-
-		await interaction
-			.reply({ content: `Successfully kicked ${member.tag}.`, ephemeral: true })
-			.then(() =>
-				member.send({
-					content: `You have been ${bold('kicked')} from ${interaction.guild.name} for ${inlineCode(reason)}.`,
-				}),
-			)
+		await member
+			.kick(reason)
+			.then((m) => interaction.reply({ content: `Successfully ${bold('kicked')} ${m}.`, ephemeral: true }))
 			.catch((err) => {
 				console.error(err);
-				console.log(`Could not send a DM to ${member.tag}.`);
-				interaction.followUp({ content: `Could not send a DM to ${member.tag}.`, ephemeral: true });
+				console.log(`Could not send a DM to ${member}.`);
+				interaction.followUp({ content: `Could not send a DM to ${member}.`, ephemeral: true });
 			});
 	},
 };

@@ -38,7 +38,7 @@ module.exports = {
 				},
 				{
 					name: '🕒 Left At',
-					value: time(Date.now(), TimestampStyles.RelativeTime),
+					value: time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime),
 					inline: true,
 				},
 			]);

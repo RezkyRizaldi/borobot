@@ -1,4 +1,4 @@
-const { bold, inlineCode, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { bold, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -46,7 +46,7 @@ module.exports = {
 				)
 				.setRequired(true),
 		)
-		.addStringOption((option) => option.setName('reason').setDescription('The reason for baning the member.')),
+		.addStringOption((option) => option.setName('reason').setDescription('The reason for banning the member.')),
 	type: 'Chat Input',
 
 	/**
@@ -62,30 +62,17 @@ module.exports = {
 			return interaction.reply({ content: 'You must specify a member to ban.', ephemeral: true });
 		}
 
+		if (!member.bannable) {
+			return interaction.reply({ content: "You don't have appropiate permissions to ban this member.", ephemeral: true });
+		}
+
 		if (member.id === interaction.user.id) {
 			return interaction.reply({ content: "You can't ban yourself.", ephemeral: true });
 		}
 
-		if (!member.bannable) {
-			return interaction.reply({ content: 'You cannot ban this member.', ephemeral: true });
-		}
-
-		await interaction.guild.members
-			.fetch(member.id)
-			.then((m) => m.ban({ deleteMessageDays: deleteMessages, reason }))
+		await member
+			.ban({ days: deleteMessages, reason })
+			.then((m) => interaction.reply({ content: `Successfully ${bold('banned')} ${m.user.tag}.`, ephemeral: true }))
 			.catch((err) => console.error(err));
-
-		await interaction
-			.reply({ content: `Successfully banned ${member.tag}.`, ephemeral: true })
-			.then(() =>
-				member.send({
-					content: `You have been ${bold('banned')} from ${bold(interaction.guild.name)} for ${inlineCode(reason)}.`,
-				}),
-			)
-			.catch((err) => {
-				console.error(err);
-				console.log(`Could not send a DM to ${member.tag}.`);
-				interaction.followUp({ content: `Could not send a DM to ${member.tag}.`, ephemeral: true });
-			});
 	},
 };
