@@ -1,7 +1,13 @@
-const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('permission').setDescription("This command requires the 'ADMINISTRATOR' permission.").setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+	type: 'Chat Input',
+
+	/**
+	 *
+	 * @param {CommandInteraction} interaction
+	 */
 	async execute(interaction) {
 		const { roles } = interaction.member;
 		const role = await interaction.guild.roles.fetch('792656317906157588').catch((err) => console.error(err));

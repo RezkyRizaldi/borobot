@@ -1,25 +1,29 @@
+const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 require('dotenv').config();
-const { Client, Collection } = require('discord.js');
 const fs = require('fs');
+const path = require('path');
 
-const client = new Client({ intents: 32767 });
+const { GuildBans, GuildInvites, GuildMembers, GuildMessages, GuildPresences, Guilds, MessageContent } = GatewayIntentBits;
+const { GuildMember, Message } = Partials;
+const client = new Client({ intents: [GuildBans, GuildInvites, GuildMembers, GuildMessages, GuildPresences, Guilds, MessageContent], partials: [Message, GuildMember] });
 client.commands = new Collection();
-client.buttons = new Collection();
-client.selectMenus = new Collection();
-client.modals = new Collection();
+client.components = new Collection();
 client.commandArray = [];
 
-const funcFolders = fs.readdirSync('./src/functions');
+const funcPath = path.join(__dirname, 'functions');
+const funcFolders = fs.readdirSync(funcPath);
 for (const folder of funcFolders) {
-	const funcFiles = fs.readdirSync(`./src/functions/${folder}`).filter((file) => file.endsWith('.js'));
+	const funcSubPath = path.join(funcPath, folder);
+	const funcFiles = fs.readdirSync(funcSubPath).filter((file) => file.endsWith('.js'));
 	for (const file of funcFiles) {
-		require(`./functions/${folder}/${file}`)(client);
+		const filePath = path.join(funcSubPath, file);
+		require(filePath)(client);
 	}
 }
 
 client
 	.handleEvents()
-	.then(() => client.handleCommands())
 	.then(() => client.handleComponents())
+	.then(() => client.handleCommands())
 	.then(() => client.login(process.env.token))
 	.catch((err) => console.error(err));

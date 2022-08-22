@@ -1,40 +1,43 @@
-const Ascii = require('ascii-table');
+const AsciiTable = require('ascii-table');
+const { Events } = require('discord.js');
 const fs = require('fs');
+const path = require('path');
 
-const { Events } = require('../../constants/Events');
-
+/**
+ *
+ * @param {import('discord.js').Client} client
+ */
 module.exports = (client) => {
 	client.handleEvents = async () => {
-		const table = new Ascii();
-		table.setHeading('No.', 'Name', 'Status');
-		const eventFolders = fs.readdirSync('./src/events');
+		const table = new AsciiTable('Events');
+		table.setHeading('Name', 'Instance', 'Status');
+		let total;
+		const eventPath = path.join(__dirname, '..', '..', 'events');
+		const eventFolders = fs.readdirSync(eventPath);
 		for (const folder of eventFolders) {
-			const eventFiles = fs.readdirSync(`./src/events/${folder}`).filter((file) => file.endsWith('.js'));
+			const eventSubPath = path.join(eventPath, folder);
+			const eventFiles = fs.readdirSync(eventSubPath).filter((file) => file.endsWith('.js'));
 			switch (folder) {
 				case 'client':
 					for (const file of eventFiles) {
-						const event = require(`../../events/${folder}/${file}`);
+						const filePath = path.join(eventSubPath, file);
+						const event = require(filePath);
 
-						if (!Events.includes(event.name)) {
-							table.addRow(`${eventFiles.indexOf(file) + 1}.`, event.name || file, '❌ -> invalid event name.');
+						if (!event.name in Events || !event.name) {
+							table.addRow(`${eventFiles.indexOf(file) + 1}.`, event.name || file, `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`, '❌ -> invalid event name.');
 							continue;
 						}
 
-						if (event.once) {
-							client.once(event.name, (...args) => event.execute(...args, client));
-						} else {
-							client.on(event.name, (...args) => event.execute(...args, client));
-						}
+						event.once ? client.once(event.name, (...args) => event.execute(...args, client)) : client.on(event.name, (...args) => event.execute(...args, client));
 
-						table.addRow(`${eventFiles.indexOf(file) + 1}.`, event.name, '✅');
+						total = eventFiles.length;
+						table.addRow(event.name, `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`, '✅');
 					}
-
-					console.log(table.toString());
-					break;
-
-				default:
 					break;
 			}
 		}
+
+		table.setTitle(`Events ${total > 0 && `(${total})`}`);
+		console.log(table.toString());
 	};
 };

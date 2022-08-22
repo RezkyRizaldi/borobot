@@ -1,98 +1,55 @@
-const { InteractionType } = require('discord.js');
+const { Events, InteractionType } = require('discord.js');
 
 module.exports = {
-	name: 'interactionCreate',
+	name: Events.InteractionCreate,
+
+	/**
+	 *
+	 * @param {import('discord.js').CommandInteraction} interaction
+	 * @param {import('discord.js').Client} client
+	 */
 	async execute(interaction, client) {
-		if (interaction.isChatInputCommand()) {
-			const { commands } = client;
-			const { commandName } = interaction;
-			const command = commands.get(commandName);
-			if (!command) {
-				await interaction.reply({ content: 'Command not found.', ephemeral: true });
-				return console.error(`Command not found: ${commandName}`);
-			}
+		return {
+			[InteractionType.ApplicationCommand]: async () => {
+				const command = client.commands.get(interaction.commandName);
 
-			try {
-				await command.execute(interaction, client);
-			} catch (error) {
-				console.error(error);
-				await interaction.reply({ content: 'There was an error while executing this command.', ephemeral: true });
-			}
-		} else if (interaction.isButton()) {
-			const { buttons } = client;
-			const { customId } = interaction;
-			const command = buttons.get(customId);
-			if (!command) {
-				await interaction.reply({ content: 'Button not found.', ephemeral: true });
-				return console.error(`Button not found: ${customId}`);
-			}
+				if (!command) return interaction.reply({ content: 'Command not found', ephemeral: true });
 
-			try {
-				await command.execute(interaction, client);
-			} catch (error) {
-				console.error(error);
-				await interaction.reply({ content: 'There was an error while executing this button.', ephemeral: true });
-			}
-		} else if (interaction.isSelectMenu()) {
-			const { selectMenus } = client;
-			const { customId } = interaction;
-			const command = selectMenus.get(customId);
-			if (!command) {
-				await interaction.reply({ content: 'Select menu not found.', ephemeral: true });
-				return console.error(`Select menu not found: ${customId}`);
-			}
+				await command.execute(interaction).catch(async (err) => {
+					console.error(err);
+					await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+				});
+			},
+			[InteractionType.MessageComponent]: async () => {
+				const component = client.components.get(interaction.customId);
 
-			try {
-				await command.execute(interaction, client);
-			} catch (error) {
-				console.error(error);
-				await interaction.reply({ content: 'There was an error while executing this select menu.', ephemeral: true });
-			}
-		} else if (interaction.type === InteractionType.ModalSubmit) {
-			const { modals } = client;
-			const { customId } = interaction;
-			const command = modals.get(customId);
-			if (!command) {
-				await interaction.reply({ content: 'Modal not found.', ephemeral: true });
-				return console.error(`Modal not found: ${customId}`);
-			}
+				if (!component) return interaction.reply({ content: 'Component not found', ephemeral: true });
 
-			try {
-				await command.execute(interaction, client);
-			} catch (error) {
-				console.error(error);
-				await interaction.reply({ content: 'There was an error while executing this modal.', ephemeral: true });
-			}
-		} else if (interaction.isContextMenuCommand()) {
-			const { commands } = client;
-			const { commandName } = interaction;
-			const command = commands.get(commandName);
-			if (!command) {
-				await interaction.reply({ content: 'Context menu not found.', ephemeral: true });
-				return console.error(`Context menu not found: ${commandName}`);
-			}
+				await component.execute(interaction).catch(async (err) => {
+					console.error(err);
+					await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+				});
+			},
+			[InteractionType.ApplicationCommandAutocomplete]: async () => {
+				const autocomplete = client.commands.get(interaction.commandName);
 
-			try {
-				await command.execute(interaction, client);
-			} catch (error) {
-				console.error(error);
-				await interaction.reply({ content: 'There was an error while executing this context menu.', ephemeral: true });
-			}
-		} else if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
-			const { commands } = client;
-			const { commandName } = interaction;
-			const command = commands.get(commandName);
-			if (!command) {
-				await interaction.reply({ content: 'Autocomplete not found.', ephemeral: true });
-				return console.error(`Autocomplete not found: ${commandName}`);
-			}
+				if (!autocomplete) return interaction.reply({ content: 'Autocomplete not found', ephemeral: true });
 
-			try {
-				await command.autocomplete(interaction, client);
-			} catch (error) {
-				console.error(error);
-				await interaction.reply({ content: 'There was an error while executing this autocomplete.', ephemeral: true });
-			}
-		}
+				await autocomplete.execute(interaction).catch(async (err) => {
+					console.error(err);
+					await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+				});
+			},
+			[InteractionType.ModalSubmit]: async () => {
+				const modal = client.components.get(interaction.customId);
+
+				if (!modal) return interaction.reply({ content: 'Modal not found', ephemeral: true });
+
+				await modal.execute(interaction).catch(async (err) => {
+					console.error(err);
+					await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+				});
+			},
+		}[interaction.type]();
 	},
 };

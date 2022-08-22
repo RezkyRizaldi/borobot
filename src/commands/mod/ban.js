@@ -1,40 +1,72 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { bold, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('ban')
 		.setDescription('Ban a member from the server.')
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addUserOption((option) => option.setName('member').setDescription('The member to ban.').setRequired(true))
-		.addStringOption((option) => option.setName('reason').setDescription('The reason for baning the member.')),
+		.addIntegerOption((option) =>
+			option
+				.setName('delete_messages')
+				.setDescription('The number of member recent message history to delete.')
+				.addChoices(
+					{
+						name: "Don't Delete Any",
+						value: 0,
+					},
+					{
+						name: 'Previous 1 Day',
+						value: 1,
+					},
+					{
+						name: 'Previous 2 Days',
+						value: 2,
+					},
+					{
+						name: 'Previous 3 Days',
+						value: 3,
+					},
+					{
+						name: 'Previous 4 Days',
+						value: 4,
+					},
+					{
+						name: 'Previous 5 Days',
+						value: 5,
+					},
+					{
+						name: 'Previous 6 Days',
+						value: 6,
+					},
+					{
+						name: 'Previous 7 Days',
+						value: 7,
+					},
+				)
+				.setRequired(true),
+		)
+		.addStringOption((option) => option.setName('reason').setDescription('The reason for banning the member.')),
+	type: 'Chat Input',
+
+	/**
+	 *
+	 * @param {import('discord.js').ChatInputCommandInteraction} interaction
+	 */
 	async execute(interaction) {
-		const user = interaction.options.getUser('member');
-		let reason = interaction.options.getString('reason') || 'No reason provided';
-		const member = await interaction.guild.members.fetch(user.id).catch((err) => console.error(err));
+		const member = interaction.options.getMember('member');
+		const deleteMessages = interaction.options.getInteger('delete_messages');
+		const reason = interaction.options.getString('reason') || 'No reason';
 
-		if (!user) {
-			await interaction.reply({ content: 'You must specify a member to ban.', ephemeral: true });
-			return;
-		}
+		if (!member) return interaction.reply({ content: 'You must specify a member to ban.', ephemeral: true });
 
-		if (!user.bannable) {
-			await interaction.reply({ content: 'You cannot ban this member.', ephemeral: true });
-			return;
-		}
+		if (!member.bannable) return interaction.reply({ content: "You don't have appropiate permissions to ban this member.", ephemeral: true });
+
+		if (member.id === interaction.user.id) return interaction.reply({ content: "You can't ban yourself.", ephemeral: true });
 
 		await member
-			.ban({
-				deleteMessageDays: 1,
-				reason,
-			})
+			.ban({ days: deleteMessages, reason })
+			.then(async (m) => await interaction.reply({ content: `Successfully ${bold('banned')} ${m.user.tag}.`, ephemeral: true }))
 			.catch((err) => console.error(err));
-		await interaction.reply({ content: `Successfully banned ${user.tag}.`, ephemeral: true });
-		await user
-			.send({
-				content: `You have been banned from ${interaction.guild.name} for ${reason}.`,
-			})
-			.catch((err) => {
-				console.error(err);
-				console.log(`Could not send a DM to ${user.tag}.`);
-			});
 	},
 };

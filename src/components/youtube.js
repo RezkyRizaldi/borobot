@@ -2,7 +2,12 @@ module.exports = {
 	data: {
 		name: 'youtube',
 	},
-	async execute(interaction, client) {
+
+	/**
+	 *
+	 * @param {import('discord.js').ButtonInteraction} interaction
+	 */
+	async execute(interaction) {
 		await interaction.reply({
 			content: 'https://youtube.com/c/NotReallyClips',
 		});

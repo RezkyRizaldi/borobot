@@ -2,19 +2,25 @@
 	"name": "borobot-v2",
 	"version": "1.0.0",
 	"description": "A simple Discord Bot build with discord.js v14",
-	"main": "src/index.js",
+	"main": "./src/index.js",
 	"scripts": {
-		"test": "node ."
+		"test": "nodemon ."
 	},
 	"keywords": [],
 	"author": "Muhamad Rezky Rizaldi",
 	"license": "ISC",
 	"dependencies": {
 		"@discordjs/rest": "^1.0.1",
+		"@napi-rs/canvas": "^0.1.28",
 		"ascii-table": "^0.0.9",
 		"chalk": "^5.0.1",
-		"discord-api-types": "^0.37.2",
+		"discord-api-types": "^0.37.3",
 		"discord.js": "^14.2.0",
-		"dotenv": "^16.0.1"
+		"dotenv": "^16.0.1",
+		"pluralize": "^8.0.0"
+	},
+	"devDependencies": {
+		"eslint": "^8.22.0",
+		"nodemon": "^2.0.19"
 	}
 }

@@ -1,22 +1,30 @@
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
-	data: new SlashCommandBuilder().setName('embed').setDescription('Send an embed'),
-	async execute(interaction, client) {
+	data: new SlashCommandBuilder().setName('embed').setDescription('Send an embed.'),
+	type: 'Chat Input',
+
+	/**
+	 *
+	 * @param {import('discord.js').CommandInteraction} interaction
+	 */
+	async execute(interaction) {
+		const botColor = await interaction.guild.members.fetch(interaction.client.user.id).then((res) => res.displayHexColor);
+
 		const embed = new EmbedBuilder()
 			.setTitle('Test Embed')
-			.setDescription('This is a test embed')
-			.setColor(0xfcc9b9)
-			.setImage(client.user.displayAvatarURL({ dynamic: true }))
-			.setThumbnail(client.user.displayAvatarURL({ dynamic: true }))
+			.setDescription('This is a test embed.')
+			.setColor(botColor || 0xfcc9b9)
+			.setImage(interaction.client.user.displayAvatarURL({ dynamic: true }))
+			.setThumbnail(interaction.client.user.displayAvatarURL({ dynamic: true }))
 			.setAuthor({
-				name: client.user.username,
-				iconURL: client.user.displayAvatarURL({ dynamic: true }),
+				name: interaction.client.user.username,
+				iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
 				url: 'https://youtube.com/c/NotReallyClips',
 			})
 			.setFooter({
-				text: client.user.tag,
-				iconURL: client.user.displayAvatarURL({ dynamic: true }),
+				text: interaction.client.user.tag,
+				iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
 			})
 			.setURL('https://youtube.com/c/NotReallyClips')
 			.setTimestamp(Date.now())

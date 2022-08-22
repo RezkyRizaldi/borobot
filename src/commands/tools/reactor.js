@@ -2,12 +2,15 @@ const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('reactor').setDescription('Reacts to the message you reply to with the emoji you provide.'),
+	type: 'Chat Input',
+
+	/**
+	 *
+	 * @param {import('discord.js').CommandInteraction} interaction
+	 */
 	async execute(interaction) {
 		const message = await interaction.reply({ content: 'React here!', fetchReply: true });
-
-		const filter = (user) => {
-			return user.id === interaction.user.id;
-		};
+		const filter = (user) => user.id === interaction.user.id;
 
 		message
 			.awaitReactions({ filter, max: 4, time: 10000, errors: ['time'] })

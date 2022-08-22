@@ -1,35 +1,35 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { bold, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('kick')
 		.setDescription('Kick a member from the server.')
+		.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
 		.addUserOption((option) => option.setName('member').setDescription('The member to kick.').setRequired(true))
 		.addStringOption((option) => option.setName('reason').setDescription('The reason for kicking the member.')),
+	type: 'Chat Input',
+
+	/**
+	 *
+	 * @param {import('discord.js').ChatInputCommandInteraction} interaction
+	 */
 	async execute(interaction) {
-		const user = interaction.options.getUser('member');
-		let reason = interaction.options.getString('reason') || 'No reason provided';
-		const member = await interaction.guild.members.fetch(user.id).catch((err) => console.error(err));
+		const member = interaction.options.getMember('member');
+		const reason = interaction.options.getString('reason') || 'No reason';
 
-		if (!user) {
-			await interaction.reply({ content: 'You must specify a member to kick.', ephemeral: true });
-			return;
-		}
+		if (!member) return interaction.reply({ content: 'You must specify a member to kick.', ephemeral: true });
 
-		if (!user.kickable) {
-			await interaction.reply({ content: 'You cannot kick this member.', ephemeral: true });
-			return;
-		}
+		if (!member.kickable) return interaction.reply({ content: "You don't have appropiate permissions to kick this member.", ephemeral: true });
 
-		await member.kick(reason).catch((err) => console.error(err));
-		await interaction.reply({ content: `Successfully kicked ${user.tag}.`, ephemeral: true });
-		await user
-			.send({
-				content: `You have been kicked from ${interaction.guild.name} for ${reason}.`,
-			})
-			.catch((err) => {
+		if (member.id === interaction.user.id) return interaction.reply({ content: "You can't kick yourself.", ephemeral: true });
+
+		await member
+			.kick(reason)
+			.then(async (m) => await interaction.reply({ content: `Successfully ${bold('kicked')} ${m}.`, ephemeral: true }))
+			.catch(async (err) => {
 				console.error(err);
-				console.log(`Could not send a DM to ${user.tag}.`);
+				console.log(`Could not send a DM to ${member}.`);
+				await interaction.followUp({ content: `Could not send a DM to ${member}.`, ephemeral: true });
 			});
 	},
 };

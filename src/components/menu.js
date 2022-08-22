@@ -2,7 +2,12 @@ module.exports = {
 	data: {
 		name: 'menu',
 	},
-	async execute(interaction, client) {
+
+	/**
+	 *
+	 * @param {import('discord.js').SelectMenuInteraction} interaction
+	 */
+	async execute(interaction) {
 		await interaction.reply({
 			content: `You selected ${interaction.values[0]}`,
 		});
