@@ -15,6 +15,7 @@ module.exports = (client) => {
 		const { commands, commandArray } = client;
 		const commandPath = path.join(__dirname, '..', '..', 'commands');
 		const commandFolders = fs.readdirSync(commandPath);
+		const arr = [];
 		for (const folder of commandFolders) {
 			const commandSubPath = path.join(commandPath, folder);
 			const commandFiles = fs.readdirSync(commandSubPath).filter((file) => file.endsWith('.js'));
@@ -23,11 +24,12 @@ module.exports = (client) => {
 				const command = require(filePath);
 				commands.set(command.data.name, command);
 				commandArray.push(command.data.toJSON());
-				table.setTitle(`Commands${file.length > 0 && ` (${file.length})`}`);
 				table.addRow(command.data.name || file, folder, command.type || 'None', '✅');
 				table.sort((a, b) => a[0].localeCompare(b[0]));
 			}
+			arr.push(commandFiles);
 		}
+		table.setTitle(`Commands${arr.flat().length > 0 && ` (${arr.flat().length})`}`);
 		console.log(table.toString());
 
 		const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);

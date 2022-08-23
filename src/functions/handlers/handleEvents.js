@@ -1,5 +1,6 @@
 const AsciiTable = require('ascii-table');
 const { Events } = require('discord.js');
+const { Events: DistubeEvents } = require('distube');
 const fs = require('fs');
 const path = require('path');
 
@@ -23,16 +24,33 @@ module.exports = (client) => {
 						const filePath = path.join(eventSubPath, file);
 						const event = require(filePath);
 
-						if (!event.name in Events || !event.name) {
-							table.addRow(`${eventFiles.indexOf(file) + 1}.`, event.name || file, `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`, '❌ -> invalid event name.');
+						if (!Object.values(Events).includes(event.name) || !event.name) {
+							table.addRow(event.name || file, `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`, '❌ -> invalid event name.');
 							continue;
 						}
 
 						event.once ? client.once(event.name, (...args) => event.execute(...args, client)) : client.on(event.name, (...args) => event.execute(...args, client));
 
-						total = eventFiles.length;
 						table.addRow(event.name, `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`, '✅');
 					}
+					total = eventFiles.length;
+					break;
+
+				case 'distube':
+					for (const file of eventFiles) {
+						const filePath = path.join(eventSubPath, file);
+						const event = require(filePath);
+
+						if (!Object.values(DistubeEvents).includes(event.name) || !event.name) {
+							table.addRow(event.name || file, `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`, '❌ -> invalid event name.');
+							continue;
+						}
+
+						client.distube.on(event.name, (...args) => event.execute(...args, client));
+
+						table.addRow(event.name, `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`, '✅');
+					}
+					total += eventFiles.length;
 					break;
 			}
 		}
