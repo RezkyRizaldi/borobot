@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, inlineCode } = require('discord.js');
 const { Events: DistubeEvents } = require('distube');
 
 module.exports = {
@@ -10,6 +10,18 @@ module.exports = {
 	 * @param {import('distube').Song} song
 	 */
 	async execute(queue, song) {
-		await queue.textChannel.send({ embeds: [new EmbedBuilder().setColor('Red').setDescription(`Added ${song.name} - \`${song.formattedDuration}\` to the queue by ${song.user}`)] });
+		const embed = new EmbedBuilder()
+			.setColor(0xfcc9b9)
+			.setTimestamp(Date.now())
+			.setDescription(`${inlineCode(song.name)} has been added to the queue by ${song.user}.`)
+			.setAuthor({
+				name: '🔃 Queue Added',
+			})
+			.setFooter({
+				text: queue.client.user.username,
+				iconURL: queue.client.user.displayAvatarURL({ dynamic: true }),
+			});
+
+		await queue.textChannel.send({ embeds: [embed] });
 	},
 };
