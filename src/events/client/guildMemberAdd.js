@@ -32,8 +32,8 @@ module.exports = {
 
 		await member.roles
 			.add(process.env.MEMBER_ROLE_ID)
-			.then(async () => {
-				message.setColor(member.displayHexColor || 0xfcc9b9);
+			.then(async (m) => {
+				message.setColor(m.displayHexColor || 0xfcc9b9);
 				message.setThumbnail(user.displayAvatarURL({ dynamic: true }));
 				message.setFields([
 					{
@@ -48,7 +48,7 @@ module.exports = {
 					},
 					{
 						name: '📆 Joined At',
-						value: time(member.joinedAt, TimestampStyles.RelativeTime),
+						value: time(m.joinedAt, TimestampStyles.RelativeTime),
 						inline: true,
 					},
 				]);

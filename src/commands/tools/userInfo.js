@@ -80,7 +80,7 @@ module.exports = {
 				},
 				{
 					name: '🚀 Nitro Status',
-					value: target.premiumSince ? `Boosting since ${time(target.premiumSinceTimestamp, TimestampStyles.RelativeTime)}` : 'Not Boosting',
+					value: target.premiumSince ? `Boosting since ${time(new Date(target.premiumSinceTimestamp), TimestampStyles.RelativeTime)}` : 'Not Boosting',
 					inline: true,
 				},
 				{

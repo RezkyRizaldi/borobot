@@ -16,9 +16,9 @@ module.exports = {
 			.fetch(client.user.id)
 			.then((res) => res.displayHexColor)
 			.catch((err) => console.error(err));
-		const categoryChannel = await guild.channels.fetch().then((c) => c.filter((channel) => channel.type === ChannelType.GuildCategory).size);
-		const textChannel = await guild.channels.fetch().then((c) => c.filter((channel) => channel.type === ChannelType.GuildText).size);
-		const voiceChannel = await guild.channels.fetch().then((c) => c.filter((channel) => channel.type === ChannelType.GuildVoice).size);
+		const categoryChannelCount = await guild.channels.fetch().then((c) => c.filter((channel) => channel.type === ChannelType.GuildCategory).size);
+		const textChannelCount = await guild.channels.fetch().then((c) => c.filter((channel) => channel.type === ChannelType.GuildText).size);
+		const voiceChannelCount = await guild.channels.fetch().then((c) => c.filter((channel) => channel.type === ChannelType.GuildVoice).size);
 		const onlineMemberCount = await guild.members.fetch({ withPresences: true }).then((m) => m.filter((member) => member.presence !== null).size);
 		const emojiCount = await guild.emojis.fetch().then((emoji) => emoji.size);
 		const roleCount = await guild.roles.fetch().then((role) => role.size);
@@ -87,9 +87,11 @@ module.exports = {
 						},
 						{
 							name: `💬 Channels${guild.channels.channelCountWithoutThreads > 0 && ` (${guild.channels.channelCountWithoutThreads})`}`,
-							value: `${categoryChannel} Category | ${textChannel} Text | ${voiceChannel} Voice\nRules Channel: ${guild.rulesChannel || italic('None')}\nSystem Channel: ${guild.systemChannel || italic('None')}\nPublic Updates Channel: ${
-								guild.publicUpdatesChannel || italic('None')
-							}\nAFK Channel: ${`${guild.afkChannel} (${applyAFKTimeout(guild.afkTimeout)})` || italic('None')}\nWidget Channel: ${guild.widgetChannel || italic('None')}`,
+							value: `${categoryChannelCount} Category | ${textChannelCount} Text | ${voiceChannelCount} Voice\nRules Channel: ${guild.rulesChannel || italic('None')}\nSystem Channel: ${
+								guild.systemChannel || italic('None')
+							}\nPublic Updates Channel: ${guild.publicUpdatesChannel || italic('None')}\nAFK Channel: ${`${guild.afkChannel} (${applyAFKTimeout(guild.afkTimeout)})` || italic('None')}\nWidget Channel: ${
+								guild.widgetChannel || italic('None')
+							}`,
 						},
 						{
 							name: '🔮 Features',
