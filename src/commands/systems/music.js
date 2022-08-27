@@ -71,7 +71,14 @@ module.exports = {
 	 */
 	async execute(interaction) {
 		const { options, member, guild, channel } = interaction;
-		const voiceChannel = member.voice.channel;
+
+		/** @type {{ voice: import('discord.js').VoiceState }} */
+		const { voice } = member;
+
+		const voiceChannel = voice.channel;
+
+		/** @type {{ distube: import('distube').DisTube }} */
+		const { distube } = interaction.client;
 
 		const musicChannel = await interaction.guild.channels.fetch(process.env.CHANNEL_MUSIC_COMMAND_ID).then((ch) => ch);
 
@@ -91,15 +98,16 @@ module.exports = {
 
 		if (guild.client.voice.channelId && voiceChannel.id !== guild.client.voice.channelId) return interaction.reply({ content: `Already playing music in ${guild.client.voice.channelId}`, ephemeral: true });
 
-		const queue = interaction.client.distube.getQueue(voiceChannel);
+		const queue = distube.getQueue(voiceChannel);
 		switch (options.getSubcommand()) {
 			case 'play':
-				interaction.client.distube.play(voiceChannel, options.getString('query'), {
+				distube.play(voiceChannel, options.getString('query'), {
 					textChannel: channel,
 					member,
 				});
 
-				return interaction.deferReply({ fetchReply: true, ephemeral: true }).then(() => interaction.editReply({ content: 'Request received.' }));
+				await interaction.deferReply({ fetchReply: true, ephemeral: true }).then(() => interaction.editReply({ content: 'Request received.' }));
+				break;
 
 			case 'volume': {
 				const percentage = options.getNumber('percentage');
@@ -107,11 +115,14 @@ module.exports = {
 
 				if (percentage > 100 || percentage < 1) return interaction.reply({ content: 'You have to specify a number between 1 to 100', ephemeral: true });
 
-				interaction.client.distube.setVolume(voiceChannel, percentage);
-				embed.setTitle('Volume Adjusted');
-				embed.setDescription(`🔊 Volume has been set to ${inlineCode(`${percentage}%`)}`);
+				distube.setVolume(voiceChannel, percentage);
+				embed.setAuthor({
+					name: '🔊 Volume Adjusted',
+				});
+				embed.setDescription(`The volume has been set to ${inlineCode(`${percentage}%`)}`);
 
-				return interaction.reply({ embeds: [embed] });
+				await interaction.reply({ embeds: [embed] });
+				break;
 			}
 
 			case 'settings':
@@ -119,40 +130,57 @@ module.exports = {
 
 				switch (options.getString('options')) {
 					case 'skip':
-						await queue.skip(voiceChannel).then(() => {
-							embed.setTitle('⏩ Queue Skipped');
-							embed.setDescription('The queue has been skipped.');
-							interaction.reply({ embeds: [embed] });
-						});
+						await queue
+							.skip(voiceChannel)
+							.then(async (song) => {
+								embed.setAuthor({
+									name: '⏩ Queue Skipped',
+								});
+								embed.setDescription(`The queue ${song.name} has been skipped by ${song.user}.`);
+								await interaction.reply({ embeds: [embed] });
+							})
+							.catch(async (err) => await interaction.reply({ content: err.message, ephemeral: true }));
 
 						break;
 
 					case 'stop':
-						queue.stop(voiceChannel);
-
-						embed.setTitle('⏹️ Queue Stopped');
-						embed.setDescription('The queue has been stopped.');
-						return interaction.reply({ embeds: [embed] });
+						await queue
+							.stop(voiceChannel)
+							.then(async () => {
+								embed.setAuthor({
+									name: '⏹️ Queue Stopped',
+								});
+								embed.setDescription('The queue has been stopped.');
+								await interaction.reply({ embeds: [embed] });
+							})
+							.catch(async (err) => await interaction.reply({ content: err.message, ephemeral: true }));
+						break;
 
 					case 'pause':
 						queue.pause(voiceChannel);
 
-						embed.setTitle('⏸️ Queue Paused');
-						embed.setDescription('The Queue has been paused.');
+						embed.setAuthor({
+							name: '⏸️ Queue Paused',
+						});
+						embed.setDescription('The queue has been paused.');
 						return interaction.reply({ embeds: [embed] });
 
 					case 'resume':
 						queue.resume(voiceChannel);
 
-						embed.setTitle('⏯️ Queue Resumed');
+						embed.setAuthor({
+							name: '⏯️ Queue Resumed',
+						});
 						embed.setDescription('Resumed back all the queue.');
 						return interaction.reply({ embeds: [embed] });
 
 					case 'shuffle':
-						await queue.shuffle(voiceChannel).then(() => {
-							embed.setTitle('🔀 Queue Shuffled');
-							embed.setDescription('The Queue order has been shuffled.');
-							interaction.reply({ embeds: [embed] });
+						await queue.shuffle(voiceChannel).then(async (q) => {
+							embed.setAuthor({
+								name: '🔀 Queue Shuffled',
+							});
+							embed.setDescription(`The queue order has been shuffled.\n${q.songs.map((song, id) => `\n${bold(id + 1)}. ${song.name} - ${inlineCode(song.formattedDuration)}`)}`);
+							await interaction.reply({ embeds: [embed] });
 						});
 
 						break;
@@ -160,22 +188,27 @@ module.exports = {
 					case 'autoplay': {
 						queue.toggleAutoplay(voiceChannel);
 
-						embed.setTitle('🔁 Queue Setting Applied');
+						embed.setAuthor({
+							name: '🔁 Queue Setting Applied',
+						});
 						embed.setDescription(`The Autoplay mode has been set to ${inlineCode(queue.autoplay ? 'On' : 'Off')}.`);
 						return interaction.reply({ embeds: [embed] });
 					}
 
 					case 'relatedSong':
-						await queue.addRelatedSong(voiceChannel).then((song) => {
-							embed.setTitle('🔃 Queue Added');
-							embed.setDescription(`${inlineCode(song.name)} has been added to the queue.`);
-							interaction.reply({ embeds: [embed] });
+						await queue.addRelatedSong(voiceChannel).then(async (song) => {
+							embed.setAuthor({
+								name: '🔃 Queue Added',
+							});
+							embed.setDescription(`${inlineCode(song.name)} has been added to the queue by ${song.user}.`);
+							await interaction.reply({ embeds: [embed] });
 						});
 						break;
 
 					case 'repeatMode': {
+						/** @type {String} */
 						let mode;
-						switch (interaction.client.distube.setRepeatMode(queue)) {
+						switch (distube.setRepeatMode(queue)) {
 							case RepeatMode.DISABLED:
 								mode = 'Off';
 								break;
@@ -193,7 +226,9 @@ module.exports = {
 					}
 
 					case 'queue':
-						embed.setTitle('🔃 Music Queue');
+						embed.setAuthor({
+							name: '🔃 Music Queue',
+						});
 						embed.setDescription(`${queue.songs.map((song, id) => `\n${bold(id + 1)}. ${song.name} - ${inlineCode(song.formattedDuration)}`)}`);
 
 						return interaction.reply({ embeds: [embed] });

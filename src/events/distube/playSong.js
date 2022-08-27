@@ -19,8 +19,7 @@ module.exports = {
 				)} | Autoplay: ${inlineCode(queue.autoplay ? 'On' : 'Off')}`,
 			)
 			.setAuthor({
-				name: 'Playing Music',
-				iconURL: song.user.displayAvatarURL({ dynamic: true }),
+				name: '🎶 Playing Music',
 			})
 			.setFooter({
 				text: queue.client.user.username,

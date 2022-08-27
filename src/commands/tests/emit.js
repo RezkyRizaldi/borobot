@@ -1,4 +1,6 @@
-const { Events, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+
+const { emitChoices } = require('../../constants');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -6,20 +8,11 @@ module.exports = {
 		.setDescription('Emit an event.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 		.addStringOption((option) =>
-			option.setName('event').setDescription('The event to emit.').setRequired(true).addChoices(
-				{
-					name: Events.GuildMemberAdd,
-					value: Events.GuildMemberAdd,
-				},
-				{
-					name: Events.GuildMemberRemove,
-					value: Events.GuildMemberRemove,
-				},
-				{
-					name: Events.GuildMemberUpdate,
-					value: Events.GuildMemberUpdate,
-				},
-			),
+			option
+				.setName('event')
+				.setDescription('The event to emit.')
+				.setRequired(true)
+				.addChoices(...emitChoices),
 		),
 	type: 'Chat Input',
 

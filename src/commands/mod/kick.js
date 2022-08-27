@@ -17,13 +17,16 @@ module.exports = {
 		const member = interaction.options.getMember('member');
 		const reason = interaction.options.getString('reason') || 'No reason';
 
+		/** @type {import('discord.js').GuildMember} */
+		const guildMember = member;
+
 		if (!member) return interaction.reply({ content: 'You must specify a member to kick.', ephemeral: true });
 
-		if (!member.kickable) return interaction.reply({ content: "You don't have appropiate permissions to kick this member.", ephemeral: true });
+		if (!guildMember.kickable) return interaction.reply({ content: "You don't have appropiate permissions to kick this member.", ephemeral: true });
 
-		if (member.id === interaction.user.id) return interaction.reply({ content: "You can't kick yourself.", ephemeral: true });
+		if (guildMember.id === interaction.user.id) return interaction.reply({ content: "You can't kick yourself.", ephemeral: true });
 
-		await member
+		await guildMember
 			.kick(reason)
 			.then(async (m) => await interaction.reply({ content: `Successfully ${bold('kicked')} ${m}.`, ephemeral: true }))
 			.catch(async (err) => {

@@ -50,15 +50,18 @@ module.exports = {
 		const reason = interaction.options.getString('reason') || 'No reason';
 		const duration = interaction.options.getInteger('duration');
 
+		/** @type {import('discord.js').GuildMember} */
+		const guildMember = member;
+
 		if (!member) return interaction.reply({ content: 'You must specify a member to do a timeout.', ephemeral: true });
 
-		if (!member.moderatable) return interaction.reply({ content: "You don't have appropiate permissions to timeout this member.", ephemeral: true });
+		if (!guildMember.moderatable) return interaction.reply({ content: "You don't have appropiate permissions to timeout this guildMember.", ephemeral: true });
 
-		if (member.id === interaction.user.id) return interaction.reply({ content: "You can't timeout yourself.", ephemeral: true });
+		if (guildMember.id === interaction.user.id) return interaction.reply({ content: "You can't timeout yourself.", ephemeral: true });
 
-		if (member.isCommunicationDisabled()) return interaction.reply({ content: `This member is already timed out. Available back ${time(member.communicationDisabledUntil, TimestampStyles.RelativeTime)}`, ephemeral: true });
+		if (guildMember.isCommunicationDisabled()) return interaction.reply({ content: `This member is already timed out. Available back ${time(guildMember.communicationDisabledUntil, TimestampStyles.RelativeTime)}`, ephemeral: true });
 
-		await member
+		await guildMember
 			.timeout(duration, reason)
 			.then(async (m) => {
 				await interaction.reply({ content: `Successfully ${bold('timed out')} ${m}. Available back ${time(m.communicationDisabledUntil, TimestampStyles.RelativeTime)}.`, ephemeral: true });

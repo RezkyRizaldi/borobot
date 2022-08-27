@@ -80,7 +80,7 @@ module.exports = {
 				},
 				{
 					name: '🚀 Nitro Status',
-					value: target.premiumSince ? `Boosting since ${time(target.premiumSinceTimestamp, TimestampStyles.RelativeTime)}` : 'Not Boosting',
+					value: target.premiumSince ? `Boosting since ${time(new Date(target.premiumSinceTimestamp), TimestampStyles.RelativeTime)}` : 'Not Boosting',
 					inline: true,
 				},
 				{
@@ -96,8 +96,8 @@ module.exports = {
 
 		await interaction
 			.deferReply({ fetchReply: true })
-			.then(() => interaction.editReply({ embeds: [embed] }))
+			.then(async () => await interaction.editReply({ embeds: [embed] }))
 			.catch((err) => console.error(err))
-			.finally(() => setTimeout(() => interaction.deleteReply(), 10000));
+			.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 	},
 };

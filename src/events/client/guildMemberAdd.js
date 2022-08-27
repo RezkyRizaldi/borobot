@@ -15,7 +15,7 @@ module.exports = {
 			token: process.env.MEMBER_GUILD_WELCOME_WEBHOOK_TOKEN,
 		});
 
-		const message = new EmbedBuilder()
+		const embed = new EmbedBuilder()
 			.setTitle(`👋 Welcome to ${guild.name}`)
 			.setDescription(`hope you enjoy here, ${member}!`)
 			.setColor(0xfcc9b9)
@@ -25,17 +25,14 @@ module.exports = {
 			})
 			.setTimestamp(Date.now());
 
-		await member.send({ embeds: [message] }).catch((err) => {
-			console.error(err);
-			console.log(`Could not send a DM to ${member.user.tag}`);
-		});
+		await member.send({ embeds: [embed] }).catch((err) => console.error(err));
 
 		await member.roles
 			.add(process.env.MEMBER_ROLE_ID)
-			.then(async () => {
-				message.setColor(member.displayHexColor || 0xfcc9b9);
-				message.setThumbnail(user.displayAvatarURL({ dynamic: true }));
-				message.setFields([
+			.then(async (m) => {
+				embed.setColor(m.displayHexColor || 0xfcc9b9);
+				embed.setThumbnail(user.displayAvatarURL({ dynamic: true }));
+				embed.setFields([
 					{
 						name: '🆔 Member ID',
 						value: user.id,
@@ -48,12 +45,12 @@ module.exports = {
 					},
 					{
 						name: '📆 Joined At',
-						value: time(member.joinedAt, TimestampStyles.RelativeTime),
+						value: time(m.joinedAt, TimestampStyles.RelativeTime),
 						inline: true,
 					},
 				]);
 
-				await WelcomeLogger.send({ embeds: [message] });
+				await WelcomeLogger.send({ embeds: [embed] });
 			})
 			.catch((err) => console.error(err));
 	},

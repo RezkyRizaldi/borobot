@@ -15,15 +15,18 @@ module.exports = {
 	async execute(interaction) {
 		const member = interaction.options.getMember('member');
 
+		/** @type {import('discord.js').GuildMember} */
+		const guildMember = member;
+
 		if (!member) return interaction.reply({ content: 'You must specify a member to remove the timeout.', ephemeral: true });
 
-		if (!member.moderatable) return interaction.reply({ content: "You don't have appropiate permissions to removing the timeout from this member.", ephemeral: true });
+		if (!guildMember.moderatable) return interaction.reply({ content: "You don't have appropiate permissions to removing the timeout from this member.", ephemeral: true });
 
-		if (member.id === interaction.user.id) return interaction.reply({ content: "You can't remove timeout by yourself.", ephemeral: true });
+		if (guildMember.id === interaction.user.id) return interaction.reply({ content: "You can't remove timeout by yourself.", ephemeral: true });
 
-		if (!member.isCommunicationDisabled()) return interaction.reply({ content: "This member isn't being timed out.", ephemeral: true });
+		if (!guildMember.isCommunicationDisabled()) return interaction.reply({ content: "This member isn't being timed out.", ephemeral: true });
 
-		await member
+		await guildMember
 			.timeout(null, 'No reason')
 			.then(async (m) => {
 				await interaction.reply({ content: `Successfully ${bold('removing timeout')} from ${m}.`, ephemeral: true });

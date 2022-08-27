@@ -1,5 +1,7 @@
 const { bold, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
+const { banChoices } = require('../../constants');
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('ban')
@@ -10,40 +12,7 @@ module.exports = {
 			option
 				.setName('delete_messages')
 				.setDescription('The number of member recent message history to delete.')
-				.addChoices(
-					{
-						name: "Don't Delete Any",
-						value: 0,
-					},
-					{
-						name: 'Previous 1 Day',
-						value: 1,
-					},
-					{
-						name: 'Previous 2 Days',
-						value: 2,
-					},
-					{
-						name: 'Previous 3 Days',
-						value: 3,
-					},
-					{
-						name: 'Previous 4 Days',
-						value: 4,
-					},
-					{
-						name: 'Previous 5 Days',
-						value: 5,
-					},
-					{
-						name: 'Previous 6 Days',
-						value: 6,
-					},
-					{
-						name: 'Previous 7 Days',
-						value: 7,
-					},
-				)
+				.addChoices(...banChoices)
 				.setRequired(true),
 		)
 		.addStringOption((option) => option.setName('reason').setDescription('The reason for banning the member.')),
@@ -58,14 +27,17 @@ module.exports = {
 		const deleteMessages = interaction.options.getInteger('delete_messages');
 		const reason = interaction.options.getString('reason') || 'No reason';
 
+		/** @type {import('discord.js').GuildMember} */
+		const guildMember = member;
+
 		if (!member) return interaction.reply({ content: 'You must specify a member to ban.', ephemeral: true });
 
-		if (!member.bannable) return interaction.reply({ content: "You don't have appropiate permissions to ban this member.", ephemeral: true });
+		if (!guildMember.bannable) return interaction.reply({ content: "You don't have appropiate permissions to ban this member.", ephemeral: true });
 
-		if (member.id === interaction.user.id) return interaction.reply({ content: "You can't ban yourself.", ephemeral: true });
+		if (guildMember.id === interaction.user.id) return interaction.reply({ content: "You can't ban yourself.", ephemeral: true });
 
-		await member
-			.ban({ days: deleteMessages, reason })
+		await guildMember
+			.ban({ deleteMessageDays: deleteMessages, reason })
 			.then(async (m) => await interaction.reply({ content: `Successfully ${bold('banned')} ${m.user.tag}.`, ephemeral: true }))
 			.catch((err) => console.error(err));
 	},

@@ -10,6 +10,7 @@ module.exports = {
 	 */
 	async execute(interaction) {
 		const message = await interaction.reply({ content: 'React here!', fetchReply: true });
+		/** @param {import('discord.js').User} user */
 		const filter = (user) => user.id === interaction.user.id;
 
 		message

@@ -18,10 +18,17 @@ module.exports = {
 		const { channel, options } = interaction;
 		const amount = options.getInteger('amount');
 		const member = options.getMember('member');
-		const messages = await channel.messages.fetch().then((m) => m);
+
+		/** @type {import('discord.js').TextChannel} */
+		const textChannel = channel;
+
+		const messages = await channel.messages.fetch().then(
+			/** @param {Promise<import('discord.js').Collection<import('discord.js').Snowflake, import('discord.js').Message>>} m */
+			(m) => m,
+		);
 		const botColor = await interaction.guild.members.fetch(interaction.client.user.id).then((res) => res.displayHexColor);
 
-		const response = new EmbedBuilder()
+		const embed = new EmbedBuilder()
 			.setColor(botColor || 0xfcc9b9)
 			.setTimestamp(Date.now())
 			.setFooter({
@@ -30,13 +37,16 @@ module.exports = {
 			});
 
 		if (!messages.first().deletable) {
-			response.setTitle('Something Went Wrong');
-			response.setDescription("You don't have appropiate permissions to delete messages.");
-			return interaction.reply({ embeds: [response], ephemeral: true }).catch((err) => console.error(err));
+			embed.setTitle('Something Went Wrong');
+			embed.setDescription("You don't have appropiate permissions to delete messages.");
+			return interaction.reply({ embeds: [embed], ephemeral: true }).catch((err) => console.error(err));
 		}
 
 		if (member) {
+			/** @type {Number} */
 			let i = 0;
+
+			/** @type {import('discord.js').Message[]} */
 			const filteredMessages = [];
 			messages.filter((message) => {
 				if (message.author.id === member.id && amount > i) {
@@ -46,39 +56,39 @@ module.exports = {
 			});
 
 			if (filteredMessages.length > 50) {
-				response.setTitle('Amount Too Large');
-				response.setDescription(`You can only delete up to ${bold('50')} messages at a time.`);
-				return interaction.reply({ embeds: [response], ephemeral: true }).catch((err) => console.error(err));
+				embed.setTitle('Amount Too Large');
+				embed.setDescription(`You can only delete up to ${bold('50')} messages at a time.`);
+				return interaction.reply({ embeds: [embed], ephemeral: true }).catch((err) => console.error(err));
 			}
 
-			return channel
+			return textChannel
 				.bulkDelete(filteredMessages, true)
 				.then(async (msg) => {
-					response.setTitle('Message Deleted');
-					response.setDescription(`Deleted ${bold(`${msg.size}`)} ${pluralize('message', msg.size)} from ${member}.`);
-					await interaction.reply({ embeds: [response], ephemeral: true });
+					embed.setTitle('Message Deleted');
+					embed.setDescription(`Deleted ${bold(`${msg.size}`)} ${pluralize('message', msg.size)} from ${member}.`);
+					await interaction.reply({ embeds: [embed], ephemeral: true });
 				})
 				.catch((err) => console.error(err));
 		}
 
 		if (amount > 50) {
-			response.setTitle('Amount Too Large');
-			response.setDescription(`You can only delete up to ${bold('50')} messages at a time.`);
-			return interaction.reply({ embeds: [response], ephemeral: true }).catch((err) => console.error(err));
+			embed.setTitle('Amount Too Large');
+			embed.setDescription(`You can only delete up to ${bold('50')} messages at a time.`);
+			return interaction.reply({ embeds: [embed], ephemeral: true }).catch((err) => console.error(err));
 		}
 
-		await channel
+		await textChannel
 			.bulkDelete(amount, true)
-			.then((msg) => {
-				response.setTitle('Message Deleted');
-				response.setDescription(`Deleted ${bold(`${msg.size}`)} ${pluralize('message', msg.size)}.`);
-				interaction.reply({ embeds: [response], ephemeral: true });
+			.then(async (msg) => {
+				embed.setTitle('Message Deleted');
+				embed.setDescription(`Deleted ${bold(`${msg.size}`)} ${pluralize('message', msg.size)}.`);
+				await interaction.reply({ embeds: [embed], ephemeral: true });
 			})
-			.catch((err) => {
+			.catch(async (err) => {
 				console.error(err);
-				response.setTitle('Something Went Wrong');
-				response.setDescription(err.message);
-				interaction.reply({ embeds: [response], ephemeral: true });
+				embed.setTitle('Something Went Wrong');
+				embed.setDescription(err.message);
+				await interaction.reply({ embeds: [embed], ephemeral: true });
 			});
 	},
 };
