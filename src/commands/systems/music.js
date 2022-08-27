@@ -106,7 +106,8 @@ module.exports = {
 					member,
 				});
 
-				return interaction.deferReply({ fetchReply: true, ephemeral: true }).then(() => interaction.editReply({ content: 'Request received.' }));
+				await interaction.deferReply({ fetchReply: true, ephemeral: true }).then(() => interaction.editReply({ content: 'Request received.' }));
+				break;
 
 			case 'volume': {
 				const percentage = options.getNumber('percentage');
@@ -120,7 +121,8 @@ module.exports = {
 				});
 				embed.setDescription(`The volume has been set to ${inlineCode(`${percentage}%`)}`);
 
-				return interaction.reply({ embeds: [embed] });
+				await interaction.reply({ embeds: [embed] });
+				break;
 			}
 
 			case 'settings':
@@ -130,28 +132,28 @@ module.exports = {
 					case 'skip':
 						await queue
 							.skip(voiceChannel)
-							.then((song) => {
+							.then(async (song) => {
 								embed.setAuthor({
 									name: '⏩ Queue Skipped',
 								});
 								embed.setDescription(`The queue ${song.name} has been skipped by ${song.user}.`);
-								return interaction.reply({ embeds: [embed] });
+								await interaction.reply({ embeds: [embed] });
 							})
-							.catch((err) => interaction.reply({ content: err.message, ephemeral: true }));
+							.catch(async (err) => await interaction.reply({ content: err.message, ephemeral: true }));
 
 						break;
 
 					case 'stop':
 						await queue
 							.stop(voiceChannel)
-							.then(() => {
+							.then(async () => {
 								embed.setAuthor({
 									name: '⏹️ Queue Stopped',
 								});
 								embed.setDescription('The queue has been stopped.');
-								return interaction.reply({ embeds: [embed] });
+								await interaction.reply({ embeds: [embed] });
 							})
-							.catch((err) => interaction.reply({ content: err.message, ephemeral: true }));
+							.catch(async (err) => await interaction.reply({ content: err.message, ephemeral: true }));
 						break;
 
 					case 'pause':
@@ -173,12 +175,12 @@ module.exports = {
 						return interaction.reply({ embeds: [embed] });
 
 					case 'shuffle':
-						await queue.shuffle(voiceChannel).then((q) => {
+						await queue.shuffle(voiceChannel).then(async (q) => {
 							embed.setAuthor({
 								name: '🔀 Queue Shuffled',
 							});
 							embed.setDescription(`The queue order has been shuffled.\n${q.songs.map((song, id) => `\n${bold(id + 1)}. ${song.name} - ${inlineCode(song.formattedDuration)}`)}`);
-							interaction.reply({ embeds: [embed] });
+							await interaction.reply({ embeds: [embed] });
 						});
 
 						break;
@@ -194,12 +196,12 @@ module.exports = {
 					}
 
 					case 'relatedSong':
-						await queue.addRelatedSong(voiceChannel).then((song) => {
+						await queue.addRelatedSong(voiceChannel).then(async (song) => {
 							embed.setAuthor({
 								name: '🔃 Queue Added',
 							});
 							embed.setDescription(`${inlineCode(song.name)} has been added to the queue by ${song.user}.`);
-							interaction.reply({ embeds: [embed] });
+							await interaction.reply({ embeds: [embed] });
 						});
 						break;
 

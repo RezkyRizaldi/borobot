@@ -39,7 +39,7 @@ module.exports = {
 
 		await interaction
 			.deferReply({ fetchReply: true })
-			.then(() => {
+			.then(async () => {
 				const embed = new EmbedBuilder()
 					.setTitle(`ℹ️ ${guild.name} Server Info`)
 					.setThumbnail(guild.iconURL({ dynamic: true }))
@@ -130,9 +130,9 @@ module.exports = {
 						},
 					]);
 
-				interaction.editReply({ embeds: [embed] });
+				await interaction.editReply({ embeds: [embed] });
 			})
 			.catch((err) => console.error(err))
-			.finally(() => setTimeout(() => interaction.deleteReply(), 10000));
+			.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 	},
 };

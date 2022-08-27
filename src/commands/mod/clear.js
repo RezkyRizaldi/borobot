@@ -79,16 +79,16 @@ module.exports = {
 
 		await textChannel
 			.bulkDelete(amount, true)
-			.then((msg) => {
+			.then(async (msg) => {
 				embed.setTitle('Message Deleted');
 				embed.setDescription(`Deleted ${bold(`${msg.size}`)} ${pluralize('message', msg.size)}.`);
-				interaction.reply({ embeds: [embed], ephemeral: true });
+				await interaction.reply({ embeds: [embed], ephemeral: true });
 			})
-			.catch((err) => {
+			.catch(async (err) => {
 				console.error(err);
 				embed.setTitle('Something Went Wrong');
 				embed.setDescription(err.message);
-				interaction.reply({ embeds: [embed], ephemeral: true });
+				await interaction.reply({ embeds: [embed], ephemeral: true });
 			});
 	},
 };
