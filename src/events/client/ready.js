@@ -10,6 +10,6 @@ module.exports = {
 	 */
 	async execute(client) {
 		console.log(`Logged in as ${client.user.tag}!`);
-		client.user.setActivity('with you!', { type: ActivityType.Playing });
+		client.user.setActivity('/help', { type: ActivityType.Playing });
 	},
 };
