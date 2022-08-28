@@ -7,11 +7,11 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 
-const { GuildBans, GuildInvites, GuildMembers, GuildMessages, GuildPresences, Guilds, GuildVoiceStates, MessageContent } = GatewayIntentBits;
+const { GuildBans, GuildInvites, GuildMembers, GuildMessageReactions, GuildMessages, GuildPresences, Guilds, GuildVoiceStates, MessageContent } = GatewayIntentBits;
 const { GuildMember, Message } = Partials;
 
 /** @type {{ commands: import('discord.js').Collection, components: import('discord.js').Collection, distube: import('distube').DisTube, handleEvents(): Promise<void>, handleComponents(): Promise<void>, handleCommands(): Promise<void> }} */
-const client = new Client({ intents: [GuildBans, GuildInvites, GuildMembers, GuildMessages, GuildPresences, Guilds, GuildVoiceStates, MessageContent], partials: [Message, GuildMember] });
+const client = new Client({ intents: [GuildBans, GuildInvites, GuildMembers, GuildMessageReactions, GuildMessages, GuildPresences, Guilds, GuildVoiceStates, MessageContent], partials: [Message, GuildMember] });
 
 client.commands = new Collection();
 client.components = new Collection();
