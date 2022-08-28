@@ -39,7 +39,8 @@ module.exports = {
 
 						await interaction.editReply({ embeds: [embed] });
 					})
-					.catch((err) => console.error(err));
+					.catch((err) => console.error(err))
+					.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 
 				break;
 

@@ -34,8 +34,7 @@ module.exports = {
 							})`,
 					)
 					.join('\n'),
-			)
-			.catch((err) => console.error(err));
+			);
 
 		await interaction
 			.deferReply({ fetchReply: true })

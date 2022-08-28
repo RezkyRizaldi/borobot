@@ -26,10 +26,10 @@ module.exports = (client) => {
 				commandArray.push(command.data.toJSON());
 				table.addRow(command.data.name || file, folder, command.type || 'None', '✅');
 				table.sort((a, b) => a[0].localeCompare(b[0]));
+				arr.push(file);
 			}
-			arr.push(commandFiles);
 		}
-		table.setTitle(`Commands${arr.flat().length > 0 && ` (${arr.flat().length})`}`);
+		table.setTitle(`Commands${arr.length > 0 && ` (${arr.length})`}`);
 		console.log(table.toString());
 
 		const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);

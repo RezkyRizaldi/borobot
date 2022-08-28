@@ -1,4 +1,4 @@
-const { ApplicationCommandType, ContextMenuCommandBuilder, EmbedBuilder, italic, time, TimestampStyles } = require('discord.js');
+const { ApplicationCommandType, bold, ContextMenuCommandBuilder, EmbedBuilder, italic, time, TimestampStyles } = require('discord.js');
 
 const { applyActivity, applyPresence } = require('../../utils');
 
@@ -11,92 +11,95 @@ module.exports = {
 	 * @param {import('discord.js').ContextMenuCommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const target = await interaction.guild.members.fetch(interaction.targetId).then((member) => member);
+		await interaction.guild.members
+			.fetch(interaction.targetId)
+			.then(async (member) => {
+				const userRoles = member.roles.icon
+					? `${member.roles.icon} `
+					: '' +
+							member.roles.cache
+								.map((role) => `${role}`)
+								.filter((r) => r !== interaction.guild.roles.everyone.name)
+								.join(', ') || italic('None');
 
-		const userRoles = target.roles.icon
-			? `${target.roles.icon} `
-			: '' +
-					target.roles.cache
-						.map((role) => `${role}`)
-						.filter((r) => r !== interaction.guild.roles.everyone.name)
-						.join(', ') || italic('None');
+				const userClientStatus =
+					member.presence?.clientStatus &&
+					Object.keys(member.presence.clientStatus)
+						.map((status) => `${status.charAt(0).toUpperCase()}${status.slice(1)}`)
+						.join(', ');
 
-		const userClientStatus =
-			target.presence?.clientStatus &&
-			Object.keys(target.presence.clientStatus)
-				.map((status) => `${status.charAt(0).toUpperCase()}${status.slice(1)}`)
-				.join(', ');
+				const userActivity =
+					member.presence?.activities
+						.map((activity) => `${applyActivity(activity.type)} ${bold(activity.name)} ${activity.details || ''} ${activity.timestamps ? `at ${time(activity.timestamps.start, TimestampStyles.RelativeTime)}` : ''}`)
+						.join('\n') || italic('None');
 
-		const userActivity = target.presence?.activities.map((activity) => `${applyActivity(activity.type)} ${activity.name} at ${time(activity.timestamps.start, TimestampStyles.RelativeTime)}`).join('\n') || italic('None');
+				const embed = new EmbedBuilder()
+					.setTitle(`ℹ️ ${member.user.username}'s User Info`)
+					.setColor(member.displayHexColor || 0xfcc9b9)
+					.setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+					.setFooter({
+						text: member.client.user.username,
+						iconURL: member.client.user.displayAvatarURL({ dynamic: true }),
+					})
+					.setTimestamp(Date.now())
+					.setFields([
+						{
+							name: '🆔 ID',
+							value: member.user.id,
+							inline: true,
+						},
+						{
+							name: '🏷️ Tag',
+							value: member.user.tag,
+							inline: true,
+						},
+						{
+							name: '👥 Nickname',
+							value: member.nickname || member.displayName || italic('None'),
+							inline: true,
+						},
+						{
+							name: `🔐 Roles${member.roles.cache.size > 0 && ` (${member.roles.cache.size - 1})`}`,
+							value: userRoles,
+						},
+						{
+							name: '📆 Member Since',
+							value: time(member.joinedAt, TimestampStyles.RelativeTime),
+							inline: true,
+						},
+						{
+							name: '🎊 Account Created',
+							value: time(member.user.createdAt, TimestampStyles.RelativeTime),
+							inline: true,
+						},
+						{
+							name: '📇 Account Type',
+							value: member.user.bot ? 'Bot' : 'User',
+							inline: true,
+						},
+						{
+							name: '⭕ Presence Status',
+							value: applyPresence(member.presence?.status) || '⚫ Offline',
+							inline: true,
+						},
+						{
+							name: '🚀 Nitro Status',
+							value: member.premiumSince ? `Boosting since ${time(new Date(member.premiumSinceTimestamp), TimestampStyles.RelativeTime)}` : 'Not Boosting',
+							inline: true,
+						},
+						{
+							name: '📶 Online Device',
+							value: userClientStatus || italic('None'),
+							inline: true,
+						},
+						{
+							name: '🎭 Activity',
+							value: userActivity,
+						},
+					]);
 
-		const embed = new EmbedBuilder()
-			.setTitle(`ℹ️ ${target.user.username}'s User Info`)
-			.setColor(target.displayHexColor || 0xfcc9b9)
-			.setThumbnail(target.user.displayAvatarURL({ dynamic: true }))
-			.setFooter({
-				text: target.client.user.username,
-				iconURL: target.client.user.displayAvatarURL({ dynamic: true }),
+				await interaction.deferReply({ fetchReply: true }).then(async () => await interaction.editReply({ embeds: [embed] }));
 			})
-			.setTimestamp(Date.now())
-			.setFields([
-				{
-					name: '🆔 ID',
-					value: target.user.id,
-					inline: true,
-				},
-				{
-					name: '🏷️ Tag',
-					value: target.user.tag,
-					inline: true,
-				},
-				{
-					name: '👥 Nickname',
-					value: target.nickname || target.displayName || italic('None'),
-					inline: true,
-				},
-				{
-					name: `🔐 Roles${target.roles.cache.size > 0 && ` (${target.roles.cache.size - 1})`}`,
-					value: userRoles,
-				},
-				{
-					name: '📆 Member Since',
-					value: time(target.joinedAt, TimestampStyles.RelativeTime),
-					inline: true,
-				},
-				{
-					name: '🎊 Account Created',
-					value: time(target.user.createdAt, TimestampStyles.RelativeTime),
-					inline: true,
-				},
-				{
-					name: '📇 Account Type',
-					value: target.user.bot ? 'Bot' : 'User',
-					inline: true,
-				},
-				{
-					name: '⭕ Presence Status',
-					value: applyPresence(target.presence?.status) || '⚫ Offline',
-					inline: true,
-				},
-				{
-					name: '🚀 Nitro Status',
-					value: target.premiumSince ? `Boosting since ${time(new Date(target.premiumSinceTimestamp), TimestampStyles.RelativeTime)}` : 'Not Boosting',
-					inline: true,
-				},
-				{
-					name: '📶 Online Device',
-					value: userClientStatus || italic('None'),
-					inline: true,
-				},
-				{
-					name: '🎭 Activity',
-					value: userActivity,
-				},
-			]);
-
-		await interaction
-			.deferReply({ fetchReply: true })
-			.then(async () => await interaction.editReply({ embeds: [embed] }))
 			.catch((err) => console.error(err))
 			.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 	},

@@ -35,6 +35,32 @@ module.exports = {
 			value: 7,
 		},
 	],
+	timeoutChoices: [
+		{
+			name: '60 secs',
+			value: 1000 * 60,
+		},
+		{
+			name: '5 mins',
+			value: 1000 * 60 * 5,
+		},
+		{
+			name: '10 mins',
+			value: 1000 * 60 * 10,
+		},
+		{
+			name: '1 hour',
+			value: 1000 * 60 * 60,
+		},
+		{
+			name: '1 day',
+			value: 1000 * 60 * 60 * 24,
+		},
+		{
+			name: '1 week',
+			value: 1000 * 60 * 60 * 24 * 7,
+		},
+	],
 	emitChoices: [
 		{
 			name: Events.GuildMemberAdd,

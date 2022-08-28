@@ -18,10 +18,6 @@ module.exports = {
 		const reason = interaction.options.getString('reason') || 'No reason';
 		const bannedUser = await interaction.guild.bans.fetch(userId).then((user) => user);
 
-		if (!userId) return interaction.reply({ content: 'Please provide a user id.', ephemeral: true });
-
-		if (!interaction.guild.members.me.permissions.has(PermissionFlagsBits.BanMembers)) return interaction.reply({ content: "You don't have appropiate permissions to unban this member.", ephemeral: true });
-
 		if (userId !== bannedUser.user.id) return interaction.reply({ content: "This user isn't banned.", ephemeral: true });
 
 		await interaction.guild.members
