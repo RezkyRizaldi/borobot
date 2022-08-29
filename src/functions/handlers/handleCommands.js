@@ -1,6 +1,6 @@
 const { REST } = require('@discordjs/rest');
 const AsciiTable = require('ascii-table/ascii-table');
-const { Routes } = require('discord-api-types/v9');
+const { Routes } = require('discord-api-types/v10');
 const fs = require('fs');
 const path = require('path');
 
