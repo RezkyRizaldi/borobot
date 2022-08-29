@@ -30,8 +30,6 @@ module.exports = {
 		/** @type {import('discord.js').GuildMember} */
 		const guildMember = member;
 
-		if (!member) return interaction.reply({ content: 'You must specify a member to ban.', ephemeral: true });
-
 		if (!guildMember.bannable) return interaction.reply({ content: "You don't have appropiate permissions to ban this member.", ephemeral: true });
 
 		if (guildMember.id === interaction.user.id) return interaction.reply({ content: "You can't ban yourself.", ephemeral: true });

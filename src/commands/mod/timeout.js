@@ -1,5 +1,7 @@
 const { bold, inlineCode, PermissionFlagsBits, SlashCommandBuilder, time, TimestampStyles } = require('discord.js');
 
+const { timeoutChoices } = require('../../constants');
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('timeout')
@@ -10,32 +12,7 @@ module.exports = {
 			option
 				.setName('duration')
 				.setDescription('The duration of the timeout.')
-				.addChoices(
-					{
-						name: '60 secs',
-						value: 1000 * 60,
-					},
-					{
-						name: '5 mins',
-						value: 1000 * 60 * 5,
-					},
-					{
-						name: '10 mins',
-						value: 1000 * 60 * 10,
-					},
-					{
-						name: '1 hour',
-						value: 1000 * 60 * 60,
-					},
-					{
-						name: '1 day',
-						value: 1000 * 60 * 60 * 24,
-					},
-					{
-						name: '1 week',
-						value: 1000 * 60 * 60 * 24 * 7,
-					},
-				)
+				.addChoices(...timeoutChoices)
 				.setRequired(true),
 		)
 		.addStringOption((option) => option.setName('reason').setDescription('The reason for timeouting the member.')),
@@ -52,8 +29,6 @@ module.exports = {
 
 		/** @type {import('discord.js').GuildMember} */
 		const guildMember = member;
-
-		if (!member) return interaction.reply({ content: 'You must specify a member to do a timeout.', ephemeral: true });
 
 		if (!guildMember.moderatable) return interaction.reply({ content: "You don't have appropiate permissions to timeout this guildMember.", ephemeral: true });
 

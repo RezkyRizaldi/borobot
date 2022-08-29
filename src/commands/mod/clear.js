@@ -36,11 +36,7 @@ module.exports = {
 				iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
 			});
 
-		if (!messages.first().deletable) {
-			embed.setTitle('Something Went Wrong');
-			embed.setDescription("You don't have appropiate permissions to delete messages.");
-			return interaction.reply({ embeds: [embed], ephemeral: true }).catch((err) => console.error(err));
-		}
+		if (!messages.first().deletable) return interaction.reply({ content: "You don't have appropiate permissions to delete messages.", ephemeral: true });
 
 		if (member) {
 			/** @type {Number} */
@@ -55,11 +51,7 @@ module.exports = {
 				}
 			});
 
-			if (filteredMessages.length > 50) {
-				embed.setTitle('Amount Too Large');
-				embed.setDescription(`You can only delete up to ${bold('50')} messages at a time.`);
-				return interaction.reply({ embeds: [embed], ephemeral: true }).catch((err) => console.error(err));
-			}
+			if (filteredMessages.length > 50) return interaction.reply({ content: `You can only delete up to ${bold('50')} messages at a time.`, ephemeral: true });
 
 			return textChannel
 				.bulkDelete(filteredMessages, true)
@@ -71,11 +63,7 @@ module.exports = {
 				.catch((err) => console.error(err));
 		}
 
-		if (amount > 50) {
-			embed.setTitle('Amount Too Large');
-			embed.setDescription(`You can only delete up to ${bold('50')} messages at a time.`);
-			return interaction.reply({ embeds: [embed], ephemeral: true }).catch((err) => console.error(err));
-		}
+		if (amount > 50) return interaction.reply({ content: `You can only delete up to ${bold('50')} messages at a time.`, ephemeral: true });
 
 		await textChannel
 			.bulkDelete(amount, true)

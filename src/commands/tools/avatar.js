@@ -9,10 +9,10 @@ module.exports = {
 	 * @param {import('discord.js').ContextMenuCommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const embed = await interaction.guild.members
+		await interaction.guild.members
 			.fetch(interaction.targetId)
-			.then((target) => {
-				return new EmbedBuilder()
+			.then(async (target) => {
+				const embed = new EmbedBuilder()
 					.setTitle(`${target.user.username}'s Avatar`)
 					.setColor(target.displayHexColor || 0xfcc9b9)
 					.setTimestamp(Date.now())
@@ -22,12 +22,9 @@ module.exports = {
 					})
 					.setDescription(hyperlink('Avatar URL', target.user.displayAvatarURL({ dynamic: true, size: 4096 }), 'Click here to view the avatar.'))
 					.setImage(target.user.displayAvatarURL({ dynamic: true, size: 4096 }));
-			})
-			.catch((err) => console.error(err));
 
-		await interaction
-			.deferReply({ fetchReply: true })
-			.then(async () => await interaction.editReply({ embeds: [embed] }))
+				await interaction.deferReply({ fetchReply: true }).then(async () => await interaction.editReply({ embeds: [embed] }));
+			})
 			.catch((err) => console.error(err))
 			.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 	},

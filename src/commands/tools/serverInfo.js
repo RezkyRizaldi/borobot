@@ -1,5 +1,6 @@
 const { ChannelType, EmbedBuilder, hyperlink, italic, SlashCommandBuilder, time, TimestampStyles, userMention } = require('discord.js');
 const pluralize = require('pluralize');
+
 const { applyAFKTimeout, applyNSFWLevel, applyTier, applyVerificationLevel } = require('../../utils');
 
 module.exports = {
@@ -16,10 +17,44 @@ module.exports = {
 			.fetch(client.user.id)
 			.then((res) => res.displayHexColor)
 			.catch((err) => console.error(err));
-		const categoryChannelCount = await guild.channels.fetch().then((c) => c.filter((channel) => channel.type === ChannelType.GuildCategory).size);
-		const textChannelCount = await guild.channels.fetch().then((c) => c.filter((channel) => channel.type === ChannelType.GuildText).size);
-		const voiceChannelCount = await guild.channels.fetch().then((c) => c.filter((channel) => channel.type === ChannelType.GuildVoice).size);
-		const onlineMemberCount = await guild.members.fetch({ withPresences: true }).then((m) => m.filter((member) => member.presence !== null).size);
+		const categoryChannelCount = await guild.channels.fetch().then(
+			(c) =>
+				c.filter(
+					/**
+					 *
+					 * @param {import('discord.js').CategoryChannel} channel
+					 */
+					(channel) => channel.type === ChannelType.GuildCategory,
+				).size,
+		);
+		const textChannelCount = await guild.channels.fetch().then(
+			(c) =>
+				c.filter(
+					/**
+					 *
+					 * @param {import('discord.js').TextChannel} channel
+					 */
+					(channel) => channel.type === ChannelType.GuildText,
+				).size,
+		);
+		const voiceChannelCount = await guild.channels.fetch().then(
+			(c) =>
+				c.filter(
+					/**
+					 *
+					 * @param {import('discord.js').VoiceChannel} channel
+					 * @returns
+					 */
+					(channel) => channel.type === ChannelType.GuildVoice,
+				).size,
+		);
+		const onlineMemberCount = await guild.members.fetch({ withPresences: true }).then(
+			/**
+			 *
+			 * @param {import('discord.js').Collection<import('discord.js').Snowflake, import('discord.js').GuildMember>} m
+			 */
+			(m) => m.filter((member) => !!member.presence).size,
+		);
 		const emojiCount = await guild.emojis.fetch().then((emoji) => emoji.size);
 		const roleCount = await guild.roles.fetch().then((role) => role.size);
 		const stickerCount = await guild.stickers.fetch().then((sticker) => sticker.size);
@@ -34,8 +69,7 @@ module.exports = {
 							})`,
 					)
 					.join('\n'),
-			)
-			.catch((err) => console.error(err));
+			);
 
 		await interaction
 			.deferReply({ fetchReply: true })

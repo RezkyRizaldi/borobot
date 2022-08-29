@@ -18,8 +18,6 @@ module.exports = {
 		/** @type {import('discord.js').GuildMember} */
 		const guildMember = member;
 
-		if (!member) return interaction.reply({ content: 'You must specify a member to remove the timeout.', ephemeral: true });
-
 		if (!guildMember.moderatable) return interaction.reply({ content: "You don't have appropiate permissions to removing the timeout from this member.", ephemeral: true });
 
 		if (guildMember.id === interaction.user.id) return interaction.reply({ content: "You can't remove timeout by yourself.", ephemeral: true });

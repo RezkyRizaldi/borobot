@@ -20,8 +20,6 @@ module.exports = {
 		/** @type {import('discord.js').GuildMember} */
 		const guildMember = member;
 
-		if (!member) return interaction.reply({ content: 'You must specify a member to kick.', ephemeral: true });
-
 		if (!guildMember.kickable) return interaction.reply({ content: "You don't have appropiate permissions to kick this member.", ephemeral: true });
 
 		if (guildMember.id === interaction.user.id) return interaction.reply({ content: "You can't kick yourself.", ephemeral: true });

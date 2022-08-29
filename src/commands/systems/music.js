@@ -5,7 +5,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('music')
 		.setDescription('Music command.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+		.setDefaultMemberPermissions(PermissionFlagsBits.Connect)
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('play')
@@ -70,7 +70,7 @@ module.exports = {
 	 * @param {import('discord.js').ChatInputCommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const { options, member, guild, channel } = interaction;
+		const { options, member, channel } = interaction;
 
 		/** @type {{ voice: import('discord.js').VoiceState }} */
 		const { voice } = member;
@@ -95,8 +95,6 @@ module.exports = {
 		if (interaction.channelId !== musicChannel.id) return interaction.reply({ content: `Please use this command in ${musicChannel}`, ephemeral: true });
 
 		if (!voiceChannel) return interaction.reply({ content: 'You must be in a voice channel to be able to use this command.', ephemeral: true });
-
-		if (guild.client.voice.channelId && voiceChannel.id !== guild.client.voice.channelId) return interaction.reply({ content: `Already playing music in ${guild.client.voice.channelId}`, ephemeral: true });
 
 		const queue = distube.getQueue(voiceChannel);
 		switch (options.getSubcommand()) {

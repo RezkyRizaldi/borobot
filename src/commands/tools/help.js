@@ -11,8 +11,11 @@ module.exports = {
 	async execute(interaction) {
 		const { commandArray } = interaction.client;
 
+		/** @type {String[]} */
+		const commands = commandArray;
+
 		/** @type {{ name: String, description: String }[]} */
-		const option = commandArray.map(({ name, description }) => ({ name, description: description !== undefined ? description : 'No description' })).filter(({ name }) => name !== 'help');
+		const option = commands.map(({ name, description }) => ({ name, description: description !== undefined ? description : 'No description' })).filter(({ name }) => name !== 'help');
 
 		const menu = (state) => [
 			new ActionRowBuilder().addComponents(
@@ -33,7 +36,7 @@ module.exports = {
 			),
 		];
 
-		const initialMessage = await interaction.deferReply({ fetchReply: true }).then(() => interaction.editReply({ components: menu(false) }).then((message) => message));
+		const initialMessage = await interaction.deferReply({ fetchReply: true }).then(async () => await interaction.editReply({ components: menu(false) }).then((message) => message));
 
 		/**
 		 *
@@ -49,7 +52,7 @@ module.exports = {
 
 		collector.on('collect', async (inter) => {
 			const [name] = inter.values;
-			const command = commandArray.find((cmd) => cmd.name.toLowerCase() === name);
+			const command = commands.find((cmd) => cmd.name.toLowerCase() === name);
 
 			const botColor = await inter.guild.members
 				.fetch(inter.client.user.id)
@@ -82,7 +85,7 @@ module.exports = {
 		});
 
 		collector.on('end', async () => {
-			await initialMessage.edit({ components: menu(true) });
+			await initialMessage.edit({ components: menu(true) }).then((message) => setTimeout(async () => await message.delete(), 10000));
 		});
 	},
 };
