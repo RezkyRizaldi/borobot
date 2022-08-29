@@ -8,10 +8,10 @@ const fs = require('fs');
 const path = require('path');
 
 const { GuildBans, GuildInvites, GuildMembers, GuildMessageReactions, GuildMessages, GuildPresences, Guilds, GuildVoiceStates, MessageContent } = GatewayIntentBits;
-const { GuildMember, Message } = Partials;
+const { Channel, GuildMember, Message, Reaction, User } = Partials;
 
 /** @type {{ commands: import('discord.js').Collection, components: import('discord.js').Collection, distube: import('distube').DisTube, handleEvents(): Promise<void>, handleComponents(): Promise<void>, handleCommands(): Promise<void> }} */
-const client = new Client({ intents: [GuildBans, GuildInvites, GuildMembers, GuildMessageReactions, GuildMessages, GuildPresences, Guilds, GuildVoiceStates, MessageContent], partials: [Message, GuildMember] });
+const client = new Client({ intents: [GuildBans, GuildInvites, GuildMembers, GuildMessageReactions, GuildMessages, GuildPresences, Guilds, GuildVoiceStates, MessageContent], partials: [Channel, Message, GuildMember, Reaction, User] });
 
 client.commands = new Collection();
 client.components = new Collection();
