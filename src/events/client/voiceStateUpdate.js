@@ -68,7 +68,7 @@ module.exports = {
 			name: 'Member Moved',
 			iconURL: newState.member.displayAvatarURL({ dynamic: true }),
 		});
-		embed.setDescription(`${newState.member} has been moved from ${oldState.channel} to ${newState.channel} by ${moveLog.executor} at ${time(moveLog.createdAt, TimestampStyles.RelativeTime)}`);
+		embed.setDescription(`${newState.member} has been moved from ${oldState.channel} to ${newState.channel} by ${moveLog.executor} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
 		embed.setFields([
 			{
 				name: '📄 Reason',
