@@ -75,4 +75,42 @@ module.exports = {
 			value: Events.GuildMemberUpdate,
 		},
 	],
+	musicSettingChoices: [
+		{
+			name: '🔢 View Queue',
+			value: 'queue',
+		},
+		{
+			name: '⏭️ Skip Queue',
+			value: 'skip',
+		},
+		{
+			name: '⏸️ Pause Song',
+			value: 'pause',
+		},
+		{
+			name: '⏯️ Resume Song',
+			value: 'resume',
+		},
+		{
+			name: '⏹️ Stop Queue',
+			value: 'stop',
+		},
+		{
+			name: '🔀 Shuffle Queue',
+			value: 'shuffle',
+		},
+		{
+			name: '🔃 Autoplay',
+			value: 'autoplay',
+		},
+		{
+			name: '🔠 Add Related Song',
+			value: 'relatedSong',
+		},
+		{
+			name: '🔁 Loop Song',
+			value: 'repeatMode',
+		},
+	],
 };

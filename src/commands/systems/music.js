@@ -1,6 +1,8 @@
 const { bold, EmbedBuilder, inlineCode, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const { RepeatMode } = require('distube');
 
+const { musicSettingChoices } = require('../../constants');
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('music')
@@ -23,44 +25,11 @@ module.exports = {
 				.setName('settings')
 				.setDescription('Select an option.')
 				.addStringOption((option) =>
-					option.setName('options').setDescription('Set the music option.').setRequired(true).addChoices(
-						{
-							name: '🔢 View Queue',
-							value: 'queue',
-						},
-						{
-							name: '⏭️ Skip Queue',
-							value: 'skip',
-						},
-						{
-							name: '⏸️ Pause Song',
-							value: 'pause',
-						},
-						{
-							name: '⏯️ Resume Song',
-							value: 'resume',
-						},
-						{
-							name: '⏹️ Stop Queue',
-							value: 'stop',
-						},
-						{
-							name: '🔀 Shuffle Queue',
-							value: 'shuffle',
-						},
-						{
-							name: '🔃 Autoplay',
-							value: 'autoplay',
-						},
-						{
-							name: '🔠 Add Related Song',
-							value: 'relatedSong',
-						},
-						{
-							name: '🔁 Loop Song',
-							value: 'repeatMode',
-						},
-					),
+					option
+						.setName('options')
+						.setDescription('Set the music option.')
+						.setRequired(true)
+						.addChoices(...musicSettingChoices),
 				),
 		),
 	type: 'Chat Input',

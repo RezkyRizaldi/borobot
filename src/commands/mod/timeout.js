@@ -30,7 +30,7 @@ module.exports = {
 		/** @type {import('discord.js').GuildMember} */
 		const guildMember = member;
 
-		if (!guildMember.moderatable) return interaction.reply({ content: "You don't have appropiate permissions to timeout this guildMember.", ephemeral: true });
+		if (!guildMember.moderatable) return interaction.reply({ content: "You don't have appropiate permissions to timeout this member.", ephemeral: true });
 
 		if (guildMember.id === interaction.user.id) return interaction.reply({ content: "You can't timeout yourself.", ephemeral: true });
 
