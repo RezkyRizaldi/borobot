@@ -13,7 +13,7 @@ module.exports = {
 	 */
 	async execute(interaction) {
 		const role = interaction.options.getRole('role');
-		const membersWithRole = interaction.guild.members.cache.filter((member) => member.roles.cache.find((r) => r.id === role.id)).map((member) => member.user.username);
+		const membersWithRole = interaction.guild.members.cache.filter((member) => member.roles.cache.has(role.id)).map((member) => member.user.username);
 
 		if (!membersWithRole.length) return interaction.reply({ content: `There is no member with role ${role}`, ephemeral: true });
 

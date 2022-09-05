@@ -1,4 +1,4 @@
-const { ActionRowBuilder, ComponentType, EmbedBuilder, SelectMenuBuilder, SelectMenuOptionBuilder, SlashCommandBuilder } = require('discord.js');
+const { ActionRowBuilder, bold, ComponentType, EmbedBuilder, SelectMenuBuilder, SelectMenuOptionBuilder, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('help').setDescription('Show information about a command.'),
@@ -15,7 +15,7 @@ module.exports = {
 		const commands = commandArray;
 
 		/** @type {{ name: String, description: String }[]} */
-		const option = commands.map(({ name, description }) => ({ name, description: description !== undefined ? description : 'No description' })).filter(({ name }) => name !== 'help');
+		const options = commands.map(({ name, description }) => ({ name, description: description !== undefined ? description : 'No description' })).filter(({ name }) => name !== 'help');
 
 		const menu = (state) => [
 			new ActionRowBuilder().addComponents(
@@ -24,7 +24,7 @@ module.exports = {
 					.setPlaceholder('Select Command')
 					.setDisabled(state)
 					.setOptions(
-						option.map(
+						options.map(
 							(cmd) =>
 								new SelectMenuOptionBuilder({
 									label: cmd.name,
@@ -43,11 +43,10 @@ module.exports = {
 		 * @param {import('discord.js').SelectMenuInteraction} inter
 		 */
 		const filter = (inter) => inter.customId === 'help';
-
 		const collector = interaction.channel.createMessageComponentCollector({
 			filter,
 			componentType: ComponentType.SelectMenu,
-			idle: 10000,
+			idle: 15000,
 		});
 
 		collector.on('collect', async (inter) => {
@@ -58,28 +57,19 @@ module.exports = {
 				.fetch(inter.client.user.id)
 				.then((res) => res.displayHexColor)
 				.catch((err) => console.error(err));
-
 			const embed = new EmbedBuilder()
 				.setAuthor({
 					name: `${inter.client.user.username} Commands`,
 					iconURL: inter.client.user.displayAvatarURL({ dynamic: true }),
 				})
-				.setDescription(`Information about the ${name} command.`)
+				.setDescription(`Information about the ${bold(`/${name}`)} command.`)
 				.setColor(botColor || 0xfcc9b9)
 				.setFooter({
 					text: inter.client.user.username,
 					iconURL: inter.client.user.displayAvatarURL({ dynamic: true }),
 				})
 				.setTimestamp(Date.now())
-				.setFields(
-					command.options.map((opt) => {
-						return {
-							name: opt.name,
-							value: opt.description,
-							inline: true,
-						};
-					}),
-				);
+				.setFields(command.options.map((opt) => ({ name: `${opt.name} ${opt.required && opt.required.valueOf() === true ? '(required)' : ''}`, value: opt.description, inline: true })));
 
 			await initialMessage.edit({ embeds: [embed] });
 		});
