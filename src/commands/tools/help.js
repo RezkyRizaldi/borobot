@@ -1,5 +1,7 @@
 const { ActionRowBuilder, bold, ComponentType, EmbedBuilder, SelectMenuBuilder, SelectMenuOptionBuilder, SlashCommandBuilder } = require('discord.js');
 
+const { applyPermission } = require('../../utils');
+
 module.exports = {
 	data: new SlashCommandBuilder().setName('help').setDescription('Show information about a command.'),
 	type: 'Select Menu',
@@ -69,7 +71,46 @@ module.exports = {
 					iconURL: inter.client.user.displayAvatarURL({ dynamic: true }),
 				})
 				.setTimestamp(Date.now())
-				.setFields(command.options.map((opt) => ({ name: `${opt.name} ${opt.required && opt.required.valueOf() === true ? '(required)' : ''}`, value: opt.description, inline: true })));
+				.setFields([
+					{
+						name: 'Command Type',
+						value: command.type !== undefined ? 'Context Menu' : 'Slash',
+					},
+				]);
+
+			if (command.options !== undefined) {
+				embed.addFields(command.options.map((opt) => ({ name: `${opt.name} ${opt.required !== undefined && opt.required.valueOf() === true ? '(required)' : ''}`, value: opt.description, inline: true })));
+
+				if (command.options.some((option) => option.choices !== undefined)) {
+					embed.addFields(command.options.filter((option) => option.choices !== undefined).map((option) => ({ name: `${option.name} choices`, value: option.choices.map((choice) => choice.name).join('\n') })));
+				}
+
+				if (command.options.some((option) => option.options !== undefined)) {
+					embed.addFields(
+						command.options
+							.filter((option) => option.options !== undefined)
+							.flatMap((option) => option.options.map((opt) => ({ name: `${opt.name} ${opt.required !== undefined && opt.required.valueOf() === true ? '(required)' : ''} [${option.name}]`, value: opt.description, inline: true }))),
+					);
+
+					if (command.options.some((option) => option.options.some((opt) => opt.choices !== undefined))) {
+						embed.addFields(
+							command.options
+								.filter((option) => option.options !== undefined)
+								.flatMap((option) => option.options.filter((opt) => opt.choices !== undefined))
+								.map((option) => ({ name: `${option.name} choices`, value: option.choices.map((choice) => choice.name).join('\n') })),
+						);
+					}
+				}
+			}
+
+			if (command.default_member_permissions !== undefined) {
+				embed.addFields([
+					{
+						name: 'Permission',
+						value: applyPermission(command.default_member_permissions),
+					},
+				]);
+			}
 
 			await initialMessage.edit({ embeds: [embed] });
 		});
