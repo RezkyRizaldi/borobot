@@ -113,4 +113,26 @@ module.exports = {
 			value: 'repeatMode',
 		},
 	],
+	slowmodeChoices: [
+		{
+			name: '5 secs',
+			value: 5,
+		},
+		{
+			name: '15 secs',
+			value: 15,
+		},
+		{
+			name: '30 secs',
+			value: 30,
+		},
+		{
+			name: '45 secs',
+			value: 45,
+		},
+		{
+			name: '60 secs',
+			value: 60,
+		},
+	],
 };
