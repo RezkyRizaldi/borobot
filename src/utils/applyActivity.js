@@ -3,6 +3,7 @@ const { ActivityType } = require('discord.js');
 /**
  *
  * @param {ActivityType} type
+ * @returns {String} The activity type.
  */
 module.exports = (type) => {
 	return {

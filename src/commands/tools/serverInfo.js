@@ -4,7 +4,7 @@ const pluralize = require('pluralize');
 const { applyAFKTimeout, applyNSFWLevel, applyTier, applyVerificationLevel } = require('../../utils');
 
 module.exports = {
-	data: new SlashCommandBuilder().setName('serverinfo').setDescription('Get info about the server.'),
+	data: new SlashCommandBuilder().setName('serverinfo').setDescription('ℹ️ Get info about the server.'),
 	type: 'Chat Input',
 
 	/**
@@ -12,49 +12,12 @@ module.exports = {
 	 * @param {import('discord.js').CommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const { client, guild } = interaction;
-		const botColor = await guild.members
-			.fetch(client.user.id)
-			.then((res) => res.displayHexColor)
-			.catch((err) => console.error(err));
-		const categoryChannelCount = await guild.channels.fetch().then(
-			(c) =>
-				c.filter(
-					/**
-					 *
-					 * @param {import('discord.js').CategoryChannel} channel
-					 */
-					(channel) => channel.type === ChannelType.GuildCategory,
-				).size,
-		);
-		const textChannelCount = await guild.channels.fetch().then(
-			(c) =>
-				c.filter(
-					/**
-					 *
-					 * @param {import('discord.js').TextChannel} channel
-					 */
-					(channel) => channel.type === ChannelType.GuildText,
-				).size,
-		);
-		const voiceChannelCount = await guild.channels.fetch().then(
-			(c) =>
-				c.filter(
-					/**
-					 *
-					 * @param {import('discord.js').VoiceChannel} channel
-					 * @returns
-					 */
-					(channel) => channel.type === ChannelType.GuildVoice,
-				).size,
-		);
-		const onlineMemberCount = await guild.members.fetch({ withPresences: true }).then(
-			/**
-			 *
-			 * @param {import('discord.js').Collection<import('discord.js').Snowflake, import('discord.js').GuildMember>} m
-			 */
-			(m) => m.filter((member) => !!member.presence).size,
-		);
+		const { guild } = interaction;
+
+		const categoryChannelCount = guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildCategory).size;
+		const textChannelCount = guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildText).size;
+		const voiceChannelCount = guild.channels.cache.filter((channel) => channel.type === ChannelType.GuildVoice).size;
+		const onlineMemberCount = await guild.members.fetch({ withPresences: true }).then((m) => m.filter((member) => !!member.presence).size);
 		const emojiCount = await guild.emojis.fetch().then((emoji) => emoji.size);
 		const roleCount = await guild.roles.fetch().then((role) => role.size);
 		const stickerCount = await guild.stickers.fetch().then((sticker) => sticker.size);
@@ -74,14 +37,19 @@ module.exports = {
 		await interaction
 			.deferReply({ fetchReply: true })
 			.then(async () => {
+				const botColor = await guild.members
+					.fetch(interaction.client.user.id)
+					.then((res) => res.displayHexColor)
+					.catch((err) => console.error(err));
+
 				const embed = new EmbedBuilder()
 					.setTitle(`ℹ️ ${guild.name} Server Info`)
 					.setThumbnail(guild.iconURL({ dynamic: true }))
 					.setDescription(guild.description || italic('No description'))
 					.setColor(botColor || 0xfcc9b9)
 					.setFooter({
-						text: client.user.username,
-						iconURL: client.user.displayAvatarURL({ dynamic: true }),
+						text: interaction.client.user.username,
+						iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
 					})
 					.setTimestamp(Date.now())
 					.setFields([

@@ -3,6 +3,7 @@ const { GuildVerificationLevel } = require('discord.js');
 /**
  *
  * @param {GuildVerificationLevel} level
+ * @returns {String} The guild verification level.
  */
 module.exports = (level) => {
 	return {

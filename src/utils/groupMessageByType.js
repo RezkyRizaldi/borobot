@@ -2,8 +2,8 @@ const getMessageType = require('./getMessageType');
 
 /**
  *
- * @param {Array<Array<import('discord.js').Message>>} arr
- * @returns {Array<Array<Array<import('discord.js').Message>>>}
+ * @param {import('discord.js').Message[][]} arr
+ * @returns {import('discord.js').Message[][][]} Array of array messages grouped by its type.
  */
 module.exports = (arr) => {
 	arr.forEach((sub_arr, index) => {

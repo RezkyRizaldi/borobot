@@ -1,6 +1,7 @@
 /**
  *
  * @param {import('discord.js').PresenceStatus} presenceStatus
+ * @returns {String} The user presence status.
  */
 module.exports = (presenceStatus) => {
 	return {

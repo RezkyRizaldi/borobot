@@ -3,9 +3,10 @@ const { bold, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js')
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('untimeout')
-		.setDescription('Remove member timeout from the server.')
+		.setDescription('🕒 Remove timeout for a member from the server.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
-		.addUserOption((option) => option.setName('member').setDescription('The member to remove the timeout.').setRequired(true)),
+		.addUserOption((option) => option.setName('member').setDescription('👤 The member to remove the timeout.').setRequired(true))
+		.addStringOption((option) => option.setName('reason').setDescription('📃 The reason for removing the timeout.')),
 	type: 'Chat Input',
 
 	/**
@@ -13,19 +14,20 @@ module.exports = {
 	 * @param {import('discord.js').ChatInputCommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const member = interaction.options.getMember('member');
+		const { options } = interaction;
 
 		/** @type {import('discord.js').GuildMember} */
-		const guildMember = member;
+		const member = options.getMember('member');
+		const reason = options.getString('reason') || 'No reason';
 
-		if (!guildMember.moderatable) return interaction.reply({ content: "You don't have appropiate permissions to removing the timeout from this member.", ephemeral: true });
+		if (!member.moderatable) return interaction.reply({ content: "You don't have appropiate permissions to removing the timeout from this member.", ephemeral: true });
 
-		if (guildMember.id === interaction.user.id) return interaction.reply({ content: "You can't remove timeout by yourself.", ephemeral: true });
+		if (member.id === interaction.user.id) return interaction.reply({ content: "You can't remove timeout by yourself.", ephemeral: true });
 
-		if (!guildMember.isCommunicationDisabled()) return interaction.reply({ content: "This member isn't being timed out.", ephemeral: true });
+		if (!member.isCommunicationDisabled()) return interaction.reply({ content: "This member isn't being timed out.", ephemeral: true });
 
-		await guildMember
-			.timeout(null, 'No reason')
+		await member
+			.timeout(null, reason)
 			.then(async (m) => {
 				await interaction.reply({ content: `Successfully ${bold('removing timeout')} from ${m}.`, ephemeral: true });
 

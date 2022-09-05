@@ -3,6 +3,7 @@ const { GuildPremiumTier } = require('discord.js');
 /**
  *
  * @param {GuildPremiumTier} tier
+ * @returns {String} The guild premium tier.
  */
 module.exports = (tier) => {
 	return {

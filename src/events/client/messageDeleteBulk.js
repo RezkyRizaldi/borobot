@@ -42,7 +42,10 @@ module.exports = {
 
 		const bulkDeleteLog = await messages
 			.first()
-			.guild.fetchAuditLogs({ limit: 1, type: AuditLogEvent.MessageBulkDelete })
+			.guild.fetchAuditLogs({
+				limit: 1,
+				type: AuditLogEvent.MessageBulkDelete,
+			})
 			.then((audit) => audit.entries.first());
 
 		if (!messages.every((message) => message.author.id === messages.first().author.id)) {

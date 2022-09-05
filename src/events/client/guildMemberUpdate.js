@@ -65,7 +65,12 @@ module.exports = {
 		}
 
 		// If the member roles have changed
-		const roleLog = await guild.fetchAuditLogs({ type: AuditLogEvent.MemberRoleUpdate }).then((audit) => audit.entries.first());
+		const roleLog = await guild
+			.fetchAuditLogs({
+				limit: 1,
+				type: AuditLogEvent.MemberRoleUpdate,
+			})
+			.then((audit) => audit.entries.first());
 
 		if (roleLog.target.id === newMember.id) {
 			const RoleAddLogger = new WebhookClient({
@@ -74,7 +79,7 @@ module.exports = {
 			});
 
 			const removedRoles = oldMember.roles.cache.filter((role) => !newMember.roles.cache.has(role.id));
-			if (removedRoles.size > 0) {
+			if (removedRoles.size) {
 				embed.setAuthor({
 					name: 'Roles Removed',
 					iconURL: oldMember.displayAvatarURL({ dynamic: true }),
@@ -92,7 +97,7 @@ module.exports = {
 			});
 
 			const addedRoles = newMember.roles.cache.filter((role) => !oldMember.roles.cache.has(role.id));
-			if (addedRoles.size > 0) {
+			if (addedRoles.size) {
 				embed.setAuthor({
 					name: 'Roles Added',
 					iconURL: newMember.displayAvatarURL({ dynamic: true }),
