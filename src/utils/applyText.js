@@ -2,6 +2,7 @@
  *
  * @param {import('@napi-rs/canvas').Canvas} canvas
  * @param {String} text
+ * @returns {String} The canvas font size.
  */
 module.exports = (canvas, text) => {
 	const context = canvas.getContext('2d');

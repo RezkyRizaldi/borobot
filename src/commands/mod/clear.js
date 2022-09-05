@@ -6,11 +6,11 @@ const { groupMessageByAuthor } = require('../../utils');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('clear')
-		.setDescription('Deletes a specifc amount of messages from a channel or guild member.')
+		.setDescription('❌ Delete a certain amount of messages sent by the members.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-		.addIntegerOption((option) => option.setName('amount').setDescription('The amount of messages to delete.').setRequired(true))
-		.addUserOption((option) => option.setName('member').setDescription('The member to delete messages from.'))
-		.addRoleOption((option) => option.setName('role').setDescription('The members with role to delete messages from.')),
+		.addIntegerOption((option) => option.setName('amount').setDescription('🔢 The amount of messages to delete.').setRequired(true))
+		.addUserOption((option) => option.setName('member').setDescription('👤 The member to delete messages from.'))
+		.addRoleOption((option) => option.setName('role').setDescription('👥 The members with specific role to delete messages from.')),
 	type: 'Chat Input',
 
 	/**
@@ -18,21 +18,22 @@ module.exports = {
 	 * @param {import('discord.js').ChatInputCommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const { channel, options } = interaction;
-		const amount = options.getInteger('amount');
-		const member = options.getMember('member');
-		const role = options.getRole('role');
+		/** @type {{ channel: import('discord.js').TextChannel }} */
+		const { channel } = interaction;
+		const amount = interaction.options.getInteger('amount');
 
-		/** @type {import('discord.js').TextChannel} */
-		const textChannel = channel;
+		/** @type {import('discord.js').GuildMember} */
+		const member = interaction.options.getMember('member');
+		const role = interaction.options.getRole('role');
 
-		/** @type {import('discord.js').Collection<String, import('discord.js').Message>} */
+		/** @type {import('discord.js').Collection<import('discord.js').Snowflake, import('discord.js').Message>} */
 		const messages = await channel.messages
 			.fetch()
 			.then((msgs) => msgs)
 			.catch((err) => console.error(err));
 
 		const botColor = await interaction.guild.members.fetch(interaction.client.user.id).then((res) => res.displayHexColor);
+
 		const embed = new EmbedBuilder()
 			.setTitle('Message Deleted')
 			.setColor(botColor || 0xfcc9b9)
@@ -42,7 +43,7 @@ module.exports = {
 				iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
 			});
 
-		if (!messages.size) return interaction.reply({ content: `${textChannel} doesn't have any message.`, ephemeral: true });
+		if (!messages.size) return interaction.reply({ content: `${channel} doesn't have any message.`, ephemeral: true });
 
 		if (!messages.first().deletable) return interaction.reply({ content: "You don't have appropiate permissions to delete messages.", ephemeral: true });
 
@@ -50,14 +51,16 @@ module.exports = {
 
 		if (amount > 50) return interaction.reply({ content: `You can only delete up to ${bold('50')} messages at a time.`, ephemeral: true });
 
+		/** @type {Number} */
+		let i = 0;
+
+		/** @type {import('discord.js').Collection<import('discord.js').Snowflake, import('discord.js').Message>} */
+		const filteredMessages = new Collection();
+
 		switch (true) {
 			case !!member && !!role: {
 				const membersWithRole = interaction.guild.members.cache.filter((m) => m.roles.cache.has(role.id)).map((m) => m.id);
 
-				/** @type {Number} */
-				let i = 0;
-
-				const filteredMessages = new Collection();
 				messages.filter((message) => {
 					if ((message.author.id === member.id || membersWithRole.includes(message.author.id)) && amount > i) {
 						filteredMessages.set(message.id, message);
@@ -65,11 +68,11 @@ module.exports = {
 					}
 				});
 
-				if (!filteredMessages.size) return interaction.reply({ content: `members with role ${role} doesn't have any message in ${textChannel}`, ephemeral: true });
+				if (!filteredMessages.size) return interaction.reply({ content: `members with role ${role} doesn't have any message in ${channel}`, ephemeral: true });
 
 				if (filteredMessages.size > 50) return interaction.reply({ content: `You can only delete up to ${bold('50')} messages at a time.`, ephemeral: true });
 
-				return textChannel
+				return channel
 					.bulkDelete(filteredMessages, true)
 					.then(async () => {
 						const groupedMessages = groupMessageByAuthor(filteredMessages);
@@ -83,10 +86,6 @@ module.exports = {
 			}
 
 			case !!member: {
-				/** @type {Number} */
-				let i = 0;
-
-				const filteredMessages = new Collection();
 				messages.filter((message) => {
 					if (message.author.id === member.id && amount > i) {
 						filteredMessages.set(message.id, message);
@@ -94,11 +93,11 @@ module.exports = {
 					}
 				});
 
-				if (!filteredMessages.size) return interaction.reply({ content: `${member} doesn't have any message in ${textChannel}`, ephemeral: true });
+				if (!filteredMessages.size) return interaction.reply({ content: `${member} doesn't have any message in ${channel}`, ephemeral: true });
 
 				if (filteredMessages.size > 50) return interaction.reply({ content: `You can only delete up to ${bold('50')} messages at a time.`, ephemeral: true });
 
-				return textChannel
+				return channel
 					.bulkDelete(filteredMessages, true)
 					.then(async (msg) => {
 						embed.setDescription(`Deleted ${bold(`${msg.size}`)} ${pluralize('message', msg.size)} from ${member}.`);
@@ -110,10 +109,6 @@ module.exports = {
 			case !!role: {
 				const membersWithRole = interaction.guild.members.cache.filter((m) => m.roles.cache.has(role.id)).map((m) => m.id);
 
-				/** @type {Number} */
-				let i = 0;
-
-				const filteredMessages = new Collection();
 				messages.filter((message) => {
 					if (membersWithRole.includes(message.author.id) && amount > i) {
 						filteredMessages.set(message.id, message);
@@ -121,11 +116,11 @@ module.exports = {
 					}
 				});
 
-				if (!filteredMessages.size) return interaction.reply({ content: `members with role ${role} doesn't have any message in ${textChannel}`, ephemeral: true });
+				if (!filteredMessages.size) return interaction.reply({ content: `members with role ${role} doesn't have any message in ${channel}`, ephemeral: true });
 
 				if (filteredMessages.size > 50) return interaction.reply({ content: `You can only delete up to ${bold('50')} messages at a time.`, ephemeral: true });
 
-				return textChannel
+				return channel
 					.bulkDelete(filteredMessages, true)
 					.then(async () => {
 						const groupedMessages = groupMessageByAuthor(filteredMessages);
@@ -139,7 +134,7 @@ module.exports = {
 			}
 		}
 
-		await textChannel
+		await channel
 			.bulkDelete(amount, true)
 			.then(async (msg) => {
 				embed.setDescription(`Deleted ${bold(`${msg.size}`)} ${pluralize('message', msg.size)}.`);

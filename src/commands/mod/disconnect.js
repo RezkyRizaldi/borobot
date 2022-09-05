@@ -3,10 +3,10 @@ const { bold, PermissionFlagsBits, SlashCommandBuilder } = require('discord.js')
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('disconnect')
-		.setDescription('Disconnect a member from voice channel.')
+		.setDescription('🔌 Disconnect a member from voice channel.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.MoveMembers)
-		.addUserOption((option) => option.setName('member').setDescription('The member to disconnect.').setRequired(true))
-		.addStringOption((option) => option.setName('reason').setDescription('The reason for moving this member.')),
+		.addUserOption((option) => option.setName('member').setDescription('👤 The member to disconnect from.').setRequired(true))
+		.addStringOption((option) => option.setName('reason').setDescription('📃 The reason for disconnecting the member.')),
 	type: 'Chat Input',
 
 	/**
@@ -14,15 +14,15 @@ module.exports = {
 	 * @param {import('discord.js').ChatInputCommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const member = interaction.options.getMember('member');
-		const reason = interaction.options.getString('reason') || 'No reason';
+		const { options } = interaction;
 
 		/** @type {import('discord.js').GuildMember} */
-		const guildMember = member;
+		const member = options.getMember('member');
+		const reason = options.getString('reason') || 'No reason';
 
-		if (!guildMember.voice.channel) return interaction.reply({ content: 'This member is not connected to a voice channel.', ephemeral: true });
+		if (!member.voice.channel) return interaction.reply({ content: 'This member is not connected to a voice channel.', ephemeral: true });
 
-		await guildMember.voice
+		await member.voice
 			.disconnect(reason)
 			.then(async (m) => await interaction.reply({ content: `Successfully ${bold('disconnected')} ${m}.`, ephemeral: true }))
 			.catch((err) => console.error(err));

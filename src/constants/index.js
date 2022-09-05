@@ -1,6 +1,7 @@
 const { Events } = require('discord.js');
 
 module.exports = {
+	/** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
 	banChoices: [
 		{
 			name: "Don't Delete Any",
@@ -35,6 +36,8 @@ module.exports = {
 			value: 7,
 		},
 	],
+
+	/** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
 	timeoutChoices: [
 		{
 			name: '60 secs',
@@ -61,6 +64,8 @@ module.exports = {
 			value: 1000 * 60 * 60 * 24 * 7,
 		},
 	],
+
+	/** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
 	emitChoices: [
 		{
 			name: Events.GuildMemberAdd,
@@ -75,6 +80,8 @@ module.exports = {
 			value: Events.GuildMemberUpdate,
 		},
 	],
+
+	/** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
 	musicSettingChoices: [
 		{
 			name: '🔢 View Queue',
@@ -113,6 +120,8 @@ module.exports = {
 			value: 'repeatMode',
 		},
 	],
+
+	/** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
 	slowmodeChoices: [
 		{
 			name: '5 secs',

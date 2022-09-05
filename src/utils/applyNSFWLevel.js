@@ -3,6 +3,7 @@ const { GuildNSFWLevel } = require('discord.js');
 /**
  *
  * @param {GuildNSFWLevel} level
+ * @returns {String} The NSFW level.
  */
 module.exports = (level) => {
 	return {

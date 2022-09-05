@@ -3,7 +3,7 @@ const { PermissionFlagsBits } = require('discord.js');
 /**
  *
  * @param {PermissionFlagsBits} permission
- * @returns {String}
+ * @returns {String} The application command permission.
  */
 module.exports = (permission) => {
 	return {

@@ -5,17 +5,17 @@ const { timeoutChoices } = require('../../constants');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('timeout')
-		.setDescription('timeout a member from the server.')
+		.setDescription('🕒 Timeout a member from the server.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
-		.addUserOption((option) => option.setName('member').setDescription('The member to timeout.').setRequired(true))
+		.addUserOption((option) => option.setName('member').setDescription('👤 The member to timeout.').setRequired(true))
 		.addIntegerOption((option) =>
 			option
 				.setName('duration')
-				.setDescription('The duration of the timeout.')
+				.setDescription('⏱️ The duration of the timeout.')
 				.addChoices(...timeoutChoices)
 				.setRequired(true),
 		)
-		.addStringOption((option) => option.setName('reason').setDescription('The reason for timeouting the member.')),
+		.addStringOption((option) => option.setName('reason').setDescription('📃 The reason for timeouting the member.')),
 	type: 'Chat Input',
 
 	/**
@@ -23,20 +23,20 @@ module.exports = {
 	 * @param {import('discord.js').ChatInputCommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const member = interaction.options.getMember('member');
-		const reason = interaction.options.getString('reason') || 'No reason';
-		const duration = interaction.options.getInteger('duration');
+		const { options } = interaction;
 
 		/** @type {import('discord.js').GuildMember} */
-		const guildMember = member;
+		const member = options.getMember('member');
+		const reason = options.getString('reason') || 'No reason';
+		const duration = options.getInteger('duration');
 
-		if (!guildMember.moderatable) return interaction.reply({ content: "You don't have appropiate permissions to timeout this member.", ephemeral: true });
+		if (!member.moderatable) return interaction.reply({ content: "You don't have appropiate permissions to timeout this member.", ephemeral: true });
 
-		if (guildMember.id === interaction.user.id) return interaction.reply({ content: "You can't timeout yourself.", ephemeral: true });
+		if (member.id === interaction.user.id) return interaction.reply({ content: "You can't timeout yourself.", ephemeral: true });
 
-		if (guildMember.isCommunicationDisabled()) return interaction.reply({ content: `This member is already timed out. Available back ${time(guildMember.communicationDisabledUntil, TimestampStyles.RelativeTime)}`, ephemeral: true });
+		if (member.isCommunicationDisabled()) return interaction.reply({ content: `This member is already timed out. Available back ${time(member.communicationDisabledUntil, TimestampStyles.RelativeTime)}`, ephemeral: true });
 
-		await guildMember
+		await member
 			.timeout(duration, reason)
 			.then(async (m) => {
 				await interaction.reply({ content: `Successfully ${bold('timed out')} ${m}. Available back ${time(m.communicationDisabledUntil, TimestampStyles.RelativeTime)}.`, ephemeral: true });

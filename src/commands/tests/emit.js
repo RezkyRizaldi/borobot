@@ -5,12 +5,12 @@ const { emitChoices } = require('../../constants');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('emit')
-		.setDescription('Emit an event.')
+		.setDescription('🔘 Emit an event.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 		.addStringOption((option) =>
 			option
 				.setName('event')
-				.setDescription('The event to emit.')
+				.setDescription('⚠️ The event to emit.')
 				.setRequired(true)
 				.addChoices(...emitChoices),
 		),
@@ -22,6 +22,7 @@ module.exports = {
 	 */
 	async execute(interaction) {
 		const event = interaction.options.getString('event');
+
 		await interaction
 			.deferReply({ fetchReply: true, ephemeral: true })
 			.then(async () => {

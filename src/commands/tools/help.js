@@ -3,7 +3,7 @@ const { ActionRowBuilder, bold, ComponentType, EmbedBuilder, SelectMenuBuilder, 
 const { applyPermission } = require('../../utils');
 
 module.exports = {
-	data: new SlashCommandBuilder().setName('help').setDescription('Show information about a command.'),
+	data: new SlashCommandBuilder().setName('help').setDescription('ℹ️ Show information about a command.'),
 	type: 'Select Menu',
 
 	/**
@@ -11,30 +11,25 @@ module.exports = {
 	 * @param {import('discord.js').SelectMenuInteraction} interaction
 	 */
 	async execute(interaction) {
-		const { commandArray } = interaction.client;
+		/** @type {{ client: { commandArray: { name: String, description: String, type: Number, default_member_permissions: bigint }[] }}} */
+		const {
+			client: { commandArray: commands },
+		} = interaction;
 
-		/** @type {String[]} */
-		const commands = commandArray;
-
-		/** @type {{ name: String, description: String }[]} */
 		const options = commands.map(({ name, description }) => ({ name, description: description !== undefined ? description : 'No description' })).filter(({ name }) => name !== 'help');
 
+		/**
+		 *
+		 * @param {Boolean} state
+		 * @returns {ActionRowBuilder[]} Array of Action Row components.
+		 */
 		const menu = (state) => [
 			new ActionRowBuilder().addComponents(
 				new SelectMenuBuilder()
 					.setCustomId('help')
-					.setPlaceholder('Select Command')
+					.setPlaceholder('- Select Command -')
 					.setDisabled(state)
-					.setOptions(
-						options.map(
-							(cmd) =>
-								new SelectMenuOptionBuilder({
-									label: cmd.name,
-									value: cmd.name.toLowerCase(),
-									description: cmd.description,
-								}),
-						),
-					),
+					.setOptions(options.map((cmd) => new SelectMenuOptionBuilder().setLabel(cmd.name).setDescription(cmd.description).setValue(cmd.name.toLowerCase()))),
 			),
 		];
 
@@ -43,6 +38,7 @@ module.exports = {
 		/**
 		 *
 		 * @param {import('discord.js').SelectMenuInteraction} inter
+		 * @returns {Boolean} Boolean value of the filtered interaction.
 		 */
 		const filter = (inter) => inter.customId === 'help';
 		const collector = interaction.channel.createMessageComponentCollector({
@@ -53,12 +49,14 @@ module.exports = {
 
 		collector.on('collect', async (inter) => {
 			const [name] = inter.values;
+
 			const command = commands.find((cmd) => cmd.name.toLowerCase() === name);
 
 			const botColor = await inter.guild.members
 				.fetch(inter.client.user.id)
 				.then((res) => res.displayHexColor)
 				.catch((err) => console.error(err));
+
 			const embed = new EmbedBuilder()
 				.setAuthor({
 					name: `${inter.client.user.username} Commands`,

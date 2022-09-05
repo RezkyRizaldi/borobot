@@ -1,10 +1,12 @@
 const { bold, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 
+const { chunk } = require('../../utils');
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('inrole')
-		.setDescription('Show member list with specific role.')
-		.addRoleOption((option) => option.setName('role').setDescription('The member role to show.').setRequired(true)),
+		.setDescription('👥 Show member list with specific role.')
+		.addRoleOption((option) => option.setName('role').setDescription('🛠️ The member role to show.').setRequired(true)),
 	type: 'Chat Input',
 
 	/**
@@ -13,11 +15,13 @@ module.exports = {
 	 */
 	async execute(interaction) {
 		const role = interaction.options.getRole('role');
+
 		const membersWithRole = interaction.guild.members.cache.filter((member) => member.roles.cache.has(role.id)).map((member) => member.user.username);
 
 		if (!membersWithRole.length) return interaction.reply({ content: `There is no member with role ${role}`, ephemeral: true });
 
 		const botColor = await interaction.guild.members.fetch(interaction.client.user.id).then((res) => res.displayHexColor);
+
 		const embed = new EmbedBuilder()
 			.setColor(botColor || 0xfcc9b9)
 			.setTimestamp(Date.now())
@@ -26,13 +30,11 @@ module.exports = {
 				iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
 			});
 
-		const chunkSize = 5;
-		/** @type {String[]} */
-		const memberChunk = membersWithRole.reduce((acc, _, i) => (i % chunkSize ? acc : [...acc, membersWithRole.slice(i, i + chunkSize)]), []);
+		const memberChunk = chunk(membersWithRole, 5);
 
 		switch (true) {
 			case memberChunk.length === 1:
-				await interaction
+				return interaction
 					.deferReply({ fetchReply: true })
 					.then(async () => {
 						embed.setDescription(`👥 ${bold('Member list with role')} ${role} ${bold(`(${membersWithRole.length})`)}\n\n${memberChunk.join('\n')}`);
@@ -42,10 +44,8 @@ module.exports = {
 					.catch((err) => console.error(err))
 					.finally(() => setTimeout(async () => await interaction.deleteReply(), 10000));
 
-				break;
-
 			case memberChunk.length > 1:
-				await interaction
+				return interaction
 					.deferReply({ fetchReply: true })
 					.then(async () => {
 						embed.setDescription(`👥 ${bold('Member list with role')} ${role} ${bold(`(${membersWithRole.length}) [1/${memberChunk.length}]`)}\n\n${memberChunk[0].join('\n')}`);
@@ -57,6 +57,7 @@ module.exports = {
 							 *
 							 * @param {import('discord.js').MessageReaction} reaction
 							 * @param {import('discord.js').User} user
+							 * @returns {Boolean} Boolean value of the filtered interaction.
 							 */
 							const filter = (reaction, user) => ['⬅️', '➡️'].includes(reaction.emoji.name) && user.id === interaction.user.id;
 							const collector = message.createReactionCollector({ filter, idle: 10000 });
@@ -71,24 +72,20 @@ module.exports = {
 
 											embed.setDescription(`👥 ${bold('Member list with role')} ${role} ${bold(`(${membersWithRole.length}) [${pg === 0 ? '1' : pg + 1}/${memberChunk.length}]`)}\n\n${memberChunk[pg].join('\n')}`);
 
-											await message.edit({ embeds: [embed] }).then(async (msg) => {
+											return message.edit({ embeds: [embed] }).then(async (msg) => {
 												await msg.react('⬅️');
 												await msg.react('➡️');
 											});
-
-											break;
 
 										case '➡️':
 											!memberChunk[pg + 1] ? (pg = 0) : (pg += 1);
 
 											embed.setDescription(`👥 ${bold('Member list with role')} ${role} ${bold(`(${membersWithRole.length}) [${pg === 1 ? '2' : pg + 1}/${memberChunk.length}]`)}\n\n${memberChunk[pg].join('\n')}`);
 
-											await message.edit({ embeds: [embed] }).then(async (msg) => {
+											return message.edit({ embeds: [embed] }).then(async (msg) => {
 												await msg.react('⬅️');
 												await msg.react('➡️');
 											});
-
-											break;
 									}
 								});
 							});
@@ -99,8 +96,6 @@ module.exports = {
 						});
 					})
 					.catch((err) => console.error(err));
-
-				break;
 		}
 	},
 };

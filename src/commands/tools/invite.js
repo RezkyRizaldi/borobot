@@ -1,7 +1,7 @@
 const { EmbedBuilder, hyperlink, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
-	data: new SlashCommandBuilder().setName('invite').setDescription("Grab the bot's invite link."),
+	data: new SlashCommandBuilder().setName('invite').setDescription("🔗 Grab the bot's invite link."),
 	type: 'Chat Input',
 
 	/**

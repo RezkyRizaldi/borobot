@@ -53,6 +53,14 @@ module.exports = {
 		});
 		embed.setDescription(response);
 
+		if (response.length > 4096) {
+			embed.setDescription(response.slice(0, 4096));
+
+			const secondEmbed = new EmbedBuilder().setDescription(response.slice(4096, response.length));
+
+			return MessageLogger.send({ embeds: [embed, secondEmbed] }).catch((err) => console.error(err));
+		}
+
 		await MessageLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
 	},
 };
