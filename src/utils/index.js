@@ -2,6 +2,7 @@ const applyActivity = require('./applyActivity');
 const applyAFKTimeout = require('./applyAFKTimeout');
 const applyMessageType = require('./applyMessageType');
 const applyNSFWLevel = require('./applyNSFWLevel');
+const applyPermission = require('./applyPermission');
 const applyPresence = require('./applyPresence');
 const applyText = require('./applyText');
 const applyTier = require('./applyTier');
@@ -16,6 +17,7 @@ module.exports = {
 	applyAFKTimeout,
 	applyMessageType,
 	applyNSFWLevel,
+	applyPermission,
 	applyPresence,
 	applyText,
 	applyTier,

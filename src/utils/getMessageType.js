@@ -9,5 +9,5 @@ module.exports = (message) => {
 
 	if (message.content !== '') return 'Regular';
 
-	if ((message.content === '' && message.embeds.length > 0) || message.components.length > 0) return 'Embed';
+	if ((message.content === '' && message.embeds.length) || message.components.length) return 'Embed';
 };
