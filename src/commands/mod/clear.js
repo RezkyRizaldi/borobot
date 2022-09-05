@@ -51,6 +51,37 @@ module.exports = {
 		if (amount > 50) return interaction.reply({ content: `You can only delete up to ${bold('50')} messages at a time.`, ephemeral: true });
 
 		switch (true) {
+			case !!member && !!role: {
+				const membersWithRole = interaction.guild.members.cache.filter((m) => m.roles.cache.has(role.id)).map((m) => m.id);
+
+				/** @type {Number} */
+				let i = 0;
+
+				const filteredMessages = new Collection();
+				messages.filter((message) => {
+					if ((message.author.id === member.id || membersWithRole.includes(message.author.id)) && amount > i) {
+						filteredMessages.set(message.id, message);
+						i++;
+					}
+				});
+
+				if (!filteredMessages.size) return interaction.reply({ content: `members with role ${role} doesn't have any message in ${textChannel}`, ephemeral: true });
+
+				if (filteredMessages.size > 50) return interaction.reply({ content: `You can only delete up to ${bold('50')} messages at a time.`, ephemeral: true });
+
+				return textChannel
+					.bulkDelete(filteredMessages, true)
+					.then(async () => {
+						const groupedMessages = groupMessageByAuthor(filteredMessages);
+						const response = groupedMessages.map((msgs) => `Deleted ${bold(`${msgs.length}`)} ${pluralize('message', msgs.length)} from ${userMention(msgs[0].author.id)}`).join('\n');
+
+						embed.setDescription(response);
+
+						await interaction.reply({ embeds: [embed], ephemeral: true });
+					})
+					.catch((err) => console.error(err));
+			}
+
 			case !!member: {
 				/** @type {Number} */
 				let i = 0;
