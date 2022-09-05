@@ -1,4 +1,6 @@
-const { AuditLogEvent, bold, cleanCodeBlockContent, codeBlock, EmbedBuilder, Events, italic, time, TimestampStyles, WebhookClient, hyperlink } = require('discord.js');
+const { AuditLogEvent, bold, EmbedBuilder, Events, time, TimestampStyles, WebhookClient } = require('discord.js');
+
+const { applyMessageType } = require('../../utils');
 
 module.exports = {
 	name: Events.MessageDelete,
@@ -26,7 +28,9 @@ module.exports = {
 		if (!message.guild) return;
 
 		if (message.partial || !message.author) {
-			embed.setTitle('Message Deleted');
+			embed.setAuthor({
+				name: '❌ Message Deleted',
+			});
 			embed.setDescription(`A message was ${bold('deleted')} in ${message.channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
 
 			return MessageLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
@@ -39,22 +43,15 @@ module.exports = {
 			})
 			.then((audit) => audit.entries.first());
 
-		embed.setDescription(`A message from ${message.author} was ${bold('deleted')} by ${deleteLog.executor} in ${message.channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
-		embed.setFields({
-			name: 'Deleted Message',
-			value: message.content.includes('://') ? message.content : message.embeds.length > 0 || message.components.length > 0 ? italic('No Content, maybe an embed or component.') : codeBlock('css', cleanCodeBlockContent(message.content)),
-		});
+		const response = `A message from ${message.author} was ${bold('deleted')} by ${deleteLog.executor} in ${message.channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}\n${bold(
+			'Deleted Message',
+		)}\n${applyMessageType(message)}`;
+
 		embed.setAuthor({
 			name: 'Message Deleted',
 			iconURL: message.author.displayAvatarURL({ dynamic: true }),
 		});
-
-		if (message.attachments.size >= 1) {
-			embed.addFields({
-				name: 'Attachments',
-				value: message.attachments.map((attachment) => hyperlink(attachment.name, attachment.url, 'Click here to jump to attachment')).join('\n'),
-			});
-		}
+		embed.setDescription(response);
 
 		await MessageLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
 	},
