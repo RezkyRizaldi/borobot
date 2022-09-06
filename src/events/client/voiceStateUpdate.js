@@ -197,5 +197,21 @@ module.exports = {
 
 			return VoiceDeafenLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
 		}
+
+		// IF the member is streaming using "Screen Share"
+		if (!oldState.streaming && newState.streaming) {
+			const VoiceStreamLogger = new WebhookClient({
+				id: process.env.MEMBER_VOICE_DEAFEN_WEBHOOK_ID,
+				token: process.env.MEMBER_VOICE_DEAFEN_WEBHOOK_TOKEN,
+			});
+
+			embed.setAuthor({
+				name: 'Member Streaming',
+				iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+			});
+			embed.setDescription(`${oldState.member} is streaming in ${newState.channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
+
+			return VoiceStreamLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
+		}
 	},
 };
