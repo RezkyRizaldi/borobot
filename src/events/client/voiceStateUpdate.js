@@ -17,7 +17,7 @@ module.exports = {
 				iconURL: newState.client.user.displayAvatarURL({ dynamic: true }),
 			})
 			.setTimestamp(Date.now())
-			.setColor(oldState.member.displayHexColor || 0xfcc9b9);
+			.setColor(newState.member.displayHexColor || 0xfcc9b9);
 
 		// If the member join to a voice channel
 		if (!oldState.channel && newState.channel) {
@@ -28,7 +28,7 @@ module.exports = {
 
 			embed.setAuthor({
 				name: 'Member Joined',
-				iconURL: oldState.member.displayAvatarURL({ dynamic: true }),
+				iconURL: newState.member.displayAvatarURL({ dynamic: true }),
 			});
 			embed.setDescription(`${oldState.member} has join to ${newState.channel} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
 
@@ -100,7 +100,7 @@ module.exports = {
 				name: 'Member Muted',
 				iconURL: newState.member.displayAvatarURL({ dynamic: true }),
 			});
-			embed.setDescription(`${newState.member} has been muted from ${newState.channel} by ${muteLog.executor} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
+			embed.setDescription(`${oldState.member} has been muted from ${newState.channel} by ${muteLog.executor} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
 			embed.setFields([
 				{
 					name: '📄 Reason',
@@ -129,7 +129,7 @@ module.exports = {
 				name: 'Member Unmuted',
 				iconURL: newState.member.displayAvatarURL({ dynamic: true }),
 			});
-			embed.setDescription(`${newState.member} has been unmuted from ${newState.channel} by ${unmuteLog.executor} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
+			embed.setDescription(`${newState.member} has been unmuted from ${oldState.channel} by ${unmuteLog.executor} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
 			embed.setFields([
 				{
 					name: '📄 Reason',
@@ -138,6 +138,64 @@ module.exports = {
 			]);
 
 			return VoiceUnmuteLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
+		}
+
+		// If the member being deafen by a moderator.
+		if (!oldState.serverDeaf && newState.serverDeaf) {
+			const deafenLog = await newState.guild
+				.fetchAuditLogs({
+					limit: 1,
+					type: AuditLogEvent.MemberUpdate,
+				})
+				.then((audit) => audit.entries.first());
+
+			const VoiceDeafenLogger = new WebhookClient({
+				id: process.env.MEMBER_VOICE_DEAFEN_WEBHOOK_ID,
+				token: process.env.MEMBER_VOICE_DEAFEN_WEBHOOK_TOKEN,
+			});
+
+			embed.setAuthor({
+				name: 'Member Deafen',
+				iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+			});
+			embed.setDescription(`${oldState.member} has been deafen from ${newState.channel} by ${deafenLog.executor} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
+			embed.setFields([
+				{
+					name: '📄 Reason',
+					value: deafenLog.reason || 'No reason',
+				},
+			]);
+
+			return VoiceDeafenLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
+		}
+
+		// If the member being undeafen by a moderator.
+		if (oldState.serverDeaf && !newState.serverDeaf) {
+			const deafenLog = await newState.guild
+				.fetchAuditLogs({
+					limit: 1,
+					type: AuditLogEvent.MemberUpdate,
+				})
+				.then((audit) => audit.entries.first());
+
+			const VoiceDeafenLogger = new WebhookClient({
+				id: process.env.MEMBER_VOICE_DEAFEN_WEBHOOK_ID,
+				token: process.env.MEMBER_VOICE_DEAFEN_WEBHOOK_TOKEN,
+			});
+
+			embed.setAuthor({
+				name: 'Member Undeafen',
+				iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+			});
+			embed.setDescription(`${oldState.member} has been undeafen from ${newState.channel} by ${deafenLog.executor} at ${time(Math.floor(Date.now() / 1000), TimestampStyles.RelativeTime)}`);
+			embed.setFields([
+				{
+					name: '📄 Reason',
+					value: deafenLog.reason || 'No reason',
+				},
+			]);
+
+			return VoiceDeafenLogger.send({ embeds: [embed] }).catch((err) => console.error(err));
 		}
 	},
 };
