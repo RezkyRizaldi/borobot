@@ -22,8 +22,6 @@ module.exports = {
 
 		if (!member.voice.channel) return interaction.reply({ content: 'This member is not connected to a voice channel.', ephemeral: true });
 
-		if (member.id === interaction.user.id) return interaction.reply({ content: "You can't mute yourself.", ephemeral: true });
-
 		if (member.voice.serverMute) return interaction.reply({ content: 'This member already being muted.', ephemeral: true });
 
 		await member.voice
