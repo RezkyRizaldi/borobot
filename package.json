@@ -1,6 +1,6 @@
 {
 	"name": "borobot",
-	"version": "1.7.0",
+	"version": "1.8.0",
 	"description": "A simple Discord Bot build with discord.js v14",
 	"displayName": "Borobot",
 	"bugs": {
@@ -10,7 +10,11 @@
 	"main": "./src/index.js",
 	"private": "true",
 	"scripts": {
-		"test": "nodemon ."
+		"prepare": "husky install",
+		"test": "nodemon .",
+		"lint": "eslint --cache --fix src",
+		"prettier": "prettier --write src",
+		"build": "npm run lint && npm run prettier"
 	},
 	"keywords": [
 		"discord.js",
@@ -21,7 +25,7 @@
 		"email": "rezkyrizaldi30@gmail.com",
 		"url": "https://rezkyrizaldi.herokuapp.com"
 	},
-	"homepage": "https://github.com/RezkyRizaldi/borobot",
+	"homepage": "https://github.com/RezkyRizaldi/borobot#readme",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/RezkyRizaldi/borobot.git"
@@ -48,6 +52,13 @@
 	},
 	"devDependencies": {
 		"eslint": "^8.23.0",
-		"nodemon": "^2.0.19"
+		"husky": "^8.0.1",
+		"lint-staged": "^13.0.3",
+		"nodemon": "^2.0.19",
+		"prettier": "^2.7.1"
+	},
+	"lint-staged": {
+		"*.ts": "eslint --cache --fix",
+		"*.{ts,css,md}": "prettier --write"
 	}
 }
