@@ -4,6 +4,7 @@ const applyMessageType = require('./applyMessageType');
 const applyNSFWLevel = require('./applyNSFWLevel');
 const applyPermission = require('./applyPermission');
 const applyPresence = require('./applyPresence');
+const applyRepeatMode = require('./applyRepeatMode');
 const applyText = require('./applyText');
 const applyTier = require('./applyTier');
 const applyVerificationLevel = require('./applyVerificationLevel');
@@ -14,18 +15,19 @@ const groupMessageByType = require('./groupMessageByType');
 const isValidURL = require('./isValidURL');
 
 module.exports = {
-	applyActivity,
-	applyAFKTimeout,
-	applyMessageType,
-	applyNSFWLevel,
-	applyPermission,
-	applyPresence,
-	applyText,
-	applyTier,
-	applyVerificationLevel,
-	chunk,
-	getMessageType,
-	groupMessageByAuthor,
-	groupMessageByType,
-	isValidURL,
+  applyActivity,
+  applyAFKTimeout,
+  applyMessageType,
+  applyNSFWLevel,
+  applyPermission,
+  applyPresence,
+  applyRepeatMode,
+  applyText,
+  applyTier,
+  applyVerificationLevel,
+  chunk,
+  getMessageType,
+  groupMessageByAuthor,
+  groupMessageByType,
+  isValidURL,
 };
