@@ -31,12 +31,7 @@ module.exports = {
       [InteractionType.MessageComponent]: async () => {
         const component = client.components.get(interaction.customId);
 
-        if (!component) {
-          return interaction.reply({
-            content: 'Component not found',
-            ephemeral: true,
-          });
-        }
+        if (!component) return;
 
         await component.execute(interaction).catch(async (err) => {
           console.error(err);
@@ -67,12 +62,7 @@ module.exports = {
       [InteractionType.ModalSubmit]: async () => {
         const modal = client.components.get(interaction.customId);
 
-        if (!modal) {
-          return interaction.reply({
-            content: 'Modal not found',
-            ephemeral: true,
-          });
-        }
+        if (!modal) return;
 
         await modal.execute(interaction).catch(async (err) => {
           console.error(err);

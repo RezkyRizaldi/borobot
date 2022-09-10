@@ -1,5 +1,6 @@
 const { EmbedBuilder, inlineCode } = require('discord.js');
 const { Events: DistubeEvents } = require('distube');
+const progressbar = require('string-progressbar');
 
 const { applyRepeatMode } = require('../../utils');
 
@@ -24,7 +25,12 @@ module.exports = {
           queue.filters.names.join(', ') || 'Off',
         )} | Loop: ${inlineCode(
           applyRepeatMode(queue.repeatMode),
-        )} | Autoplay: ${inlineCode(queue.autoplay ? 'On' : 'Off')}`,
+        )} | Autoplay: ${inlineCode(queue.autoplay ? 'On' : 'Off')}\n${
+          queue.formattedCurrentTime
+        } - [${progressbar
+          .splitBar(song.duration, queue.currentTime, 12)
+          .slice(0, -1)
+          .toString()}] - ${song.formattedDuration}`,
       )
       .setAuthor({
         name: '🎶 Playing Music',
@@ -40,6 +46,32 @@ module.exports = {
 
     await queue.textChannel
       .send({ embeds: [embed] })
+      .then((message) => {
+        const interval = setInterval(async () => {
+          if (queue.currentTime === song.duration) {
+            clearInterval(interval);
+          }
+
+          embed.setDescription(
+            `${inlineCode(song.name)} - ${inlineCode(
+              song.formattedDuration,
+            )}\nRequested by: ${song.user}\nVolume: ${inlineCode(
+              `${queue.volume}%`,
+            )} | Filter: ${inlineCode(
+              queue.filters.names.join(', ') || 'Off',
+            )} | Loop: ${inlineCode(
+              applyRepeatMode(queue.repeatMode),
+            )} | Autoplay: ${inlineCode(queue.autoplay ? 'On' : 'Off')}\n${
+              queue.formattedCurrentTime
+            } - [${progressbar
+              .splitBar(song.duration, queue.currentTime, 12)
+              .slice(0, -1)
+              .toString()}] - ${song.formattedDuration}`,
+          );
+
+          await message.edit({ embeds: [embed] });
+        }, 1000);
+      })
       .catch((err) => console.error(err));
   },
 };
