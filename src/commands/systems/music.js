@@ -209,16 +209,12 @@ module.exports = {
     const { voice } = member;
     const { channel: voiceChannel } = voice;
 
-    const musicChannel = await interaction.guild.channels
-      .fetch(process.env.CHANNEL_MUSIC_COMMAND_ID)
-      .then((ch) => ch);
-
-    const botColor = await interaction.guild.members
-      .fetch(interaction.client.user.id)
-      .then((res) => res.displayHexColor);
+    const musicChannel = interaction.guild.channels.cache.find(
+      (channel) => channel.id == process.env.CHANNEL_MUSIC_COMMAND_ID,
+    );
 
     const embed = new EmbedBuilder()
-      .setColor(botColor || 0xfcc9b9)
+      .setColor(interaction.guild.members.me.displayHexColor)
       .setTimestamp(Date.now())
       .setFooter({
         text: interaction.client.user.username,
@@ -900,7 +896,9 @@ module.exports = {
                   });
 
                   pagination.setTitle(`🔃 Music Queue (${queue.songs.length})`);
-                  pagination.setColor(botColor || 0xfcc9b9);
+                  pagination.setColor(
+                    interaction.guild.members.me.displayHexColor,
+                  );
                   pagination.setTimestamp(Date.now());
                   pagination.setFooter({
                     text: `${interaction.client.user.username} | Page {pageNumber} of {totalPages}`,

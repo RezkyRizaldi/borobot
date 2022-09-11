@@ -11,7 +11,7 @@ module.exports = {
    */
   async execute(queue, song) {
     const embed = new EmbedBuilder()
-      .setColor(0xfcc9b9)
+      .setColor(queue.clientMember.displayHexColor)
       .setTimestamp(Date.now())
       .setDescription(
         `${inlineCode(song.name)} has been added to the queue by ${song.user}.`,

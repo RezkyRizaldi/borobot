@@ -11,12 +11,8 @@ module.exports = {
    * @param {import('discord.js').CommandInteraction} interaction
    */
   async execute(interaction) {
-    const botColor = await interaction.guild.members
-      .fetch(interaction.client.user.id)
-      .then((res) => res.displayHexColor);
-
     const embed = new EmbedBuilder()
-      .setColor(botColor || 0xfcc9b9)
+      .setColor(interaction.guild.members.me.displayHexColor)
       .setTimestamp(Date.now())
       .setFooter({
         text: interaction.client.user.username,

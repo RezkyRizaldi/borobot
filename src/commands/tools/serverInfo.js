@@ -42,46 +42,35 @@ module.exports = {
     const onlineMemberCount = await guild.members
       .fetch({ withPresences: true })
       .then((m) => m.filter((member) => !!member.presence).size);
-    const emojiCount = await guild.emojis.fetch().then((emoji) => emoji.size);
-    const roleCount = await guild.roles.fetch().then((role) => role.size);
-    const stickerCount = await guild.stickers
-      .fetch()
-      .then((sticker) => sticker.size);
-    const inviteURLs = await guild.invites
-      .fetch()
-      .then((invites) =>
-        invites
-          .map(
-            (invite) =>
-              `${hyperlink(
-                'URL',
-                invite.url,
-                'Click here to get the guild invite URL',
-              )} (Used ${pluralize('time', invite.uses, true)}, ${
-                invite.expiresTimestamp
-                  ? `expired ${time(
-                      new Date(invite.expiresTimestamp),
-                      TimestampStyles.RelativeTime,
-                    )}`
-                  : 'Permanent'
-              })`,
-          )
-          .join('\n'),
-      );
+    const emojiCount = guild.emojis.cache.size;
+    const roleCount = guild.roles.cache.size;
+    const stickerCount = guild.stickers.cache.size;
+    const inviteURLs = guild.invites.cache
+      .map(
+        (invite) =>
+          `${hyperlink(
+            'URL',
+            invite.url,
+            'Click here to get the guild invite URL',
+          )} (Used ${pluralize('time', invite.uses, true)}, ${
+            invite.expiresTimestamp
+              ? `expired ${time(
+                  new Date(invite.expiresTimestamp),
+                  TimestampStyles.RelativeTime,
+                )}`
+              : 'Permanent'
+          })`,
+      )
+      .join('\n');
 
     await interaction
       .deferReply({ fetchReply: true })
       .then(async () => {
-        const botColor = await guild.members
-          .fetch(interaction.client.user.id)
-          .then((res) => res.displayHexColor)
-          .catch((err) => console.error(err));
-
         const embed = new EmbedBuilder()
           .setTitle(`ℹ️ ${guild.name} Server Info`)
           .setThumbnail(guild.iconURL({ dynamic: true }))
           .setDescription(guild.description || italic('No description'))
-          .setColor(botColor || 0xfcc9b9)
+          .setColor(interaction.guild.members.me.displayHexColor)
           .setFooter({
             text: interaction.client.user.username,
             iconURL: interaction.client.user.displayAvatarURL({

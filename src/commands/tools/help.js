@@ -81,18 +81,13 @@ module.exports = {
 
       const command = commands.find((cmd) => cmd.name.toLowerCase() === name);
 
-      const botColor = await inter.guild.members
-        .fetch(inter.client.user.id)
-        .then((res) => res.displayHexColor)
-        .catch((err) => console.error(err));
-
       const embed = new EmbedBuilder()
         .setAuthor({
           name: `${inter.client.user.username} Commands`,
           iconURL: inter.client.user.displayAvatarURL({ dynamic: true }),
         })
         .setDescription(`Information about the ${bold(`/${name}`)} command.`)
-        .setColor(botColor || 0xfcc9b9)
+        .setColor(interaction.guild.members.me.displayHexColor)
         .setFooter({
           text: inter.client.user.username,
           iconURL: inter.client.user.displayAvatarURL({ dynamic: true }),

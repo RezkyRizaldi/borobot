@@ -31,10 +31,6 @@ module.exports = {
       });
     }
 
-    const botColor = await interaction.guild.members
-      .fetch(interaction.client.user.id)
-      .then((res) => res.displayHexColor);
-
     const descriptions = membersWithRole.map(
       (member, index) => `${index + 1}. ${member}`,
     );
@@ -46,7 +42,7 @@ module.exports = {
     pagination.setTitle(
       `👥 Member list with role ${role.name} (${membersWithRole.length})`,
     );
-    pagination.setColor(botColor || 0xfcc9b9);
+    pagination.setColor(interaction.guild.members.me.displayHexColor);
     pagination.setTimestamp(Date.now());
     pagination.setFooter({
       text: `${interaction.client.user.username} | Page {pageNumber} of {totalPages}`,

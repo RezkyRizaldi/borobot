@@ -25,18 +25,13 @@ module.exports = {
    * @param {import('discord.js').Collection<import('discord.js').Snowflake, import('discord.js').Message>} messages
    */
   async execute(messages) {
-    const botColor = await messages
-      .first()
-      .guild.members.fetch(messages.first().client.user.id)
-      .then((res) => res.displayHexColor);
-
     const MessageLogger = new WebhookClient({
       id: process.env.MESSAGE_DELETE_WEBHOOK_ID,
       token: process.env.MESSAGE_DELETE_WEBHOOK_TOKEN,
     });
 
     const embed = new EmbedBuilder()
-      .setColor(botColor || 0xfcc9b9)
+      .setColor(messages.first().guild.members.me.displayHexColor)
       .setTimestamp(Date.now())
       .setFooter({
         text: messages.first().client.user.username,

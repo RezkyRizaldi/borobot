@@ -27,15 +27,11 @@ module.exports = {
       })
       .then((audit) => audit.entries.first());
 
-    const botColor = await ban.guild.members
-      .fetch(ban.client.user.id)
-      .then((res) => res.displayHexColor);
-
     const message = new EmbedBuilder()
       .setDescription(
         `${ban.user.tag} has been unbanned by ${UnbanLog.executor}`,
       )
-      .setColor(botColor || 0xfcc9b9)
+      .setColor(ban.guild.members.me.displayHexColor)
       .setAuthor({
         name: 'Member Unbanned',
         iconURL: ban.client.user.displayAvatarURL({ dynamic: true }),

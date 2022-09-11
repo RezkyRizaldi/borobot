@@ -11,7 +11,7 @@ module.exports = {
   async execute(queue) {
     const embed = new EmbedBuilder()
       .setTitle('⏹️ Queue Finished')
-      .setColor(0xfcc9b9)
+      .setColor(queue.clientMember.displayHexColor)
       .setTimestamp(Date.now())
       .setDescription('The queue has been finished.')
       .setFooter({

@@ -14,7 +14,7 @@ module.exports = {
    */
   async execute(queue, song) {
     const embed = new EmbedBuilder()
-      .setColor(queue.clientMember.displayHexColor || 0xfcc9b9)
+      .setColor(queue.clientMember.displayHexColor)
       .setTimestamp(Date.now())
       .setDescription(
         `Playing ${inlineCode(song.name)} - ${inlineCode(

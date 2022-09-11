@@ -56,13 +56,9 @@ module.exports = {
       .then((msgs) => msgs)
       .catch((err) => console.error(err));
 
-    const botColor = await interaction.guild.members
-      .fetch(interaction.client.user.id)
-      .then((res) => res.displayHexColor);
-
     const embed = new EmbedBuilder()
       .setTitle('Message Deleted')
-      .setColor(botColor || 0xfcc9b9)
+      .setColor(interaction.guild.members.me.displayHexColor)
       .setTimestamp(Date.now())
       .setFooter({
         text: interaction.client.user.username,

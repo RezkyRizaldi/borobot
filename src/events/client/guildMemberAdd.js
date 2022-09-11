@@ -24,7 +24,7 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setTitle(`👋 Welcome to ${guild.name}`)
       .setDescription(`hope you enjoy here, ${member}!`)
-      .setColor(0xfcc9b9)
+      .setColor(guild.members.me.displayHexColor)
       .setFooter({
         text: member.client.user.username,
         iconURL: member.client.user.displayAvatarURL({ dynamic: true }),

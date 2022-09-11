@@ -10,7 +10,7 @@ module.exports = {
    */
   async execute(queue) {
     const embed = new EmbedBuilder()
-      .setColor(0xfcc9b9)
+      .setColor(queue.clientMember.displayHexColor)
       .setTimestamp(Date.now())
       .setDescription('Voice channel is empty! Leaving the channel...')
       .setAuthor({

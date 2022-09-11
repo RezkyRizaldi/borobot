@@ -11,14 +11,10 @@ module.exports = {
    * @param {import('discord.js').CommandInteraction} interaction
    */
   async execute(interaction) {
-    const botColor = await interaction.guild.members
-      .fetch(interaction.client.user.id)
-      .then((res) => res.displayHexColor);
-
     const embed = new EmbedBuilder()
       .setTitle('Test Embed')
       .setDescription('This is a test embed.')
-      .setColor(botColor || 0xfcc9b9)
+      .setColor(interaction.guild.members.me.displayHexColor)
       .setImage(interaction.client.user.displayAvatarURL({ dynamic: true }))
       .setThumbnail(interaction.client.user.displayAvatarURL({ dynamic: true }))
       .setAuthor({

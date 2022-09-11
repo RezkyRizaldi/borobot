@@ -19,17 +19,13 @@ module.exports = {
    * @param {import('discord.js').Message} newMessage
    */
   async execute(oldMessage, newMessage) {
-    const botColor = await oldMessage.guild.members
-      .fetch(oldMessage.client.user.id)
-      .then((res) => res.displayHexColor);
-
     const MessageLogger = new WebhookClient({
       id: process.env.MESSAGE_EDIT_WEBHOOK_ID,
       token: process.env.MESSAGE_EDIT_WEBHOOK_TOKEN,
     });
 
     const embed = new EmbedBuilder()
-      .setColor(botColor || 0xfcc9b9)
+      .setColor(oldMessage.guild.members.me.displayHexColor)
       .setTimestamp(Date.now())
       .setFooter({
         text: oldMessage.client.user.username,
