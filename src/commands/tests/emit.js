@@ -23,12 +23,10 @@ module.exports = {
   async execute(interaction) {
     const event = interaction.options.getString('event');
 
-    await interaction
-      .deferReply({ fetchReply: true, ephemeral: true })
-      .then(async () => {
-        interaction.client.emit(event, interaction.member);
-        await interaction.editReply({ content: `Emitted ${event} event.` });
-      })
-      .catch((err) => console.error(err));
+    await interaction.deferReply({ ephemeral: true }).then(async () => {
+      interaction.client.emit(event, interaction.member);
+
+      await interaction.editReply({ content: `Emitted ${event} event.` });
+    });
   },
 };

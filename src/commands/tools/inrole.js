@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { Pagination } = require('pagination.djs');
 
 module.exports = {
@@ -20,35 +20,53 @@ module.exports = {
   async execute(interaction) {
     const role = interaction.options.getRole('role');
 
-    const membersWithRole = interaction.guild.members.cache
-      .filter((member) => member.roles.cache.has(role.id))
-      .map((member) => member.user.username);
+    await interaction.deferReply({ ephemeral: true }).then(async () => {
+      const membersWithRole = interaction.guild.members.cache
+        .filter((member) => member.roles.cache.has(role.id))
+        .map((member) => member);
 
-    if (!membersWithRole.length) {
-      return interaction.reply({
-        content: `There is no member with role ${role}`,
-        ephemeral: true,
-      });
-    }
+      if (!membersWithRole.length) {
+        return interaction.editReply({
+          content: `There is no member with role ${role}`,
+        });
+      }
 
-    const descriptions = membersWithRole.map(
-      (member, index) => `${index + 1}. ${member}`,
-    );
+      const descriptions = membersWithRole.map(
+        (member, index) => `${index + 1}. ${member} (${member.user.username})`,
+      );
 
-    const pagination = new Pagination(interaction, {
-      ephemeral: true,
+      if (membersWithRole.length > 10) {
+        const pagination = new Pagination(interaction, {
+          limit: 10,
+        });
+
+        pagination.setColor(interaction.guild.members.me.displayHexColor);
+        pagination.setTimestamp(Date.now());
+        pagination.setFooter({
+          text: `${interaction.client.user.username} | Page {pageNumber} of {totalPages}`,
+          iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
+        });
+        pagination.setAuthor({
+          name: `👥 Member list with role ${role.name} (${membersWithRole.length})`,
+        });
+        pagination.setDescriptions(descriptions);
+
+        return pagination.render();
+      }
+
+      const embed = new EmbedBuilder()
+        .setColor(interaction.guild.members.me.displayHexColor)
+        .setTimestamp(Date.now())
+        .setFooter({
+          text: interaction.client.user.username,
+          iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
+        })
+        .setAuthor({
+          name: `👥 Member list with role ${role.name} (${membersWithRole.length})`,
+        })
+        .setDescription(descriptions.join('\n'));
+
+      await interaction.editReply({ embeds: [embed] });
     });
-
-    pagination.setTitle(
-      `👥 Member list with role ${role.name} (${membersWithRole.length})`,
-    );
-    pagination.setColor(interaction.guild.members.me.displayHexColor);
-    pagination.setTimestamp(Date.now());
-    pagination.setFooter({
-      text: `${interaction.client.user.username} | Page {pageNumber} of {totalPages}`,
-      iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
-    });
-    pagination.setDescriptions(descriptions);
-    pagination.render();
   },
 };

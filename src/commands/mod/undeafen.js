@@ -31,31 +31,27 @@ module.exports = {
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
-    const reason = options.getString('reason') || 'No reason';
+    const reason = options.getString('reason') ?? 'No reason';
 
-    if (!member.voice.channel) {
-      return interaction.reply({
-        content: 'This member is not connected to a voice channel.',
-        ephemeral: true,
-      });
-    }
+    await interaction.deferReply({ ephemeral: true }).then(async () => {
+      if (!member.voice.channel) {
+        return interaction.editReply({
+          content: 'This member is not connected to a voice channel.',
+        });
+      }
 
-    if (member.voice.serverDeaf) {
-      return interaction.reply({
-        content: "This member isn't being deafen.",
-        ephemeral: true,
-      });
-    }
+      if (member.voice.serverDeaf) {
+        return interaction.editReply({
+          content: "This member isn't being deafen.",
+        });
+      }
 
-    await member.voice
-      .setDeaf(false, reason)
-      .then(
+      await member.voice.setDeaf(false, reason).then(
         async (m) =>
-          await interaction.reply({
+          await interaction.editReply({
             content: `Successfully ${bold('undeafen')} ${m}.`,
-            ephemeral: true,
           }),
-      )
-      .catch((err) => console.error(err));
+      );
+    });
   },
 };

@@ -16,15 +16,20 @@ module.exports = {
         if (!command) {
           return interaction.reply({
             content: 'Command not found',
-            ephemeral: true,
           });
         }
 
         await command.execute(interaction).catch(async (err) => {
           console.error(err);
+
+          if (interaction.replied || interaction.deferred) {
+            return interaction.editReply({
+              content: 'There was an error while executing this command!',
+            });
+          }
+
           await interaction.reply({
             content: 'There was an error while executing this command!',
-            ephemeral: true,
           });
         });
       },
@@ -35,9 +40,15 @@ module.exports = {
 
         await component.execute(interaction).catch(async (err) => {
           console.error(err);
+
+          if (interaction.replied || interaction.deferred) {
+            return interaction.editReply({
+              content: 'There was an error while executing this command!',
+            });
+          }
+
           await interaction.reply({
             content: 'There was an error while executing this command!',
-            ephemeral: true,
           });
         });
       },
@@ -47,30 +58,48 @@ module.exports = {
         if (!autocomplete) {
           return interaction.reply({
             content: 'Autocomplete not found',
-            ephemeral: true,
           });
         }
 
         await autocomplete.execute(interaction).catch(async (err) => {
           console.error(err);
+
+          if (interaction.replied || interaction.deferred) {
+            return interaction.editReply({
+              content: 'There was an error while executing this command!',
+            });
+          }
+
           await interaction.reply({
             content: 'There was an error while executing this command!',
-            ephemeral: true,
           });
         });
       },
       [InteractionType.ModalSubmit]: async () => {
         const modal = client.components.get(interaction.customId);
 
-        if (!modal) return;
-
-        await modal.execute(interaction).catch(async (err) => {
-          console.error(err);
-          await interaction.reply({
-            content: 'There was an error while executing this command!',
-            ephemeral: true,
+        if (!modal) {
+          return interaction.reply({
+            content: 'Modal not found',
           });
-        });
+        }
+
+        await modal
+          .execute(interaction)
+          .then(() => interaction.reply({ content: 'success' }))
+          .catch(async (err) => {
+            console.error(err);
+
+            if (interaction.replied || interaction.deferred) {
+              return interaction.editReply({
+                content: 'There was an error while executing this command!',
+              });
+            }
+
+            await interaction.reply({
+              content: 'There was an error while executing this command!',
+            });
+          });
       },
     }[interaction.type]();
   },

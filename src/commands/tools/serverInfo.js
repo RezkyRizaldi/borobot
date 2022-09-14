@@ -8,6 +8,7 @@ const {
   TimestampStyles,
   userMention,
 } = require('discord.js');
+const wait = require('node:timers/promises').setTimeout;
 const pluralize = require('pluralize');
 
 const {
@@ -64,12 +65,12 @@ module.exports = {
       .join('\n');
 
     await interaction
-      .deferReply({ fetchReply: true })
+      .deferReply()
       .then(async () => {
         const embed = new EmbedBuilder()
           .setTitle(`ℹ️ ${guild.name} Server Info`)
           .setThumbnail(guild.iconURL({ dynamic: true }))
-          .setDescription(guild.description || italic('No description'))
+          .setDescription(guild.description ?? italic('No description'))
           .setColor(interaction.guild.members.me.displayHexColor)
           .setFooter({
             text: interaction.client.user.username,
@@ -133,15 +134,15 @@ module.exports = {
                 ` (${guild.channels.channelCountWithoutThreads})`
               }`,
               value: `${categoryChannelCount} Category | ${textChannelCount} Text | ${voiceChannelCount} Voice\nRules Channel: ${
-                guild.rulesChannel || italic('None')
+                guild.rulesChannel ?? italic('None')
               }\nSystem Channel: ${
-                guild.systemChannel || italic('None')
+                guild.systemChannel ?? italic('None')
               }\nPublic Updates Channel: ${
-                guild.publicUpdatesChannel || italic('None')
+                guild.publicUpdatesChannel ?? italic('None')
               }\nAFK Channel: ${
-                `${guild.afkChannel} (${applyAFKTimeout(guild.afkTimeout)})` ||
+                `${guild.afkChannel} (${applyAFKTimeout(guild.afkTimeout)})` ??
                 italic('None')
-              }\nWidget Channel: ${guild.widgetChannel || italic('None')}`,
+              }\nWidget Channel: ${guild.widgetChannel ?? italic('None')}`,
             },
             {
               name: '🔮 Features',
@@ -207,7 +208,7 @@ module.exports = {
                       'Click here to get the guild vanity URL',
                     )} (Used ${pluralize('time', guild.vanityURLUses, true)})`
                   : italic('None')
-              }\nDefault URL:${`\n${inviteURLs}` || italic('None')}`,
+              }\nDefault URL:\n${inviteURLs}`,
               inline: true,
             },
             {
@@ -220,9 +221,14 @@ module.exports = {
 
         await interaction.editReply({ embeds: [embed] });
       })
-      .catch((err) => console.error(err))
-      .finally(() =>
-        setTimeout(async () => await interaction.deleteReply(), 10000),
+      .catch(async (err) => {
+        console.error(err);
+
+        await interaction.editReply({ content: err.message });
+      })
+      .finally(
+        async () =>
+          await wait(15000).then(async () => await interaction.deleteReply()),
       );
   },
 };

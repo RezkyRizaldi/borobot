@@ -44,214 +44,204 @@ module.exports = {
   async execute(interaction) {
     /** @type {{ channel: import('discord.js').TextChannel }} */
     const { channel } = interaction;
+
     const amount = interaction.options.getInteger('amount');
 
     /** @type {import('discord.js').GuildMember} */
     const member = interaction.options.getMember('member');
     const role = interaction.options.getRole('role');
 
-    /** @type {import('discord.js').Collection<import('discord.js').Snowflake, import('discord.js').Message>} */
-    const messages = await channel.messages
-      .fetch()
-      .then((msgs) => msgs)
-      .catch((err) => console.error(err));
+    const messages = await channel.messages.fetch();
 
-    const embed = new EmbedBuilder()
-      .setTitle('Message Deleted')
-      .setColor(interaction.guild.members.me.displayHexColor)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: interaction.client.user.username,
-        iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
-      });
-
-    if (!messages.size) {
-      return interaction.reply({
-        content: `${channel} doesn't have any message.`,
-        ephemeral: true,
-      });
-    }
-
-    if (!messages.first().deletable) {
-      return interaction.reply({
-        content: "You don't have appropiate permissions to delete messages.",
-        ephemeral: true,
-      });
-    }
-
-    if (amount <= 0) {
-      return interaction.reply({
-        content: 'Please specify the message amount from 1 to 50.',
-        ephemeral: true,
-      });
-    }
-
-    if (amount > 50) {
-      return interaction.reply({
-        content: `You can only delete up to ${bold('50')} messages at a time.`,
-        ephemeral: true,
-      });
-    }
-
-    /** @type {Number} */
-    let i = 0;
-
-    /** @type {import('discord.js').Collection<import('discord.js').Snowflake, import('discord.js').Message>} */
-    const filteredMessages = new Collection();
-
-    switch (true) {
-      case !!member && !!role: {
-        const membersWithRole = interaction.guild.members.cache
-          .filter((m) => m.roles.cache.has(role.id))
-          .map((m) => m.id);
-
-        messages.filter((message) => {
-          if (
-            (message.author.id === member.id ||
-              membersWithRole.includes(message.author.id)) &&
-            amount > i
-          ) {
-            filteredMessages.set(message.id, message);
-            i++;
-          }
+    await interaction.deferReply({ ephemeral: true }).then(async () => {
+      if (!messages.size) {
+        return interaction.editReply({
+          content: `${channel} doesn't have any message.`,
         });
-
-        if (!filteredMessages.size) {
-          return interaction.reply({
-            content: `members with role ${role} doesn't have any message in ${channel}`,
-            ephemeral: true,
-          });
-        }
-
-        if (filteredMessages.size > 50) {
-          return interaction.reply({
-            content: `You can only delete up to ${bold(
-              '50',
-            )} messages at a time.`,
-            ephemeral: true,
-          });
-        }
-
-        return channel
-          .bulkDelete(filteredMessages, true)
-          .then(async () => {
-            const groupedMessages = groupMessageByAuthor(filteredMessages);
-            const response = groupedMessages
-              .map(
-                (msgs) =>
-                  `Deleted ${bold(`${msgs.length}`)} ${pluralize(
-                    'message',
-                    msgs.length,
-                  )} from ${userMention(msgs[0].author.id)}`,
-              )
-              .join('\n');
-
-            embed.setDescription(response);
-
-            await interaction.reply({ embeds: [embed], ephemeral: true });
-          })
-          .catch((err) => console.error(err));
       }
 
-      case !!member: {
-        messages.filter((message) => {
-          if (message.author.id === member.id && amount > i) {
-            filteredMessages.set(message.id, message);
-            i++;
-          }
+      if (!messages.first().deletable) {
+        return interaction.editReply({
+          content: "You don't have appropiate permissions to delete messages.",
         });
-
-        if (!filteredMessages.size) {
-          return interaction.reply({
-            content: `${member} doesn't have any message in ${channel}`,
-            ephemeral: true,
-          });
-        }
-
-        if (filteredMessages.size > 50) {
-          return interaction.reply({
-            content: `You can only delete up to ${bold(
-              '50',
-            )} messages at a time.`,
-            ephemeral: true,
-          });
-        }
-
-        return channel
-          .bulkDelete(filteredMessages, true)
-          .then(async (msg) => {
-            embed.setDescription(
-              `Deleted ${bold(`${msg.size}`)} ${pluralize(
-                'message',
-                msg.size,
-              )} from ${member}.`,
-            );
-            await interaction.reply({ embeds: [embed], ephemeral: true });
-          })
-          .catch((err) => console.error(err));
       }
 
-      case !!role: {
-        const membersWithRole = interaction.guild.members.cache
-          .filter((m) => m.roles.cache.has(role.id))
-          .map((m) => m.id);
-
-        messages.filter((message) => {
-          if (membersWithRole.includes(message.author.id) && amount > i) {
-            filteredMessages.set(message.id, message);
-            i++;
-          }
+      if (amount <= 0) {
+        return interaction.editReply({
+          content: 'Please specify the message amount from 1 to 50.',
         });
-
-        if (!filteredMessages.size) {
-          return interaction.reply({
-            content: `members with role ${role} doesn't have any message in ${channel}`,
-            ephemeral: true,
-          });
-        }
-
-        if (filteredMessages.size > 50) {
-          return interaction.reply({
-            content: `You can only delete up to ${bold(
-              '50',
-            )} messages at a time.`,
-            ephemeral: true,
-          });
-        }
-
-        return channel
-          .bulkDelete(filteredMessages, true)
-          .then(async () => {
-            const groupedMessages = groupMessageByAuthor(filteredMessages);
-            const response = groupedMessages
-              .map(
-                (msgs) =>
-                  `Deleted ${bold(`${msgs.length}`)} ${pluralize(
-                    'message',
-                    msgs.length,
-                  )} from ${userMention(msgs[0].author.id)}`,
-              )
-              .join('\n');
-
-            embed.setDescription(response);
-
-            await interaction.reply({ embeds: [embed], ephemeral: true });
-          })
-          .catch((err) => console.error(err));
       }
-    }
 
-    await channel
-      .bulkDelete(amount, true)
-      .then(async (msg) => {
-        embed.setDescription(
-          `Deleted ${bold(`${msg.size}`)} ${pluralize('message', msg.size)}.`,
-        );
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-      })
-      .catch(async (err) => {
-        console.error(err);
-        await interaction.followUp({ content: err.message, ephemeral: true });
-      });
+      if (amount > 50) {
+        return interaction.editReply({
+          content: `You can only delete up to ${bold(
+            '50',
+          )} messages at a time.`,
+        });
+      }
+
+      let i = 0;
+
+      /** @type {import('discord.js').Collection<import('discord.js').Snowflake, import('discord.js').Message>} */
+      const filteredMessages = new Collection();
+
+      switch (true) {
+        case !!member && !!role: {
+          const membersWithRole = interaction.guild.members.cache
+            .filter((m) => m.roles.cache.has(role.id))
+            .map((m) => m.id);
+
+          messages.filter((message) => {
+            if (
+              message.author.id === member.id ||
+              (membersWithRole.includes(message.author.id) && amount > i)
+            ) {
+              filteredMessages.set(message.id, message);
+              i++;
+            }
+          });
+
+          if (!filteredMessages.size) {
+            return interaction.editReply({
+              content: `members with role ${role} doesn't have any message in ${channel}`,
+            });
+          }
+
+          break;
+        }
+
+        case !!member: {
+          messages.filter((message) => {
+            if (message.author.id === member.id && amount > i) {
+              filteredMessages.set(message.id, message);
+              i++;
+            }
+          });
+
+          if (!filteredMessages.size) {
+            return interaction.editReply({
+              content: `${member} doesn't have any message in ${channel}`,
+            });
+          }
+
+          break;
+        }
+
+        case !!role: {
+          const membersWithRole = interaction.guild.members.cache
+            .filter((m) => m.roles.cache.has(role.id))
+            .map((m) => m.id);
+
+          messages.filter((message) => {
+            if (membersWithRole.includes(message.author.id) && amount > i) {
+              filteredMessages.set(message.id, message);
+              i++;
+            }
+          });
+
+          if (!filteredMessages.size) {
+            return interaction.editReply({
+              content: `members with role ${role} doesn't have any message in ${channel}`,
+            });
+          }
+
+          break;
+        }
+      }
+
+      if (filteredMessages.size > 50) {
+        return interaction.editReply({
+          content: `You can only delete up to ${bold(
+            '50',
+          )} messages at a time.`,
+        });
+      }
+
+      await channel
+        .bulkDelete(filteredMessages.size ? filteredMessages : amount, true)
+        .then(async (msgs) => {
+          const embed = new EmbedBuilder()
+            .setColor(interaction.guild.members.me.displayHexColor)
+            .setTimestamp(Date.now())
+            .setFooter({
+              text: interaction.client.user.username,
+              iconURL: interaction.client.user.displayAvatarURL({
+                dynamic: true,
+              }),
+            })
+            .setAuthor({
+              name: `🗑️ ${pluralize('Message', msgs.size)} Deleted`,
+            });
+
+          switch (true) {
+            case !!member && !!role: {
+              const groupedMessages = groupMessageByAuthor(msgs);
+
+              embed.setDescription(
+                groupedMessages
+                  .map(
+                    (arrMessage, index, array) =>
+                      `Deleted ${bold(`${array[index].length}`)} ${pluralize(
+                        'message',
+                        array[index].length,
+                      )}${
+                        arrMessage[index]?.author
+                          ? ` from ${userMention(arrMessage[index].author.id)}`
+                          : ''
+                      }.`,
+                  )
+                  .join('\n'),
+              );
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case !!member:
+              embed.setDescription(
+                `Deleted ${bold(`${msgs.size}`)} ${pluralize(
+                  'message',
+                  msgs.size,
+                )}${
+                  msgs.first()?.author
+                    ? ` from ${userMention(msgs.first().author.id)}`
+                    : ''
+                }.`,
+              );
+
+              return interaction.editReply({ embeds: [embed] });
+
+            case !!role: {
+              const groupedMessages = groupMessageByAuthor(msgs);
+
+              embed.setDescription(
+                groupedMessages
+                  .map(
+                    (arrMessage, index, array) =>
+                      `Deleted ${bold(`${array[index].length}`)} ${pluralize(
+                        'message',
+                        array[index].length,
+                      )}${
+                        arrMessage[index]?.author
+                          ? ` from ${userMention(arrMessage[index].author.id)}`
+                          : ''
+                      }.`,
+                  )
+                  .join('\n'),
+              );
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+          }
+
+          embed.setDescription(
+            `Deleted ${bold(`${msgs.size}`)} ${pluralize(
+              'message',
+              msgs.size,
+            )}.`,
+          );
+
+          await interaction.editReply({ embeds: [embed] });
+        });
+    });
   },
 };

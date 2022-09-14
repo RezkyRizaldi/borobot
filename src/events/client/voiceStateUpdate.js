@@ -24,7 +24,7 @@ module.exports = {
         iconURL: newState.client.user.displayAvatarURL({ dynamic: true }),
       })
       .setTimestamp(Date.now())
-      .setColor(newState.member.displayHexColor || 0xfcc9b9);
+      .setColor(newState.member.displayHexColor);
 
     // If the member join to a voice channel
     if (!oldState.channel && newState.channel) {
@@ -103,7 +103,7 @@ module.exports = {
       embed.setFields([
         {
           name: '📄 Reason',
-          value: moveLog.reason || 'No reason',
+          value: moveLog.reason ?? 'No reason',
         },
       ]);
 
@@ -141,7 +141,7 @@ module.exports = {
       embed.setFields([
         {
           name: '📄 Reason',
-          value: muteLog.reason || 'No reason',
+          value: muteLog.reason ?? 'No reason',
         },
       ]);
 
@@ -179,7 +179,7 @@ module.exports = {
       embed.setFields([
         {
           name: '📄 Reason',
-          value: unmuteLog.reason || 'No reason',
+          value: unmuteLog.reason ?? 'No reason',
         },
       ]);
 
@@ -217,7 +217,7 @@ module.exports = {
       embed.setFields([
         {
           name: '📄 Reason',
-          value: deafenLog.reason || 'No reason',
+          value: deafenLog.reason ?? 'No reason',
         },
       ]);
 
@@ -255,7 +255,7 @@ module.exports = {
       embed.setFields([
         {
           name: '📄 Reason',
-          value: deafenLog.reason || 'No reason',
+          value: deafenLog.reason ?? 'No reason',
         },
       ]);
 

@@ -43,60 +43,56 @@ module.exports = {
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
-    const reason = options.getString('reason') || 'No reason';
+    const reason = options.getString('reason') ?? 'No reason';
     const duration = options.getInteger('duration');
 
-    if (!member.moderatable) {
-      return interaction.reply({
-        content:
-          "You don't have appropiate permissions to timeout this member.",
-        ephemeral: true,
-      });
-    }
+    await interaction.deferReply({ ephemeral: true }).then(async () => {
+      if (!member.moderatable) {
+        return interaction.editReply({
+          content:
+            "You don't have appropiate permissions to timeout this member.",
+        });
+      }
 
-    if (member.id === interaction.user.id) {
-      return interaction.reply({
-        content: "You can't timeout yourself.",
-        ephemeral: true,
-      });
-    }
+      if (member.id === interaction.user.id) {
+        return interaction.editReply({
+          content: "You can't timeout yourself.",
+        });
+      }
 
-    if (member.isCommunicationDisabled()) {
-      return interaction.reply({
-        content: `This member is already timed out. Available back ${time(
-          member.communicationDisabledUntil,
-          TimestampStyles.RelativeTime,
-        )}`,
-        ephemeral: true,
-      });
-    }
+      if (member.isCommunicationDisabled()) {
+        return interaction.editReply({
+          content: `This member is already timed out. Available back ${time(
+            member.communicationDisabledUntil,
+            TimestampStyles.RelativeTime,
+          )}`,
+        });
+      }
 
-    await member
-      .timeout(duration, reason)
-      .then(async (m) => {
-        await interaction.reply({
+      await member.timeout(duration, reason).then(async (m) => {
+        await interaction.editReply({
           content: `Successfully ${bold(
             'timed out',
           )} ${m}. Available back ${time(
             m.communicationDisabledUntil,
             TimestampStyles.RelativeTime,
           )}.`,
-          ephemeral: true,
         });
 
-        await m.send({
-          content: `You have been ${bold('timed out')} from ${bold(
-            interaction.guild.name,
-          )} for ${inlineCode(reason)}.`,
-        });
-      })
-      .catch(async (err) => {
-        console.error(err);
-        console.log(`Could not send a DM to ${member}.`);
-        await interaction.followUp({
-          content: `Could not send a DM to ${member}.`,
-          ephemeral: true,
-        });
+        await m
+          .send({
+            content: `You have been ${bold('timed out')} from ${bold(
+              interaction.guild.name,
+            )} for ${inlineCode(reason)}.`,
+          })
+          .catch(async (err) => {
+            console.error(err);
+
+            await interaction.followUp({
+              content: `Could not send a DM to ${member}.`,
+            });
+          });
       });
+    });
   },
 };

@@ -36,7 +36,7 @@ module.exports = {
     await member.roles
       .add(process.env.MEMBER_ROLE_ID)
       .then(async (m) => {
-        embed.setColor(m.displayHexColor || 0xfcc9b9);
+        embed.setColor(m.displayHexColor);
         embed.setThumbnail(user.displayAvatarURL({ dynamic: true }));
         embed.setFields([
           {

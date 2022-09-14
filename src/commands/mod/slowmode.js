@@ -48,44 +48,44 @@ module.exports = {
   async execute(interaction) {
     /** @type {{ channel: import('discord.js').TextChannel }} */
     const { channel } = interaction;
-    const duration = interaction.options.getInteger('duration');
-    const reason = interaction.options.getString('reason') || 'No reason';
 
-    switch (interaction.options.getSubcommand()) {
-      case 'on':
-        return channel
-          .setRateLimitPerUser(duration, reason)
-          .then(
+    const duration = interaction.options.getInteger('duration');
+    const reason = interaction.options.getString('reason') ?? 'No reason';
+
+    await interaction.deferReply({ ephemeral: true }).then(async () => {
+      switch (interaction.options.getSubcommand()) {
+        case 'on':
+          if (channel.rateLimitPerUser > 0) {
+            return interaction.editReply({
+              content: `${channel} slowmode already turned on for ${channel.rateLimitPerUser} seconds.`,
+            });
+          }
+
+          return channel.setRateLimitPerUser(duration, reason).then(
             async (ch) =>
-              await interaction.reply({
+              await interaction.editReply({
                 content: `Successfully ${bold(
                   'turned on',
                 )} slowmode in ${ch} for ${inlineCode(`${duration} seconds`)}.`,
-                ephemeral: true,
               }),
-          )
-          .catch((err) => console.error(err));
+          );
 
-      case 'off':
-        if (channel.rateLimitPerUser === 0) {
-          return interaction.reply({
-            content: `${channel} slowmode is'nt being turned on.`,
-            ephemeral: true,
-          });
-        }
+        case 'off':
+          if (channel.rateLimitPerUser === 0) {
+            return interaction.editReply({
+              content: `${channel} slowmode is'nt being turned on.`,
+            });
+          }
 
-        return channel
-          .setRateLimitPerUser(0, reason)
-          .then(
+          return channel.setRateLimitPerUser(0, reason).then(
             async (ch) =>
-              await interaction.reply({
+              await interaction.editReply({
                 content: `Successfully ${bold(
                   'turned off',
                 )} slowmode in ${ch}.`,
-                ephemeral: true,
               }),
-          )
-          .catch((err) => console.error(err));
-    }
+          );
+      }
+    });
   },
 };

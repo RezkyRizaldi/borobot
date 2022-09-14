@@ -1,3 +1,4 @@
+const { languages } = require('@vitalets/google-translate-api');
 const { Events } = require('discord.js');
 
 module.exports = {
@@ -152,4 +153,39 @@ module.exports = {
       value: 60,
     },
   ],
+
+  newSupportedLanguages: {
+    ak: 'Twi',
+    as: 'Assamese',
+    ay: 'Aymara',
+    bho: 'Bhojpuri',
+    bm: 'Bambara',
+    ckb: 'Kurdish (Sorani)',
+    doi: 'Dogri',
+    dv: 'Dhivehi',
+    ee: 'Ewe',
+    gn: 'Guarani',
+    gom: 'Konkani',
+    ilo: 'Ilocano',
+    kri: 'Krio',
+    lg: 'Luganda',
+    ln: 'Lingala',
+    lus: 'Mizo',
+    mai: 'Maithili',
+    'mni-Mtei': 'Meiteilon (Manipuri)',
+    nso: 'Sepedi',
+    om: 'Oromo',
+    or: 'Odia (Oriya)',
+    qu: 'Quechua',
+    rw: 'Kinyarwanda',
+    sa: 'Sanskrit',
+    ti: 'Tigrinya',
+    tk: 'Turkmen',
+    ts: 'Tsonga',
+    tt: 'Tatar',
+    ug: 'Uyghur',
+  },
+
+  /** @type {Object.<string, string>} */
+  extendedLocales: { ...languages, ...this.newSupportedLanguages },
 };

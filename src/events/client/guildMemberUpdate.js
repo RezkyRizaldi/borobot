@@ -28,7 +28,7 @@ module.exports = {
         iconURL: newMember.client.user.displayAvatarURL({ dynamic: true }),
       })
       .setTimestamp(Date.now())
-      .setColor(newMember.displayHexColor || 0xfcc9b9);
+      .setColor(newMember.displayHexColor);
 
     // If the member has boosted the server
     if (!oldMember.premiumSince && newMember.premiumSince) {
@@ -178,7 +178,7 @@ module.exports = {
       embed.setFields([
         {
           name: '📄 Reason',
-          value: timeoutLog.reason || 'No reason',
+          value: timeoutLog.reason ?? 'No reason',
         },
       ]);
 

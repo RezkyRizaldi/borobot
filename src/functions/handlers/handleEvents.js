@@ -26,9 +26,9 @@ module.exports = (client) => {
             const filePath = path.join(eventSubPath, file);
             const event = require(filePath);
 
-            if (!Object.values(Events).includes(event.name) || !event.name) {
+            if (!Object.values(Events).includes(event.name)) {
               table.addRow(
-                event.name || file,
+                event?.name ?? file,
                 `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`,
                 '❌ -> invalid event name.',
               );
@@ -57,12 +57,9 @@ module.exports = (client) => {
             const filePath = path.join(eventSubPath, file);
             const event = require(filePath);
 
-            if (
-              !Object.values(DistubeEvents).includes(event.name) ||
-              !event.name
-            ) {
+            if (!Object.values(DistubeEvents).includes(event.name)) {
               table.addRow(
-                event.name || file,
+                event?.name ?? file,
                 `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`,
                 '❌ -> invalid event name.',
               );

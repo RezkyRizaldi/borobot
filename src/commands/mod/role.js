@@ -65,62 +65,52 @@ module.exports = {
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
     const role = options.getRole('role');
-    const reason = options.getString('reason') || 'No reason';
+    const reason = options.getString('reason') ?? 'No reason';
 
-    switch (options.getSubcommand()) {
-      case 'add':
-        if (!role.editable) {
-          return interaction.reply({
-            content: `You don't have appropiate permissions to add ${role} role to this member.`,
-            ephemeral: true,
-          });
-        }
+    await interaction.deferReply({ ephemeral: true }).then(async () => {
+      switch (options.getSubcommand()) {
+        case 'add':
+          if (!role.editable) {
+            return interaction.editReply({
+              content: `You don't have appropiate permissions to add ${role} role to this member.`,
+            });
+          }
 
-        if (member.roles.cache.has(role.id)) {
-          return interaction.reply({
-            content: `This member already have ${role} role.`,
-            ephemeral: true,
-          });
-        }
+          if (member.roles.cache.has(role.id)) {
+            return interaction.editReply({
+              content: `This member already have ${role} role.`,
+            });
+          }
 
-        return member.roles
-          .add(role, reason)
-          .then(
+          return member.roles.add(role, reason).then(
             async (m) =>
-              await interaction.reply({
+              await interaction.editReply({
                 content: `Successfully ${bold('added')} ${role} role to ${m}.`,
-                ephemeral: true,
               }),
-          )
-          .catch((err) => console.error(err));
+          );
 
-      case 'remove':
-        if (!role.editable) {
-          return interaction.reply({
-            content: `You don't have appropiate permissions to remove ${role} role from this member.`,
-            ephemeral: true,
-          });
-        }
+        case 'remove':
+          if (!role.editable) {
+            return interaction.editReply({
+              content: `You don't have appropiate permissions to remove ${role} role from this member.`,
+            });
+          }
 
-        if (!member.roles.cache.has(role.id)) {
-          return interaction.reply({
-            content: `This member doesn't have ${role} role.`,
-            ephemeral: true,
-          });
-        }
+          if (!member.roles.cache.has(role.id)) {
+            return interaction.editReply({
+              content: `This member doesn't have ${role} role.`,
+            });
+          }
 
-        return member.roles
-          .remove(role, reason)
-          .then(
+          return member.roles.remove(role, reason).then(
             async (m) =>
-              await interaction.reply({
+              await interaction.editReply({
                 content: `Successfully ${bold(
                   'removed',
                 )} ${role} role from ${m}.`,
-                ephemeral: true,
               }),
-          )
-          .catch((err) => console.error(err));
-    }
+          );
+      }
+    });
   },
 };

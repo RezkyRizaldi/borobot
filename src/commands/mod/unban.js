@@ -1,5 +1,6 @@
 const {
   bold,
+  inlineCode,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } = require('discord.js');
@@ -30,28 +31,41 @@ module.exports = {
     const { options } = interaction;
 
     const userId = options.get('user_id')?.value;
-    const reason = options.getString('reason') || 'No reason';
+    const reason = options.getString('reason') ?? 'No reason';
 
-    const bannedUserId = await interaction.guild.bans
-      .fetch(userId)
-      .then((ban) => ban.user.id);
+    const bannedUserId = interaction.guild.bans.cache.find(
+      (ban) => ban.user.id === userId,
+    );
 
-    if (userId !== bannedUserId) {
-      return interaction.reply({
-        content: "This user isn't banned.",
-        ephemeral: true,
-      });
-    }
+    await interaction.deferReply({ ephemeral: true }).then(async () => {
+      if (!bannedUserId) {
+        return interaction.editReply({
+          content: "This user isn't banned.",
+        });
+      }
 
-    await interaction.guild.members
-      .unban(bannedUserId, reason)
-      .then(
-        async (user) =>
-          await interaction.reply({
+      await interaction.guild.members
+        .unban(bannedUserId, reason)
+        .then(async (user) => {
+          await interaction.editReply({
             content: `Successfully ${bold('unbanned')} ${user.tag}.`,
-            ephemeral: true,
-          }),
-      )
-      .catch((err) => console.error(err));
+          });
+
+          await user
+            .send({
+              content: `Congratulations! You have been unbanned from ${
+                interaction.guild
+              } for ${inlineCode(reason)}`,
+            })
+            .catch(async (err) => {
+              console.error(err);
+
+              await interaction.followUp({
+                content: `Could not send a DM to ${user}.`,
+                ephemeral: true,
+              });
+            });
+        });
+    });
   },
 };
