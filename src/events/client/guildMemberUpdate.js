@@ -178,7 +178,7 @@ module.exports = {
       embed.setFields([
         {
           name: '📄 Reason',
-          value: timeoutLog.reason || 'No reason',
+          value: timeoutLog.reason ?? 'No reason',
         },
       ]);
 

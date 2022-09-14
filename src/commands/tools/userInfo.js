@@ -51,7 +51,7 @@ module.exports = {
                 .map(
                   (activity) =>
                     `${applyActivity(activity.type)} ${bold(activity.name)} ${
-                      activity.details || ''
+                      activity.details ?? ''
                     } ${
                       activity.timestamps
                         ? `at ${time(
@@ -61,7 +61,7 @@ module.exports = {
                         : ''
                     }`,
                 )
-                .join('\n') || italic('None');
+                .join('\n') ?? italic('None');
 
             const embed = new EmbedBuilder()
               .setTitle(`ℹ️ ${member.user.username}'s User Info`)
@@ -85,7 +85,7 @@ module.exports = {
                 },
                 {
                   name: '👥 Nickname',
-                  value: member.nickname || member.displayName,
+                  value: member.nickname ?? member.displayName,
                   inline: true,
                 },
                 {
@@ -115,7 +115,7 @@ module.exports = {
                 },
                 {
                   name: '⭕ Presence Status',
-                  value: applyPresence(member.presence?.status) || '⚫ Offline',
+                  value: applyPresence(member.presence?.status) ?? '⚫ Offline',
                   inline: true,
                 },
                 {

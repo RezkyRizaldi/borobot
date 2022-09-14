@@ -104,7 +104,7 @@ module.exports = {
         },
         {
           name: '📄 Reason',
-          value: kickLog.reason || 'No reason',
+          value: kickLog.reason ?? 'No reason',
         },
       ]);
 

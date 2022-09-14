@@ -65,7 +65,7 @@ module.exports = {
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
     const role = options.getRole('role');
-    const reason = options.getString('reason') || 'No reason';
+    const reason = options.getString('reason') ?? 'No reason';
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
       switch (options.getSubcommand()) {

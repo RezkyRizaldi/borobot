@@ -50,7 +50,7 @@ module.exports = {
     const { channel } = interaction;
 
     const duration = interaction.options.getInteger('duration');
-    const reason = interaction.options.getString('reason') || 'No reason';
+    const reason = interaction.options.getString('reason') ?? 'No reason';
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
       switch (interaction.options.getSubcommand()) {

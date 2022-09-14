@@ -43,7 +43,7 @@ module.exports = {
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
-    const reason = options.getString('reason') || 'No reason';
+    const reason = options.getString('reason') ?? 'No reason';
     const duration = options.getInteger('duration');
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {

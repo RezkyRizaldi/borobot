@@ -31,7 +31,7 @@ module.exports = {
     const { options } = interaction;
 
     const userId = options.get('user_id')?.value;
-    const reason = options.getString('reason') || 'No reason';
+    const reason = options.getString('reason') ?? 'No reason';
 
     const bannedUserId = interaction.guild.bans.cache.find(
       (ban) => ban.user.id === userId,

@@ -55,7 +55,7 @@ module.exports = {
         },
         {
           name: '📄 Reason',
-          value: banLog.reason || 'No reason',
+          value: banLog.reason ?? 'No reason',
         },
       ]);
 

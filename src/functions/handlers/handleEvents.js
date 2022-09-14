@@ -28,7 +28,7 @@ module.exports = (client) => {
 
             if (!Object.values(Events).includes(event.name)) {
               table.addRow(
-                event?.name || file,
+                event?.name ?? file,
                 `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`,
                 '❌ -> invalid event name.',
               );
@@ -59,7 +59,7 @@ module.exports = (client) => {
 
             if (!Object.values(DistubeEvents).includes(event.name)) {
               table.addRow(
-                event?.name || file,
+                event?.name ?? file,
                 `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`,
                 '❌ -> invalid event name.',
               );

@@ -51,7 +51,7 @@ module.exports = (message, edit = false) => {
           hyperlink(
             attachment.name,
             attachment.url,
-            attachment.description || 'Click here to jump to the attachment.',
+            attachment.description ?? 'Click here to jump to the attachment.',
           ),
         )
         .join('\n')} with message ${codeBlock(
@@ -75,7 +75,7 @@ module.exports = (message, edit = false) => {
         hyperlink(
           attachment.name,
           attachment.url,
-          attachment.description || 'Click here to jump to the attachment.',
+          attachment.description ?? 'Click here to jump to the attachment.',
         ),
       )
       .join('\n')} ${
