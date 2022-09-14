@@ -26,7 +26,7 @@ module.exports = {
     const leaveMessage = new EmbedBuilder()
       .setTitle(`🖐️ Goodbye. Thanks for being with ${guild.name}`)
       .setDescription(`It's been a long time, ${member}!`)
-      .setColor(member.displayHexColor || 0xfcc9b9)
+      .setColor(member.displayHexColor)
       .setThumbnail(user.displayAvatarURL({ dynamic: true }))
       .setFooter({
         text: member.client.user.tag,
@@ -73,7 +73,7 @@ module.exports = {
 
     const kickMessage = new EmbedBuilder()
       .setDescription(`${member} has been kicked out by ${kickLog.executor}`)
-      .setColor(member.displayHexColor || 0xfcc9b9)
+      .setColor(member.displayHexColor)
       .setAuthor({
         name: 'Member Kicked',
         iconURL: user.displayAvatarURL({ dynamic: true }),

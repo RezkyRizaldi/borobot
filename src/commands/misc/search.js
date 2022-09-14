@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const Scraper = require('images-scraper').default;
+const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 
 module.exports = {
@@ -28,47 +29,41 @@ module.exports = {
       case 'image': {
         const query = interaction.options.getString('query');
 
-        const reply = await interaction.deferReply({ fetchReply: true }).then(
-          async () =>
-            await interaction.editReply({
-              content: `Fetching ${query} images, please wait...`,
-            }),
-        );
-
         const google = new Scraper({
           puppeteer: {
             waitForInitialPage: true,
           },
         });
 
-        return google.scrape(query, 5).then(
-          /**
-           *
-           * @param {import('images-scraper').Scraper.ScrapeResult[]} results
-           */
-          async (results) => {
-            const pagination = new Pagination(interaction, {
-              idle: 15000,
-              limit: 1,
-            });
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
+          await wait(4000).then(async () => {
+            await google.scrape(query, 5).then(
+              /**
+               *
+               * @param {import('images-scraper').Scraper.ScrapeResult[]} results
+               */
+              async (results) => {
+                const pagination = new Pagination(interaction, {
+                  limit: 1,
+                });
 
-            pagination.setColor(interaction.guild.members.me.displayHexColor);
-            pagination.setTimestamp(Date.now());
-            pagination.setFooter({
-              text: `${interaction.client.user.username} | Page {pageNumber} of {totalPages}`,
-              iconURL: interaction.client.user.displayAvatarURL({
-                dynamic: true,
-              }),
-            });
-            pagination.setImages(results.map((result) => result.url));
+                pagination.setColor(
+                  interaction.guild.members.me.displayHexColor,
+                );
+                pagination.setTimestamp(Date.now());
+                pagination.setFooter({
+                  text: `${interaction.client.user.username} | Page {pageNumber} of {totalPages}`,
+                  iconURL: interaction.client.user.displayAvatarURL({
+                    dynamic: true,
+                  }),
+                });
+                pagination.setImages(results.map((result) => result.url));
 
-            const payloads = pagination.ready();
-
-            await reply
-              .edit(payloads)
-              .then((response) => pagination.paginate(response));
-          },
-        );
+                await pagination.render();
+              },
+            );
+          });
+        });
       }
     }
   },

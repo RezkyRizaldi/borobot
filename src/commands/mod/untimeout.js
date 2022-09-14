@@ -33,49 +33,46 @@ module.exports = {
     const member = options.getMember('member');
     const reason = options.getString('reason') || 'No reason';
 
-    if (!member.moderatable) {
-      return interaction.reply({
-        content:
-          "You don't have appropiate permissions to removing the timeout from this member.",
-        ephemeral: true,
-      });
-    }
+    await interaction.deferReply({ ephemeral: true }).then(async () => {
+      if (!member.moderatable) {
+        return interaction.editReply({
+          content:
+            "You don't have appropiate permissions to removing the timeout from this member.",
+        });
+      }
 
-    if (member.id === interaction.user.id) {
-      return interaction.reply({
-        content: "You can't remove timeout by yourself.",
-        ephemeral: true,
-      });
-    }
+      if (member.id === interaction.user.id) {
+        return interaction.editReply({
+          content: "You can't remove timeout by yourself.",
+        });
+      }
 
-    if (!member.isCommunicationDisabled()) {
-      return interaction.reply({
-        content: "This member isn't being timed out.",
-        ephemeral: true,
-      });
-    }
+      if (!member.isCommunicationDisabled()) {
+        return interaction.editReply({
+          content: "This member isn't being timed out.",
+        });
+      }
 
-    await member
-      .timeout(null, reason)
-      .then(async (m) => {
-        await interaction.reply({
+      await member.timeout(null, reason).then(async (m) => {
+        await interaction.editReply({
           content: `Successfully ${bold('removing timeout')} from ${m}.`,
-          ephemeral: true,
         });
 
-        await m.send({
-          content: `Your ${bold('timeout')} has passed from ${bold(
-            interaction.guild.name,
-          )}.`,
-        });
-      })
-      .catch(async (err) => {
-        console.error(err);
-        console.log(`Could not send a DM to ${member}.`);
-        await interaction.followUp({
-          content: `Could not send a DM to ${member}.`,
-          ephemeral: true,
-        });
+        await m
+          .send({
+            content: `Congratulations! Your ${bold(
+              'timeout',
+            )} has passed from ${bold(interaction.guild.name)}.`,
+          })
+          .catch(async (err) => {
+            console.error(err);
+
+            await interaction.followUp({
+              content: `Could not send a DM to ${member}.`,
+              ephemeral: true,
+            });
+          });
       });
+    });
   },
 };

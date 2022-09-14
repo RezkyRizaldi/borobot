@@ -15,6 +15,7 @@ const groupMessageByAuthor = require('./groupMessageByAuthor');
 const groupMessageByType = require('./groupMessageByType');
 const isAutoCorrecting = require('./isAutoCorrecting');
 const isValidURL = require('./isValidURL');
+const musicSearch = require('./musicSearch');
 
 module.exports = {
   applyActivity,
@@ -34,4 +35,5 @@ module.exports = {
   groupMessageByType,
   isAutoCorrecting,
   isValidURL,
+  musicSearch,
 };

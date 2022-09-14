@@ -6,14 +6,14 @@ const getLanguage = require('./getLanguage');
 
 /**
  *
- * @param {{ embed: import('discord.js').EmbedBuilder, result: import('@vitalets/google-translate-api').ITranslateResponse, options: { text: String|null, from: String|null, to: String|null }, reply: import('discord.js').Message }} data
+ * @param {{ embed: import('discord.js').EmbedBuilder, result: import('@vitalets/google-translate-api').ITranslateResponse, options: { text: String|null, from: String|null, to: String|null }, interaction: import('discord.js').ChatInputCommandInteraction }} data
  * @returns {Promise<import('discord.js').Message>} The interaction message response.
  */
 module.exports = async ({
   embed,
   result,
   options: { text, from, to },
-  reply,
+  interaction,
 }) => {
   if (!result.from.text.didYouMean) {
     embed.setFields([
@@ -31,32 +31,27 @@ module.exports = async ({
       },
     ]);
 
-    return reply.edit({ content: '', embeds: [embed] });
+    return interaction.editReply({ embeds: [embed] });
   }
 
   return translate(result.from.text.value.replace(/\[([a-z]+)\]/gi, '$1'), {
     to,
-  })
-    .then(async (res) => {
-      embed.setFields([
-        {
-          name: `From ${getLanguage(languages, res.from.language.iso)}${
-            from ? '' : ' - Detected'
-          } ${getFlag(languages[res.from.language.iso])}`,
-          value: text,
-        },
-        {
-          name: `To ${getLanguage(languages, to)} ${getFlag(
-            languages[to.toLowerCase()],
-          )}`,
-          value: res.text,
-        },
-      ]);
+  }).then(async (res) => {
+    embed.setFields([
+      {
+        name: `From ${getLanguage(languages, res.from.language.iso)}${
+          from ? '' : ' - Detected'
+        } ${getFlag(languages[res.from.language.iso])}`,
+        value: text,
+      },
+      {
+        name: `To ${getLanguage(languages, to)} ${getFlag(
+          languages[to.toLowerCase()],
+        )}`,
+        value: res.text,
+      },
+    ]);
 
-      await reply.edit({ content: '', embeds: [embed] });
-    })
-    .catch(async (err) => {
-      console.error(err);
-      await reply.edit({ content: err.message });
-    });
+    await interaction.editReply({ embeds: [embed] });
+  });
 };

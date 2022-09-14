@@ -27,9 +27,9 @@ module.exports = (client) => {
         commands.set(command.data.name, command);
         commandArray.push(command.data.toJSON());
         table.addRow(
-          command.data.name || file,
+          command?.data?.name || file,
           folder,
-          command.type || 'None',
+          command?.type || 'None',
           '✅',
         );
         table.sort((a, b) => a[0].localeCompare(b[0]));

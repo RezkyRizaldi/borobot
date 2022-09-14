@@ -1,5 +1,6 @@
 const {
   bold,
+  inlineCode,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } = require('discord.js');
@@ -33,36 +34,37 @@ module.exports = {
     const member = options.getMember('member');
     const reason = options.getString('reason') || 'No reason';
 
-    if (!member.kickable) {
-      return interaction.reply({
-        content: "You don't have appropiate permissions to kick this member.",
-        ephemeral: true,
-      });
-    }
-
-    if (member.id === interaction.user.id) {
-      return interaction.reply({
-        content: "You can't kick yourself.",
-        ephemeral: true,
-      });
-    }
-
-    await member
-      .kick(reason)
-      .then(
-        async (m) =>
-          await interaction.reply({
-            content: `Successfully ${bold('kicked')} ${m}.`,
-            ephemeral: true,
-          }),
-      )
-      .catch(async (err) => {
-        console.error(err);
-        console.log(`Could not send a DM to ${member}.`);
-        await interaction.followUp({
-          content: `Could not send a DM to ${member}.`,
-          ephemeral: true,
+    await interaction.deferReply({ ephemeral: true }).then(async () => {
+      if (!member.kickable) {
+        return interaction.editReply({
+          content: "You don't have appropiate permissions to kick this member.",
         });
+      }
+
+      if (member.id === interaction.user.id) {
+        return interaction.editReply({ content: "You can't kick yourself." });
+      }
+
+      await member.kick(reason).then(async (m) => {
+        await interaction.editReply({
+          content: `Successfully ${bold('kicked')} ${m}.`,
+        });
+
+        await m
+          .send({
+            content: `You have been kicked from ${
+              interaction.guild
+            } for ${inlineCode(reason)}`,
+          })
+          .catch(async (err) => {
+            console.error(err);
+
+            await interaction.followUp({
+              content: `Could not send a DM to ${m}.`,
+              ephemeral: true,
+            });
+          });
       });
+    });
   },
 };

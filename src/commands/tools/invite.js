@@ -1,4 +1,5 @@
 const { EmbedBuilder, hyperlink, SlashCommandBuilder } = require('discord.js');
+const wait = require('node:timers/promises').setTimeout;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -11,34 +12,40 @@ module.exports = {
    * @param {import('discord.js').CommandInteraction} interaction
    */
   async execute(interaction) {
-    const embed = new EmbedBuilder()
-      .setColor(interaction.guild.members.me.displayHexColor)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: interaction.client.user.username,
-        iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
-      });
-
     await interaction
-      .deferReply({ fetchReply: true })
+      .deferReply()
       .then(async () => {
-        embed.setTitle(`${interaction.client.user.username}'s Invite Link`);
-        embed.setDescription(
-          `Here's your ${hyperlink(
-            'invite link',
-            'https://discord.com/api/oauth2/authorize?client_id=1009685216580882512&permissions=8&scope=applications.commands%20bot',
-            'Get your invite link here',
-          )} for invite me to your server!`,
-        );
-        embed.setThumbnail(
-          interaction.client.user.displayAvatarURL({ dynamic: true }),
-        );
+        const embed = new EmbedBuilder()
+          .setColor(interaction.guild.members.me.displayHexColor)
+          .setTimestamp(Date.now())
+          .setFooter({
+            text: interaction.client.user.username,
+            iconURL: interaction.client.user.displayAvatarURL({
+              dynamic: true,
+            }),
+          })
+          .setTitle(`${interaction.client.user.username}'s Invite Link`)
+          .setDescription(
+            `Here's your ${hyperlink(
+              'invite link',
+              `https://discord.com/api/oauth2/authorize?client_id=${process.env.CLIENT_ID}&permissions=8&scope=applications.commands%20bot`,
+              'Get your invite link here',
+            )} for invite me to your server!`,
+          )
+          .setThumbnail(
+            interaction.client.user.displayAvatarURL({ dynamic: true }),
+          );
 
         await interaction.editReply({ embeds: [embed] });
       })
-      .catch((err) => console.error(err))
-      .finally(() =>
-        setTimeout(async () => await interaction.deleteReply(), 10000),
+      .catch(async (err) => {
+        console.error(err);
+
+        await interaction.editReply({ content: err.message });
+      })
+      .finally(
+        async () =>
+          await wait(15000).then(async () => await interaction.deleteReply()),
       );
   },
 };

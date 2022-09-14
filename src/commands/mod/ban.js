@@ -1,5 +1,6 @@
 const {
   bold,
+  inlineCode,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } = require('discord.js');
@@ -41,33 +42,43 @@ module.exports = {
     const { options } = interaction;
 
     /** @type {import('discord.js').GuildMember} */
-    const member = options.getMember('user');
+    const member = options.getMember('member');
     const deleteMessageDays = options.getInteger('delete_messages');
     const reason = options.getString('reason') || 'No reason';
 
-    if (!member.bannable) {
-      return interaction.reply({
-        content: "You don't have appropiate permissions to ban this member.",
-        ephemeral: true,
-      });
-    }
+    await interaction.deferReply({ ephemeral: true }).then(async () => {
+      if (!member.bannable) {
+        return interaction.editReply({
+          content: "You don't have appropiate permissions to ban this member.",
+        });
+      }
 
-    if (member.id === interaction.user.id) {
-      return interaction.reply({
-        content: "You can't ban yourself.",
-        ephemeral: true,
-      });
-    }
+      if (member.id === interaction.user.id) {
+        return interaction.editReply({
+          content: "You can't ban yourself.",
+        });
+      }
 
-    await member
-      .ban({ deleteMessageDays, reason })
-      .then(
-        async (m) =>
-          await interaction.reply({
-            content: `Successfully ${bold('banned')} ${m.user.tag}.`,
-            ephemeral: true,
-          }),
-      )
-      .catch((err) => console.error(err));
+      await member.ban({ deleteMessageDays, reason }).then(async (m) => {
+        await interaction.editReply({
+          content: `Successfully ${bold('banned')} ${m.user.tag}.`,
+        });
+
+        await m
+          .send({
+            content: `You have been banned from ${
+              interaction.guild
+            } for ${inlineCode(reason)}`,
+          })
+          .catch(async (err) => {
+            console.error(err);
+
+            await interaction.followUp({
+              content: `Could not send a DM to ${m}.`,
+              ephemeral: true,
+            });
+          });
+      });
+    });
   },
 };
