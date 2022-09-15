@@ -61,7 +61,7 @@ module.exports = {
           });
         }
 
-        await autocomplete.execute(interaction).catch(async (err) => {
+        await autocomplete.autocomplete(interaction).catch(async (err) => {
           console.error(err);
 
           if (interaction.replied || interaction.deferred) {
