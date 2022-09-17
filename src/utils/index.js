@@ -5,6 +5,7 @@ const applyNSFWLevel = require('./applyNSFWLevel');
 const applyPermission = require('./applyPermission');
 const applyPresence = require('./applyPresence');
 const applyRepeatMode = require('./applyRepeatMode');
+const serverMute = require('./serverMute');
 const applyText = require('./applyText');
 const applyTier = require('./applyTier');
 const applyVerificationLevel = require('./applyVerificationLevel');
@@ -25,6 +26,7 @@ module.exports = {
   applyPermission,
   applyPresence,
   applyRepeatMode,
+  serverMute,
   applyText,
   applyTier,
   applyVerificationLevel,
