@@ -208,7 +208,9 @@ module.exports = {
                       'Click here to get the guild vanity URL',
                     )} (Used ${pluralize('time', guild.vanityURLUses, true)})`
                   : italic('None')
-              }\nDefault URL:\n${inviteURLs}`,
+              }\nDefault URL: ${
+                inviteURLs ? `\n${inviteURLs}` : italic('None')
+              }`,
               inline: true,
             },
             {

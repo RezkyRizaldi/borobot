@@ -1,6 +1,6 @@
 {
   "name": "borobot",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "A simple Discord Bot build with discord.js v14",
   "displayName": "Borobot",
   "bugs": {
@@ -41,7 +41,7 @@
     "@napi-rs/canvas": "^0.1.29",
     "@vitalets/google-translate-api": "^8.0.0",
     "ascii-table": "^0.0.9",
-    "discord-api-types": "^0.37.9",
+    "discord-api-types": "^0.37.10",
     "discord.js": "^14.3.0",
     "distube": "^4.0.3",
     "dotenv": "^16.0.2",

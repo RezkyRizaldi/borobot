@@ -1,5 +1,5 @@
 const { languages } = require('@vitalets/google-translate-api');
-const { Events } = require('discord.js');
+const { ChannelType, Events } = require('discord.js');
 
 module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
@@ -188,4 +188,44 @@ module.exports = {
 
   /** @type {Object.<string, string>} */
   extendedLocales: { ...languages, ...this.newSupportedLanguages },
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  serverMuteChoices: [
+    {
+      name: 'Text',
+      value: ChannelType.GuildText,
+    },
+    {
+      name: 'Voice',
+      value: ChannelType.GuildVoice,
+    },
+    {
+      name: 'All',
+      value: 6,
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  serverMuteTempChoices: [
+    {
+      name: '5 secs',
+      value: 5 * 1000,
+    },
+    {
+      name: '15 secs',
+      value: 15 * 1000,
+    },
+    {
+      name: '30 secs',
+      value: 30 * 1000,
+    },
+    {
+      name: '45 secs',
+      value: 45 * 1000,
+    },
+    {
+      name: '60 secs',
+      value: 60 * 1000,
+    },
+  ],
 };

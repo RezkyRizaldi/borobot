@@ -33,8 +33,45 @@ module.exports = {
 
     await member.send({ embeds: [embed] }).catch((err) => console.error(err));
 
+    if (user.bot) {
+      const botRole = member.guild.roles.cache.find(
+        (role) => role.id === process.env.BOT_ROLE_ID,
+      );
+
+      return member.roles
+        .add(botRole)
+        .then(async (m) => {
+          embed.setColor(m.displayHexColor);
+          embed.setThumbnail(user.displayAvatarURL({ dynamic: true }));
+          embed.setFields([
+            {
+              name: '🆔 Member ID',
+              value: user.id,
+              inline: true,
+            },
+            {
+              name: '🎊 Account Created',
+              value: time(user.createdAt, TimestampStyles.RelativeTime),
+              inline: true,
+            },
+            {
+              name: '📆 Joined At',
+              value: time(m.joinedAt, TimestampStyles.RelativeTime),
+              inline: true,
+            },
+          ]);
+
+          await WelcomeLogger.send({ embeds: [embed] });
+        })
+        .catch((err) => console.error(err));
+    }
+
+    const memberRole = member.guild.roles.cache.find(
+      (role) => role.id === process.env.MEMBER_ROLE_ID,
+    );
+
     await member.roles
-      .add(process.env.MEMBER_ROLE_ID)
+      .add(memberRole)
       .then(async (m) => {
         embed.setColor(m.displayHexColor);
         embed.setThumbnail(user.displayAvatarURL({ dynamic: true }));
