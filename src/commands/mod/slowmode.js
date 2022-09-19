@@ -48,7 +48,6 @@ module.exports = {
   async execute(interaction) {
     /** @type {{ channel: import('discord.js').TextChannel }} */
     const { channel } = interaction;
-
     const duration = interaction.options.getInteger('duration');
     const reason = interaction.options.getString('reason') ?? 'No reason';
 
@@ -57,7 +56,9 @@ module.exports = {
         case 'on':
           if (channel.rateLimitPerUser > 0) {
             return interaction.editReply({
-              content: `${channel} slowmode already turned on for ${channel.rateLimitPerUser} seconds.`,
+              content: `Slowmode in ${channel} is already turned on for ${inlineCode(
+                `${channel.rateLimitPerUser} seconds`,
+              )}.`,
             });
           }
 
@@ -73,7 +74,7 @@ module.exports = {
         case 'off':
           if (channel.rateLimitPerUser === 0) {
             return interaction.editReply({
-              content: `${channel} slowmode is'nt being turned on.`,
+              content: `Slowmode in ${channel} isn't being turned on.`,
             });
           }
 

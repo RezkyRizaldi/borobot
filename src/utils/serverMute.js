@@ -4,25 +4,25 @@ const wait = require('node:timers/promises').setTimeout;
 /**
  *
  * @param {import('discord.js').ChatInputCommandInteraction} interaction
- * @param {String} type
+ * @param {String} subcommand
  * @returns {Promise<import('discord.js').Message<Boolean>>} The interaction message response.
  */
-module.exports = async (interaction, type) => {
-  const { options } = interaction;
+module.exports = async (interaction, subcommand) => {
+  const { options, user } = interaction;
 
   /** @type {import('discord.js').GuildMember} */
   const member = options.getMember('member');
   const channelType = options.getInteger('channel_type');
 
-  if (member.id === interaction.user.id) {
+  if (member.id === user.id) {
     return interaction.editReply({
       content: `You can't ${
-        type === 'apply' || type === 'temp' ? 'mute' : 'unmute'
+        subcommand === 'apply' || subcommand === 'temp' ? 'mute' : 'unmute'
       } yourself.`,
     });
   }
 
-  switch (type) {
+  switch (subcommand) {
     case 'apply':
       switch (channelType) {
         case ChannelType.GuildText:
@@ -143,11 +143,12 @@ const applyOrRemoveRole = async ({
   const member = options.getMember('member');
   const duration = options.getInteger('duration');
   const reason = options.getString('reason') ?? 'No reason';
+  const { roles, voice } = member;
 
   const muted =
     type === 'apply'
-      ? member.roles.cache.find((role) => role.name.toLowerCase() === 'muted')
-      : !member.roles.cache.find((role) => role.name.toLowerCase() === 'muted');
+      ? roles.cache.find((role) => role.name.toLowerCase() === 'muted')
+      : !roles.cache.find((role) => role.name.toLowerCase() === 'muted');
 
   if (muted) {
     return interaction.editReply({
@@ -159,7 +160,7 @@ const applyOrRemoveRole = async ({
 
   return findOrCreateRole(interaction).then(async (role) => {
     if (type === 'apply') {
-      return member.roles.add(role, reason).then(async (m) => {
+      return roles.add(role, reason).then(async (m) => {
         await interaction.editReply({
           content: `Successfully ${bold('muted')} ${m} from ${
             all ? bold(guild) : 'text channels'
@@ -186,7 +187,7 @@ const applyOrRemoveRole = async ({
           });
 
         if (isTemporary) {
-          if (all && !member.voice.serverMute) {
+          if (all && !voice.serverMute) {
             await interaction.followUp({
               content: `${member} is not connected to a voice channel.`,
               ephemeral: true,
@@ -195,7 +196,7 @@ const applyOrRemoveRole = async ({
 
           await wait(duration);
 
-          await member.roles.remove(
+          await roles.remove(
             role,
             'server mute temporary duration has passed.',
           );
@@ -226,7 +227,7 @@ const applyOrRemoveRole = async ({
       });
     }
 
-    return member.roles.remove(role, reason).then(async (m) => {
+    return roles.remove(role, reason).then(async (m) => {
       await interaction.editReply({
         content: `Successfully ${bold('unmuted')} ${m} from ${
           all ? bold(guild) : 'text channels'
@@ -268,8 +269,9 @@ const createVoiceMute = async ({
   const member = options.getMember('member');
   const duration = options.getInteger('duration');
   const reason = options.getString('reason') ?? 'No reason';
+  const { voice } = member;
 
-  if (!member.voice.channel) {
+  if (!voice.channel) {
     if (all && !isTemporary) {
       return interaction.followUp({
         content: `${member} is not connected to a voice channel.`,
@@ -282,8 +284,7 @@ const createVoiceMute = async ({
     });
   }
 
-  const muted =
-    type === 'apply' ? member.voice.serverMute : !member.voice.serverMute;
+  const muted = type === 'apply' ? voice.serverMute : !voice.serverMute;
 
   if (muted) {
     return interaction.editReply({
@@ -294,7 +295,7 @@ const createVoiceMute = async ({
   }
 
   if (type === 'apply') {
-    return member.voice.setMute(true, reason).then(async (m) => {
+    return voice.setMute(true, reason).then(async (m) => {
       await interaction.editReply({
         content: `Successfully ${bold('muted')} ${m} from ${
           all ? bold(guild) : 'voice channels'
@@ -321,7 +322,7 @@ const createVoiceMute = async ({
       if (isTemporary) {
         await wait(duration);
 
-        await member.voice.setMute(
+        await voice.setMute(
           false,
           'server mute temporary duration has passed.',
         );
@@ -346,7 +347,7 @@ const createVoiceMute = async ({
     });
   }
 
-  return member.voice.setMute(false, reason).then(async (m) => {
+  return voice.setMute(false, reason).then(async (m) => {
     await interaction.editReply({
       content: `Successfully ${bold('unmuted')} ${m} from ${
         all ? bold(guild) : 'voice channels'

@@ -318,9 +318,9 @@ module.exports = {
                               .map((choice) => choice.name)
                               .join('\n')}`,
                         )
-                        .join('\n'),
+                        .join('\n\n'),
                     )
-                    .join('\n'),
+                    .join('\n\n'),
                 },
               ]);
             }

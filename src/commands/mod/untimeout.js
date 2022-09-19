@@ -27,7 +27,7 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { guild, options, user } = interaction;
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
@@ -41,7 +41,7 @@ module.exports = {
         });
       }
 
-      if (member.id === interaction.user.id) {
+      if (member.id === user.id) {
         return interaction.editReply({
           content: "You can't remove timeout by yourself.",
         });
@@ -62,7 +62,7 @@ module.exports = {
           .send({
             content: `Congratulations! Your ${bold(
               'timeout',
-            )} has passed from ${bold(interaction.guild.name)}.`,
+            )} has passed from ${bold(guild)}.`,
           })
           .catch(async (err) => {
             console.error(err);

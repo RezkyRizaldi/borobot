@@ -66,23 +66,24 @@ module.exports = {
     const member = options.getMember('member');
     const role = options.getRole('role');
     const reason = options.getString('reason') ?? 'No reason';
+    const { roles } = member;
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
+      if (!role.editable) {
+        return interaction.editReply({
+          content: `You don't have appropiate permissions to add ${role} role to ${member}.`,
+        });
+      }
+
       switch (options.getSubcommand()) {
         case 'add':
-          if (!role.editable) {
+          if (roles.cache.has(role.id)) {
             return interaction.editReply({
-              content: `You don't have appropiate permissions to add ${role} role to this member.`,
+              content: `${member} is already have ${role} role.`,
             });
           }
 
-          if (member.roles.cache.has(role.id)) {
-            return interaction.editReply({
-              content: `This member already have ${role} role.`,
-            });
-          }
-
-          return member.roles.add(role, reason).then(
+          return roles.add(role, reason).then(
             async (m) =>
               await interaction.editReply({
                 content: `Successfully ${bold('added')} ${role} role to ${m}.`,
@@ -90,19 +91,13 @@ module.exports = {
           );
 
         case 'remove':
-          if (!role.editable) {
+          if (!roles.cache.has(role.id)) {
             return interaction.editReply({
-              content: `You don't have appropiate permissions to remove ${role} role from this member.`,
+              content: `${member} doesn't have ${role} role.`,
             });
           }
 
-          if (!member.roles.cache.has(role.id)) {
-            return interaction.editReply({
-              content: `This member doesn't have ${role} role.`,
-            });
-          }
-
-          return member.roles.remove(role, reason).then(
+          return roles.remove(role, reason).then(
             async (m) =>
               await interaction.editReply({
                 content: `Successfully ${bold(

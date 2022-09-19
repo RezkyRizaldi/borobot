@@ -68,7 +68,9 @@ module.exports = {
 
       if (amount <= 0) {
         return interaction.editReply({
-          content: 'Please specify the message amount from 1 to 50.',
+          content: `Please specify the message amount from ${bold(
+            '1',
+          )} to ${bold('50')}.`,
         });
       }
 

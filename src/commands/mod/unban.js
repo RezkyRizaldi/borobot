@@ -28,24 +28,22 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { guild, options } = interaction;
 
     const userId = options.get('user_id')?.value;
     const reason = options.getString('reason') ?? 'No reason';
 
-    const bannedUserId = interaction.guild.bans.cache.find(
-      (ban) => ban.user.id === userId,
-    );
+    const bannedUser = guild.bans.cache.find((ban) => ban.user.id === userId);
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
-      if (!bannedUserId) {
+      if (!bannedUser) {
         return interaction.editReply({
           content: "This user isn't banned.",
         });
       }
 
       await interaction.guild.members
-        .unban(bannedUserId, reason)
+        .unban(bannedUser, reason)
         .then(async (user) => {
           await interaction.editReply({
             content: `Successfully ${bold('unbanned')} ${user.tag}.`,
@@ -53,9 +51,9 @@ module.exports = {
 
           await user
             .send({
-              content: `Congratulations! You have been unbanned from ${
-                interaction.guild
-              } for ${inlineCode(reason)}`,
+              content: `Congratulations! You have been unbanned from ${bold(
+                guild,
+              )} for ${inlineCode(reason)}`,
             })
             .catch(async (err) => {
               console.error(err);

@@ -68,10 +68,10 @@ module.exports = {
       .deferReply()
       .then(async () => {
         const embed = new EmbedBuilder()
-          .setTitle(`ℹ️ ${guild.name} Server Info`)
+          .setTitle(`ℹ️ ${guild} Server Info`)
           .setThumbnail(guild.iconURL({ dynamic: true }))
           .setDescription(guild.description ?? italic('No description'))
-          .setColor(interaction.guild.members.me.displayHexColor)
+          .setColor(guild.members.me.displayHexColor)
           .setFooter({
             text: interaction.client.user.username,
             iconURL: interaction.client.user.displayAvatarURL({

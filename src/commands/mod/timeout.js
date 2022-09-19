@@ -39,7 +39,7 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { guild, options, user } = interaction;
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
@@ -49,12 +49,11 @@ module.exports = {
     await interaction.deferReply({ ephemeral: true }).then(async () => {
       if (!member.moderatable) {
         return interaction.editReply({
-          content:
-            "You don't have appropiate permissions to timeout this member.",
+          content: `You don't have appropiate permissions to timeout ${member}.`,
         });
       }
 
-      if (member.id === interaction.user.id) {
+      if (member.id === user.id) {
         return interaction.editReply({
           content: "You can't timeout yourself.",
         });
@@ -62,7 +61,7 @@ module.exports = {
 
       if (member.isCommunicationDisabled()) {
         return interaction.editReply({
-          content: `This member is already timed out. Available back ${time(
+          content: `${member} is already timed out. Available back ${time(
             member.communicationDisabledUntil,
             TimestampStyles.RelativeTime,
           )}`,
@@ -82,7 +81,7 @@ module.exports = {
         await m
           .send({
             content: `You have been ${bold('timed out')} from ${bold(
-              interaction.guild.name,
+              guild,
             )} for ${inlineCode(reason)}.`,
           })
           .catch(async (err) => {

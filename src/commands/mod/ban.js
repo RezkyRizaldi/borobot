@@ -39,7 +39,7 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { guild, options, user } = interaction;
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
@@ -49,11 +49,11 @@ module.exports = {
     await interaction.deferReply({ ephemeral: true }).then(async () => {
       if (!member.bannable) {
         return interaction.editReply({
-          content: "You don't have appropiate permissions to ban this member.",
+          content: `You don't have appropiate permissions to ban ${member}.`,
         });
       }
 
-      if (member.id === interaction.user.id) {
+      if (member.id === user.id) {
         return interaction.editReply({
           content: "You can't ban yourself.",
         });
@@ -66,9 +66,9 @@ module.exports = {
 
         await m
           .send({
-            content: `You have been banned from ${
-              interaction.guild
-            } for ${inlineCode(reason)}`,
+            content: `You have been banned from ${bold(guild)} for ${inlineCode(
+              reason,
+            )}`,
           })
           .catch(async (err) => {
             console.error(err);
