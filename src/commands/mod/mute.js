@@ -85,6 +85,18 @@ module.exports = {
             .setName('reason')
             .setDescription('📃 The reason for unmute the member.'),
         ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('list')
+        .setDescription('📄 Show list of muted members.')
+        .addIntegerOption((option) =>
+          option
+            .setName('channel_type')
+            .setDescription('#️⃣ The channel type for restrict the member from.')
+            .addChoices(...serverMuteChoices)
+            .setRequired(true),
+        ),
     ),
   type: 'Chat Input',
 
@@ -95,17 +107,8 @@ module.exports = {
   async execute(interaction) {
     const { options } = interaction;
 
-    /** @type {import('discord.js').GuildMember} */
-    const member = options.getMember('member');
-
-    await interaction.deferReply({ ephemeral: true }).then(async () => {
-      if (!member.manageable) {
-        return interaction.editReply({
-          content: `You don't have appropiate permissions to mute ${member}.`,
-        });
-      }
-
-      return serverMute(interaction, options.getSubcommand());
-    });
+    await interaction
+      .deferReply({ ephemeral: true })
+      .then(async () => await serverMute(interaction, options.getSubcommand()));
   },
 };
