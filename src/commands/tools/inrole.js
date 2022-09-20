@@ -24,22 +24,22 @@ module.exports = {
     const role = options.getRole('role');
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
-      const membersWithRole = guild.members.cache
-        .filter((member) => member.roles.cache.has(role.id))
-        .map((member) => member);
+      const membersWithRole = guild.members.cache.filter((member) =>
+        member.roles.cache.has(role.id),
+      );
 
-      if (!membersWithRole.length) {
+      if (!membersWithRole.size) {
         return interaction.editReply({
           content: `There is no member with role ${role}`,
         });
       }
 
-      const descriptions = membersWithRole.map(
+      const descriptions = [...membersWithRole.values()].map(
         (member, index) =>
           `${bold(`${index + 1}`)}. ${member} (${member.user.username})`,
       );
 
-      if (membersWithRole.length > 10) {
+      if (membersWithRole.size > 10) {
         const pagination = new Pagination(interaction, {
           limit: 10,
         });
@@ -51,7 +51,7 @@ module.exports = {
           iconURL: client.user.displayAvatarURL({ dynamic: true }),
         });
         pagination.setAuthor({
-          name: `👥 Member Lists with Role ${role.name} (${membersWithRole.length})`,
+          name: `👥 Member Lists with Role ${role.name} (${membersWithRole.size})`,
         });
         pagination.setDescriptions(descriptions);
 
@@ -66,7 +66,7 @@ module.exports = {
           iconURL: client.user.displayAvatarURL({ dynamic: true }),
         })
         .setAuthor({
-          name: `👥 Member Lists with Role ${role.name} (${membersWithRole.length})`,
+          name: `👥 Member Lists with Role ${role.name} (${membersWithRole.size})`,
         })
         .setDescription(descriptions.join('\n'));
 
