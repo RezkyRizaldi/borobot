@@ -28,7 +28,7 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { guild, options, user } = interaction;
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
@@ -37,11 +37,11 @@ module.exports = {
     await interaction.deferReply({ ephemeral: true }).then(async () => {
       if (!member.kickable) {
         return interaction.editReply({
-          content: "You don't have appropiate permissions to kick this member.",
+          content: `You don't have appropiate permissions to kick ${member}.`,
         });
       }
 
-      if (member.id === interaction.user.id) {
+      if (member.id === user.id) {
         return interaction.editReply({ content: "You can't kick yourself." });
       }
 
@@ -52,9 +52,9 @@ module.exports = {
 
         await m
           .send({
-            content: `You have been kicked from ${
-              interaction.guild
-            } for ${inlineCode(reason)}`,
+            content: `You have been kicked from ${bold(guild)} for ${inlineCode(
+              reason,
+            )}`,
           })
           .catch(async (err) => {
             console.error(err);

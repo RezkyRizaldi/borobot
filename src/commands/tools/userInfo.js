@@ -22,18 +22,17 @@ module.exports = {
    * @param {import('discord.js').ContextMenuCommandInteraction} interaction
    */
   async execute(interaction) {
+    const { guild, targetId } = interaction;
+
     await interaction
       .deferReply()
-      .then(async () => {
-        await interaction.guild.members
-          .fetch(interaction.targetId)
-          .then(async (member) => {
+      .then(
+        async () =>
+          await guild.members.fetch(targetId).then(async (member) => {
             const userRoles = member.roles.icon
               ? `${member.roles.icon} `
               : member.roles.cache
-                  .filter(
-                    (role) => role.id !== interaction.guild.roles.everyone.id,
-                  )
+                  .filter((role) => role.id !== guild.roles.everyone.id)
                   .map((role) => `${role}`)
                   .join(', ') || italic('None');
 
@@ -64,9 +63,11 @@ module.exports = {
                 .join('\n') ?? italic('None');
 
             const embed = new EmbedBuilder()
-              .setTitle(`ℹ️ ${member.user.username}'s User Info`)
+              .setAuthor({
+                name: `ℹ️ ${member.user.username}'s User Info`,
+              })
               .setColor(member.displayHexColor)
-              .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+              .setThumbnail(member.displayAvatarURL({ dynamic: true }))
               .setFooter({
                 text: member.client.user.username,
                 iconURL: member.client.user.displayAvatarURL({ dynamic: true }),
@@ -140,9 +141,8 @@ module.exports = {
               ]);
 
             await interaction.editReply({ embeds: [embed] });
-          });
-      })
-
+          }),
+      )
       .catch(async (err) => {
         console.error(err);
 

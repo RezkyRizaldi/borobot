@@ -20,12 +20,12 @@ module.exports = {
    * @param {import('discord.js').GuildMember} newMember
    */
   async execute(oldMember, newMember) {
-    const { guild } = newMember;
+    const { client, guild } = newMember;
 
     const embed = new EmbedBuilder()
       .setFooter({
-        text: newMember.client.user.username,
-        iconURL: newMember.client.user.displayAvatarURL({ dynamic: true }),
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setTimestamp(Date.now())
       .setColor(newMember.displayHexColor);
@@ -51,7 +51,7 @@ module.exports = {
       );
 
       const avatar = await Canvas.loadImage(
-        newMember.user.displayAvatarURL({ extension: 'jpg' }),
+        newMember.displayAvatarURL({ extension: 'jpg' }),
       );
 
       context.beginPath();
@@ -68,7 +68,7 @@ module.exports = {
         name: 'Server Boosted',
         iconURL: guild.iconURL({ dynamic: true }),
       });
-      embed.setThumbnail(newMember.user.displayAvatarURL({ dynamic: true }));
+      embed.setThumbnail(newMember.displayAvatarURL({ dynamic: true }));
       embed.setDescription(`Welcome to test, ${newMember.displayName}!`);
       embed.setImage('attachment://nitro.png');
 
@@ -77,10 +77,10 @@ module.exports = {
         .catch((err) => console.error(err));
 
       embed.setDescription('Thank you for boosting test!');
-      await newMember.send({ embeds: [embed] }).catch((err) => {
-        console.error(err);
-        console.log(`Could not send a DM to ${newMember.user.tag}.`);
-      });
+
+      await newMember
+        .send({ embeds: [embed] })
+        .catch((err) => console.error(err));
     }
 
     // If the member roles have changed

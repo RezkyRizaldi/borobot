@@ -6,12 +6,16 @@ module.exports = {
   /**
    *
    * @param {import('discord.js').CommandInteraction} interaction
-   * @param {import('discord.js').Client} client
    */
-  async execute(interaction, client) {
+  async execute(interaction) {
+    /** @type {{ client: { commands: import('discord.js').Collection<String, { data: import('discord.js').SlashCommandBuilder | import('discord.js').ContextMenuCommandBuilder, type: String, execute(): Promise<void> }>, components: import('discord.js').Collection<String, String> }}} */
+    const {
+      client: { commands, components },
+    } = interaction;
+
     return {
       [InteractionType.ApplicationCommand]: async () => {
-        const command = client.commands.get(interaction.commandName);
+        const command = commands.get(interaction.commandName);
 
         if (!command) {
           return interaction.reply({
@@ -34,7 +38,7 @@ module.exports = {
         });
       },
       [InteractionType.MessageComponent]: async () => {
-        const component = client.components.get(interaction.customId);
+        const component = components.get(interaction.customId);
 
         if (!component) return;
 
@@ -53,7 +57,7 @@ module.exports = {
         });
       },
       [InteractionType.ApplicationCommandAutocomplete]: async () => {
-        const autocomplete = client.commands.get(interaction.commandName);
+        const autocomplete = commands.get(interaction.commandName);
 
         if (!autocomplete) {
           return interaction.reply({
@@ -76,7 +80,7 @@ module.exports = {
         });
       },
       [InteractionType.ModalSubmit]: async () => {
-        const modal = client.components.get(interaction.customId);
+        const modal = components.get(interaction.customId);
 
         if (!modal) {
           return interaction.reply({

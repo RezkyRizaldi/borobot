@@ -12,7 +12,7 @@ const getMessageType = require('./getMessageType');
 /**
  *
  * @param {import('discord.js').Message} message
- * @param {Boolean} edit
+ * @param {Boolean} [edit=false]
  * @returns {String} The message.
  */
 module.exports = (message, edit = false) => {

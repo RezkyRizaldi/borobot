@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { bold, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { Pagination } = require('pagination.djs');
 
 module.exports = {
@@ -18,36 +18,40 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const role = interaction.options.getRole('role');
+    const { client, guild, options } = interaction;
+
+    /** @type {import('discord.js').Role} */
+    const role = options.getRole('role');
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
-      const membersWithRole = interaction.guild.members.cache
-        .filter((member) => member.roles.cache.has(role.id))
-        .map((member) => member);
+      const membersWithRole = guild.members.cache.filter((member) =>
+        member.roles.cache.has(role.id),
+      );
 
-      if (!membersWithRole.length) {
+      if (!membersWithRole.size) {
         return interaction.editReply({
           content: `There is no member with role ${role}`,
         });
       }
 
-      const descriptions = membersWithRole.map(
-        (member, index) => `${index + 1}. ${member} (${member.user.username})`,
+      const descriptions = [...membersWithRole.values()].map(
+        (member, index) =>
+          `${bold(`${index + 1}`)}. ${member} (${member.user.username})`,
       );
 
-      if (membersWithRole.length > 10) {
+      if (membersWithRole.size > 10) {
         const pagination = new Pagination(interaction, {
           limit: 10,
         });
 
-        pagination.setColor(interaction.guild.members.me.displayHexColor);
+        pagination.setColor(guild.members.me.displayHexColor);
         pagination.setTimestamp(Date.now());
         pagination.setFooter({
-          text: `${interaction.client.user.username} | Page {pageNumber} of {totalPages}`,
-          iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
+          text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+          iconURL: client.user.displayAvatarURL({ dynamic: true }),
         });
         pagination.setAuthor({
-          name: `👥 Member list with role ${role.name} (${membersWithRole.length})`,
+          name: `👥 Member Lists with Role ${role.name} (${membersWithRole.size})`,
         });
         pagination.setDescriptions(descriptions);
 
@@ -55,14 +59,14 @@ module.exports = {
       }
 
       const embed = new EmbedBuilder()
-        .setColor(interaction.guild.members.me.displayHexColor)
+        .setColor(guild.members.me.displayHexColor)
         .setTimestamp(Date.now())
         .setFooter({
-          text: interaction.client.user.username,
-          iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
+          text: client.user.username,
+          iconURL: client.user.displayAvatarURL({ dynamic: true }),
         })
         .setAuthor({
-          name: `👥 Member list with role ${role.name} (${membersWithRole.length})`,
+          name: `👥 Member Lists with Role ${role.name} (${membersWithRole.size})`,
         })
         .setDescription(descriptions.join('\n'));
 

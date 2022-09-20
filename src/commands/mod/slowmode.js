@@ -46,18 +46,20 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ channel: import('discord.js').TextChannel }} */
-    const { channel } = interaction;
+    /** @type {{ channel: import('discord.js').TextChannel, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { channel, options } = interaction;
 
-    const duration = interaction.options.getInteger('duration');
-    const reason = interaction.options.getString('reason') ?? 'No reason';
+    const duration = options.getInteger('duration');
+    const reason = options.getString('reason') ?? 'No reason';
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
-      switch (interaction.options.getSubcommand()) {
+      switch (options.getSubcommand()) {
         case 'on':
           if (channel.rateLimitPerUser > 0) {
             return interaction.editReply({
-              content: `${channel} slowmode already turned on for ${channel.rateLimitPerUser} seconds.`,
+              content: `Slowmode in ${channel} is already turned on for ${inlineCode(
+                `${channel.rateLimitPerUser} seconds`,
+              )}.`,
             });
           }
 
@@ -73,7 +75,7 @@ module.exports = {
         case 'off':
           if (channel.rateLimitPerUser === 0) {
             return interaction.editReply({
-              content: `${channel} slowmode is'nt being turned on.`,
+              content: `Slowmode in ${channel} isn't being turned on.`,
             });
           }
 

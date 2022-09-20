@@ -41,21 +41,22 @@ module.exports = {
     const member = options.getMember('member');
     const channel = options.getChannel('channel');
     const reason = options.getString('reason') ?? 'No reason';
+    const { voice } = member;
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
-      if (!member.voice.channel) {
+      if (!voice.channel) {
         return interaction.editReply({
           content: 'This member is not connected to a voice channel.',
         });
       }
 
-      if (member.voice.channelId === channel.id) {
+      if (voice.channelId === channel.id) {
         return interaction.editReply({
           content: `This member is already in ${channel}.`,
         });
       }
 
-      await member.voice.setChannel(channel, reason).then(
+      await voice.setChannel(channel, reason).then(
         async (m) =>
           await interaction.editReply({
             content: `Successfully ${bold('moved')} ${m} to ${channel}.`,

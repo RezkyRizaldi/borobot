@@ -32,15 +32,16 @@ module.exports = {
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
     const reason = options.getString('reason') ?? 'No reason';
+    const { voice } = member;
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
-      if (!member.voice.channel) {
+      if (!voice.channel) {
         return interaction.editReply({
-          content: 'This member is not connected to a voice channel.',
+          content: `${member} is not connected to a voice channel.`,
         });
       }
 
-      await member.voice.disconnect(reason).then(
+      await voice.disconnect(reason).then(
         async (m) =>
           await interaction.editReply({
             content: `Successfully ${bold('disconnected')} ${m}.`,

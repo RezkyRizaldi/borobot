@@ -15,12 +15,14 @@ module.exports = {
    * @param {import('discord.js').GuildBan} ban
    */
   async execute(ban) {
+    const { client, guild, user } = ban;
+
     const UnbanLogger = new WebhookClient({
       id: process.env.MEMBER_GUILD_UNBAN_WEBHOOK_ID,
       token: process.env.MEMBER_GUILD_UNBAN_WEBHOOK_TOKEN,
     });
 
-    const UnbanLog = await ban.guild
+    const UnbanLog = await guild
       .fetchAuditLogs({
         limit: 1,
         type: AuditLogEvent.MemberBanRemove,
@@ -28,23 +30,21 @@ module.exports = {
       .then((audit) => audit.entries.first());
 
     const message = new EmbedBuilder()
-      .setDescription(
-        `${ban.user.tag} has been unbanned by ${UnbanLog.executor}`,
-      )
-      .setColor(ban.guild.members.me.displayHexColor)
+      .setDescription(`${user.tag} has been unbanned by ${UnbanLog.executor}`)
+      .setColor(guild.members.me.displayHexColor)
       .setAuthor({
         name: 'Member Unbanned',
-        iconURL: ban.client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setFooter({
-        text: ban.client.user.tag,
-        iconURL: ban.client.user.displayAvatarURL({ dynamic: true }),
+        text: client.user.tag,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setTimestamp(Date.now())
       .setFields([
         {
           name: '🆔 Member ID',
-          value: ban.user.id,
+          value: user.id,
           inline: true,
         },
         {
@@ -61,7 +61,7 @@ module.exports = {
         },
       ]);
 
-    if (UnbanLog.target.id === ban.user.id) {
+    if (UnbanLog.target.id === user.id) {
       return UnbanLogger.send({ embeds: [message] }).catch((err) =>
         console.error(err),
       );

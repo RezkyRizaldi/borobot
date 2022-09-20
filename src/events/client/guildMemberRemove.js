@@ -15,7 +15,7 @@ module.exports = {
    * @param {import('discord.js').GuildMember} member
    */
   async execute(member) {
-    const { user, guild } = member;
+    const { client, guild, user } = member;
 
     // If the member leave the server
     const LeaveLogger = new WebhookClient({
@@ -24,13 +24,15 @@ module.exports = {
     });
 
     const leaveMessage = new EmbedBuilder()
-      .setTitle(`🖐️ Goodbye. Thanks for being with ${guild.name}`)
+      .setAuthor({
+        name: `🖐️ Goodbye. Thanks for being with ${guild}`,
+      })
       .setDescription(`It's been a long time, ${member}!`)
       .setColor(member.displayHexColor)
-      .setThumbnail(user.displayAvatarURL({ dynamic: true }))
+      .setThumbnail(member.displayAvatarURL({ dynamic: true }))
       .setFooter({
-        text: member.client.user.tag,
-        iconURL: member.client.user.displayAvatarURL({ dynamic: true }),
+        text: client.user.tag,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setTimestamp(Date.now())
       .setFields([
@@ -76,11 +78,11 @@ module.exports = {
       .setColor(member.displayHexColor)
       .setAuthor({
         name: 'Member Kicked',
-        iconURL: user.displayAvatarURL({ dynamic: true }),
+        iconURL: member.displayAvatarURL({ dynamic: true }),
       })
       .setFooter({
-        text: member.client.user.tag,
-        iconURL: member.client.user.displayAvatarURL({ dynamic: true }),
+        text: client.user.tag,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setTimestamp(Date.now())
       .setFields([
