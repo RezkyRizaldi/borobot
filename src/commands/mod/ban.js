@@ -56,7 +56,9 @@ module.exports = {
         ),
     )
     .addSubcommand((subcommand) =>
-      subcommand.setName('list').setDescription('📄 Show list of banned user.'),
+      subcommand
+        .setName('list')
+        .setDescription('📄 Show list of banned users.'),
     ),
   type: 'Chat Input',
 
@@ -150,11 +152,11 @@ module.exports = {
 
           if (!bannedUsers.size) {
             return interaction.editReply({
-              content: 'No one banned in this server.',
+              content: `No one banned in ${bold(guild)}.`,
             });
           }
 
-          const descriptions = bannedUsers.map(
+          const descriptions = [...bannedUsers.values()].map(
             (bannedUser, index) =>
               `${bold(`${index + 1}`)}. ${bannedUser.user.tag}`,
           );
@@ -173,7 +175,7 @@ module.exports = {
               }),
             });
             pagination.setAuthor({
-              name: `🚫 Banned User Lists ${bannedUsers.size}`,
+              name: `🚫 Banned User Lists (${bannedUsers.size})`,
             });
             pagination.setDescriptions(descriptions);
 
@@ -190,7 +192,7 @@ module.exports = {
               }),
             })
             .setAuthor({
-              name: `🚫 Banned User Lists ${bannedUsers.size}`,
+              name: `🚫 Banned User Lists (${bannedUsers.size})`,
             })
             .setDescription(descriptions.join('\n'));
 
