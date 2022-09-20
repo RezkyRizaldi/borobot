@@ -12,21 +12,23 @@ module.exports = {
    * @param {import('discord.js').CommandInteraction} interaction
    */
   async execute(interaction) {
+    const { client, guild } = interaction;
+
     await interaction
       .deferReply()
       .then(async (message) => {
         const embed = new EmbedBuilder()
-          .setColor(interaction.guild.members.me.displayHexColor)
+          .setColor(guild.members.me.displayHexColor)
           .setTimestamp(Date.now())
           .setFooter({
-            text: interaction.client.user.username,
-            iconURL: interaction.client.user.displayAvatarURL({
+            text: client.user.username,
+            iconURL: client.user.displayAvatarURL({
               dynamic: true,
             }),
           })
           .setDescription(
             `Websocket heartbeat: ${inlineCode(
-              `${Math.round(interaction.client.ws.ping)}ms`,
+              `${Math.round(client.ws.ping)}ms`,
             )}\nRoundtrip latency: ${inlineCode(
               `${message.createdTimestamp - interaction.createdTimestamp}ms`,
             )}`,

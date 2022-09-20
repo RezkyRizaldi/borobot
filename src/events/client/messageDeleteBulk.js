@@ -15,6 +15,7 @@ const {
   applyMessageType,
   groupMessageByAuthor,
   groupMessageByType,
+  truncate,
 } = require('../../utils');
 
 module.exports = {
@@ -146,10 +147,10 @@ module.exports = {
     embed.setDescription(response);
 
     if (response.length > 4096) {
-      embed.setDescription(response.slice(0, 4096));
+      embed.setDescription(truncate(response, 4096));
 
       const secondEmbed = new EmbedBuilder().setDescription(
-        response.slice(4096, response.length),
+        truncate(response, response.length, 4096),
       );
 
       return MessageLogger.send({ embeds: [embed, secondEmbed] }).catch((err) =>

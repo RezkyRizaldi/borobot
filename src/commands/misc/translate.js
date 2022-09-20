@@ -44,14 +44,14 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { client, guild, options } = interaction;
 
     const embed = new EmbedBuilder()
-      .setColor(interaction.guild.members.me.displayHexColor)
+      .setColor(guild.members.me.displayHexColor)
       .setTimestamp(Date.now())
       .setFooter({
-        text: interaction.client.user.username,
-        iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setAuthor({
         name: '📑 Translation Result',
@@ -68,23 +68,25 @@ module.exports = {
 
           const responses = locales.map(
             ([key, value], index) =>
-              `${index + 1}. ${bold(key)} - ${value} ${getFlag(value)}`,
+              `${bold(`${index + 1}`)}. ${bold(key)} - ${value} ${getFlag(
+                value,
+              )}`,
           );
 
           const pagination = new Pagination(interaction, {
             limit: 10,
           });
 
-          pagination.setColor(interaction.guild.members.me.displayHexColor);
+          pagination.setColor(guild.members.me.displayHexColor);
           pagination.setTimestamp(Date.now());
           pagination.setFooter({
-            text: `${interaction.client.user.username} | Page {pageNumber} of {totalPages}`,
-            iconURL: interaction.client.user.displayAvatarURL({
+            text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+            iconURL: client.user.displayAvatarURL({
               dynamic: true,
             }),
           });
           pagination.setAuthor({
-            name: `🌐 Translation Locale List (${locales.length})`,
+            name: `🌐 Translation Locale Lists (${locales.length})`,
           });
           pagination.setDescriptions(responses);
 

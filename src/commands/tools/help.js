@@ -26,12 +26,13 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ client: { commandArray: { name: String, description: String|undefined, type: Number|undefined, default_member_permissions: bigint|undefined, options: import('discord.js').ApplicationCommandChoicesOption[] }[] }}} */
-    const {
-      client: { commandArray: commands },
-    } = interaction;
+    /** @type {{ client: import('discord.js').Client, guild: import('discord.js').Guild, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { client, guild, options } = interaction;
 
-    const command = interaction.options.getString('command');
+    /** @type {{ commandArray: { name: String, description: String|undefined, type: Number|undefined, default_member_permissions: bigint|undefined, options: import('discord.js').ApplicationCommandChoicesOption[] }[] }} */
+    const { commandArray: commands } = client;
+
+    const command = options.getString('command');
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
       const cmds = commands
@@ -42,13 +43,13 @@ module.exports = {
             description,
             type,
             default_member_permissions,
-            options,
+            options: opts,
           }) => ({
             name,
             description: description ?? 'No description.',
             type,
             permissions: default_member_permissions,
-            options,
+            options: opts,
           }),
         );
 
@@ -73,8 +74,8 @@ module.exports = {
 
         const embed = new EmbedBuilder()
           .setAuthor({
-            name: `${interaction.client.user.username} Commands`,
-            iconURL: interaction.client.user.displayAvatarURL({
+            name: `${client.user.username} Commands`,
+            iconURL: client.user.displayAvatarURL({
               dynamic: true,
             }),
           })
@@ -83,10 +84,10 @@ module.exports = {
               cmd.type !== undefined ? cmd.name : `/${cmd.name}`,
             )} command.`,
           )
-          .setColor(interaction.guild.members.me.displayHexColor)
+          .setColor(guild.members.me.displayHexColor)
           .setFooter({
-            text: interaction.client.user.username,
-            iconURL: interaction.client.user.displayAvatarURL({
+            text: client.user.username,
+            iconURL: client.user.displayAvatarURL({
               dynamic: true,
             }),
           })
@@ -334,17 +335,17 @@ module.exports = {
         limit: 5,
       });
 
-      pagination.setColor(interaction.guild.members.me.displayHexColor);
+      pagination.setColor(guild.members.me.displayHexColor);
       pagination.setTimestamp(Date.now());
       pagination.setFooter({
-        text: `${interaction.client.user.username} | Page {pageNumber} of {totalPages}`,
-        iconURL: interaction.client.user.displayAvatarURL({
+        text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+        iconURL: client.user.displayAvatarURL({
           dynamic: true,
         }),
       });
       pagination.setAuthor({
-        name: `${interaction.client.user.username} Commands (${cmds.length})`,
-        iconURL: interaction.client.user.displayAvatarURL({ dynamic: true }),
+        name: `${client.user.username} Commands (${cmds.length})`,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
       pagination.setFields(
         cmds.map((option) => ({

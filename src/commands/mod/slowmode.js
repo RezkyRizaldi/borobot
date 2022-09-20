@@ -46,13 +46,14 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ channel: import('discord.js').TextChannel }} */
-    const { channel } = interaction;
-    const duration = interaction.options.getInteger('duration');
-    const reason = interaction.options.getString('reason') ?? 'No reason';
+    /** @type {{ channel: import('discord.js').TextChannel, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { channel, options } = interaction;
+
+    const duration = options.getInteger('duration');
+    const reason = options.getString('reason') ?? 'No reason';
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
-      switch (interaction.options.getSubcommand()) {
+      switch (options.getSubcommand()) {
         case 'on':
           if (channel.rateLimitPerUser > 0) {
             return interaction.editReply({

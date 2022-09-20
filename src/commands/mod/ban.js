@@ -65,7 +65,7 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { guild, options, user } = interaction;
+    const { client, guild, options, user } = interaction;
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
       switch (options.getSubcommand()) {
@@ -155,7 +155,8 @@ module.exports = {
           }
 
           const descriptions = bannedUsers.map(
-            (bannedUser, index) => `${index + 1}. ${bannedUser.user.tag}`,
+            (bannedUser, index) =>
+              `${bold(`${index + 1}`)}. ${bannedUser.user.tag}`,
           );
 
           if (bannedUsers.size > 10) {
@@ -166,10 +167,13 @@ module.exports = {
             pagination.setColor(guild.members.me.displayHexColor);
             pagination.setTimestamp(Date.now());
             pagination.setFooter({
-              text: `${interaction.client.user.username} | Page {pageNumber} of {totalPages}`,
-              iconURL: interaction.client.user.displayAvatarURL({
+              text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+              iconURL: client.user.displayAvatarURL({
                 dynamic: true,
               }),
+            });
+            pagination.setAuthor({
+              name: `🚫 Banned User Lists ${bannedUsers.size}`,
             });
             pagination.setDescriptions(descriptions);
 
@@ -180,13 +184,13 @@ module.exports = {
             .setColor(guild.members.me.displayHexColor)
             .setTimestamp(Date.now())
             .setFooter({
-              text: interaction.client.user.username,
-              iconURL: interaction.client.user.displayAvatarURL({
+              text: client.user.username,
+              iconURL: client.user.displayAvatarURL({
                 dynamic: true,
               }),
             })
             .setAuthor({
-              name: '🚫 Banned User Lists',
+              name: `🚫 Banned User Lists ${bannedUsers.size}`,
             })
             .setDescription(descriptions.join('\n'));
 

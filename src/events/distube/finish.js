@@ -10,7 +10,9 @@ module.exports = {
    */
   async execute(queue) {
     const embed = new EmbedBuilder()
-      .setTitle('⏹️ Queue Finished')
+      .setAuthor({
+        name: '⏹️ Queue Finished',
+      })
       .setColor(queue.clientMember.displayHexColor)
       .setTimestamp(Date.now())
       .setDescription('The queue has been finished.')

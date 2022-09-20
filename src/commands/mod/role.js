@@ -64,19 +64,21 @@ module.exports = {
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
+
+    /** @type {import('discord.js').Role} */
     const role = options.getRole('role');
     const reason = options.getString('reason') ?? 'No reason';
     const { roles } = member;
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
-      if (!role.editable) {
-        return interaction.editReply({
-          content: `You don't have appropiate permissions to add ${role} role to ${member}.`,
-        });
-      }
-
       switch (options.getSubcommand()) {
         case 'add':
+          if (!member.manageable) {
+            return interaction.editReply({
+              content: `You don't have appropiate permissions to add ${role} role to ${member}.`,
+            });
+          }
+
           if (roles.cache.has(role.id)) {
             return interaction.editReply({
               content: `${member} is already have ${role} role.`,
@@ -91,6 +93,12 @@ module.exports = {
           );
 
         case 'remove':
+          if (!member.manageable) {
+            return interaction.editReply({
+              content: `You don't have appropiate permissions to remove ${role} role from ${member}.`,
+            });
+          }
+
           if (!roles.cache.has(role.id)) {
             return interaction.editReply({
               content: `${member} doesn't have ${role} role.`,

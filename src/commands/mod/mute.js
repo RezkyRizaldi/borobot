@@ -6,7 +6,7 @@ const { serverMute } = require('../../utils');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('mute')
-    .setDescription('🚫 Mute member from server.')
+    .setDescription('🔇 Mute command.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addSubcommand((subcommand) =>
       subcommand

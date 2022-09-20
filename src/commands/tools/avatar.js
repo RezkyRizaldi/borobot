@@ -17,34 +17,35 @@ module.exports = {
    * @param {import('discord.js').ContextMenuCommandInteraction} interaction
    */
   async execute(interaction) {
+    const { client, guild, targetId } = interaction;
+
     await interaction
       .deferReply()
-      .then(async () => {
-        await interaction.guild.members
-          .fetch(interaction.targetId)
-          .then(async (target) => {
+      .then(
+        async () =>
+          await guild.members.fetch(targetId).then(async (member) => {
             const embed = new EmbedBuilder()
-              .setTitle(`${target.user.username}'s Avatar`)
-              .setColor(target.displayHexColor)
+              .setAuthor({
+                name: `👤 ${member.user.username}'s Avatar`,
+              })
+              .setColor(member.displayHexColor)
               .setTimestamp(Date.now())
               .setFooter({
-                text: target.client.user.username,
-                iconURL: target.client.user.displayAvatarURL({ dynamic: true }),
+                text: client.user.username,
+                iconURL: client.user.displayAvatarURL({ dynamic: true }),
               })
               .setDescription(
                 hyperlink(
                   'Avatar URL',
-                  target.user.displayAvatarURL({ dynamic: true, size: 4096 }),
+                  member.displayAvatarURL({ dynamic: true, size: 4096 }),
                   'Click here to view the avatar.',
                 ),
               )
-              .setImage(
-                target.user.displayAvatarURL({ dynamic: true, size: 4096 }),
-              );
+              .setImage(member.displayAvatarURL({ dynamic: true, size: 4096 }));
 
             await interaction.editReply({ embeds: [embed] });
-          });
-      })
+          }),
+      )
       .catch(async (err) => {
         console.error(err);
 

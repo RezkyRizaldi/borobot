@@ -42,6 +42,7 @@
     "@vitalets/google-translate-api": "^8.0.0",
     "ascii-table": "^0.0.9",
     "axios": "^0.27.2",
+    "capitalize": "^2.0.4",
     "discord-api-types": "^0.37.10",
     "discord.js": "^14.3.0",
     "distube": "^4.0.3",

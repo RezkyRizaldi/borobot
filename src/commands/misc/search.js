@@ -1,4 +1,5 @@
 const axios = require('axios').default;
+const capitalize = require('capitalize');
 const {
   EmbedBuilder,
   inlineCode,
@@ -47,7 +48,7 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { client, guild, options } = interaction;
 
     switch (options.getSubcommand()) {
       case 'image': {
@@ -72,13 +73,19 @@ module.exports = {
                 limit: 1,
               });
 
-              pagination.setColor(interaction.guild.members.me.displayHexColor);
+              pagination.setColor(guild.members.me.displayHexColor);
               pagination.setTimestamp(Date.now());
               pagination.setFooter({
-                text: `${interaction.client.user.username} | Page {pageNumber} of {totalPages}`,
-                iconURL: interaction.client.user.displayAvatarURL({
+                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                iconURL: client.user.displayAvatarURL({
                   dynamic: true,
                 }),
+              });
+              pagination.setAuthor({
+                name: `🖼️ ${capitalize.words(query, {
+                  skipWord: /^(a|the|an|and|or|but|in|on|of|it)$/,
+                  preserve: true,
+                })} Images`,
               });
               pagination.setImages(results.map((result) => result.url));
 
@@ -125,21 +132,21 @@ module.exports = {
                   )}`;
 
                   const embed = new EmbedBuilder()
-                    .setColor(interaction.guild.members.me.displayHexColor)
+                    .setColor(guild.members.me.displayHexColor)
                     .setTimestamp(Date.now())
                     .setFooter({
-                      text: interaction.client.user.username,
-                      iconURL: interaction.client.user.displayAvatarURL({
+                      text: client.user.username,
+                      iconURL: client.user.displayAvatarURL({
                         dynamic: true,
                       }),
                     })
                     .setAuthor({
-                      name: word,
+                      name: `🔠 ${word}`,
                       url: permalink,
                     })
                     .setFields([
                       {
-                        name: 'Definition',
+                        name: '🔤 Definition',
                         value: truncate(
                           `${definition}${formattedCite}`,
                           1024,
@@ -147,11 +154,11 @@ module.exports = {
                         ),
                       },
                       {
-                        name: 'Example',
+                        name: '🔤 Example',
                         value: truncate(example, 1024),
                       },
                       {
-                        name: 'Rating',
+                        name: '⭐ Rating',
                         value: `${thumbs_up} 👍 | ${thumbs_down} 👎`,
                       },
                     ]);

@@ -14,7 +14,7 @@ module.exports = {
    * @param {import('discord.js').GuildMember} member
    */
   async execute(member) {
-    const { user, guild } = member;
+    const { client, guild, user } = member;
 
     const WelcomeLogger = new WebhookClient({
       id: process.env.MEMBER_GUILD_WELCOME_WEBHOOK_ID,
@@ -22,19 +22,21 @@ module.exports = {
     });
 
     const embed = new EmbedBuilder()
-      .setTitle(`👋 Welcome to ${guild.name}`)
+      .setAuthor({
+        name: `👋 Welcome to ${guild}`,
+      })
       .setDescription(`hope you enjoy here, ${member}!`)
       .setColor(guild.members.me.displayHexColor)
       .setFooter({
-        text: member.client.user.username,
-        iconURL: member.client.user.displayAvatarURL({ dynamic: true }),
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setTimestamp(Date.now());
 
     await member.send({ embeds: [embed] }).catch((err) => console.error(err));
 
     if (user.bot) {
-      const botRole = member.guild.roles.cache.find(
+      const botRole = guild.roles.cache.find(
         (role) => role.id === process.env.BOT_ROLE_ID,
       );
 
@@ -42,7 +44,7 @@ module.exports = {
         .add(botRole)
         .then(async (m) => {
           embed.setColor(m.displayHexColor);
-          embed.setThumbnail(user.displayAvatarURL({ dynamic: true }));
+          embed.setThumbnail(member.displayAvatarURL({ dynamic: true }));
           embed.setFields([
             {
               name: '🆔 Member ID',
@@ -66,7 +68,7 @@ module.exports = {
         .catch((err) => console.error(err));
     }
 
-    const memberRole = member.guild.roles.cache.find(
+    const memberRole = guild.roles.cache.find(
       (role) => role.id === process.env.MEMBER_ROLE_ID,
     );
 
@@ -74,7 +76,7 @@ module.exports = {
       .add(memberRole)
       .then(async (m) => {
         embed.setColor(m.displayHexColor);
-        embed.setThumbnail(user.displayAvatarURL({ dynamic: true }));
+        embed.setThumbnail(member.displayAvatarURL({ dynamic: true }));
         embed.setFields([
           {
             name: '🆔 Member ID',
