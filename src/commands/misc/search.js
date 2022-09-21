@@ -108,7 +108,7 @@ module.exports = {
                 .then(async ({ data: { list } }) => {
                   if (!list.length) {
                     return interaction.editReply({
-                      content: `No results found for ${inlineCode(term)}`,
+                      content: `No results found for ${inlineCode(term)}.`,
                     });
                   }
 
