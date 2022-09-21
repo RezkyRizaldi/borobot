@@ -6,6 +6,7 @@ const {
   SlashCommandBuilder,
 } = require('discord.js');
 const { SearchResultType } = require('distube');
+const { getLyrics } = require('genius-lyrics-api');
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
 const progressbar = require('string-progressbar');
@@ -158,6 +159,13 @@ module.exports = {
       subcommandGroup
         .setName('settings')
         .setDescription('⚙️ The music settings.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('lyrics')
+            .setDescription(
+              '🗒️ Get the music lyrics from current playing queue.',
+            ),
+        )
         .addSubcommand((subcommand) =>
           subcommand
             .setName('jump')
@@ -563,6 +571,40 @@ module.exports = {
         }
 
         switch (options.getSubcommand()) {
+          case 'lyrics':
+            return getLyrics({
+              apiKey: process.env.GENIUS_CLIENT_ACCESS_TOKEN,
+              title: queue.songs[0].name,
+              artist: queue.songs[0].uploader.name,
+              optimizeQuery: true,
+            }).then(async (lyrics) => {
+              if (!lyrics) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `There is no lyrics found for ${inlineCode(
+                        queue.songs[0].name,
+                      )}.`,
+                    }),
+                );
+              }
+
+              embed.setAuthor({
+                name: `🗒️ ${queue.songs[0].name}`,
+              });
+              embed.setDescription(lyrics);
+
+              if (queue.songs[0].thumbnail !== undefined) {
+                embed.setThumbnail(queue.songs[0].thumbnail);
+              }
+
+              await interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            });
+
           case 'jump': {
             const position = options.getInteger('position');
 
