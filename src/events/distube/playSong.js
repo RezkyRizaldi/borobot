@@ -28,7 +28,7 @@ module.exports = {
         )} | Autoplay: ${inlineCode(queue.autoplay ? 'On' : 'Off')}\n${
           queue.formattedCurrentTime
         } - [${progressbar
-          .splitBar(song.duration, queue.currentTime, 12)
+          .splitBar(song.duration || 10, queue.currentTime, 12)
           .slice(0, -1)
           .toString()}] - ${song.formattedDuration}`,
       )
@@ -64,7 +64,7 @@ module.exports = {
             )} | Autoplay: ${inlineCode(queue.autoplay ? 'On' : 'Off')}\n${
               queue.formattedCurrentTime
             } - [${progressbar
-              .splitBar(song.duration, queue.currentTime, 12)
+              .splitBar(song.duration || 10, queue.currentTime, 12)
               .slice(0, -1)
               .toString()}] - ${song.formattedDuration}`,
           );
