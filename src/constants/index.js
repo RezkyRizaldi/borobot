@@ -228,4 +228,36 @@ module.exports = {
       value: 60 * 1000,
     },
   ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  githubRepoSortingTypeChoices: [
+    {
+      name: '⭐ Stars',
+      value: 'stars',
+    },
+    {
+      name: '🕎 Fork',
+      value: 'forks',
+    },
+    {
+      name: '❓ Help Wanted Issues',
+      value: 'help-wanted-issues',
+    },
+    {
+      name: '🆕 Updated',
+      value: 'updated',
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  githubRepoOrderingTypeChoices: [
+    {
+      name: '⬆️ Descending',
+      value: 'desc',
+    },
+    {
+      name: '⬇️ Ascending',
+      value: 'asc',
+    },
+  ],
 };
