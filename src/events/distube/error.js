@@ -14,16 +14,18 @@ module.exports = {
       console.error(err);
     }
 
+    const { client, guild } = channel;
+
     const embed = new EmbedBuilder()
       .setAuthor({
         name: '❌ An Error Encountered',
       })
-      .setColor(channel.guild.members.me.displayHexColor)
+      .setColor(guild.members.me.displayHexColor)
       .setTimestamp(Date.now())
       .setDescription(err.toString().slice(0, 4096))
       .setFooter({
-        text: channel.client.user.username,
-        iconURL: channel.client.user.displayAvatarURL({ dynamic: true }),
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
     return channel.send({ embeds: [embed] });

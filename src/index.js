@@ -49,8 +49,6 @@ client.commandArray = [];
 
 client.distube = new DisTube(client, {
   emitNewSongOnly: true,
-  leaveOnStop: false,
-  leaveOnFinish: true,
   emitAddSongWhenCreatingQueue: false,
   emitAddListWhenCreatingQueue: false,
   plugins: [

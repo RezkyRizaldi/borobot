@@ -9,18 +9,20 @@ module.exports = {
    * @param {import('distube').Queue} queue
    */
   async execute(queue) {
+    const { client, clientMember, textChannel, voiceChannel } = queue;
+
     const embed = new EmbedBuilder()
-      .setColor(queue.clientMember.displayHexColor)
+      .setColor(clientMember.displayHexColor)
       .setTimestamp(Date.now())
-      .setDescription('Voice channel is empty! Leaving the channel...')
+      .setDescription(`${voiceChannel} is empty! Leaving the channel...`)
       .setAuthor({
         name: '🚫 Channel Empty',
       })
       .setFooter({
-        text: queue.client.user.username,
-        iconURL: queue.client.user.displayAvatarURL({ dynamic: true }),
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    await queue.textChannel.send({ embeds: [embed] });
+    await textChannel.send({ embeds: [embed] });
   },
 };

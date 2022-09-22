@@ -9,18 +9,20 @@ module.exports = {
    * @param {import('distube').Queue} queue
    */
   async execute(queue) {
+    const { client, clientMember, textChannel } = queue;
+
     const embed = new EmbedBuilder()
       .setAuthor({
         name: '⏹️ Queue Finished',
       })
-      .setColor(queue.clientMember.displayHexColor)
+      .setColor(clientMember.displayHexColor)
       .setTimestamp(Date.now())
       .setDescription('The queue has been finished.')
       .setFooter({
-        text: queue.client.user.username,
-        iconURL: queue.client.user.displayAvatarURL({ dynamic: true }),
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    await queue.textChannel.send({ embeds: [embed] });
+    await textChannel.send({ embeds: [embed] });
   },
 };

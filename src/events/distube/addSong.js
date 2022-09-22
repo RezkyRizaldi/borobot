@@ -10,20 +10,28 @@ module.exports = {
    * @param {import('distube').Song} song
    */
   async execute(queue, song) {
+    const { client, clientMember, textChannel } = queue;
+
     const embed = new EmbedBuilder()
-      .setColor(queue.clientMember.displayHexColor)
+      .setColor(clientMember.displayHexColor)
       .setTimestamp(Date.now())
       .setDescription(
-        `${inlineCode(song.name)} has been added to the queue by ${song.user}.`,
+        `${inlineCode(song.name)} - ${inlineCode(
+          song.formattedDuration,
+        )} has been added to the queue by ${song.user}.`,
       )
       .setAuthor({
         name: '🔃 Queue Added',
       })
       .setFooter({
-        text: queue.client.user.username,
-        iconURL: queue.client.user.displayAvatarURL({ dynamic: true }),
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    await queue.textChannel.send({ embeds: [embed] });
+    if (song.thumbnail !== undefined) {
+      embed.setThumbnail(song.thumbnail);
+    }
+
+    await textChannel.send({ embeds: [embed] });
   },
 };
