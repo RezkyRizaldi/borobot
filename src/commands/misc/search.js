@@ -24,47 +24,25 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('search')
     .setDescription('🔍 Search command.')
-    .addSubcommand((subcommand) =>
-      subcommand
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
         .setName('image')
-        .setDescription('🖼️ Search an image from Google.')
-        .addStringOption((option) =>
-          option
-            .setName('query')
-            .setDescription('🔠 The image search query.')
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('definition')
-        .setDescription(
-          '❓ Search the definition of a term from Urban Dictionary.',
+        .setDescription('🖼️ Search any images.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('scrape')
+            .setDescription('✂️ Scrape any images from Google.')
+            .addStringOption((option) =>
+              option
+                .setName('query')
+                .setDescription('🔠 The image search query.')
+                .setRequired(true),
+            ),
         )
-        .addStringOption((option) =>
-          option
-            .setName('term')
-            .setDescription("🔠 The definition's term.")
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('mdn')
-        .setDescription(
-          '📖 Search the documentation of a term from MDN Web Docs.',
-        )
-        .addStringOption((option) =>
-          option
-            .setName('term')
-            .setDescription("🔠 The documentation's term.")
-            .setRequired(true),
-        )
-        .addStringOption((option) =>
-          option
-            .setName('language')
-            .setDescription("🔠 The documentation's preferred locale.")
-            .addChoices(...mdnLocales),
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('waifu')
+            .setDescription('👰‍♀️ Search a random waifu image.'),
         ),
     )
     .addSubcommandGroup((subcommandGroup) =>
@@ -112,6 +90,38 @@ module.exports = {
                 .addChoices(...githubRepoOrderingTypeChoices),
             ),
         ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('definition')
+        .setDescription(
+          '❓ Search the definition of a term from Urban Dictionary.',
+        )
+        .addStringOption((option) =>
+          option
+            .setName('term')
+            .setDescription("🔠 The definition's term.")
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('mdn')
+        .setDescription(
+          '📖 Search the documentation of a term from MDN Web Docs.',
+        )
+        .addStringOption((option) =>
+          option
+            .setName('term')
+            .setDescription("🔠 The documentation's term.")
+            .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('language')
+            .setDescription("🔠 The documentation's preferred locale.")
+            .addChoices(...mdnLocales),
+        ),
     ),
   type: 'Chat Input',
 
@@ -120,7 +130,8 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, guild, options } = interaction;
+    /** @type {{ client: import('discord.js').Client, guild: import('discord.js').Guild|null, member: import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { client, guild, member, options } = interaction;
 
     const embed = new EmbedBuilder()
       .setColor(guild.members.me.displayHexColor)
@@ -132,190 +143,72 @@ module.exports = {
         }),
       });
 
-    switch (options.getSubcommand()) {
-      case 'image': {
-        const query = options.getString('query');
-
-        const google = new Scraper({
-          puppeteer: {
-            waitForInitialPage: true,
-          },
-        });
-
-        return interaction.deferReply({ ephemeral: true }).then(async () => {
-          await wait(4000);
-
-          await google.scrape(query, 5).then(
-            /**
-             *
-             * @param {import('images-scraper').Scraper.ScrapeResult[]} results
-             */
-            async (results) => {
-              const pagination = new Pagination(interaction, {
-                limit: 1,
-              });
-
-              pagination.setColor(guild.members.me.displayHexColor);
-              pagination.setTimestamp(Date.now());
-              pagination.setFooter({
-                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                iconURL: client.user.displayAvatarURL({
-                  dynamic: true,
-                }),
-              });
-              pagination.setAuthor({
-                name: '🖼️ Image Search Results',
-              });
-              pagination.setImages(results.map((result) => result.url));
-
-              await pagination.render();
-            },
-          );
-        });
-      }
-
-      case 'definition': {
-        const term = options.getString('term');
-        const query = new URLSearchParams({ term });
-
-        return axios
-          .get(`https://api.urbandictionary.com/v0/define?${query}`)
-          .then(async ({ data: { list } }) => {
-            if (!list.length) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: `No result found for ${inlineCode(term)}.`,
-                  }),
-              );
-            }
-
-            const {
-              author,
-              definition,
-              example,
-              permalink,
-              thumbs_down,
-              thumbs_up,
-              word,
-              written_on,
-            } = list[Math.floor(Math.random() * list.length)];
-
-            const formattedCite = `\n${italic(
-              `by ${author} — ${time(
-                new Date(written_on),
-                TimestampStyles.RelativeTime,
-              )}`,
-            )}`;
-
-            embed.setAuthor({
-              name: `🔠 ${word}`,
-              url: permalink,
-            });
-            embed.setFields([
-              {
-                name: '🔤 Definition',
-                value: truncate(
-                  `${definition}${formattedCite}`,
-                  1024,
-                  formattedCite.length + 3,
-                ),
-              },
-              {
-                name: '🔤 Example',
-                value: truncate(example, 1024),
-              },
-              {
-                name: '⭐ Rating',
-                value: `${thumbs_up} 👍 | ${thumbs_down} 👎`,
-              },
-            ]);
-
-            await interaction
-              .deferReply()
-              .then(
-                async () => await interaction.editReply({ embeds: [embed] }),
-              );
-          });
-      }
-
-      case 'mdn': {
-        const term = options.getString('term');
-        const language = options.getString('language');
-        const query = new URLSearchParams({
-          q: term,
-          locale: language ?? 'en-US',
-        });
-        const baseURL = 'https://developer.mozilla.org';
-
-        return axios
-          .get(`${baseURL}/api/v1/search?${query}`)
-          .then(async ({ data: { documents, suggestions } }) => {
-            if (!documents.length) {
-              if (!suggestions.length) {
-                return interaction.deferReply({ ephemeral: true }).then(
-                  async () =>
-                    await interaction.editReply({
-                      content: `No result found for ${inlineCode(term)}.`,
-                    }),
-                );
-              }
-
-              const newQuery = new URLSearchParams({
-                q: suggestions[0].text,
-                locale: language ?? 'en-US',
-              });
-
-              return axios
-                .get(`${baseURL}/api/v1/search${newQuery}`)
-                .then(async ({ data: { documents: docs } }) => {
-                  const fields = docs.map((doc) => ({
-                    name: doc.title,
-                    value: `${doc.summary}\n${hyperlink(
-                      'View Documentation',
-                      `${baseURL}${doc.mdn_url}`,
-                      'Click here to view the documentation.',
-                    )}`,
-                  }));
-
-                  embed.setAuthor({
-                    name: '📖 Documentation Search Results',
-                  });
-                  embed.setFields(fields);
-
-                  await interaction
-                    .deferReply()
-                    .then(
-                      async () =>
-                        await interaction.editReply({ embeds: [embed] }),
-                    );
-                });
-            }
-
-            const fields = documents.map((doc) => ({
-              name: doc.title,
-              value: `${doc.summary}\n${hyperlink(
-                'View Documentation',
-                `${baseURL}${doc.mdn_url}`,
-                'Click here to view the documentation.',
-              )}`,
-            }));
-
-            embed.setAuthor({
-              name: '📖 Documentation Search Results',
-            });
-            embed.setFields(fields);
-
-            await interaction
-              .deferReply()
-              .then(
-                async () => await interaction.editReply({ embeds: [embed] }),
-              );
-          });
-      }
-    }
-
     switch (options.getSubcommandGroup()) {
+      case 'image':
+        switch (options.getSubcommand()) {
+          case 'scrape': {
+            const query = options.getString('query');
+
+            const google = new Scraper({
+              puppeteer: {
+                waitForInitialPage: true,
+              },
+            });
+
+            return interaction
+              .deferReply({ ephemeral: true })
+              .then(async () => {
+                await wait(4000);
+
+                await google.scrape(query, 5).then(
+                  /**
+                   *
+                   * @param {import('images-scraper').Scraper.ScrapeResult[]} results
+                   */
+                  async (results) => {
+                    const pagination = new Pagination(interaction, {
+                      limit: 1,
+                    });
+
+                    pagination.setColor(guild.members.me.displayHexColor);
+                    pagination.setTimestamp(Date.now());
+                    pagination.setFooter({
+                      text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                      iconURL: client.user.displayAvatarURL({
+                        dynamic: true,
+                      }),
+                    });
+                    pagination.setAuthor({
+                      name: '🖼️ Image Search Results',
+                    });
+                    pagination.setImages(results.map((result) => result.url));
+
+                    await pagination.render();
+                  },
+                );
+              });
+          }
+
+          case 'waifu':
+            return interaction.deferReply().then(
+              async () =>
+                await axios
+                  .get('https://api.waifu.pics/sfw/waifu')
+                  .then(async ({ data: { url } }) => {
+                    embed.setAuthor({
+                      name: `${member.user.username} Got a Waifu`,
+                      iconURL: member.displayAvatarURL({
+                        dynamic: true,
+                      }),
+                    });
+                    embed.setImage(url);
+
+                    await interaction.editReply({ embeds: [embed] });
+                  }),
+            );
+        }
+        break;
+
       case 'github':
         switch (options.getSubcommand()) {
           case 'user': {
@@ -590,6 +483,148 @@ module.exports = {
           }
         }
         break;
+    }
+
+    switch (options.getSubcommand()) {
+      case 'definition': {
+        const term = options.getString('term');
+        const query = new URLSearchParams({ term });
+
+        return axios
+          .get(`https://api.urbandictionary.com/v0/define?${query}`)
+          .then(async ({ data: { list } }) => {
+            if (!list.length) {
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: `No result found for ${inlineCode(term)}.`,
+                  }),
+              );
+            }
+
+            const {
+              author,
+              definition,
+              example,
+              permalink,
+              thumbs_down,
+              thumbs_up,
+              word,
+              written_on,
+            } = list[Math.floor(Math.random() * list.length)];
+
+            const formattedCite = `\n${italic(
+              `by ${author} — ${time(
+                new Date(written_on),
+                TimestampStyles.RelativeTime,
+              )}`,
+            )}`;
+
+            embed.setAuthor({
+              name: `🔠 ${word}`,
+              url: permalink,
+            });
+            embed.setFields([
+              {
+                name: '🔤 Definition',
+                value: truncate(
+                  `${definition}${formattedCite}`,
+                  1024,
+                  formattedCite.length + 3,
+                ),
+              },
+              {
+                name: '🔤 Example',
+                value: truncate(example, 1024),
+              },
+              {
+                name: '⭐ Rating',
+                value: `${thumbs_up} 👍 | ${thumbs_down} 👎`,
+              },
+            ]);
+
+            await interaction
+              .deferReply()
+              .then(
+                async () => await interaction.editReply({ embeds: [embed] }),
+              );
+          });
+      }
+
+      case 'mdn': {
+        const term = options.getString('term');
+        const language = options.getString('language');
+        const query = new URLSearchParams({
+          q: term,
+          locale: language ?? 'en-US',
+        });
+        const baseURL = 'https://developer.mozilla.org';
+
+        return axios
+          .get(`${baseURL}/api/v1/search?${query}`)
+          .then(async ({ data: { documents, suggestions } }) => {
+            if (!documents.length) {
+              if (!suggestions.length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No result found for ${inlineCode(term)}.`,
+                    }),
+                );
+              }
+
+              const newQuery = new URLSearchParams({
+                q: suggestions[0].text,
+                locale: language ?? 'en-US',
+              });
+
+              return axios
+                .get(`${baseURL}/api/v1/search${newQuery}`)
+                .then(async ({ data: { documents: docs } }) => {
+                  const fields = docs.map((doc) => ({
+                    name: doc.title,
+                    value: `${doc.summary}\n${hyperlink(
+                      'View Documentation',
+                      `${baseURL}${doc.mdn_url}`,
+                      'Click here to view the documentation.',
+                    )}`,
+                  }));
+
+                  embed.setAuthor({
+                    name: '📖 Documentation Search Results',
+                  });
+                  embed.setFields(fields);
+
+                  await interaction
+                    .deferReply()
+                    .then(
+                      async () =>
+                        await interaction.editReply({ embeds: [embed] }),
+                    );
+                });
+            }
+
+            const fields = documents.map((doc) => ({
+              name: doc.title,
+              value: `${doc.summary}\n${hyperlink(
+                'View Documentation',
+                `${baseURL}${doc.mdn_url}`,
+                'Click here to view the documentation.',
+              )}`,
+            }));
+
+            embed.setAuthor({
+              name: '📖 Documentation Search Results',
+            });
+            embed.setFields(fields);
+
+            await interaction
+              .deferReply()
+              .then(
+                async () => await interaction.editReply({ embeds: [embed] }),
+              );
+          });
+      }
     }
   },
 };
