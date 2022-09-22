@@ -23,20 +23,23 @@ module.exports = {
     /** @type {import('discord.js').Role} */
     const role = options.getRole('role');
 
-    await interaction.deferReply({ ephemeral: true }).then(async () => {
-      const membersWithRole = guild.members.cache.filter((member) =>
-        member.roles.cache.has(role.id),
+    const membersWithRole = guild.members.cache.filter((member) =>
+      member.roles.cache.has(role.id),
+    );
+
+    if (!membersWithRole.size) {
+      return interaction.deferReply({ ephemeral: true }).then(
+        async () =>
+          await interaction.editReply({
+            content: `There is no member with role ${role}`,
+          }),
       );
+    }
 
-      if (!membersWithRole.size) {
-        return interaction.editReply({
-          content: `There is no member with role ${role}`,
-        });
-      }
-
+    await interaction.deferReply().then(async () => {
       const descriptions = [...membersWithRole.values()].map(
         (member, index) =>
-          `${bold(`${index + 1}`)}. ${member} (${member.user.username})`,
+          `${bold(`${index + 1}.`)} ${member} (${member.user.username})`,
       );
 
       if (membersWithRole.size > 10) {

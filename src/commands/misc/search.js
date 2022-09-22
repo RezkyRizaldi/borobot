@@ -158,74 +158,61 @@ module.exports = {
         const term = options.getString('term');
         const query = new URLSearchParams({ term });
 
-        return interaction
-          .deferReply()
-          .then(
-            async () =>
-              await axios
-                .get(`https://api.urbandictionary.com/v0/define?${query}`)
-                .then(async ({ data: { list } }) => {
-                  if (!list.length) {
-                    return interaction.editReply({
-                      content: `No results found for ${inlineCode(term)}.`,
-                    });
-                  }
-
-                  const {
-                    author,
-                    definition,
-                    example,
-                    permalink,
-                    thumbs_down,
-                    thumbs_up,
-                    word,
-                    written_on,
-                  } = list[Math.floor(Math.random() * list.length)];
-
-                  const formattedCite = `\n${italic(
-                    `by ${author} — ${time(
-                      new Date(written_on),
-                      TimestampStyles.RelativeTime,
-                    )}`,
-                  )}`;
-
-                  embed.setAuthor({
-                    name: `🔠 ${word}`,
-                    url: permalink,
+        return interaction.deferReply().then(
+          async () =>
+            await axios
+              .get(`https://api.urbandictionary.com/v0/define?${query}`)
+              .then(async ({ data: { list } }) => {
+                if (!list.length) {
+                  return interaction.editReply({
+                    content: `No results found for ${inlineCode(term)}.`,
                   });
-                  embed.setFields([
-                    {
-                      name: '🔤 Definition',
-                      value: truncate(
-                        `${definition}${formattedCite}`,
-                        1024,
-                        formattedCite.length + 3,
-                      ),
-                    },
-                    {
-                      name: '🔤 Example',
-                      value: truncate(example, 1024),
-                    },
-                    {
-                      name: '⭐ Rating',
-                      value: `${thumbs_up} 👍 | ${thumbs_down} 👎`,
-                    },
-                  ]);
+                }
 
-                  await interaction.editReply({ embeds: [embed] });
-                }),
-          )
-          .catch(async (err) => {
-            console.error(err);
+                const {
+                  author,
+                  definition,
+                  example,
+                  permalink,
+                  thumbs_down,
+                  thumbs_up,
+                  word,
+                  written_on,
+                } = list[Math.floor(Math.random() * list.length)];
 
-            await interaction.editReply({ content: err.message });
-          })
-          .finally(
-            async () =>
-              await wait(15000).then(
-                async () => await interaction.deleteReply(),
-              ),
-          );
+                const formattedCite = `\n${italic(
+                  `by ${author} — ${time(
+                    new Date(written_on),
+                    TimestampStyles.RelativeTime,
+                  )}`,
+                )}`;
+
+                embed.setAuthor({
+                  name: `🔠 ${word}`,
+                  url: permalink,
+                });
+                embed.setFields([
+                  {
+                    name: '🔤 Definition',
+                    value: truncate(
+                      `${definition}${formattedCite}`,
+                      1024,
+                      formattedCite.length + 3,
+                    ),
+                  },
+                  {
+                    name: '🔤 Example',
+                    value: truncate(example, 1024),
+                  },
+                  {
+                    name: '⭐ Rating',
+                    value: `${thumbs_up} 👍 | ${thumbs_down} 👎`,
+                  },
+                ]);
+
+                await interaction.editReply({ embeds: [embed] });
+              }),
+        );
       }
     }
 

@@ -1,5 +1,4 @@
 const { EmbedBuilder, hyperlink, SlashCommandBuilder } = require('discord.js');
-const wait = require('node:timers/promises').setTimeout;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -37,15 +36,6 @@ module.exports = {
 
     await interaction
       .deferReply()
-      .then(async () => await interaction.editReply({ embeds: [embed] }))
-      .catch(async (err) => {
-        console.error(err);
-
-        await interaction.editReply({ content: err.message });
-      })
-      .finally(
-        async () =>
-          await wait(15000).then(async () => await interaction.deleteReply()),
-      );
+      .then(async () => await interaction.editReply({ embeds: [embed] }));
   },
 };

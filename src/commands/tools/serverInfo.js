@@ -8,7 +8,6 @@ const {
   TimestampStyles,
   userMention,
 } = require('discord.js');
-const wait = require('node:timers/promises').setTimeout;
 const pluralize = require('pluralize');
 
 const {
@@ -216,15 +215,6 @@ module.exports = {
 
     await interaction
       .deferReply()
-      .then(async () => await interaction.editReply({ embeds: [embed] }))
-      .catch(async (err) => {
-        console.error(err);
-
-        await interaction.editReply({ content: err.message });
-      })
-      .finally(
-        async () =>
-          await wait(15000).then(async () => await interaction.deleteReply()),
-      );
+      .then(async () => await interaction.editReply({ embeds: [embed] }));
   },
 };
