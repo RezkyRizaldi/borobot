@@ -178,7 +178,7 @@ module.exports = {
 
           const descriptions = [...timedoutMembers.values()].map(
             (timedoutMember, index) =>
-              `${bold(`${index + 1}`)}. ${timedoutMember} (${
+              `${bold(`${index + 1}.`)} ${timedoutMember} (${
                 timedoutMember.user.username
               })`,
           );
