@@ -1,5 +1,4 @@
 const axios = require('axios').default;
-const capitalize = require('capitalize');
 const {
   EmbedBuilder,
   hyperlink,
@@ -10,7 +9,6 @@ const {
   TimestampStyles,
 } = require('discord.js');
 const Scraper = require('images-scraper').default;
-const moment = require('moment');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
@@ -146,10 +144,7 @@ module.exports = {
                 }),
               });
               pagination.setAuthor({
-                name: `🖼️ ${capitalize.words(query, {
-                  skipWord: /^(a|the|an|and|or|but|in|on|of|it)$/,
-                  preserve: true,
-                })} Images`,
+                name: '🖼️ Image Search Results',
               });
               pagination.setImages(results.map((result) => result.url));
 
@@ -187,12 +182,11 @@ module.exports = {
                     written_on,
                   } = list[Math.floor(Math.random() * list.length)];
 
-                  const utc = moment(written_on).utc().format('YYYY-MM-DD');
-                  const day = moment(utc).day();
-                  const month = moment(utc).month();
-                  const year = moment(utc).year();
                   const formattedCite = `\n${italic(
-                    `by ${author} — ${moment([year, month, day]).fromNow()}`,
+                    `by ${author} — ${time(
+                      new Date(written_on),
+                      TimestampStyles.RelativeTime,
+                    )}`,
                   )}`;
 
                   embed.setAuthor({
