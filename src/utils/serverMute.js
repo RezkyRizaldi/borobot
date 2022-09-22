@@ -123,7 +123,7 @@ module.exports = async (interaction, subcommand) => {
 
           const descriptions = [...textMutedMembers.values()].map(
             (textMutedMember, index) =>
-              `${bold(`${index + 1}`)}. ${textMutedMember} (${
+              `${bold(`${index + 1}.`)} ${textMutedMember} (${
                 textMutedMember.user.username
               })`,
           );
@@ -166,7 +166,7 @@ module.exports = async (interaction, subcommand) => {
 
           const descriptions = [...voiceMutedMembers.values()].map(
             (voiceMutedMember, index) =>
-              `${bold(`${index + 1}`)}. ${voiceMutedMember} (${
+              `${bold(`${index + 1}.`)} ${voiceMutedMember} (${
                 voiceMutedMember.user.username
               })`,
           );
@@ -209,7 +209,7 @@ module.exports = async (interaction, subcommand) => {
 
           const descriptions = [...mutedMembers.values()].map(
             (mutedMember, index) =>
-              `${bold(`${index + 1}`)}. ${mutedMember} (${
+              `${bold(`${index + 1}.`)} ${mutedMember} (${
                 mutedMember.user.username
               })`,
           );

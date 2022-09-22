@@ -2,7 +2,7 @@ const { EmbedBuilder } = require('discord.js');
 const { Events: DistubeEvents } = require('distube');
 
 module.exports = {
-  name: DistubeEvents.FINISH,
+  name: DistubeEvents.DELETE_QUEUE,
 
   /**
    *
@@ -12,12 +12,12 @@ module.exports = {
     const { client, clientMember, textChannel } = queue;
 
     const embed = new EmbedBuilder()
-      .setAuthor({
-        name: '⏹️ Queue Finished',
-      })
       .setColor(clientMember.displayHexColor)
       .setTimestamp(Date.now())
-      .setDescription('The queue has been finished.')
+      .setDescription('The queue has been stopped.')
+      .setAuthor({
+        name: '⏹️ Queue Stopped',
+      })
       .setFooter({
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),

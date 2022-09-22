@@ -68,7 +68,7 @@ module.exports = {
 
           const responses = locales.map(
             ([key, value], index) =>
-              `${bold(`${index + 1}`)}. ${bold(key)} - ${value} ${getFlag(
+              `${bold(`${index + 1}.`)} ${bold(key)} - ${value} ${getFlag(
                 value,
               )}`,
           );
@@ -99,50 +99,37 @@ module.exports = {
         const from = options.getString('from');
         const to = options.getString('to');
 
-        return interaction
-          .deferReply()
-          .then(async () => {
-            await wait(4000).then(async () => {
-              if (!from) {
-                return translate(text, { to, autoCorrect: true }).then(
-                  async (result) => {
-                    const data = {
-                      embed,
-                      result,
-                      options: { text, to },
-                      interaction,
-                    };
-
-                    await isAutoCorrecting(data);
-                  },
-                );
-              }
-
-              await translate(text, { from, to, autoCorrect: true }).then(
-                async (res) => {
+        return interaction.deferReply().then(async () => {
+          await wait(4000).then(async () => {
+            if (!from) {
+              return translate(text, { to, autoCorrect: true }).then(
+                async (result) => {
                   const data = {
                     embed,
-                    res,
-                    options: { text, from, to },
+                    result,
+                    options: { text, to },
                     interaction,
                   };
 
                   await isAutoCorrecting(data);
                 },
               );
-            });
-          })
-          .catch(async (err) => {
-            console.error(err);
+            }
 
-            await interaction.editReply({ content: err.message });
-          })
-          .finally(
-            async () =>
-              await wait(15000).then(
-                async () => await interaction.deleteReply(),
-              ),
-          );
+            await translate(text, { from, to, autoCorrect: true }).then(
+              async (res) => {
+                const data = {
+                  embed,
+                  res,
+                  options: { text, from, to },
+                  interaction,
+                };
+
+                await isAutoCorrecting(data);
+              },
+            );
+          });
+        });
       }
     }
   },

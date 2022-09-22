@@ -17,18 +17,16 @@ module.exports = {
       .setColor(queue.clientMember.displayHexColor)
       .setTimestamp(Date.now())
       .setDescription(
-        `Playing ${inlineCode(song.name)} - ${inlineCode(
-          song.formattedDuration,
-        )}\nRequested by ${song.user}\nVolume: ${inlineCode(
-          `${queue.volume}%`,
-        )} | Filter: ${inlineCode(
+        `Playing ${inlineCode(song.name)}\nRequested by ${
+          song.user
+        }\nVolume: ${inlineCode(`${queue.volume}%`)} | Filter: ${inlineCode(
           queue.filters.names.join(', ') || 'Off',
         )} | Loop: ${inlineCode(
           applyRepeatMode(queue.repeatMode),
         )} | Autoplay: ${inlineCode(queue.autoplay ? 'On' : 'Off')}\n${
           queue.formattedCurrentTime
         } - [${progressbar
-          .splitBar(song.duration, queue.currentTime, 12)
+          .splitBar(song.duration || 10, queue.currentTime, 12)
           .slice(0, -1)
           .toString()}] - ${song.formattedDuration}`,
       )
@@ -53,18 +51,16 @@ module.exports = {
           }
 
           embed.setDescription(
-            `${inlineCode(song.name)} - ${inlineCode(
-              song.formattedDuration,
-            )}\nRequested by: ${song.user}\nVolume: ${inlineCode(
-              `${queue.volume}%`,
-            )} | Filter: ${inlineCode(
+            `${inlineCode(song.name)}\nRequested by: ${
+              song.user
+            }\nVolume: ${inlineCode(`${queue.volume}%`)} | Filter: ${inlineCode(
               queue.filters.names.join(', ') || 'Off',
             )} | Loop: ${inlineCode(
               applyRepeatMode(queue.repeatMode),
             )} | Autoplay: ${inlineCode(queue.autoplay ? 'On' : 'Off')}\n${
               queue.formattedCurrentTime
             } - [${progressbar
-              .splitBar(song.duration, queue.currentTime, 12)
+              .splitBar(song.duration || 10, queue.currentTime, 12)
               .slice(0, -1)
               .toString()}] - ${song.formattedDuration}`,
           );

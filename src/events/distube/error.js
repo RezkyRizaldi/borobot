@@ -10,18 +10,24 @@ module.exports = {
    * @param {Error} err
    */
   async execute(channel, err) {
-    if (channel) {
-      return channel.send({
-        embeds: [
-          new EmbedBuilder()
-            .setColor('Red')
-            .setDescription(
-              `An error encountered: ${err.toString().slice(0, 1974)}`,
-            ),
-        ],
-      });
+    if (!channel) {
+      console.error(err);
     }
 
-    console.error(err);
+    const { client, guild } = channel;
+
+    const embed = new EmbedBuilder()
+      .setAuthor({
+        name: '❌ An Error Encountered',
+      })
+      .setColor(guild.members.me.displayHexColor)
+      .setTimestamp(Date.now())
+      .setDescription(err.toString().slice(0, 4096))
+      .setFooter({
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+      });
+
+    return channel.send({ embeds: [embed] });
   },
 };

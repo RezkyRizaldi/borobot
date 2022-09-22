@@ -1,6 +1,7 @@
 const { SoundCloudPlugin } = require('@distube/soundcloud');
 const { SpotifyPlugin } = require('@distube/spotify');
 const { YtDlpPlugin } = require('@distube/yt-dlp');
+const { DiscordTogether } = require('discord-together');
 const {
   Client,
   Collection,
@@ -25,7 +26,8 @@ const {
 } = GatewayIntentBits;
 const { Channel, GuildMember, Message, Reaction, User } = Partials;
 
-/** @type {{ commands: import('discord.js').Collection, components: import('discord.js').Collection, distube: import('distube').DisTube, handleEvents(): Promise<void>, handleComponents(): Promise<void>, handleCommands(): Promise<void> }} */
+/** @type {{ commands: import('discord.js').Collection, components: import('discord.js').Collection, distube: import('distube').DisTube, discordTogether: import('discord-together').DiscordTogether<{[x: string]: string}>, handleEvents(): Promise<void>, handleComponents(): Promise<void>, handleCommands(): Promise<void> }} */
+
 const client = new Client({
   intents: [
     GuildBans,
@@ -47,8 +49,6 @@ client.commandArray = [];
 
 client.distube = new DisTube(client, {
   emitNewSongOnly: true,
-  leaveOnStop: false,
-  leaveOnFinish: true,
   emitAddSongWhenCreatingQueue: false,
   emitAddListWhenCreatingQueue: false,
   plugins: [
@@ -57,6 +57,8 @@ client.distube = new DisTube(client, {
     new YtDlpPlugin({ update: false }),
   ],
 });
+
+client.discordTogether = new DiscordTogether(client);
 
 const funcPath = path.join(__dirname, 'functions');
 const funcFolders = fs.readdirSync(funcPath);

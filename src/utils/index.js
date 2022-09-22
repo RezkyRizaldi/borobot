@@ -16,7 +16,6 @@ const groupMessageByAuthor = require('./groupMessageByAuthor');
 const groupMessageByType = require('./groupMessageByType');
 const isAutoCorrecting = require('./isAutoCorrecting');
 const isValidURL = require('./isValidURL');
-const musicSearch = require('./musicSearch');
 const truncate = require('./truncate');
 
 module.exports = {
@@ -38,6 +37,5 @@ module.exports = {
   groupMessageByType,
   isAutoCorrecting,
   isValidURL,
-  musicSearch,
   truncate,
 };

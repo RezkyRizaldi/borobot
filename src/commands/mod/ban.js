@@ -148,55 +148,55 @@ module.exports = {
         }
 
         case 'list': {
-          const bannedUsers = await guild.bans.fetch();
+          return guild.bans.fetch().then(async (bannedUsers) => {
+            if (!bannedUsers.size) {
+              return interaction.editReply({
+                content: `No one banned in ${bold(guild)}.`,
+              });
+            }
 
-          if (!bannedUsers.size) {
-            return interaction.editReply({
-              content: `No one banned in ${bold(guild)}.`,
-            });
-          }
+            const descriptions = [...bannedUsers.values()].map(
+              (bannedUser, index) =>
+                `${bold(`${index + 1}.`)} ${bannedUser.user.tag}`,
+            );
 
-          const descriptions = [...bannedUsers.values()].map(
-            (bannedUser, index) =>
-              `${bold(`${index + 1}`)}. ${bannedUser.user.tag}`,
-          );
+            if (bannedUsers.size > 10) {
+              const pagination = new Pagination(interaction, {
+                limit: 10,
+              });
 
-          if (bannedUsers.size > 10) {
-            const pagination = new Pagination(interaction, {
-              limit: 10,
-            });
+              pagination.setColor(guild.members.me.displayHexColor);
+              pagination.setTimestamp(Date.now());
+              pagination.setFooter({
+                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                iconURL: client.user.displayAvatarURL({
+                  dynamic: true,
+                }),
+              });
+              pagination.setAuthor({
+                name: `🚫 Banned User Lists (${bannedUsers.size})`,
+              });
+              pagination.setDescriptions(descriptions);
 
-            pagination.setColor(guild.members.me.displayHexColor);
-            pagination.setTimestamp(Date.now());
-            pagination.setFooter({
-              text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-              iconURL: client.user.displayAvatarURL({
-                dynamic: true,
-              }),
-            });
-            pagination.setAuthor({
-              name: `🚫 Banned User Lists (${bannedUsers.size})`,
-            });
-            pagination.setDescriptions(descriptions);
+              return pagination.render();
+            }
 
-            return pagination.render();
-          }
+            const embed = new EmbedBuilder()
+              .setColor(guild.members.me.displayHexColor)
+              .setTimestamp(Date.now())
+              .setFooter({
+                text: client.user.username,
+                iconURL: client.user.displayAvatarURL({
+                  dynamic: true,
+                }),
+              })
+              .setAuthor({
+                name: `🚫 Banned User Lists (${bannedUsers.size})`,
+              })
+              .setDescription(descriptions.join('\n'));
 
-          const embed = new EmbedBuilder()
-            .setColor(guild.members.me.displayHexColor)
-            .setTimestamp(Date.now())
-            .setFooter({
-              text: client.user.username,
-              iconURL: client.user.displayAvatarURL({
-                dynamic: true,
-              }),
-            })
-            .setAuthor({
-              name: `🚫 Banned User Lists (${bannedUsers.size})`,
-            })
-            .setDescription(descriptions.join('\n'));
-
-          return interaction.editReply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
+          });
         }
       }
     });
