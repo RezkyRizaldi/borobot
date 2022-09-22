@@ -61,7 +61,9 @@ module.exports = {
 
           const embed = new EmbedBuilder()
             .setAuthor({
-              name: `ℹ️ ${member.user.username}'s User Info`,
+              name: `ℹ️ ${member.user.username}'s ${
+                member.user.bot ? 'Bot' : 'User'
+              } Information`,
             })
             .setColor(member.displayHexColor)
             .setThumbnail(member.displayAvatarURL({ dynamic: true }))
@@ -107,15 +109,14 @@ module.exports = {
                 inline: true,
               },
               {
-                name: '📇 Account Type',
-                value: member.user.bot ? 'Bot' : 'User',
-                inline: true,
-              },
-              {
                 name: '⭕ Presence Status',
                 value: applyPresence(member.presence?.status) ?? '⚫ Offline',
                 inline: true,
               },
+            ]);
+
+          if (!member.user.bot) {
+            embed.addFields([
               {
                 name: '🚀 Nitro Status',
                 value: member.premiumSince
@@ -131,11 +132,15 @@ module.exports = {
                 value: userClientStatus,
                 inline: true,
               },
-              {
-                name: '🎭 Activity',
-                value: userActivity,
-              },
             ]);
+          }
+
+          embed.addFields([
+            {
+              name: '🎭 Activity',
+              value: userActivity,
+            },
+          ]);
 
           await interaction.editReply({ embeds: [embed] });
         }),

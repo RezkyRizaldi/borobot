@@ -16,6 +16,7 @@ const pluralize = require('pluralize');
 const {
   githubRepoSortingTypeChoices,
   githubRepoOrderingTypeChoices,
+  mdnLocales,
 } = require('../../constants');
 const { truncate } = require('../../utils');
 
@@ -45,6 +46,25 @@ module.exports = {
             .setName('term')
             .setDescription("🔠 The definition's term.")
             .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('mdn')
+        .setDescription(
+          '📖 Search the documentation of a term from MDN Web Docs.',
+        )
+        .addStringOption((option) =>
+          option
+            .setName('term')
+            .setDescription("🔠 The documentation's term.")
+            .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('language')
+            .setDescription("🔠 The documentation's preferred locale.")
+            .addChoices(...mdnLocales),
         ),
     )
     .addSubcommandGroup((subcommandGroup) =>
@@ -158,61 +178,140 @@ module.exports = {
         const term = options.getString('term');
         const query = new URLSearchParams({ term });
 
-        return interaction.deferReply().then(
-          async () =>
-            await axios
-              .get(`https://api.urbandictionary.com/v0/define?${query}`)
-              .then(async ({ data: { list } }) => {
-                if (!list.length) {
-                  return interaction.editReply({
-                    content: `No results found for ${inlineCode(term)}.`,
+        return axios
+          .get(`https://api.urbandictionary.com/v0/define?${query}`)
+          .then(async ({ data: { list } }) => {
+            if (!list.length) {
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: `No result found for ${inlineCode(term)}.`,
+                  }),
+              );
+            }
+
+            const {
+              author,
+              definition,
+              example,
+              permalink,
+              thumbs_down,
+              thumbs_up,
+              word,
+              written_on,
+            } = list[Math.floor(Math.random() * list.length)];
+
+            const formattedCite = `\n${italic(
+              `by ${author} — ${time(
+                new Date(written_on),
+                TimestampStyles.RelativeTime,
+              )}`,
+            )}`;
+
+            embed.setAuthor({
+              name: `🔠 ${word}`,
+              url: permalink,
+            });
+            embed.setFields([
+              {
+                name: '🔤 Definition',
+                value: truncate(
+                  `${definition}${formattedCite}`,
+                  1024,
+                  formattedCite.length + 3,
+                ),
+              },
+              {
+                name: '🔤 Example',
+                value: truncate(example, 1024),
+              },
+              {
+                name: '⭐ Rating',
+                value: `${thumbs_up} 👍 | ${thumbs_down} 👎`,
+              },
+            ]);
+
+            await interaction
+              .deferReply()
+              .then(
+                async () => await interaction.editReply({ embeds: [embed] }),
+              );
+          });
+      }
+
+      case 'mdn': {
+        const term = options.getString('term');
+        const language = options.getString('language');
+        const query = new URLSearchParams({
+          q: term,
+          locale: language ?? 'en-US',
+        });
+        const baseURL = 'https://developer.mozilla.org';
+
+        return axios
+          .get(`${baseURL}/api/v1/search?${query}`)
+          .then(async ({ data: { documents, suggestions } }) => {
+            if (!documents.length) {
+              if (!suggestions.length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No result found for ${inlineCode(term)}.`,
+                    }),
+                );
+              }
+
+              const newQuery = new URLSearchParams({
+                q: suggestions[0].text,
+                locale: language ?? 'en-US',
+              });
+
+              return axios
+                .get(`${baseURL}/api/v1/search${newQuery}`)
+                .then(async ({ data: { documents: docs } }) => {
+                  const fields = docs.map((doc) => ({
+                    name: doc.title,
+                    value: `${doc.summary}\n${hyperlink(
+                      'View Documentation',
+                      `${baseURL}${doc.mdn_url}`,
+                      'Click here to view the documentation.',
+                    )}`,
+                  }));
+
+                  embed.setAuthor({
+                    name: '📖 Documentation Search Results',
                   });
-                }
+                  embed.setFields(fields);
 
-                const {
-                  author,
-                  definition,
-                  example,
-                  permalink,
-                  thumbs_down,
-                  thumbs_up,
-                  word,
-                  written_on,
-                } = list[Math.floor(Math.random() * list.length)];
-
-                const formattedCite = `\n${italic(
-                  `by ${author} — ${time(
-                    new Date(written_on),
-                    TimestampStyles.RelativeTime,
-                  )}`,
-                )}`;
-
-                embed.setAuthor({
-                  name: `🔠 ${word}`,
-                  url: permalink,
+                  await interaction
+                    .deferReply()
+                    .then(
+                      async () =>
+                        await interaction.editReply({ embeds: [embed] }),
+                    );
                 });
-                embed.setFields([
-                  {
-                    name: '🔤 Definition',
-                    value: truncate(
-                      `${definition}${formattedCite}`,
-                      1024,
-                      formattedCite.length + 3,
-                    ),
-                  },
-                  {
-                    name: '🔤 Example',
-                    value: truncate(example, 1024),
-                  },
-                  {
-                    name: '⭐ Rating',
-                    value: `${thumbs_up} 👍 | ${thumbs_down} 👎`,
-                  },
-                ]);
+            }
 
-                await interaction.editReply({ embeds: [embed] });
-              }),
-        );
+            const fields = documents.map((doc) => ({
+              name: doc.title,
+              value: `${doc.summary}\n${hyperlink(
+                'View Documentation',
+                `${baseURL}${doc.mdn_url}`,
+                'Click here to view the documentation.',
+              )}`,
+            }));
+
+            embed.setAuthor({
+              name: '📖 Documentation Search Results',
+            });
+            embed.setFields(fields);
+
+            await interaction
+              .deferReply()
+              .then(
+                async () => await interaction.editReply({ embeds: [embed] }),
+              );
+          });
       }
     }
 

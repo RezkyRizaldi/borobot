@@ -38,35 +38,35 @@ module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   banChoices: [
     {
-      name: "Don't Delete Any",
+      name: "📆 Don't Delete Any",
       value: 0,
     },
     {
-      name: 'Previous 1 Day',
+      name: '📆 Previous 1 Day',
       value: 1,
     },
     {
-      name: 'Previous 2 Days',
+      name: '📆 Previous 2 Days',
       value: 2,
     },
     {
-      name: 'Previous 3 Days',
+      name: '📆 Previous 3 Days',
       value: 3,
     },
     {
-      name: 'Previous 4 Days',
+      name: '📆 Previous 4 Days',
       value: 4,
     },
     {
-      name: 'Previous 5 Days',
+      name: '📆 Previous 5 Days',
       value: 5,
     },
     {
-      name: 'Previous 6 Days',
+      name: '📆 Previous 6 Days',
       value: 6,
     },
     {
-      name: 'Previous 7 Days',
+      name: '📆 Previous 7 Days',
       value: 7,
     },
   ],
@@ -74,27 +74,27 @@ module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   timeoutChoices: [
     {
-      name: '60 secs',
+      name: '🕒 60 secs',
       value: 1000 * 60,
     },
     {
-      name: '5 mins',
+      name: '🕒 5 mins',
       value: 1000 * 60 * 5,
     },
     {
-      name: '10 mins',
+      name: '🕒 10 mins',
       value: 1000 * 60 * 10,
     },
     {
-      name: '1 hour',
+      name: '🕒 1 hour',
       value: 1000 * 60 * 60,
     },
     {
-      name: '1 day',
+      name: '🕒 1 day',
       value: 1000 * 60 * 60 * 24,
     },
     {
-      name: '1 week',
+      name: '🕒 1 week',
       value: 1000 * 60 * 60 * 24 * 7,
     },
   ],
@@ -118,11 +118,11 @@ module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   musicSearchChoices: [
     {
-      name: 'Video',
+      name: '🎥 Video',
       value: SearchResultType.VIDEO,
     },
     {
-      name: 'Playlist',
+      name: '💽 Playlist',
       value: SearchResultType.PLAYLIST,
     },
   ],
@@ -178,23 +178,23 @@ module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   slowmodeChoices: [
     {
-      name: '5 secs',
+      name: '🕒 5 secs',
       value: 5,
     },
     {
-      name: '15 secs',
+      name: '🕒 15 secs',
       value: 15,
     },
     {
-      name: '30 secs',
+      name: '🕒 30 secs',
       value: 30,
     },
     {
-      name: '45 secs',
+      name: '🕒 45 secs',
       value: 45,
     },
     {
-      name: '60 secs',
+      name: '🕒 60 secs',
       value: 60,
     },
   ],
@@ -205,11 +205,11 @@ module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   serverMuteChoices: [
     {
-      name: 'Text',
+      name: '#️⃣ Text',
       value: ChannelType.GuildText,
     },
     {
-      name: 'Voice',
+      name: '🔊 Voice',
       value: ChannelType.GuildVoice,
     },
     {
@@ -221,24 +221,68 @@ module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   serverMuteTempChoices: [
     {
-      name: '5 secs',
+      name: '🕒 5 secs',
       value: 5 * 1000,
     },
     {
-      name: '15 secs',
+      name: '🕒 15 secs',
       value: 15 * 1000,
     },
     {
-      name: '30 secs',
+      name: '🕒 30 secs',
       value: 30 * 1000,
     },
     {
-      name: '45 secs',
+      name: '🕒 45 secs',
       value: 45 * 1000,
     },
     {
-      name: '60 secs',
+      name: '🕒 60 secs',
       value: 60 * 1000,
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  mdnLocales: [
+    {
+      name: 'English (US)',
+      value: 'en-US',
+    },
+    {
+      name: 'Español',
+      value: 'es',
+    },
+    {
+      name: 'Français',
+      value: 'fr',
+    },
+    {
+      name: '日本語',
+      value: 'ja',
+    },
+    {
+      name: '한국어',
+      value: 'ko',
+    },
+    {
+      name: '한국어',
+      value: 'ko',
+    },
+    {
+      name: 'Português (do Brasil)',
+      value: 'pt-BR',
+    },
+    {
+      name: 'Русский',
+      value: 'ru',
+    },
+    {
+      name: '中文 (简体)',
+      value: 'zh-CN',
+    },
+    {
+      name: '正體中文 (繁體)',
+      value: 'zh-TW',
     },
   ],
 

@@ -20,7 +20,7 @@ const {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('serverinfo')
-    .setDescription('ℹ️ Get info about the server.'),
+    .setDescription('ℹ️ Get information about the server.'),
   type: 'Chat Input',
 
   /**
@@ -65,7 +65,7 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setAuthor({
-        name: `ℹ️ ${guild} Server Info`,
+        name: `ℹ️ ${guild} Server Information`,
       })
       .setThumbnail(guild.iconURL({ dynamic: true }))
       .setDescription(guild.description ?? italic('No description'))
