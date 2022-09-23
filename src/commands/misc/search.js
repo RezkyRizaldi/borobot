@@ -35,17 +35,6 @@ module.exports = {
             .setRequired(true),
         ),
     )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('anime')
-        .setDescription('🎥 Search anime streaming link from GogoAnime.')
-        .addStringOption((option) =>
-          option
-            .setName('name')
-            .setDescription('🔤 The anime name search query.')
-            .setRequired(true),
-        ),
-    )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('github')
