@@ -317,4 +317,16 @@ module.exports = {
       value: 'asc',
     },
   ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  waifuChoices: [
+    {
+      name: '🖼️ Image',
+      value: 'image',
+    },
+    {
+      name: '🖼️ Profile Picture',
+      value: 'pfp',
+    },
+  ],
 };

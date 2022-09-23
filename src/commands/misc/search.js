@@ -24,25 +24,26 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('search')
     .setDescription('🔍 Search command.')
-    .addSubcommandGroup((subcommandGroup) =>
-      subcommandGroup
+    .addSubcommand((subcommand) =>
+      subcommand
         .setName('image')
-        .setDescription('🖼️ Search any images.')
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('scrape')
-            .setDescription('✂️ Scrape any images from Google.')
-            .addStringOption((option) =>
-              option
-                .setName('query')
-                .setDescription('🔠 The image search query.')
-                .setRequired(true),
-            ),
-        )
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('waifu')
-            .setDescription('👰‍♀️ Search a random waifu image.'),
+        .setDescription('🖼️ Search any images from Google.')
+        .addStringOption((option) =>
+          option
+            .setName('query')
+            .setDescription('🔠 The image search query.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('anime')
+        .setDescription('🎥 Search anime streaming link from GogoAnime.')
+        .addStringOption((option) =>
+          option
+            .setName('name')
+            .setDescription('🔤 The anime name search query.')
+            .setRequired(true),
         ),
     )
     .addSubcommandGroup((subcommandGroup) =>
@@ -130,8 +131,7 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ client: import('discord.js').Client, guild: import('discord.js').Guild|null, member: import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { client, guild, member, options } = interaction;
+    const { client, guild, options } = interaction;
 
     const embed = new EmbedBuilder()
       .setColor(guild.members.me.displayHexColor)
@@ -144,71 +144,6 @@ module.exports = {
       });
 
     switch (options.getSubcommandGroup()) {
-      case 'image':
-        switch (options.getSubcommand()) {
-          case 'scrape': {
-            const query = options.getString('query');
-
-            const google = new Scraper({
-              puppeteer: {
-                waitForInitialPage: true,
-              },
-            });
-
-            return interaction
-              .deferReply({ ephemeral: true })
-              .then(async () => {
-                await wait(4000);
-
-                await google.scrape(query, 5).then(
-                  /**
-                   *
-                   * @param {import('images-scraper').Scraper.ScrapeResult[]} results
-                   */
-                  async (results) => {
-                    const pagination = new Pagination(interaction, {
-                      limit: 1,
-                    });
-
-                    pagination.setColor(guild.members.me.displayHexColor);
-                    pagination.setTimestamp(Date.now());
-                    pagination.setFooter({
-                      text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                      iconURL: client.user.displayAvatarURL({
-                        dynamic: true,
-                      }),
-                    });
-                    pagination.setAuthor({
-                      name: '🖼️ Image Search Results',
-                    });
-                    pagination.setImages(results.map((result) => result.url));
-
-                    await pagination.render();
-                  },
-                );
-              });
-          }
-
-          case 'waifu':
-            return interaction.deferReply().then(
-              async () =>
-                await axios
-                  .get('https://api.waifu.pics/sfw/waifu')
-                  .then(async ({ data: { url } }) => {
-                    embed.setAuthor({
-                      name: `${member.user.username} Got a Waifu`,
-                      iconURL: member.displayAvatarURL({
-                        dynamic: true,
-                      }),
-                    });
-                    embed.setImage(url);
-
-                    await interaction.editReply({ embeds: [embed] });
-                  }),
-            );
-        }
-        break;
-
       case 'github':
         switch (options.getSubcommand()) {
           case 'user': {
@@ -486,6 +421,47 @@ module.exports = {
     }
 
     switch (options.getSubcommand()) {
+      case 'image': {
+        const query = options.getString('query');
+
+        const google = new Scraper({
+          puppeteer: {
+            waitForInitialPage: true,
+          },
+        });
+
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
+          await wait(4000);
+
+          await google.scrape(query, 5).then(
+            /**
+             *
+             * @param {import('images-scraper').Scraper.ScrapeResult[]} results
+             */
+            async (results) => {
+              const pagination = new Pagination(interaction, {
+                limit: 1,
+              });
+
+              pagination.setColor(guild.members.me.displayHexColor);
+              pagination.setTimestamp(Date.now());
+              pagination.setFooter({
+                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                iconURL: client.user.displayAvatarURL({
+                  dynamic: true,
+                }),
+              });
+              pagination.setAuthor({
+                name: '🖼️ Image Search Results',
+              });
+              pagination.setImages(results.map((result) => result.url));
+
+              await pagination.render();
+            },
+          );
+        });
+      }
+
       case 'definition': {
         const term = options.getString('term');
         const query = new URLSearchParams({ term });
