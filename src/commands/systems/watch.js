@@ -102,14 +102,12 @@ module.exports = {
 
           await Gogoanime.search(name).then(async (results) => {
             if (!results.length) {
-              return interaction
-                .deferReply({ ephemeral: true })
-                .then(
-                  async () =>
-                    await interaction.editReply({
-                      content: `No result found for ${name}`,
-                    }),
-                );
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: `No result found for ${name}`,
+                  }),
+              );
             }
 
             await Gogoanime.fetchAnime(results[0].link).then(
