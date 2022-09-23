@@ -96,7 +96,7 @@ module.exports = {
               TimestampStyles.RelativeTime,
             )}`,
         )
-        .join('\n')}\n${bold('Deleted Messages')}\n${groupedMessages
+        .join('\n')}\n\n${bold('Deleted Messages')}\n${groupedMessages
         .flatMap(
           (arrMessage) =>
             `from ${userMention(arrMessage[0][0].author.id)}\n${arrMessage
@@ -136,7 +136,7 @@ module.exports = {
     } at ${time(
       Math.floor(Date.now() / 1000),
       TimestampStyles.RelativeTime,
-    )}\n${bold('Deleted Messages')}\n${messages
+    )}\n\n${bold('Deleted Messages')}\n${messages
       .map((message) => applyMessageType(message))
       .join('\n')}`;
 
