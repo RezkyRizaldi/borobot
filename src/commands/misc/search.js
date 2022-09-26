@@ -164,7 +164,12 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, guild, options } = interaction;
+    const { channel, client, guild, options } = interaction;
+
+    const NSFWChannels = guild.channels.cache
+      .filter((ch) => ch.nsfw)
+      .map((ch) => ch)
+      .join(', ');
 
     const embed = new EmbedBuilder()
       .setColor(guild.members.me.displayHexColor)
@@ -211,19 +216,6 @@ module.exports = {
                         ),
                         inline: true,
                       },
-                    ]);
-
-                    if (data.company) {
-                      embed.addFields([
-                        {
-                          name: '🏢 Company',
-                          value: data.company,
-                          inline: true,
-                        },
-                      ]);
-                    }
-
-                    embed.addFields([
                       {
                         name: '📊 Stats',
                         value: `${pluralize(
@@ -239,13 +231,21 @@ module.exports = {
                           data.public_repos,
                           true,
                         )} | ${pluralize(
-                          'public repository',
+                          'public gists',
                           data.public_gists,
                           true,
                         )}`,
                         inline: true,
                       },
                     ]);
+
+                    if (data.company) {
+                      embed.spliceFields(2, 0, {
+                        name: '🏢 Company',
+                        value: data.company,
+                        inline: true,
+                      });
+                    }
 
                     if (data.blog) {
                       embed.addFields([
@@ -390,40 +390,35 @@ module.exports = {
                           value: item.license?.name ?? italic('None'),
                           inline: true,
                         },
+                        {
+                          name: '📊 Stats',
+                          value: `⭐ ${pluralize(
+                            'star',
+                            item.stargazers_count,
+                            true,
+                          )} | 👁️‍🗨️ ${pluralize(
+                            'watcher',
+                            item.watchers_count,
+                            true,
+                          )} | 🕎 ${pluralize(
+                            'fork',
+                            item.forks_count,
+                            true,
+                          )} | 🪲 ${pluralize(
+                            'issue',
+                            item.open_issues_count,
+                            true,
+                          )}`,
+                        },
                       ]);
 
                     if (item.homepage) {
-                      newEmbed.addFields([
-                        {
-                          name: '📖 Docs',
-                          value: item.homepage,
-                          inline: true,
-                        },
-                      ]);
+                      newEmbed.spliceFields(6, 0, {
+                        name: '📖 Docs',
+                        value: item.homepage,
+                        inline: true,
+                      });
                     }
-
-                    newEmbed.addFields([
-                      {
-                        name: '📊 Stats',
-                        value: `⭐ ${pluralize(
-                          'star',
-                          item.stargazers_count,
-                          true,
-                        )} | 👁️‍🗨️ ${pluralize(
-                          'watcher',
-                          item.watchers_count,
-                          true,
-                        )} | 🕎 ${pluralize(
-                          'fork',
-                          item.forks_count,
-                          true,
-                        )} | 🪲 ${pluralize(
-                          'issue',
-                          item.open_issues_count,
-                          true,
-                        )}`,
-                      },
-                    ]);
 
                     if (item.topics.length) {
                       newEmbed.addFields([
@@ -505,6 +500,10 @@ module.exports = {
 
         const query = new URLSearchParams({ q: encodeURIComponent(title) });
 
+        if (!channel.nsfw) {
+          query.append('sfw', 'true');
+        }
+
         if (type) {
           query.append('type', type);
         }
@@ -545,7 +544,11 @@ module.exports = {
               return interaction.deferReply({ ephemeral: true }).then(
                 async () =>
                   await interaction.editReply({
-                    content: `No anime found with name ${inlineCode(title)}`,
+                    content: `No anime found with name ${inlineCode(
+                      title,
+                    )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.\n${italic(
+                      'eg.',
+                    )} ${NSFWChannels}`,
                   }),
               );
             }
@@ -580,12 +583,31 @@ module.exports = {
                     },
                     {
                       name: '🎬 Episode',
-                      value: pluralize('episode', item.episodes, true),
+                      value: `${
+                        item.episodes
+                          ? pluralize('episode', item.episodes, true)
+                          : '??? episodes'
+                      } (${item.duration})`,
                       inline: true,
                     },
                     {
                       name: '📊 Stats',
-                      value: `⭐ ${item.score} | 👥 ${item.members} | #️⃣ Ranked #${item.rank}`,
+                      value:
+                        item.score ||
+                        item.scored_by ||
+                        item.members ||
+                        item.rank ||
+                        item.favorites ||
+                        item.rating
+                          ? `⭐ ${
+                              item.score
+                            } (by ${item.scored_by.toLocaleString()} ${pluralize(
+                              'user',
+                              item.scored_by,
+                            )}) | 👥 ${item.members.toLocaleString()}${
+                              item.rank ? ` | #️⃣ #${item.rank}` : ''
+                            } | ❤️ ${item.favorites} | 🔞 ${item.rating}`
+                          : italic('None'),
                       inline: true,
                     },
                     {
