@@ -77,5 +77,5 @@ client
   .handleEvents()
   .then(() => client.handleComponents())
   .then(() => client.handleCommands())
-  .then(() => client.login(process.env.token))
+  .then(() => client.login(process.env.TOKEN))
   .catch((err) => console.error(err));
