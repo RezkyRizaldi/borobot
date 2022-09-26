@@ -441,4 +441,20 @@ module.exports = {
       value: 'asc',
     },
   ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  animeCharacterSearchOrderChoices: [
+    {
+      name: '🆔 ID',
+      value: 'mal_id',
+    },
+    {
+      name: '🔤 Name',
+      value: 'name',
+    },
+    {
+      name: '❤️ Favorites',
+      value: 'favorites',
+    },
+  ],
 };

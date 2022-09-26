@@ -14,6 +14,7 @@ const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
 
 const {
+  animeCharacterSearchOrderChoices,
   animeSearchOrderChoices,
   animeSearchSortChoices,
   animeSearchStatusChoices,
@@ -39,44 +40,84 @@ module.exports = {
             .setRequired(true),
         ),
     )
-    .addSubcommand((subcommand) =>
-      subcommand
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
         .setName('anime')
-        .setDescription('🖥️ Search an anime from MyAnimeList.')
-        .addStringOption((option) =>
-          option
-            .setName('title')
-            .setDescription('🔤 The anime title search query.')
-            .setRequired(true),
+        .setDescription('🖼️ Anime command.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('info')
+            .setDescription(
+              '🖥️ Search the information about an anime from MyAnimeList.',
+            )
+            .addStringOption((option) =>
+              option
+                .setName('title')
+                .setDescription('🔤 The anime title search query.'),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('type')
+                .setDescription('🔤 The anime type search query.')
+                .addChoices(...animeSearchTypeChoices),
+            )
+            .addIntegerOption((option) =>
+              option
+                .setName('score')
+                .setDescription('🔤 The anime score search query.'),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('status')
+                .setDescription('🔤 The anime status search query.')
+                .addChoices(...animeSearchStatusChoices),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('order')
+                .setDescription('🔤 The anime order search query.')
+                .addChoices(...animeSearchOrderChoices),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('sort')
+                .setDescription('🔣 The anime sort search query.')
+                .addChoices(...animeSearchSortChoices),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('initial')
+                .setDescription('🔣 The anime initial search query.'),
+            ),
         )
-        .addStringOption((option) =>
-          option
-            .setName('type')
-            .setDescription('🔤 The anime type search query.')
-            .addChoices(...animeSearchTypeChoices),
-        )
-        .addIntegerOption((option) =>
-          option
-            .setName('score')
-            .setDescription('🔤 The anime score search query.'),
-        )
-        .addStringOption((option) =>
-          option
-            .setName('status')
-            .setDescription('🔤 The anime status search query.')
-            .addChoices(...animeSearchStatusChoices),
-        )
-        .addStringOption((option) =>
-          option
-            .setName('order')
-            .setDescription('🔤 The anime order search query.')
-            .addChoices(...animeSearchOrderChoices),
-        )
-        .addStringOption((option) =>
-          option
-            .setName('sort')
-            .setDescription('🔣 The Search query sort type.')
-            .addChoices(...animeSearchSortChoices),
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('character')
+            .setDescription('👤 Search anime characters from MyAnimeList.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription("🔤 The anime character's name search query."),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('order')
+                .setDescription("🔤 The anime character's order search query.")
+                .addChoices(...animeCharacterSearchOrderChoices),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('sort')
+                .setDescription("🔣 The anime character's sort search query.")
+                .addChoices(...animeSearchSortChoices),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('initial')
+                .setDescription(
+                  "🔣 The anime character's initial search query.",
+                ),
+            ),
         ),
     )
     .addSubcommandGroup((subcommandGroup) =>
@@ -446,6 +487,343 @@ module.exports = {
           }
         }
         break;
+
+      case 'anime':
+        switch (options.getSubcommand()) {
+          case 'info': {
+            const title = options.getString('title');
+            const type = options.getString('type');
+            const score = options.getInteger('score');
+            const status = options.getString('status');
+            const order = options.getString('order');
+            const sort = options.getString('sort');
+            const letter = options.getString('initial');
+
+            const query = new URLSearchParams();
+
+            if (!channel.nsfw) {
+              query.append('sfw', 'true');
+            }
+
+            if (title) {
+              query.append('q', encodeURIComponent(title));
+            }
+
+            if (type) {
+              query.append('type', type);
+            }
+
+            if (score) {
+              if (score < 1 || score > 10) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: 'You have to specify a number between 1 to 10.',
+                    }),
+                );
+              }
+
+              const formattedScore = Number(
+                score.toString().replace(/,/g, '.'),
+              ).toFixed(2);
+
+              query.append('score', formattedScore);
+            }
+
+            if (status) {
+              query.append('status', status);
+            }
+
+            if (order) {
+              query.append('order_by', order);
+            }
+
+            if (sort) {
+              query.append('sort', sort);
+            }
+
+            if (letter) {
+              if (!letter.charAt(0).match(/[a-z]/i)) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: 'You have to specify an alphabetic character.',
+                    }),
+                );
+              }
+
+              query.append('letter', [...letter][0]);
+            }
+
+            return axios
+              .get(`https://api.jikan.moe/v4/anime?${query}`)
+              .then(async ({ data: { data } }) => {
+                if (!data.length) {
+                  return interaction.deferReply({ ephemeral: true }).then(
+                    async () =>
+                      await interaction.editReply({
+                        content: `No anime found with title ${inlineCode(
+                          title,
+                        )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.\n${italic(
+                          'eg.',
+                        )} ${NSFWChannels}`,
+                      }),
+                  );
+                }
+
+                await interaction.deferReply().then(async () => {
+                  /** @type {import('discord.js').EmbedBuilder[]} */
+                  const embeds = data.map((item, index, array) => {
+                    const newEmbed = new EmbedBuilder()
+                      .setColor(guild.members.me.displayHexColor)
+                      .setTimestamp(Date.now())
+                      .setFooter({
+                        text: `${client.user.username} | Page ${index + 1} of ${
+                          array.length
+                        }`,
+                        iconURL: client.user.displayAvatarURL({
+                          dynamic: true,
+                        }),
+                      })
+                      .setAuthor({
+                        name: '🖥️ Anime Search Results',
+                      })
+                      .setFields([
+                        {
+                          name: '🔤 Title',
+                          value: hyperlink(item.title, item.url),
+                          inline: true,
+                        },
+                        {
+                          name: '🔠 Type',
+                          value: item.type ?? italic('Unknown'),
+                          inline: true,
+                        },
+                        {
+                          name: '🎬 Episode',
+                          value: `${
+                            item.episodes
+                              ? pluralize('episode', item.episodes, true)
+                              : '??? episodes'
+                          } (${item.duration})`,
+                          inline: true,
+                        },
+                        {
+                          name: '📊 Stats',
+                          value:
+                            item.score ||
+                            item.scored_by ||
+                            item.members ||
+                            item.rank ||
+                            item.favorites ||
+                            item.rating
+                              ? `${
+                                  item.score
+                                    ? `⭐ ${
+                                        item.score
+                                      } (by ${item.scored_by.toLocaleString()} ${pluralize(
+                                        'user',
+                                        item.scored_by,
+                                      )})`
+                                    : ''
+                                } | 👥 ${item.members.toLocaleString()}${
+                                  item.rank ? ` | #️⃣ #${item.rank}` : ''
+                                } | ❤️ ${item.favorites} | 🔞 ${item.rating}`
+                              : italic('None'),
+                          inline: true,
+                        },
+                        {
+                          name: '⌛ Status',
+                          value: item.status,
+                          inline: true,
+                        },
+                        {
+                          name: '📆 Aired',
+                          value: item.aired.string ?? italic('Unknown'),
+                          inline: true,
+                        },
+                        {
+                          name: '📆 Premiered',
+                          value:
+                            item.season || item.year
+                              ? `${
+                                  item.season
+                                    ? item.season.charAt(0).toUpperCase() +
+                                      item.season.slice(1)
+                                    : ''
+                                } ${item.year ?? ''}`
+                              : italic('Unknown'),
+                          inline: true,
+                        },
+                        {
+                          name: '🏢 Studios',
+                          value: item.studios.length
+                            ? item.studios
+                                .map((studio) =>
+                                  hyperlink(studio.name, studio.url),
+                                )
+                                .join(', ')
+                            : italic('Unknown'),
+                          inline: true,
+                        },
+                        {
+                          name: '🔠 Genres',
+                          value:
+                            item.genres.length ||
+                            item.explicit_genres.length ||
+                            item.themes.length ||
+                            item.demographics.length
+                              ? [
+                                  ...item.genres,
+                                  ...item.explicit_genres,
+                                  ...item.themes,
+                                  ...item.demographics,
+                                ]
+                                  .map((genre) =>
+                                    hyperlink(genre.name, genre.url),
+                                  )
+                                  .join(', ')
+                              : italic('Unknown'),
+                          inline: true,
+                        },
+                        {
+                          name: '💫 Synopsis',
+                          value: item.synopsis
+                            ? truncate(item.synopsis, 1024)
+                            : italic('No available'),
+                        },
+                        {
+                          name: '🎞️ Trailer',
+                          value: item.trailer.url ?? italic('No available'),
+                        },
+                      ]);
+
+                    if (item.images) {
+                      newEmbed.setThumbnail(
+                        item.images.jpg.image_url ?? item.images.webp.image_url,
+                      );
+                    }
+
+                    return newEmbed;
+                  });
+
+                  const pagination = new Pagination(interaction);
+
+                  pagination.setEmbeds(embeds);
+
+                  await pagination.render();
+                });
+              });
+          }
+
+          case 'character': {
+            const name = options.getString('name');
+            const order = options.getString('order');
+            const sort = options.getString('sort');
+            const letter = options.getString('initial');
+
+            const query = new URLSearchParams();
+
+            if (name) {
+              query.append('q', encodeURIComponent(name));
+            }
+
+            if (order) {
+              query.append('order_by', order);
+            }
+
+            if (sort) {
+              query.append('sort', sort);
+            }
+
+            if (letter) {
+              if (!letter.charAt(0).match(/[a-z]/i)) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: 'You have to specify an alphabetic character.',
+                    }),
+                );
+              }
+
+              query.append('letter', [...letter][0]);
+            }
+
+            return axios
+              .get(`https://api.jikan.moe/v4/characters?${query}`)
+              .then(async ({ data: { data } }) => {
+                if (!data.length) {
+                  return interaction.deferReply({ ephemeral: true }).then(
+                    async () =>
+                      await interaction.editReply({
+                        content: `No anime character found with name ${inlineCode(
+                          name,
+                        )}`,
+                      }),
+                  );
+                }
+
+                await interaction.deferReply().then(async () => {
+                  const embeds = data.map((item, index, array) => {
+                    const newEmbed = new EmbedBuilder()
+                      .setColor(guild.members.me.displayHexColor)
+                      .setTimestamp(Date.now())
+                      .setFooter({
+                        text: `${client.user.username} | Page ${index + 1} of ${
+                          array.length
+                        }`,
+                        iconURL: client.user.displayAvatarURL({
+                          dynamic: true,
+                        }),
+                      })
+                      .setAuthor({
+                        name: '🖥️ Anime Character Search Results',
+                      })
+                      .setFields([
+                        {
+                          name: '🔤 Name',
+                          value: hyperlink(
+                            `${item.name} (${item.name_kanji})`,
+                            item.url,
+                          ),
+                          inline: true,
+                        },
+                        {
+                          name: '🔤 Nickname',
+                          value: item.nicknames.length
+                            ? item.nicknames.join(', ')
+                            : italic('None'),
+                          inline: true,
+                        },
+                        {
+                          name: '❤️ Favorite',
+                          value: pluralize('favorite', item.favorites, true),
+                          inline: true,
+                        },
+                      ]);
+
+                    if (item.about) {
+                      newEmbed.setDescription(item.about);
+                    }
+
+                    if (item.images) {
+                      newEmbed.setThumbnail(
+                        item.images.jpg.image_url ?? item.images.webp.image_url,
+                      );
+                    }
+
+                    return newEmbed;
+                  });
+
+                  const pagination = new Pagination(interaction);
+
+                  pagination.setEmbeds(embeds);
+
+                  await pagination.render();
+                });
+              });
+          }
+        }
     }
 
     switch (options.getSubcommand()) {
@@ -488,206 +866,6 @@ module.exports = {
             },
           );
         });
-      }
-
-      case 'anime': {
-        const title = options.getString('title');
-        const type = options.getString('type');
-        const score = options.getInteger('score');
-        const status = options.getString('status');
-        const order = options.getString('order');
-        const sort = options.getString('sort');
-
-        const query = new URLSearchParams({ q: encodeURIComponent(title) });
-
-        if (!channel.nsfw) {
-          query.append('sfw', 'true');
-        }
-
-        if (type) {
-          query.append('type', type);
-        }
-
-        if (score) {
-          if (score < 1 || score > 10) {
-            return interaction.deferReply({ ephemeral: true }).then(
-              async () =>
-                await interaction.editReply({
-                  content: 'You have to specify a number between 1 to 10.',
-                }),
-            );
-          }
-
-          const formattedScore = Number(
-            score.toString().replace(/,/g, '.'),
-          ).toFixed(2);
-
-          query.append('score', formattedScore);
-        }
-
-        if (status) {
-          query.append('status', status);
-        }
-
-        if (order) {
-          query.append('order', order);
-        }
-
-        if (sort) {
-          query.append('sort', sort);
-        }
-
-        return axios
-          .get(`https://api.jikan.moe/v4/anime?${query}`)
-          .then(async ({ data: { data } }) => {
-            if (!data.length) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: `No anime found with name ${inlineCode(
-                      title,
-                    )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.\n${italic(
-                      'eg.',
-                    )} ${NSFWChannels}`,
-                  }),
-              );
-            }
-
-            await interaction.deferReply().then(async () => {
-              /** @type {import('discord.js').EmbedBuilder[]} */
-              const embeds = data.map((item, index, array) => {
-                const newEmbed = new EmbedBuilder()
-                  .setColor(guild.members.me.displayHexColor)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page ${index + 1} of ${
-                      array.length
-                    }`,
-                    iconURL: client.user.displayAvatarURL({
-                      dynamic: true,
-                    }),
-                  })
-                  .setAuthor({
-                    name: '🖥️ Anime Search Results',
-                  })
-                  .setFields([
-                    {
-                      name: '🔤 Title',
-                      value: hyperlink(item.title, item.url),
-                      inline: true,
-                    },
-                    {
-                      name: '🔠 Type',
-                      value: item.type,
-                      inline: true,
-                    },
-                    {
-                      name: '🎬 Episode',
-                      value: `${
-                        item.episodes
-                          ? pluralize('episode', item.episodes, true)
-                          : '??? episodes'
-                      } (${item.duration})`,
-                      inline: true,
-                    },
-                    {
-                      name: '📊 Stats',
-                      value:
-                        item.score ||
-                        item.scored_by ||
-                        item.members ||
-                        item.rank ||
-                        item.favorites ||
-                        item.rating
-                          ? `⭐ ${
-                              item.score
-                            } (by ${item.scored_by.toLocaleString()} ${pluralize(
-                              'user',
-                              item.scored_by,
-                            )}) | 👥 ${item.members.toLocaleString()}${
-                              item.rank ? ` | #️⃣ #${item.rank}` : ''
-                            } | ❤️ ${item.favorites} | 🔞 ${item.rating}`
-                          : italic('None'),
-                      inline: true,
-                    },
-                    {
-                      name: '⌛ Status',
-                      value: item.status,
-                      inline: true,
-                    },
-                    {
-                      name: '📆 Aired',
-                      value: item.aired.string ?? italic('Unknown'),
-                      inline: true,
-                    },
-                    {
-                      name: '📆 Premiered',
-                      value:
-                        item.season || item.year
-                          ? `${
-                              item.season
-                                ? item.season.charAt(0).toUpperCase() +
-                                  item.season.slice(1)
-                                : ''
-                            } ${item.year ?? ''}`
-                          : italic('Unknown'),
-                      inline: true,
-                    },
-                    {
-                      name: '🏢 Studios',
-                      value: item.studios.length
-                        ? item.studios
-                            .map((studio) => hyperlink(studio.name, studio.url))
-                            .join(', ')
-                        : italic('Unknown'),
-                      inline: true,
-                    },
-                    {
-                      name: '🔠 Genres',
-                      value:
-                        item.genres.length ||
-                        item.explicit_genres.length ||
-                        item.themes.length ||
-                        item.demographics.length
-                          ? [
-                              ...item.genres,
-                              ...item.explicit_genres,
-                              ...item.themes,
-                              ...item.demographics,
-                            ]
-                              .map((genre) => hyperlink(genre.name, genre.url))
-                              .join(', ')
-                          : italic('Unknown'),
-                      inline: true,
-                    },
-                    {
-                      name: '💫 Synopsis',
-                      value: item.synopsis
-                        ? truncate(item.synopsis, 1024)
-                        : italic('No available'),
-                    },
-                    {
-                      name: '🎞️ Trailer',
-                      value: item.trailer.url ?? italic('No available'),
-                    },
-                  ]);
-
-                if (item.images) {
-                  newEmbed.setThumbnail(
-                    item.images.jpg.image_url ?? item.images.webp.image_url,
-                  );
-                }
-
-                return newEmbed;
-              });
-
-              const pagination = new Pagination(interaction);
-
-              pagination.setEmbeds(embeds);
-
-              await pagination.render();
-            });
-          });
       }
 
       case 'definition': {
