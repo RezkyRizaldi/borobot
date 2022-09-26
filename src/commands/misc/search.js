@@ -9,6 +9,7 @@ const {
   TimestampStyles,
 } = require('discord.js');
 const Scraper = require('images-scraper').default;
+const { API } = require('nhentai-api');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
@@ -199,6 +200,17 @@ module.exports = {
           option
             .setName('initial')
             .setDescription('🔣 The manga initial search query.'),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('doujin')
+        .setDescription('🖼️ Search dounjinshi from Nhentai.')
+        .addStringOption((option) =>
+          option
+            .setName('query')
+            .setDescription('🔠 The doujinshi search query.')
+            .setRequired(true),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -927,7 +939,9 @@ module.exports = {
         }
 
         if (letter) {
-          if (!letter.charAt(0).match(/[a-z]/i)) {
+          const firstChar = letter.charAt(0);
+
+          if (!firstChar.match(/[a-z]/i)) {
             return interaction.deferReply({ ephemeral: true }).then(
               async () =>
                 await interaction.editReply({
@@ -936,7 +950,7 @@ module.exports = {
             );
           }
 
-          query.append('letter', [...letter][0]);
+          query.append('letter', firstChar);
         }
 
         return axios
@@ -1091,6 +1105,25 @@ module.exports = {
               await pagination.render();
             });
           });
+      }
+
+      case 'doujin': {
+        if (!channel.nsfw) {
+          return interaction.deferReply({ ephemeral: true }).then(
+            async () =>
+              await interaction.editReply({
+                content: `Please use this command in a NSFW Channel.\n${italic(
+                  'eg.',
+                )} ${NSFWChannels}`,
+              }),
+          );
+        }
+
+        const query = options.getString('query');
+
+        const api = new API();
+
+        return api.search(query).then(async (res) => console.log(res));
       }
 
       case 'image': {
