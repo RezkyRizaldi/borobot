@@ -32,14 +32,14 @@ module.exports = {
         .setDescription('🎥 Watch anime stream from GogoAnime.')
         .addStringOption((option) =>
           option
-            .setName('name')
-            .setDescription('🔤 The anime name search query.')
+            .setName('title')
+            .setDescription('🔤 The anime title search query.')
             .setRequired(true),
         )
         .addIntegerOption((option) =>
           option
             .setName('episode')
-            .setDescription('🔤 The anime episode search query.'),
+            .setDescription('🔢 The anime episode search query.'),
         ),
     ),
   type: 'Chat Input',
@@ -92,7 +92,7 @@ module.exports = {
       }
 
       case 'anime': {
-        const name = options.getString('name');
+        const title = options.getString('title');
         const episode = options.getInteger('episode') ?? 1;
 
         const Gogoanime = new AnimeScraper.Gogoanime();
@@ -100,21 +100,21 @@ module.exports = {
         return interaction.deferReply().then(async () => {
           await wait(4000);
 
-          await Gogoanime.search(name).then(async (results) => {
+          await Gogoanime.search(title).then(async (results) => {
             if (!results.length) {
               return interaction.deferReply({ ephemeral: true }).then(
                 async () =>
                   await interaction.editReply({
-                    content: `No result found for ${name}`,
+                    content: `No result found for ${title}`,
                   }),
               );
             }
 
             await Gogoanime.fetchAnime(results[0].link).then(
-              async ({ episodeCount, name: animeName, slug }) => {
+              async ({ episodeCount, name, slug }) => {
                 if (episode > episodeCount) {
                   return interaction.editReply({
-                    content: `${animeName} only have ${pluralize(
+                    content: `${name} only have ${pluralize(
                       'episode',
                       episodeCount,
                       true,
@@ -123,11 +123,16 @@ module.exports = {
                 }
 
                 await Gogoanime.getEpisodes(slug, episode).then(
-                  async ({ id, name: aniName }) => {
-                    const arr = aniName.split(' ');
-                    const title = arr
+                  async ({ id, name: animeName }) => {
+                    const arr = animeName.split(' ');
+                    const formattedTitle = arr
                       .slice(0, arr.indexOf('English'))
                       .join('+');
+
+                    const query = new URLSearchParams({
+                      id,
+                      title: decodeURIComponent(formattedTitle),
+                    });
 
                     embed.setAuthor({
                       name: '🎥 Streaming Link Search Result',
@@ -135,9 +140,7 @@ module.exports = {
                     embed.setDescription(
                       hyperlink(
                         arr.slice(0, arr.indexOf('at')).join(' '),
-                        `https://gogohd.net/streaming.php?id=${id}&title=${decodeURIComponent(
-                          title,
-                        )}`,
+                        `https://gogohd.net/streaming.php?${query}`,
                         'Click here to watch the stream.',
                       ),
                     );
