@@ -307,18 +307,6 @@ module.exports = {
   ],
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
-  githubRepoOrderingTypeChoices: [
-    {
-      name: '⬆️ Descending',
-      value: 'desc',
-    },
-    {
-      name: '⬇️ Ascending',
-      value: 'asc',
-    },
-  ],
-
-  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   waifuChoices: [
     {
       name: '🖼️ Image',
@@ -405,7 +393,7 @@ module.exports = {
       value: 'episodes',
     },
     {
-      name: '⭐ Scored',
+      name: '⭐ Score',
       value: 'score',
     },
     {
@@ -431,7 +419,131 @@ module.exports = {
   ],
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
-  animeSearchSortChoices: [
+  animeCharacterSearchOrderChoices: [
+    {
+      name: '🆔 ID',
+      value: 'mal_id',
+    },
+    {
+      name: '🔤 Name',
+      value: 'name',
+    },
+    {
+      name: '❤️ Favorites',
+      value: 'favorites',
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  mangaSearchTypeChoices: [
+    {
+      name: '📔 Manga',
+      value: 'manga',
+    },
+    {
+      name: '📕 Novel',
+      value: 'novel',
+    },
+    {
+      name: '📗 Light Novel',
+      value: 'lightnovel',
+    },
+    {
+      name: '📑 One-shot',
+      value: 'oneshot',
+    },
+    {
+      name: '📘 Doujinshi',
+      value: 'doujin',
+    },
+    {
+      name: '📙 Manhwa',
+      value: 'manhwa',
+    },
+    {
+      name: '📙 Manhua',
+      value: 'manhua',
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  mangaSearchStatusChoices: [
+    {
+      name: '⏳ Publishing',
+      value: 'publishing',
+    },
+    {
+      name: '⌛ Finished',
+      value: 'complete',
+    },
+    {
+      name: '⏱️ On Hiatus',
+      value: 'hiatus',
+    },
+    {
+      name: '🪝 Discontinued',
+      value: 'discontinued',
+    },
+    {
+      name: '🔜 Not Yet Published',
+      value: 'upcoming',
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  mangaSearchOrderChoices: [
+    {
+      name: '🆔 ID',
+      value: 'mal_id',
+    },
+    {
+      name: '🔤 Title',
+      value: 'title',
+    },
+    {
+      name: '📆 Start Date',
+      value: 'start_date',
+    },
+    {
+      name: '📆 End Date',
+      value: 'end_date',
+    },
+    {
+      name: '📄 Chapters',
+      value: 'chapters',
+    },
+    {
+      name: '📚 Volumes',
+      value: 'volumes',
+    },
+    {
+      name: '⭐ Score',
+      value: 'score',
+    },
+    {
+      name: '👥 Scored By',
+      value: 'scored_by',
+    },
+    {
+      name: '#️⃣ Rank',
+      value: 'rank',
+    },
+    {
+      name: '📈 Popularity',
+      value: 'popularity',
+    },
+    {
+      name: '👥 Members',
+      value: 'members',
+    },
+    {
+      name: '❤️ Favorites',
+      value: 'favorites',
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  searchSortingChoices: [
     {
       name: '⬆️ Descending',
       value: 'desc',
