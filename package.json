@@ -1,6 +1,6 @@
 {
   "name": "borobot",
-  "version": "1.15.0",
+  "version": "1.14.0",
   "description": "A simple Discord Bot build with discord.js v14",
   "displayName": "Borobot",
   "bugs": {
