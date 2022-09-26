@@ -4,7 +4,7 @@ const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 
 const { extendedLocales } = require('../../constants');
-const { getFlag, isAutoCorrecting } = require('../../utils');
+const { getLanguage, getTranslateFlag } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -58,7 +58,7 @@ module.exports = {
       });
 
     switch (options.getSubcommand()) {
-      case 'list': {
+      case 'list':
         return interaction.deferReply({ ephemeral: true }).then(async () => {
           const locales = Object.entries(extendedLocales)
             .filter(
@@ -68,7 +68,7 @@ module.exports = {
 
           const responses = locales.map(
             ([key, value], index) =>
-              `${bold(`${index + 1}.`)} ${bold(key)} - ${value} ${getFlag(
+              `${bold(`${index + 1}. ${key}`)} - ${value} ${getTranslateFlag(
                 value,
               )}`,
           );
@@ -92,44 +92,78 @@ module.exports = {
 
           await pagination.render();
         });
-      }
 
       case 'run': {
         const text = options.getString('text');
         const from = options.getString('from');
         const to = options.getString('to');
 
-        return interaction.deferReply().then(async () => {
-          await wait(4000).then(async () => {
-            if (!from) {
-              return translate(text, { to, autoCorrect: true }).then(
-                async (result) => {
-                  const data = {
-                    embed,
-                    result,
-                    options: { text, to },
-                    interaction,
-                  };
+        const translateOptions = { to, autoCorrect: true };
 
-                  await isAutoCorrecting(data);
-                },
-              );
-            }
+        if (from) Object.assign(translateOptions, { from });
 
-            await translate(text, { from, to, autoCorrect: true }).then(
-              async (res) => {
-                const data = {
-                  embed,
-                  res,
-                  options: { text, from, to },
-                  interaction,
-                };
+        return interaction.deferReply().then(
+          async () =>
+            await wait(4000).then(
+              async () =>
+                await translate(text, translateOptions).then(async (result) => {
+                  if (!result.from.text.didYouMean) {
+                    embed.setFields([
+                      {
+                        name: `From ${getLanguage(
+                          extendedLocales,
+                          result.from.language.iso,
+                        )}${from ? '' : ' - Detected'} ${getTranslateFlag(
+                          extendedLocales[result.from.language.iso],
+                        )}`,
+                        value: text,
+                      },
+                      {
+                        name: `To ${getLanguage(
+                          extendedLocales,
+                          to,
+                        )} ${getTranslateFlag(
+                          extendedLocales[to.toLowerCase()],
+                        )}`,
+                        value: result.text,
+                      },
+                    ]);
 
-                await isAutoCorrecting(data);
-              },
-            );
-          });
-        });
+                    return interaction.editReply({ embeds: [embed] });
+                  }
+
+                  await translate(
+                    result.from.text.value.replace(/\[([a-z]+)\]/gi, '$1'),
+                    {
+                      to,
+                    },
+                  ).then(async (res) => {
+                    embed.setFields([
+                      {
+                        name: `From ${getLanguage(
+                          extendedLocales,
+                          res.from.language.iso,
+                        )}${from ? '' : ' - Detected'} ${getTranslateFlag(
+                          extendedLocales[res.from.language.iso],
+                        )}`,
+                        value: text,
+                      },
+                      {
+                        name: `To ${getLanguage(
+                          extendedLocales,
+                          to,
+                        )} ${getTranslateFlag(
+                          extendedLocales[to.toLowerCase()],
+                        )}`,
+                        value: res.text,
+                      },
+                    ]);
+
+                    await interaction.editReply({ embeds: [embed] });
+                  });
+                }),
+            ),
+        );
       }
     }
   },

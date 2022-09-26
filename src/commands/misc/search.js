@@ -14,8 +14,13 @@ const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
 
 const {
+  animeSearchOrderChoices,
+  animeSearchSortChoices,
+  animeSearchStatusChoices,
+  animeSearchTypeChoices,
   githubRepoSortingTypeChoices,
   githubRepoOrderingTypeChoices,
+  mdnLocales,
 } = require('../../constants');
 const { truncate } = require('../../utils');
 
@@ -26,7 +31,7 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('image')
-        .setDescription('🖼️ Search an image from Google.')
+        .setDescription('🖼️ Search any images from Google.')
         .addStringOption((option) =>
           option
             .setName('query')
@@ -36,15 +41,42 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
-        .setName('definition')
-        .setDescription(
-          '❓ Search the definition of a term from Urban Dictionary.',
+        .setName('anime')
+        .setDescription('🖥️ Search an anime from MyAnimeList.')
+        .addStringOption((option) =>
+          option
+            .setName('title')
+            .setDescription('🔤 The anime title search query.')
+            .setRequired(true),
         )
         .addStringOption((option) =>
           option
-            .setName('term')
-            .setDescription("🔠 The definition's term.")
-            .setRequired(true),
+            .setName('type')
+            .setDescription('🔤 The anime type search query.')
+            .addChoices(...animeSearchTypeChoices),
+        )
+        .addIntegerOption((option) =>
+          option
+            .setName('score')
+            .setDescription('🔤 The anime score search query.'),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('status')
+            .setDescription('🔤 The anime status search query.')
+            .addChoices(...animeSearchStatusChoices),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('order')
+            .setDescription('🔤 The anime order search query.')
+            .addChoices(...animeSearchOrderChoices),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('sort')
+            .setDescription('🔣 The Search query sort type.')
+            .addChoices(...animeSearchSortChoices),
         ),
     )
     .addSubcommandGroup((subcommandGroup) =>
@@ -92,6 +124,38 @@ module.exports = {
                 .addChoices(...githubRepoOrderingTypeChoices),
             ),
         ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('definition')
+        .setDescription(
+          '❓ Search the definition of a term from Urban Dictionary.',
+        )
+        .addStringOption((option) =>
+          option
+            .setName('term')
+            .setDescription("🔠 The definition's term.")
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('mdn')
+        .setDescription(
+          '📖 Search the documentation of a term from MDN Web Docs.',
+        )
+        .addStringOption((option) =>
+          option
+            .setName('term')
+            .setDescription("🔠 The documentation's term.")
+            .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('language')
+            .setDescription("🔠 The documentation's preferred locale.")
+            .addChoices(...mdnLocales),
+        ),
     ),
   type: 'Chat Input',
 
@@ -111,110 +175,6 @@ module.exports = {
           dynamic: true,
         }),
       });
-
-    switch (options.getSubcommand()) {
-      case 'image': {
-        const query = options.getString('query');
-
-        const google = new Scraper({
-          puppeteer: {
-            waitForInitialPage: true,
-          },
-        });
-
-        return interaction.deferReply({ ephemeral: true }).then(async () => {
-          await wait(4000);
-
-          await google.scrape(query, 5).then(
-            /**
-             *
-             * @param {import('images-scraper').Scraper.ScrapeResult[]} results
-             */
-            async (results) => {
-              const pagination = new Pagination(interaction, {
-                limit: 1,
-              });
-
-              pagination.setColor(guild.members.me.displayHexColor);
-              pagination.setTimestamp(Date.now());
-              pagination.setFooter({
-                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                iconURL: client.user.displayAvatarURL({
-                  dynamic: true,
-                }),
-              });
-              pagination.setAuthor({
-                name: '🖼️ Image Search Results',
-              });
-              pagination.setImages(results.map((result) => result.url));
-
-              await pagination.render();
-            },
-          );
-        });
-      }
-
-      case 'definition': {
-        const term = options.getString('term');
-        const query = new URLSearchParams({ term });
-
-        return interaction.deferReply().then(
-          async () =>
-            await axios
-              .get(`https://api.urbandictionary.com/v0/define?${query}`)
-              .then(async ({ data: { list } }) => {
-                if (!list.length) {
-                  return interaction.editReply({
-                    content: `No results found for ${inlineCode(term)}.`,
-                  });
-                }
-
-                const {
-                  author,
-                  definition,
-                  example,
-                  permalink,
-                  thumbs_down,
-                  thumbs_up,
-                  word,
-                  written_on,
-                } = list[Math.floor(Math.random() * list.length)];
-
-                const formattedCite = `\n${italic(
-                  `by ${author} — ${time(
-                    new Date(written_on),
-                    TimestampStyles.RelativeTime,
-                  )}`,
-                )}`;
-
-                embed.setAuthor({
-                  name: `🔠 ${word}`,
-                  url: permalink,
-                });
-                embed.setFields([
-                  {
-                    name: '🔤 Definition',
-                    value: truncate(
-                      `${definition}${formattedCite}`,
-                      1024,
-                      formattedCite.length + 3,
-                    ),
-                  },
-                  {
-                    name: '🔤 Example',
-                    value: truncate(example, 1024),
-                  },
-                  {
-                    name: '⭐ Rating',
-                    value: `${thumbs_up} 👍 | ${thumbs_down} 👎`,
-                  },
-                ]);
-
-                await interaction.editReply({ embeds: [embed] });
-              }),
-        );
-      }
-    }
 
     switch (options.getSubcommandGroup()) {
       case 'github':
@@ -491,6 +451,349 @@ module.exports = {
           }
         }
         break;
+    }
+
+    switch (options.getSubcommand()) {
+      case 'image': {
+        const query = options.getString('query');
+
+        const google = new Scraper({
+          puppeteer: {
+            waitForInitialPage: true,
+          },
+        });
+
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
+          await wait(4000);
+
+          await google.scrape(query, 5).then(
+            /**
+             *
+             * @param {import('images-scraper').Scraper.ScrapeResult[]} results
+             */
+            async (results) => {
+              const pagination = new Pagination(interaction, {
+                limit: 1,
+              });
+
+              pagination.setColor(guild.members.me.displayHexColor);
+              pagination.setTimestamp(Date.now());
+              pagination.setFooter({
+                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                iconURL: client.user.displayAvatarURL({
+                  dynamic: true,
+                }),
+              });
+              pagination.setAuthor({
+                name: '🖼️ Image Search Results',
+              });
+              pagination.setImages(results.map((result) => result.url));
+
+              await pagination.render();
+            },
+          );
+        });
+      }
+
+      case 'anime': {
+        const title = options.getString('title');
+        const type = options.getString('type');
+        const score = options.getInteger('score');
+        const status = options.getString('status');
+        const order = options.getString('order');
+        const sort = options.getString('sort');
+
+        const query = new URLSearchParams({ q: encodeURIComponent(title) });
+
+        if (type) {
+          query.append('type', type);
+        }
+
+        if (score) {
+          if (score < 1 || score > 10) {
+            return interaction.deferReply({ ephemeral: true }).then(
+              async () =>
+                await interaction.editReply({
+                  content: 'You have to specify a number between 1 to 10.',
+                }),
+            );
+          }
+
+          const formattedScore = Number(
+            score.toString().replace(/,/g, '.'),
+          ).toFixed(2);
+
+          query.append('score', formattedScore);
+        }
+
+        if (status) {
+          query.append('status', status);
+        }
+
+        if (order) {
+          query.append('order', order);
+        }
+
+        if (sort) {
+          query.append('sort', sort);
+        }
+
+        return axios
+          .get(`https://api.jikan.moe/v4/anime?${query}`)
+          .then(async ({ data: { data } }) => {
+            if (!data.length) {
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: `No anime found with name ${inlineCode(title)}`,
+                  }),
+              );
+            }
+
+            await interaction.deferReply().then(async () => {
+              /** @type {import('discord.js').EmbedBuilder[]} */
+              const embeds = data.map((item, index, array) => {
+                const newEmbed = new EmbedBuilder()
+                  .setColor(guild.members.me.displayHexColor)
+                  .setTimestamp(Date.now())
+                  .setFooter({
+                    text: `${client.user.username} | Page ${index + 1} of ${
+                      array.length
+                    }`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  })
+                  .setAuthor({
+                    name: '🖥️ Anime Search Results',
+                  })
+                  .setFields([
+                    {
+                      name: '🔤 Title',
+                      value: hyperlink(item.title, item.url),
+                      inline: true,
+                    },
+                    {
+                      name: '🔠 Type',
+                      value: item.type,
+                      inline: true,
+                    },
+                    {
+                      name: '🎬 Episode',
+                      value: pluralize('episode', item.episodes, true),
+                      inline: true,
+                    },
+                    {
+                      name: '📊 Stats',
+                      value: `⭐ ${item.score} | 👥 ${item.members} | #️⃣ Ranked #${item.rank}`,
+                      inline: true,
+                    },
+                    {
+                      name: '⌛ Status',
+                      value: item.status,
+                      inline: true,
+                    },
+                    {
+                      name: '📆 Aired',
+                      value: item.aired.string ?? italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '📆 Premiered',
+                      value:
+                        item.season || item.year
+                          ? `${
+                              item.season
+                                ? item.season.charAt(0).toUpperCase() +
+                                  item.season.slice(1)
+                                : ''
+                            } ${item.year ?? ''}`
+                          : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '🏢 Studios',
+                      value: item.studios.length
+                        ? item.studios
+                            .map((studio) => hyperlink(studio.name, studio.url))
+                            .join(', ')
+                        : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '🔠 Genres',
+                      value: item.genres.length
+                        ? item.genres
+                            .map((genre) => hyperlink(genre.name, genre.url))
+                            .join(', ')
+                        : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '💫 Synopsis',
+                      value: item.synopsis
+                        ? truncate(item.synopsis, 1024)
+                        : italic('No available'),
+                    },
+                  ]);
+
+                if (item.images) {
+                  newEmbed.setThumbnail(
+                    item.images.jpg.image_url ?? item.images.webp.image_url,
+                  );
+                }
+
+                return newEmbed;
+              });
+
+              const pagination = new Pagination(interaction);
+
+              pagination.setEmbeds(embeds);
+
+              await pagination.render();
+            });
+          });
+      }
+
+      case 'definition': {
+        const term = options.getString('term');
+        const query = new URLSearchParams({ term });
+
+        return axios
+          .get(`https://api.urbandictionary.com/v0/define?${query}`)
+          .then(async ({ data: { list } }) => {
+            if (!list.length) {
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: `No result found for ${inlineCode(term)}.`,
+                  }),
+              );
+            }
+
+            const {
+              author,
+              definition,
+              example,
+              permalink,
+              thumbs_down,
+              thumbs_up,
+              word,
+              written_on,
+            } = list[Math.floor(Math.random() * list.length)];
+
+            const formattedCite = `\n${italic(
+              `by ${author} — ${time(
+                new Date(written_on),
+                TimestampStyles.RelativeTime,
+              )}`,
+            )}`;
+
+            embed.setAuthor({
+              name: `🔠 ${word}`,
+              url: permalink,
+            });
+            embed.setFields([
+              {
+                name: '🔤 Definition',
+                value: truncate(
+                  `${definition}${formattedCite}`,
+                  1024,
+                  formattedCite.length + 3,
+                ),
+              },
+              {
+                name: '🔤 Example',
+                value: truncate(example, 1024),
+              },
+              {
+                name: '⭐ Rating',
+                value: `${thumbs_up} 👍 | ${thumbs_down} 👎`,
+              },
+            ]);
+
+            await interaction
+              .deferReply()
+              .then(
+                async () => await interaction.editReply({ embeds: [embed] }),
+              );
+          });
+      }
+
+      case 'mdn': {
+        const term = options.getString('term');
+        const language = options.getString('language');
+        const query = new URLSearchParams({
+          q: term,
+          locale: language ?? 'en-US',
+        });
+        const baseURL = 'https://developer.mozilla.org';
+
+        return axios
+          .get(`${baseURL}/api/v1/search?${query}`)
+          .then(async ({ data: { documents, suggestions } }) => {
+            if (!documents.length) {
+              if (!suggestions.length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No result found for ${inlineCode(term)}.`,
+                    }),
+                );
+              }
+
+              const newQuery = new URLSearchParams({
+                q: suggestions[0].text,
+                locale: language ?? 'en-US',
+              });
+
+              return axios
+                .get(`${baseURL}/api/v1/search${newQuery}`)
+                .then(async ({ data: { documents: docs } }) => {
+                  const fields = docs.map((doc) => ({
+                    name: doc.title,
+                    value: `${doc.summary}\n${hyperlink(
+                      'View Documentation',
+                      `${baseURL}${doc.mdn_url}`,
+                      'Click here to view the documentation.',
+                    )}`,
+                  }));
+
+                  embed.setAuthor({
+                    name: '📖 Documentation Search Results',
+                  });
+                  embed.setFields(fields);
+
+                  await interaction
+                    .deferReply()
+                    .then(
+                      async () =>
+                        await interaction.editReply({ embeds: [embed] }),
+                    );
+                });
+            }
+
+            const fields = documents.map((doc) => ({
+              name: doc.title,
+              value: `${doc.summary}\n${hyperlink(
+                'View Documentation',
+                `${baseURL}${doc.mdn_url}`,
+                'Click here to view the documentation.',
+              )}`,
+            }));
+
+            embed.setAuthor({
+              name: '📖 Documentation Search Results',
+            });
+            embed.setFields(fields);
+
+            await interaction
+              .deferReply()
+              .then(
+                async () => await interaction.editReply({ embeds: [embed] }),
+              );
+          });
+      }
     }
   },
 };

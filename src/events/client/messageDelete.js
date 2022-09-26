@@ -63,7 +63,7 @@ module.exports = {
     } in ${channel} at ${time(
       Math.floor(Date.now() / 1000),
       TimestampStyles.RelativeTime,
-    )}\n${bold('Deleted Message')}\n${applyMessageType(message)}`;
+    )}\n\n${bold('Deleted Message')}\n${applyMessageType(message)}`;
 
     embed.setAuthor({
       name: 'Message Deleted',

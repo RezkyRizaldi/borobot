@@ -1,9 +1,15 @@
-const { EmbedBuilder, hyperlink, SlashCommandBuilder } = require('discord.js');
+const {
+  EmbedBuilder,
+  hyperlink,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
+} = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('invite')
-    .setDescription("🔗 Grab the bot's invite link."),
+    .setDescription("🔗 Grab the bot's invite link.")
+    .setDefaultMemberPermissions(PermissionFlagsBits.CreateInstantInvite),
   type: 'Chat Input',
 
   /**
