@@ -16,12 +16,14 @@ const pluralize = require('pluralize');
 const {
   animeCharacterSearchOrderChoices,
   animeSearchOrderChoices,
-  animeSearchSortChoices,
   animeSearchStatusChoices,
   animeSearchTypeChoices,
   githubRepoSortingTypeChoices,
-  githubRepoOrderingTypeChoices,
+  mangaSearchOrderChoices,
+  mangaSearchStatusChoices,
+  mangaSearchTypeChoices,
   mdnLocales,
+  searchSortingChoices,
 } = require('../../constants');
 const { truncate } = require('../../utils');
 
@@ -29,17 +31,6 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('search')
     .setDescription('🔍 Search command.')
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('image')
-        .setDescription('🖼️ Search any images from Google.')
-        .addStringOption((option) =>
-          option
-            .setName('query')
-            .setDescription('🔠 The image search query.')
-            .setRequired(true),
-        ),
-    )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('anime')
@@ -82,7 +73,7 @@ module.exports = {
               option
                 .setName('sort')
                 .setDescription('🔣 The anime sort search query.')
-                .addChoices(...animeSearchSortChoices),
+                .addChoices(...searchSortingChoices),
             )
             .addStringOption((option) =>
               option
@@ -109,7 +100,7 @@ module.exports = {
               option
                 .setName('sort')
                 .setDescription("🔣 The anime character's sort search query.")
-                .addChoices(...animeSearchSortChoices),
+                .addChoices(...searchSortingChoices),
             )
             .addStringOption((option) =>
               option
@@ -162,8 +153,63 @@ module.exports = {
               option
                 .setName('order')
                 .setDescription('🔣 The Search query ordering type.')
-                .addChoices(...githubRepoOrderingTypeChoices),
+                .addChoices(...searchSortingChoices),
             ),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('manga')
+        .setDescription('📔 Search manga from MyAnimeList.')
+        .addStringOption((option) =>
+          option
+            .setName('title')
+            .setDescription('🔤 The manga title search query.'),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('type')
+            .setDescription('🔤 The manga type search query.')
+            .addChoices(...mangaSearchTypeChoices),
+        )
+        .addIntegerOption((option) =>
+          option
+            .setName('score')
+            .setDescription('🔤 The manga score search query.'),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('status')
+            .setDescription('🔤 The manga status search query.')
+            .addChoices(...mangaSearchStatusChoices),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('order')
+            .setDescription('🔤 The manga order search query.')
+            .addChoices(...mangaSearchOrderChoices),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('sort')
+            .setDescription('🔣 The manga sort search query.')
+            .addChoices(...searchSortingChoices),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('initial')
+            .setDescription('🔣 The manga initial search query.'),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('image')
+        .setDescription('🖼️ Search any images from Google.')
+        .addStringOption((option) =>
+          option
+            .setName('query')
+            .setDescription('🔠 The image search query.')
+            .setRequired(true),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -824,9 +870,229 @@ module.exports = {
               });
           }
         }
+        break;
     }
 
     switch (options.getSubcommand()) {
+      case 'manga': {
+        const title = options.getString('title');
+        const type = options.getString('type');
+        const score = options.getInteger('score');
+        const status = options.getString('status');
+        const order = options.getString('order');
+        const sort = options.getString('sort');
+        const letter = options.getString('initial');
+
+        const query = new URLSearchParams();
+
+        if (!channel.nsfw) {
+          query.append('sfw', 'true');
+        }
+
+        if (title) {
+          query.append('q', encodeURIComponent(title));
+        }
+
+        if (type) {
+          query.append('type', type);
+        }
+
+        if (score) {
+          if (score < 1 || score > 10) {
+            return interaction.deferReply({ ephemeral: true }).then(
+              async () =>
+                await interaction.editReply({
+                  content: 'You have to specify a number between 1 to 10.',
+                }),
+            );
+          }
+
+          const formattedScore = Number(
+            score.toString().replace(/,/g, '.'),
+          ).toFixed(2);
+
+          query.append('score', formattedScore);
+        }
+
+        if (status) {
+          query.append('status', status);
+        }
+
+        if (order) {
+          query.append('order_by', order);
+        }
+
+        if (sort) {
+          query.append('sort', sort);
+        }
+
+        if (letter) {
+          if (!letter.charAt(0).match(/[a-z]/i)) {
+            return interaction.deferReply({ ephemeral: true }).then(
+              async () =>
+                await interaction.editReply({
+                  content: 'You have to specify an alphabetic character.',
+                }),
+            );
+          }
+
+          query.append('letter', [...letter][0]);
+        }
+
+        return axios
+          .get(`https://api.jikan.moe/v4/manga?${query}`)
+          .then(async ({ data: { data } }) => {
+            if (!data.length) {
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: `No manga found with title ${inlineCode(
+                      title,
+                    )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.\n${italic(
+                      'eg.',
+                    )} ${NSFWChannels}`,
+                  }),
+              );
+            }
+
+            await interaction.deferReply().then(async () => {
+              /** @type {import('discord.js').EmbedBuilder[]} */
+              const embeds = data.map((item, index, array) => {
+                const newEmbed = new EmbedBuilder()
+                  .setColor(guild.members.me.displayHexColor)
+                  .setTimestamp(Date.now())
+                  .setFooter({
+                    text: `${client.user.username} | Page ${index + 1} of ${
+                      array.length
+                    }`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  })
+                  .setAuthor({
+                    name: '🖥️ Manga Search Results',
+                  })
+                  .setFields([
+                    {
+                      name: '🔤 Title',
+                      value: hyperlink(item.title, item.url),
+                      inline: true,
+                    },
+                    {
+                      name: '🔠 Type',
+                      value: item.type ?? italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '📚 Volume & Chapter',
+                      value: `${
+                        item.volumes
+                          ? pluralize('volume', item.volumes, true)
+                          : '??? volumes'
+                      } ${
+                        item.chapters
+                          ? `(${pluralize('chapter', item.chapters, true)})`
+                          : ''
+                      }`,
+                      inline: true,
+                    },
+                    {
+                      name: '📊 Stats',
+                      value:
+                        item.score ||
+                        item.scored_by ||
+                        item.members ||
+                        item.rank ||
+                        item.favorites
+                          ? `${
+                              item.score
+                                ? `⭐ ${
+                                    item.score
+                                  } (by ${item.scored_by.toLocaleString()} ${pluralize(
+                                    'user',
+                                    item.scored_by,
+                                  )})`
+                                : ''
+                            } | 👥 ${item.members.toLocaleString()}${
+                              item.rank ? ` | #️⃣ #${item.rank}` : ''
+                            } | ❤️ ${item.favorites}`
+                          : italic('None'),
+                      inline: true,
+                    },
+                    {
+                      name: '⌛ Status',
+                      value: item.status ?? italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '📆 Published',
+                      value: item.published.string ?? italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '📝 Authors',
+                      value: item.authors.length
+                        ? item.authors
+                            .map((author) => hyperlink(author.name, author.url))
+                            .join(', ')
+                        : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '📰 Serializations',
+                      value: item.serializations.length
+                        ? item.serializations
+                            .map((serialization) =>
+                              hyperlink(serialization.name, serialization.url),
+                            )
+                            .join(', ')
+                        : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '🔠 Genres',
+                      value:
+                        item.genres.length ||
+                        item.explicit_genres.length ||
+                        item.themes.length ||
+                        item.demographics.length
+                          ? [
+                              ...item.genres,
+                              ...item.explicit_genres,
+                              ...item.themes,
+                              ...item.demographics,
+                            ]
+                              .map((genre) => hyperlink(genre.name, genre.url))
+                              .join(', ')
+                          : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '💫 Synopsis',
+                      value: item.synopsis
+                        ? truncate(item.synopsis, 1024)
+                        : italic('No available'),
+                    },
+                  ]);
+
+                if (item.images) {
+                  newEmbed.setThumbnail(
+                    item.images.jpg.image_url ?? item.images.webp.image_url,
+                  );
+                }
+
+                return newEmbed;
+              });
+
+              const pagination = new Pagination(interaction);
+
+              pagination.setEmbeds(embeds);
+
+              await pagination.render();
+            });
+          });
+      }
+
       case 'image': {
         const query = options.getString('query');
 
