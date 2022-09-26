@@ -334,9 +334,8 @@ module.exports = {
                       .setColor(guild.members.me.displayHexColor)
                       .setTimestamp(Date.now())
                       .setFooter({
-                        text: `${client.user.username} | Page ${index + 1} of ${
-                          array.length
-                        }`,
+                        text: `${client.user.username} | Page ${index + 1} of ${array.length
+                          }`,
                         iconURL: client.user.displayAvatarURL({
                           dynamic: true,
                         }),
@@ -557,9 +556,8 @@ module.exports = {
                   .setColor(guild.members.me.displayHexColor)
                   .setTimestamp(Date.now())
                   .setFooter({
-                    text: `${client.user.username} | Page ${index + 1} of ${
-                      array.length
-                    }`,
+                    text: `${client.user.username} | Page ${index + 1} of ${array.length
+                      }`,
                     iconURL: client.user.displayAvatarURL({
                       dynamic: true,
                     }),
@@ -602,12 +600,11 @@ module.exports = {
                       name: '📆 Premiered',
                       value:
                         item.season || item.year
-                          ? `${
-                              item.season
-                                ? item.season.charAt(0).toUpperCase() +
-                                  item.season.slice(1)
-                                : ''
-                            } ${item.year ?? ''}`
+                          ? `${item.season
+                            ? item.season.charAt(0).toUpperCase() +
+                            item.season.slice(1)
+                            : ''
+                          } ${item.year ?? ''}`
                           : italic('Unknown'),
                       inline: true,
                     },
@@ -615,18 +612,27 @@ module.exports = {
                       name: '🏢 Studios',
                       value: item.studios.length
                         ? item.studios
-                            .map((studio) => hyperlink(studio.name, studio.url))
-                            .join(', ')
+                          .map((studio) => hyperlink(studio.name, studio.url))
+                          .join(', ')
                         : italic('Unknown'),
                       inline: true,
                     },
                     {
                       name: '🔠 Genres',
-                      value: item.genres.length
-                        ? item.genres
+                      value:
+                        item.genres.length ||
+                          item.explicit_genres.length ||
+                          item.themes.length ||
+                          item.demographics.length
+                          ? [
+                            ...item.genres,
+                            ...item.explicit_genres,
+                            ...item.themes,
+                            ...item.demographics,
+                          ]
                             .map((genre) => hyperlink(genre.name, genre.url))
                             .join(', ')
-                        : italic('Unknown'),
+                          : italic('Unknown'),
                       inline: true,
                     },
                     {
@@ -634,6 +640,10 @@ module.exports = {
                       value: item.synopsis
                         ? truncate(item.synopsis, 1024)
                         : italic('No available'),
+                    },
+                    {
+                      name: '🎞️ Trailer',
+                      value: item.trailer.url ?? italic('No available'),
                     },
                   ]);
 
