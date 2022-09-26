@@ -329,4 +329,116 @@ module.exports = {
       value: 'pfp',
     },
   ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  animeSearchTypeChoices: [
+    {
+      name: '📺 TV',
+      value: 'tv',
+    },
+    {
+      name: '🎞️ Movie',
+      value: 'movie',
+    },
+    {
+      name: '🎥 OVA',
+      value: 'ova',
+    },
+    {
+      name: '✨ Special',
+      value: 'special',
+    },
+    {
+      name: '📡 ONA',
+      value: 'ona',
+    },
+    {
+      name: '🎶 Music',
+      value: 'ona',
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  animeSearchStatusChoices: [
+    {
+      name: '⏳ Airing',
+      value: 'airing',
+    },
+    {
+      name: '⌛ Finished Airing',
+      value: 'complete',
+    },
+    {
+      name: '🔜 Not Aired Yet',
+      value: 'upcoming',
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  animeSearchOrderChoices: [
+    {
+      name: '🆔 ID',
+      value: 'mal_id',
+    },
+    {
+      name: '🔤 Title',
+      value: 'title',
+    },
+    {
+      name: '🔠 type',
+      value: 'type',
+    },
+    {
+      name: '🔞 Rating',
+      value: 'rating',
+    },
+    {
+      name: '📆 Start Date',
+      value: 'start_date',
+    },
+    {
+      name: '📆 End Date',
+      value: 'end_date',
+    },
+    {
+      name: '🎬 Episodes',
+      value: 'episodes',
+    },
+    {
+      name: '⭐ Scored',
+      value: 'score',
+    },
+    {
+      name: '👥 Scored By',
+      value: 'scored_by',
+    },
+    {
+      name: '#️⃣ Rank',
+      value: 'rank',
+    },
+    {
+      name: '📈 Popularity',
+      value: 'popularity',
+    },
+    {
+      name: '👥 Members',
+      value: 'members',
+    },
+    {
+      name: '❤️ Favorites',
+      value: 'favorites',
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  animeSearchSortChoices: [
+    {
+      name: '⬆️ Descending',
+      value: 'desc',
+    },
+    {
+      name: '⬇️ Ascending',
+      value: 'asc',
+    },
+  ],
 };

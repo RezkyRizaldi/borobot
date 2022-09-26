@@ -14,6 +14,10 @@ const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
 
 const {
+  animeSearchOrderChoices,
+  animeSearchSortChoices,
+  animeSearchStatusChoices,
+  animeSearchTypeChoices,
   githubRepoSortingTypeChoices,
   githubRepoOrderingTypeChoices,
   mdnLocales,
@@ -33,6 +37,46 @@ module.exports = {
             .setName('query')
             .setDescription('🔠 The image search query.')
             .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('anime')
+        .setDescription('🖥️ Search an anime from MyAnimeList.')
+        .addStringOption((option) =>
+          option
+            .setName('title')
+            .setDescription('🔤 The anime title search query.')
+            .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('type')
+            .setDescription('🔤 The anime type search query.')
+            .addChoices(...animeSearchTypeChoices),
+        )
+        .addIntegerOption((option) =>
+          option
+            .setName('score')
+            .setDescription('🔤 The anime score search query.'),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('status')
+            .setDescription('🔤 The anime status search query.')
+            .addChoices(...animeSearchStatusChoices),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('order')
+            .setDescription('🔤 The anime order search query.')
+            .addChoices(...animeSearchOrderChoices),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('sort')
+            .setDescription('🔣 The Search query sort type.')
+            .addChoices(...animeSearchSortChoices),
         ),
     )
     .addSubcommandGroup((subcommandGroup) =>
@@ -449,6 +493,166 @@ module.exports = {
             },
           );
         });
+      }
+
+      case 'anime': {
+        const title = options.getString('title');
+        const type = options.getString('type');
+        const score = options.getInteger('score');
+        const status = options.getString('status');
+        const order = options.getString('order');
+        const sort = options.getString('sort');
+
+        const query = new URLSearchParams({ q: encodeURIComponent(title) });
+
+        if (type) {
+          query.append('type', type);
+        }
+
+        if (score) {
+          if (score < 1 || score > 10) {
+            return interaction.deferReply({ ephemeral: true }).then(
+              async () =>
+                await interaction.editReply({
+                  content: 'You have to specify a number between 1 to 10.',
+                }),
+            );
+          }
+
+          const formattedScore = Number(
+            score.toString().replace(/,/g, '.'),
+          ).toFixed(2);
+
+          query.append('score', formattedScore);
+        }
+
+        if (status) {
+          query.append('status', status);
+        }
+
+        if (order) {
+          query.append('order', order);
+        }
+
+        if (sort) {
+          query.append('sort', sort);
+        }
+
+        return axios
+          .get(`https://api.jikan.moe/v4/anime?${query}`)
+          .then(async ({ data: { data } }) => {
+            if (!data.length) {
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: `No anime found with name ${inlineCode(title)}`,
+                  }),
+              );
+            }
+
+            await interaction.deferReply().then(async () => {
+              /** @type {import('discord.js').EmbedBuilder[]} */
+              const embeds = data.map((item, index, array) => {
+                const newEmbed = new EmbedBuilder()
+                  .setColor(guild.members.me.displayHexColor)
+                  .setTimestamp(Date.now())
+                  .setFooter({
+                    text: `${client.user.username} | Page ${index + 1} of ${
+                      array.length
+                    }`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  })
+                  .setAuthor({
+                    name: '🖥️ Anime Search Results',
+                  })
+                  .setFields([
+                    {
+                      name: '🔤 Title',
+                      value: hyperlink(item.title, item.url),
+                      inline: true,
+                    },
+                    {
+                      name: '🔠 Type',
+                      value: item.type,
+                      inline: true,
+                    },
+                    {
+                      name: '🎬 Episode',
+                      value: pluralize('episode', item.episodes, true),
+                      inline: true,
+                    },
+                    {
+                      name: '📊 Stats',
+                      value: `⭐ ${item.score} | 👥 ${item.members} | #️⃣ Ranked #${item.rank}`,
+                      inline: true,
+                    },
+                    {
+                      name: '⌛ Status',
+                      value: item.status,
+                      inline: true,
+                    },
+                    {
+                      name: '📆 Aired',
+                      value: item.aired.string ?? italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '📆 Premiered',
+                      value:
+                        item.season || item.year
+                          ? `${
+                              item.season
+                                ? item.season.charAt(0).toUpperCase() +
+                                  item.season.slice(1)
+                                : ''
+                            } ${item.year ?? ''}`
+                          : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '🏢 Studios',
+                      value: item.studios.length
+                        ? item.studios
+                            .map((studio) => hyperlink(studio.name, studio.url))
+                            .join(', ')
+                        : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '🔠 Genres',
+                      value: item.genres.length
+                        ? item.genres
+                            .map((genre) => hyperlink(genre.name, genre.url))
+                            .join(', ')
+                        : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '💫 Synopsis',
+                      value: item.synopsis
+                        ? truncate(item.synopsis, 1024)
+                        : italic('No available'),
+                    },
+                  ]);
+
+                if (item.images) {
+                  newEmbed.setThumbnail(
+                    item.images.jpg.image_url ?? item.images.webp.image_url,
+                  );
+                }
+
+                return newEmbed;
+              });
+
+              const pagination = new Pagination(interaction);
+
+              pagination.setEmbeds(embeds);
+
+              await pagination.render();
+            });
+          });
       }
 
       case 'definition': {
