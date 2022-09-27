@@ -30,7 +30,7 @@ module.exports = {
       .then((audit) => audit.entries.first());
 
     const message = new EmbedBuilder()
-      .setDescription(`${user.tag} has been unbanned by ${UnbanLog.executor}`)
+      .setDescription(`${user.tag} has been unbanned by ${UnbanLog.executor}.`)
       .setColor(guild.members.me.displayHexColor)
       .setAuthor({
         name: 'Member Unbanned',

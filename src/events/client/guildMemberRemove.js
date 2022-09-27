@@ -123,7 +123,7 @@ module.exports = {
           async (integrations) =>
             await integrations
               .find((integration) => integration.account.id === user.id)
-              .delete(kickLog.reason ?? 'Kicked out from the server.'),
+              .delete('Kicked out from the server'),
         )
         .catch((err) => console.error(err));
     }

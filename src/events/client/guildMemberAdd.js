@@ -21,6 +21,14 @@ module.exports = {
       token: process.env.MEMBER_GUILD_WELCOME_WEBHOOK_TOKEN,
     });
 
+    const botRole = guild.roles.cache.find(
+      (role) => role.id === process.env.BOT_ROLE_ID,
+    );
+
+    const memberRole = guild.roles.cache.find(
+      (role) => role.id === process.env.MEMBER_ROLE_ID,
+    );
+
     const embed = new EmbedBuilder()
       .setAuthor({
         name: `👋 Welcome to ${guild}`,
@@ -35,45 +43,8 @@ module.exports = {
 
     await member.send({ embeds: [embed] }).catch((err) => console.error(err));
 
-    if (user.bot) {
-      const botRole = guild.roles.cache.find(
-        (role) => role.id === process.env.BOT_ROLE_ID,
-      );
-
-      return member.roles
-        .add(botRole)
-        .then(async (m) => {
-          embed.setColor(m.displayHexColor);
-          embed.setThumbnail(member.displayAvatarURL({ dynamic: true }));
-          embed.setFields([
-            {
-              name: '🆔 Member ID',
-              value: user.id,
-              inline: true,
-            },
-            {
-              name: '🎊 Account Created',
-              value: time(user.createdAt, TimestampStyles.RelativeTime),
-              inline: true,
-            },
-            {
-              name: '📆 Joined At',
-              value: time(m.joinedAt, TimestampStyles.RelativeTime),
-              inline: true,
-            },
-          ]);
-
-          await WelcomeLogger.send({ embeds: [embed] });
-        })
-        .catch((err) => console.error(err));
-    }
-
-    const memberRole = guild.roles.cache.find(
-      (role) => role.id === process.env.MEMBER_ROLE_ID,
-    );
-
     await member.roles
-      .add(memberRole)
+      .add(!user.bot ? memberRole : botRole)
       .then(async (m) => {
         embed.setColor(m.displayHexColor);
         embed.setThumbnail(member.displayAvatarURL({ dynamic: true }));
