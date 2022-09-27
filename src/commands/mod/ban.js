@@ -5,9 +5,10 @@ const {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } = require('discord.js');
+const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 
-const { banChoices } = require('../../constants');
+const { banChoices, banTempChoices } = require('../../constants');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -31,6 +32,38 @@ module.exports = {
               "💬 The amount of member's recent message history to delete.",
             )
             .addChoices(...banChoices)
+            .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('reason')
+            .setDescription('📃 The reason for banning the member.'),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('temp')
+        .setDescription('🔐 Ban a member temporarily from the server.')
+        .addUserOption((option) =>
+          option
+            .setName('member')
+            .setDescription('👤 The member to ban.')
+            .setRequired(true),
+        )
+        .addIntegerOption((option) =>
+          option
+            .setName('delete_messages')
+            .setDescription(
+              "💬 The amount of member's recent message history to delete.",
+            )
+            .addChoices(...banChoices)
+            .setRequired(true),
+        )
+        .addIntegerOption((option) =>
+          option
+            .setName('duration')
+            .setDescription('⏱️ The duration of the ban.')
+            .addChoices(...banTempChoices)
             .setRequired(true),
         )
         .addStringOption((option) =>
@@ -74,7 +107,7 @@ module.exports = {
         case 'add': {
           /** @type {import('discord.js').GuildMember} */
           const member = options.getMember('member');
-          const deleteMessageDays = options.getInteger('delete_messages');
+          const deleteMessageSeconds = options.getInteger('delete_messages');
           const reason = options.getString('reason') ?? 'No reason';
 
           if (!member.bannable) {
@@ -89,26 +122,101 @@ module.exports = {
             });
           }
 
-          return member.ban({ deleteMessageDays, reason }).then(async (m) => {
-            await interaction.editReply({
-              content: `Successfully ${bold('banned')} ${m.user.tag}.`,
-            });
-
-            await m
-              .send({
-                content: `You have been banned from ${bold(
-                  guild,
-                )} for ${inlineCode(reason)}`,
-              })
-              .catch(async (err) => {
-                console.error(err);
-
-                await interaction.followUp({
-                  content: `Could not send a DM to ${m}.`,
-                  ephemeral: true,
-                });
+          return member
+            .ban({ deleteMessageSeconds, reason })
+            .then(async (m) => {
+              await interaction.editReply({
+                content: `Successfully ${bold('banned')} ${m.user.tag}.`,
               });
-          });
+
+              await m
+                .send({
+                  content: `You have been banned from ${bold(
+                    guild,
+                  )} for ${inlineCode(reason)}`,
+                })
+                .catch(async (err) => {
+                  console.error(err);
+
+                  await interaction.followUp({
+                    content: `Could not send a DM to ${m}.`,
+                    ephemeral: true,
+                  });
+                });
+            });
+        }
+
+        case 'temp': {
+          /** @type {import('discord.js').GuildMember} */
+          const member = options.getMember('member');
+          const deleteMessageSeconds = options.getInteger('delete_messages');
+          const duration = options.getInteger('duration');
+          const reason = options.getString('reason') ?? 'No reason';
+
+          if (!member.bannable) {
+            return interaction.editReply({
+              content: `You don't have appropiate permissions to ban ${member}.`,
+            });
+          }
+
+          if (member.id === user.id) {
+            return interaction.editReply({
+              content: "You can't ban yourself.",
+            });
+          }
+
+          return member
+            .ban({ deleteMessageSeconds, reason })
+            .then(async (m) => {
+              await interaction.editReply({
+                content: `Successfully ${bold('banned')} ${
+                  m.user.tag
+                } for ${inlineCode(`${duration / 1000} seconds`)}.`,
+              });
+
+              await m
+                .send({
+                  content: `You have been banned from ${bold(
+                    guild,
+                  )} for ${inlineCode(reason)}`,
+                })
+                .catch(async (err) => {
+                  console.error(err);
+
+                  await interaction.followUp({
+                    content: `Could not send a DM to ${m}.`,
+                    ephemeral: true,
+                  });
+                });
+
+              await wait(duration);
+
+              const bannedUser = guild.bans.cache.find(
+                (ban) => ban.user.id === m.user.id,
+              );
+
+              await guild.members
+                .unban(bannedUser, 'ban temporary duration has passed.')
+                .then(
+                  async (u) =>
+                    await u
+                      .send({
+                        content: `Congratulations! You have been unbanned from ${bold(
+                          guild,
+                        )} for ${inlineCode(
+                          'ban temporary duration has passed.',
+                        )}`,
+                      })
+                      .catch(async (err) => {
+                        console.error(err);
+
+                        await interaction.followUp({
+                          content: `Could not send a DM to ${u}.`,
+                          ephemeral: true,
+                        });
+                      }),
+                );
+            });
         }
 
         case 'remove': {
