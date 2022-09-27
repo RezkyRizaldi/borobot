@@ -1,14 +1,89 @@
 const {
   bold,
+  EmbedBuilder,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } = require('discord.js');
+const { Pagination } = require('pagination.djs');
+
+const { applyHexColor } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('role')
     .setDescription('🛠️ Set the roles for a member.')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('modify')
+        .setDescription('➕ Modify a role.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('name')
+            .setDescription('🔤 Modify the role name.')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription("🔤 The role's new name.")
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for adding the role.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('color')
+            .setDescription('🎨 Modify the role color.')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('color')
+                .setDescription("🎨 The role's new color.")
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for adding the role.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('position')
+            .setDescription('🎨 Modify the role position (hierarchy).')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addRoleOption((option) =>
+              option
+                .setName('to_role')
+                .setDescription('🛠️ The role to be modified.')
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for adding the role.'),
+            ),
+        ),
+    )
     .addSubcommand((subcommand) =>
       subcommand
         .setName('add')
@@ -52,6 +127,11 @@ module.exports = {
             .setName('reason')
             .setDescription('📃 The reason for removing the role.'),
         ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('list')
+        .setDescription('📄 Show list of server roles.'),
     ),
   type: 'Chat Input',
 
@@ -60,7 +140,7 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { client, guild, options } = interaction;
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
@@ -68,44 +148,122 @@ module.exports = {
     /** @type {import('discord.js').Role} */
     const role = options.getRole('role');
     const reason = options.getString('reason') ?? 'No reason';
-    const { roles } = member;
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
-      switch (options.getSubcommand()) {
-        case 'add':
+      switch (options.getSubcommandGroup()) {
+        case 'modify':
+          if (!role.editable) {
+            return interaction.editReply({
+              content: `You don't have appropiate permissions to modify the ${role} role.`,
+            });
+          }
+
+          switch (options.getSubcommand()) {
+            case 'name': {
+              const name = options.getString('name');
+
+              if (name.toLowerCase() === role.name.toLowerCase()) {
+                return interaction.editReply({
+                  content: 'You have to specify a different name to modify.',
+                });
+              }
+
+              return role.setName(name, reason).then(
+                async (r) =>
+                  await interaction.editReply({
+                    content: `Successfully ${bold('modified')} ${r}.`,
+                  }),
+              );
+            }
+
+            case 'color': {
+              const color = options.getString('color');
+
+              const convertedColor = applyHexColor(color);
+
+              if (
+                convertedColor.toLowerCase() === role.hexColor.toLowerCase()
+              ) {
+                return interaction.editReply({
+                  content: 'You have to specify a different color to modify.',
+                });
+              }
+
+              return role.setColor(convertedColor, reason).then(
+                async (r) =>
+                  await interaction.editReply({
+                    content: `Successfully ${bold('modified')} ${r}.`,
+                  }),
+              );
+            }
+
+            case 'position': {
+              /** @type {import('discord.js').Role} */
+              const target = options.getRole('to_role');
+
+              if (target.permissions.bitfield > role.permissions.bitfield) {
+                return interaction.editReply({
+                  content: `You don't have appropiate permissions to modify ${target} role's position.`,
+                });
+              }
+
+              if (role.position === target.position) {
+                return interaction.editReply({
+                  content:
+                    'You have to specify a different position to modify.',
+                });
+              }
+
+              return role.setPosition(target.position, { reason }).then(
+                async (r) =>
+                  await interaction.editReply({
+                    content: `Successfully ${bold('modified')} ${r}.`,
+                  }),
+              );
+            }
+          }
+          break;
+      }
+    });
+
+    switch (options.getSubcommand()) {
+      case 'add':
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
           if (!member.manageable) {
             return interaction.editReply({
               content: `You don't have appropiate permissions to add ${role} role to ${member}.`,
             });
           }
 
-          if (roles.cache.has(role.id)) {
+          if (member.roles.cache.has(role.id)) {
             return interaction.editReply({
               content: `${member} is already have ${role} role.`,
             });
           }
 
-          return roles.add(role, reason).then(
+          await member.roles.add(role, reason).then(
             async (m) =>
               await interaction.editReply({
                 content: `Successfully ${bold('added')} ${role} role to ${m}.`,
               }),
           );
+        });
 
-        case 'remove':
+      case 'remove':
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
           if (!member.manageable) {
             return interaction.editReply({
               content: `You don't have appropiate permissions to remove ${role} role from ${member}.`,
             });
           }
 
-          if (!roles.cache.has(role.id)) {
+          if (!member.roles.cache.has(role.id)) {
             return interaction.editReply({
               content: `${member} doesn't have ${role} role.`,
             });
           }
 
-          return roles.remove(role, reason).then(
+          await member.roles.remove(role, reason).then(
             async (m) =>
               await interaction.editReply({
                 content: `Successfully ${bold(
@@ -113,7 +271,61 @@ module.exports = {
                 )} ${role} role from ${m}.`,
               }),
           );
-      }
-    });
+        });
+
+      case 'list':
+        return interaction.deferReply().then(
+          async () =>
+            await guild.roles.fetch().then(async (rls) => {
+              if (!rls.size) {
+                return interaction.editReply({
+                  content: `${bold(guild)} doesn't have any role.`,
+                });
+              }
+
+              const descriptions = [...rls.values()]
+                .filter((r) => r.id !== guild.roles.everyone.id)
+                .sort((a, b) => b.position - a.position)
+                .map((r, index) => `${bold(`${index + 1}.`)} ${r}`);
+
+              if (rls.size > 10) {
+                const pagination = new Pagination(interaction, {
+                  limit: 10,
+                });
+
+                pagination.setColor(guild.members.me.displayHexColor);
+                pagination.setTimestamp(Date.now());
+                pagination.setFooter({
+                  text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                  iconURL: client.user.displayAvatarURL({
+                    dynamic: true,
+                  }),
+                });
+                pagination.setAuthor({
+                  name: `🔐 ${guild} Role Lists (${rls.size})`,
+                });
+                pagination.setDescriptions(descriptions);
+
+                return pagination.render();
+              }
+
+              const embed = new EmbedBuilder()
+                .setColor(guild.members.me.displayHexColor)
+                .setTimestamp(Date.now())
+                .setFooter({
+                  text: client.user.username,
+                  iconURL: client.user.displayAvatarURL({
+                    dynamic: true,
+                  }),
+                })
+                .setAuthor({
+                  name: `🔐 ${guild} Role Lists (${rls.size})`,
+                })
+                .setDescription(descriptions.join('\n'));
+
+              await interaction.editReply({ embeds: [embed] });
+            }),
+        );
+    }
   },
 };

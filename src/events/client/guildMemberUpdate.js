@@ -100,6 +100,7 @@ module.exports = {
       const removedRoles = oldMember.roles.cache.filter(
         (role) => !newMember.roles.cache.has(role.id),
       );
+
       if (removedRoles.size) {
         embed.setAuthor({
           name: 'Roles Removed',
@@ -129,6 +130,7 @@ module.exports = {
       const addedRoles = newMember.roles.cache.filter(
         (role) => !oldMember.roles.cache.has(role.id),
       );
+
       if (addedRoles.size) {
         embed.setAuthor({
           name: 'Roles Added',
@@ -173,7 +175,7 @@ module.exports = {
         `${newMember} has been timed out by ${timeoutLog.executor} at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
-        )}`,
+        )}.`,
       );
       embed.setFields([
         {
@@ -212,7 +214,7 @@ module.exports = {
         } at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
-        )}`,
+        )}.`,
       );
 
       if (timeoutRemoveLog.target.id === newMember.id) {

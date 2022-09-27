@@ -41,7 +41,7 @@ module.exports = {
         `${oldState.member} has join to ${newState.channel} at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
-        )}`,
+        )}.`,
       );
 
       return VoiceJoinLogger.send({ embeds: [embed] }).catch((err) =>
@@ -64,7 +64,7 @@ module.exports = {
         `${newState.member} has left from ${oldState.channel} at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
-        )}`,
+        )}.`,
       );
 
       return VoiceLeaveLogger.send({ embeds: [embed] }).catch((err) =>
@@ -98,7 +98,7 @@ module.exports = {
         } by ${moveLog.executor} at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
-        )}`,
+        )}.`,
       );
       embed.setFields([
         {
@@ -136,7 +136,7 @@ module.exports = {
         } at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
-        )}`,
+        )}.`,
       );
       embed.setFields([
         {
@@ -174,7 +174,7 @@ module.exports = {
         } at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
-        )}`,
+        )}.`,
       );
       embed.setFields([
         {
@@ -212,7 +212,7 @@ module.exports = {
         } at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
-        )}`,
+        )}.`,
       );
       embed.setFields([
         {
@@ -250,7 +250,7 @@ module.exports = {
         } at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
-        )}`,
+        )}.`,
       );
       embed.setFields([
         {
@@ -279,7 +279,7 @@ module.exports = {
         `${oldState.member} is streaming in ${newState.channel} at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
-        )}`,
+        )}.`,
       );
 
       return VoiceStreamLogger.send({ embeds: [embed] }).catch((err) =>

@@ -115,5 +115,17 @@ module.exports = {
         console.error(err),
       );
     }
+
+    if (user.bot) {
+      return guild
+        .fetchIntegrations()
+        .then(
+          async (integrations) =>
+            await integrations
+              .find((integration) => integration.account.id === user.id)
+              .delete('Kicked out from the server'),
+        )
+        .catch((err) => console.error(err));
+    }
   },
 };

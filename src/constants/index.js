@@ -43,31 +43,55 @@ module.exports = {
     },
     {
       name: '📆 Previous 1 Day',
-      value: 1,
+      value: 1000 * 60 * 60 * 24,
     },
     {
       name: '📆 Previous 2 Days',
-      value: 2,
+      value: 1000 * 60 * 60 * 24 * 2,
     },
     {
       name: '📆 Previous 3 Days',
-      value: 3,
+      value: 1000 * 60 * 60 * 24 * 3,
     },
     {
       name: '📆 Previous 4 Days',
-      value: 4,
+      value: 1000 * 60 * 60 * 24 * 4,
     },
     {
       name: '📆 Previous 5 Days',
-      value: 5,
+      value: 1000 * 60 * 60 * 24 * 5,
     },
     {
       name: '📆 Previous 6 Days',
-      value: 6,
+      value: 1000 * 60 * 60 * 24 * 6,
     },
     {
       name: '📆 Previous 7 Days',
-      value: 7,
+      value: 1000 * 60 * 60 * 24 * 7,
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  banTempChoices: [
+    {
+      name: '🕒 5 secs',
+      value: 5 * 1000,
+    },
+    {
+      name: '🕒 15 secs',
+      value: 15 * 1000,
+    },
+    {
+      name: '🕒 30 secs',
+      value: 30 * 1000,
+    },
+    {
+      name: '🕒 45 secs',
+      value: 45 * 1000,
+    },
+    {
+      name: '🕒 60 secs',
+      value: 60 * 1000,
     },
   ],
 

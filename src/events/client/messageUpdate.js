@@ -42,7 +42,7 @@ module.exports = {
         `A message was ${bold('edited')} in ${oldMessage.channel} at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
-        )}`,
+        )}.`,
       );
 
       return MessageLogger.send({ embeds: [embed] }).catch((err) =>
@@ -67,9 +67,8 @@ module.exports = {
         'Click here to jump to message',
       )} by ${newMessage.author} was ${bold('edited')} in ${
         newMessage.channel
-      } at ${time(newMessage.editedAt, TimestampStyles.RelativeTime)}`,
+      } at ${time(newMessage.editedAt, TimestampStyles.RelativeTime)}.`,
     );
-
     embed.setFields(
       {
         name: 'Before',

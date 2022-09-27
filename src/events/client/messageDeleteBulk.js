@@ -53,7 +53,7 @@ module.exports = {
         } at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
-        )}`,
+        )}.`,
       );
 
       return MessageLogger.send({ embeds: [embed] }).catch((err) =>
@@ -94,7 +94,7 @@ module.exports = {
             )} at ${time(
               Math.floor(Date.now() / 1000),
               TimestampStyles.RelativeTime,
-            )}`,
+            )}.`,
         )
         .join('\n')}\n\n${bold('Deleted Messages')}\n${groupedMessages
         .flatMap(
@@ -136,7 +136,7 @@ module.exports = {
     } at ${time(
       Math.floor(Date.now() / 1000),
       TimestampStyles.RelativeTime,
-    )}\n\n${bold('Deleted Messages')}\n${messages
+    )}.\n\n${bold('Deleted Messages')}\n${messages
       .map((message) => applyMessageType(message))
       .join('\n')}`;
 
