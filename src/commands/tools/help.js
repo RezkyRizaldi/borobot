@@ -33,19 +33,12 @@ module.exports = {
 
     const cmds = commands
       .filter(({ name }) => name !== 'help')
-      .map(
-        ({
-          name,
-          description,
-          type,
-          options: opts,
-        }) => ({
-          name,
-          description: description ?? 'No description.',
-          type,
-          options: opts,
-        }),
-      )
+      .map(({ name, description, type, options: opts }) => ({
+        name,
+        description: description ?? 'No description.',
+        type,
+        options: opts,
+      }))
       .sort((a, b) => a.name.localeCompare(b.name));
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {

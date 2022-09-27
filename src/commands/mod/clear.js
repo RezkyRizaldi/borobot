@@ -1,10 +1,10 @@
 const {
   bold,
+  Collection,
   EmbedBuilder,
   PermissionFlagsBits,
   SlashCommandBuilder,
   userMention,
-  Collection,
 } = require('discord.js');
 const pluralize = require('pluralize');
 
@@ -86,7 +86,7 @@ module.exports = {
 
       let i = 0;
 
-      /** @type {import('discord.js').Collection<import('discord.js').Snowflake, import('discord.js').Message>} */
+      /** @type {Collection<import('discord.js').Snowflake, import('discord.js').Message>} */
       const filteredMessages = new Collection();
 
       switch (true) {
@@ -235,16 +235,18 @@ module.exports = {
 
               return interaction.editReply({ embeds: [embed] });
             }
+
+            default: {
+              embed.setDescription(
+                `Deleted ${bold(`${msgs.size}`)} ${pluralize(
+                  'message',
+                  msgs.size,
+                )}.`,
+              );
+
+              return interaction.editReply({ embeds: [embed] });
+            }
           }
-
-          embed.setDescription(
-            `Deleted ${bold(`${msgs.size}`)} ${pluralize(
-              'message',
-              msgs.size,
-            )}.`,
-          );
-
-          await interaction.editReply({ embeds: [embed] });
         });
     });
   },
