@@ -61,6 +61,10 @@ module.exports = {
           value: newRole.name,
         },
       ]);
+
+      return RoleLogger.send({ embeds: [embed] }).catch((err) =>
+        console.error(err),
+      );
     }
 
     if (oldRole.hexColor !== newRole.hexColor) {
@@ -82,10 +86,10 @@ module.exports = {
           value: newRole.hexColor,
         },
       ]);
-    }
 
-    await RoleLogger.send({ embeds: [embed] }).catch((err) =>
-      console.error(err),
-    );
+      return RoleLogger.send({ embeds: [embed] }).catch((err) =>
+        console.error(err),
+      );
+    }
   },
 };

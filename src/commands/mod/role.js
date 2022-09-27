@@ -60,6 +60,28 @@ module.exports = {
                 .setName('reason')
                 .setDescription('📃 The reason for adding the role.'),
             ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('position')
+            .setDescription('🎨 Modify the role position (hierarchy).')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addRoleOption((option) =>
+              option
+                .setName('to_role')
+                .setDescription('🛠️ The role to be modified.')
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for adding the role.'),
+            ),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -167,7 +189,32 @@ module.exports = {
                 });
               }
 
-              return role.set(convertedColor, reason).then(
+              return role.setColor(convertedColor, reason).then(
+                async (r) =>
+                  await interaction.editReply({
+                    content: `Successfully ${bold('modified')} ${r}.`,
+                  }),
+              );
+            }
+
+            case 'position': {
+              /** @type {import('discord.js').Role} */
+              const target = options.getRole('to_role');
+
+              if (target.permissions.bitfield > role.permissions.bitfield) {
+                return interaction.editReply({
+                  content: `You don't have appropiate permissions to modify ${target} role's position.`,
+                });
+              }
+
+              if (role.position === target.position) {
+                return interaction.editReply({
+                  content:
+                    'You have to specify a different position to modify.',
+                });
+              }
+
+              return role.setPosition(target.position, { reason }).then(
                 async (r) =>
                   await interaction.editReply({
                     content: `Successfully ${bold('modified')} ${r}.`,
