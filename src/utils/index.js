@@ -3,7 +3,6 @@ const applyAFKTimeout = require('./applyAFKTimeout');
 const applyHexColor = require('./applyHexColor');
 const applyMessageType = require('./applyMessageType');
 const applyNSFWLevel = require('./applyNSFWLevel');
-const applyPermission = require('./applyPermission');
 const applyPresence = require('./applyPresence');
 const applyRepeatMode = require('./applyRepeatMode');
 const serverMute = require('./serverMute');
@@ -25,7 +24,6 @@ module.exports = {
   applyHexColor,
   applyMessageType,
   applyNSFWLevel,
-  applyPermission,
   applyPresence,
   applyRepeatMode,
   serverMute,

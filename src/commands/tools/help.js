@@ -3,12 +3,9 @@ const {
   bold,
   EmbedBuilder,
   inlineCode,
-  italic,
   SlashCommandBuilder,
 } = require('discord.js');
 const { Pagination } = require('pagination.djs');
-
-const { applyPermission } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -29,7 +26,7 @@ module.exports = {
     /** @type {{ client: import('discord.js').Client, guild: import('discord.js').Guild, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
     const { client, guild, options } = interaction;
 
-    /** @type {{ commandArray: { name: String, description: String|undefined, type: Number|undefined, default_member_permissions: bigint|undefined, options: import('discord.js').ApplicationCommandChoicesOption[] }[] }} */
+    /** @type {{ commandArray: { name: String, description: String|undefined, type: Number|undefined, options: import('discord.js').ApplicationCommandChoicesOption[] }[] }} */
     const { commandArray: commands } = client;
 
     const command = options.getString('command');
@@ -41,13 +38,11 @@ module.exports = {
           name,
           description,
           type,
-          default_member_permissions,
           options: opts,
         }) => ({
           name,
           description: description ?? 'No description.',
           type,
-          permissions: default_member_permissions,
           options: opts,
         }),
       )
@@ -74,9 +69,7 @@ module.exports = {
         pagination.setFields(
           cmds.map((option) => ({
             name: option.type !== undefined ? option.name : `/${option.name}`,
-            value: `${option.description}\nPermissions: ${
-              applyPermission(option.permissions) ?? italic('None')
-            }`,
+            value: option.description,
           })),
         );
         pagination.paginateFields();
@@ -127,11 +120,6 @@ module.exports = {
             name: 'Command Type',
             value:
               cmd.type !== undefined ? 'Context Menu Command' : 'Slash Command',
-            inline: true,
-          },
-          {
-            name: 'Command Permissions',
-            value: applyPermission(cmd.permissions) ?? italic('None'),
             inline: true,
           },
         ]);
