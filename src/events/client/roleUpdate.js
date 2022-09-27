@@ -40,14 +40,18 @@ module.exports = {
       })
       .setAuthor({
         name: '⚒️ Role Edited',
-      })
-      .setDescription(
-        `${oldRole} role was ${bold('edited')} by ${editLog.executor} at ${time(
+      });
+
+    if (oldRole.name !== newRole.name) {
+      embed.setDescription(
+        `${oldRole} role's name was ${bold('edited')} by ${
+          editLog.executor
+        } at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
         )}.`,
-      )
-      .setFields([
+      );
+      embed.setFields([
         {
           name: 'Before',
           value: oldRole.name,
@@ -57,6 +61,28 @@ module.exports = {
           value: newRole.name,
         },
       ]);
+    }
+
+    if (oldRole.hexColor !== newRole.hexColor) {
+      embed.setDescription(
+        `${oldRole} role's color was ${bold('edited')} by ${
+          editLog.executor
+        } at ${time(
+          Math.floor(Date.now() / 1000),
+          TimestampStyles.RelativeTime,
+        )}.`,
+      );
+      embed.setFields([
+        {
+          name: 'Before',
+          value: oldRole.hexColor,
+        },
+        {
+          name: 'After',
+          value: newRole.hexColor,
+        },
+      ]);
+    }
 
     await RoleLogger.send({ embeds: [embed] }).catch((err) =>
       console.error(err),

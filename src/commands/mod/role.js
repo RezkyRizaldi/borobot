@@ -6,6 +6,8 @@ const {
 } = require('discord.js');
 const { Pagination } = require('pagination.djs');
 
+const { applyHexColor } = require('../../utils');
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('role')
@@ -29,6 +31,28 @@ module.exports = {
               option
                 .setName('name')
                 .setDescription("🔤 The role's new name.")
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for adding the role.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('color')
+            .setDescription('🎨 Modify the role color.')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('color')
+                .setDescription("🎨 The role's new color.")
                 .setRequired(true),
             )
             .addStringOption((option) =>
@@ -103,15 +127,15 @@ module.exports = {
     const role = options.getRole('role');
     const reason = options.getString('reason') ?? 'No reason';
 
-    switch (options.getSubcommandGroup()) {
-      case 'modify':
-        if (!role.editable) {
-          return interaction.editReply({
-            content: `You don't have appropiate permissions to modify the ${role} role.`,
-          });
-        }
+    await interaction.deferReply({ ephemeral: true }).then(async () => {
+      switch (options.getSubcommandGroup()) {
+        case 'modify':
+          if (!role.editable) {
+            return interaction.editReply({
+              content: `You don't have appropiate permissions to modify the ${role} role.`,
+            });
+          }
 
-        return interaction.deferReply({ ephemeral: true }).then(async () => {
           switch (options.getSubcommand()) {
             case 'name': {
               const name = options.getString('name');
@@ -129,9 +153,31 @@ module.exports = {
                   }),
               );
             }
+
+            case 'color': {
+              const color = options.getString('color');
+
+              const convertedColor = applyHexColor(color);
+
+              if (
+                convertedColor.toLowerCase() === role.hexColor.toLowerCase()
+              ) {
+                return interaction.editReply({
+                  content: 'You have to specify a different color to modify.',
+                });
+              }
+
+              return role.set(convertedColor, reason).then(
+                async (r) =>
+                  await interaction.editReply({
+                    content: `Successfully ${bold('modified')} ${r}.`,
+                  }),
+              );
+            }
           }
-        });
-    }
+          break;
+      }
+    });
 
     switch (options.getSubcommand()) {
       case 'add':

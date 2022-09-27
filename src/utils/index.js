@@ -1,5 +1,6 @@
 const applyActivity = require('./applyActivity');
 const applyAFKTimeout = require('./applyAFKTimeout');
+const applyHexColor = require('./applyHexColor');
 const applyMessageType = require('./applyMessageType');
 const applyNSFWLevel = require('./applyNSFWLevel');
 const applyPermission = require('./applyPermission');
@@ -21,6 +22,7 @@ const truncate = require('./truncate');
 module.exports = {
   applyActivity,
   applyAFKTimeout,
+  applyHexColor,
   applyMessageType,
   applyNSFWLevel,
   applyPermission,
