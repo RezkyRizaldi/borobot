@@ -11,6 +11,33 @@ module.exports = {
     .setName('role')
     .setDescription('🛠️ Set the roles for a member.')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('modify')
+        .setDescription('➕ Modify a role.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('name')
+            .setDescription('🔤 Modify the role name.')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription("🔤 The role's new name.")
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for adding the role.'),
+            ),
+        ),
+    )
     .addSubcommand((subcommand) =>
       subcommand
         .setName('add')
@@ -75,6 +102,36 @@ module.exports = {
     /** @type {import('discord.js').Role} */
     const role = options.getRole('role');
     const reason = options.getString('reason') ?? 'No reason';
+
+    switch (options.getSubcommandGroup()) {
+      case 'modify':
+        if (!role.editable) {
+          return interaction.editReply({
+            content: `You don't have appropiate permissions to modify the ${role} role.`,
+          });
+        }
+
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
+          switch (options.getSubcommand()) {
+            case 'name': {
+              const name = options.getString('name');
+
+              if (name.toLowerCase() === role.name.toLowerCase()) {
+                return interaction.editReply({
+                  content: 'You have to specify a different name to modify.',
+                });
+              }
+
+              return role.setName(name, reason).then(
+                async (r) =>
+                  await interaction.editReply({
+                    content: `Successfully ${bold('modified')} ${r}.`,
+                  }),
+              );
+            }
+          }
+        });
+    }
 
     switch (options.getSubcommand()) {
       case 'add':
