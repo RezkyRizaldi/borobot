@@ -1,8 +1,10 @@
 const {
   bold,
+  EmbedBuilder,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } = require('discord.js');
+const { Pagination } = require('pagination.djs');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -52,6 +54,11 @@ module.exports = {
             .setName('reason')
             .setDescription('📃 The reason for removing the role.'),
         ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('list')
+        .setDescription('📄 Show list of server roles.'),
     ),
   type: 'Chat Input',
 
@@ -60,7 +67,7 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { client, guild, options } = interaction;
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
@@ -68,44 +75,45 @@ module.exports = {
     /** @type {import('discord.js').Role} */
     const role = options.getRole('role');
     const reason = options.getString('reason') ?? 'No reason';
-    const { roles } = member;
 
-    await interaction.deferReply({ ephemeral: true }).then(async () => {
-      switch (options.getSubcommand()) {
-        case 'add':
+    switch (options.getSubcommand()) {
+      case 'add':
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
           if (!member.manageable) {
             return interaction.editReply({
               content: `You don't have appropiate permissions to add ${role} role to ${member}.`,
             });
           }
 
-          if (roles.cache.has(role.id)) {
+          if (member.roles.cache.has(role.id)) {
             return interaction.editReply({
               content: `${member} is already have ${role} role.`,
             });
           }
 
-          return roles.add(role, reason).then(
+          await member.roles.add(role, reason).then(
             async (m) =>
               await interaction.editReply({
                 content: `Successfully ${bold('added')} ${role} role to ${m}.`,
               }),
           );
+        });
 
-        case 'remove':
+      case 'remove':
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
           if (!member.manageable) {
             return interaction.editReply({
               content: `You don't have appropiate permissions to remove ${role} role from ${member}.`,
             });
           }
 
-          if (!roles.cache.has(role.id)) {
+          if (!member.roles.cache.has(role.id)) {
             return interaction.editReply({
               content: `${member} doesn't have ${role} role.`,
             });
           }
 
-          return roles.remove(role, reason).then(
+          await member.roles.remove(role, reason).then(
             async (m) =>
               await interaction.editReply({
                 content: `Successfully ${bold(
@@ -113,7 +121,61 @@ module.exports = {
                 )} ${role} role from ${m}.`,
               }),
           );
-      }
-    });
+        });
+
+      case 'list':
+        return interaction.deferReply().then(
+          async () =>
+            await guild.roles.fetch().then(async (rls) => {
+              if (!rls.size) {
+                return interaction.editReply({
+                  content: `${bold(guild)} doesn't have any role.`,
+                });
+              }
+
+              const descriptions = [...rls.values()]
+                .filter((r) => r.id !== guild.roles.everyone.id)
+                .sort((a, b) => b.position - a.position)
+                .map((r, index) => `${bold(`${index + 1}.`)} ${r}`);
+
+              if (rls.size > 10) {
+                const pagination = new Pagination(interaction, {
+                  limit: 10,
+                });
+
+                pagination.setColor(guild.members.me.displayHexColor);
+                pagination.setTimestamp(Date.now());
+                pagination.setFooter({
+                  text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                  iconURL: client.user.displayAvatarURL({
+                    dynamic: true,
+                  }),
+                });
+                pagination.setAuthor({
+                  name: `🔐 ${guild} Role Lists (${rls.size})`,
+                });
+                pagination.setDescriptions(descriptions);
+
+                return pagination.render();
+              }
+
+              const embed = new EmbedBuilder()
+                .setColor(guild.members.me.displayHexColor)
+                .setTimestamp(Date.now())
+                .setFooter({
+                  text: client.user.username,
+                  iconURL: client.user.displayAvatarURL({
+                    dynamic: true,
+                  }),
+                })
+                .setAuthor({
+                  name: `🔐 ${guild} Role Lists (${rls.size})`,
+                })
+                .setDescription(descriptions.join('\n'));
+
+              await interaction.editReply({ embeds: [embed] });
+            }),
+        );
+    }
   },
 };
