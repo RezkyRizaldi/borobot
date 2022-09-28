@@ -42,7 +42,7 @@ module.exports = {
       .setTimestamp(Date.now());
 
     if (!user.bot) {
-      await member.send({ embeds: [embed] }).catch((err) => console.error(err));
+      await member.send({ embeds: [embed] }).catch(console.error);
     }
 
     await member.roles
@@ -70,6 +70,6 @@ module.exports = {
 
         await WelcomeLogger.send({ embeds: [embed] });
       })
-      .catch((err) => console.error(err));
+      .catch(console.error);
   },
 };

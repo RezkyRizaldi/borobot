@@ -71,11 +71,11 @@ module.exports = {
     );
     embed.setFields(
       {
-        name: 'Before',
+        name: '🕒 Before',
         value: applyMessageType(oldMessage),
       },
       {
-        name: 'After',
+        name: '🕒 After',
         value: applyMessageType(newMessage, true),
       },
     );

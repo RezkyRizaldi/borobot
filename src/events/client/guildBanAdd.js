@@ -62,9 +62,7 @@ module.exports = {
       ]);
 
     if (banLog.target.id === user.id) {
-      return BanLogger.send({ embeds: [message] }).catch((err) =>
-        console.error(err),
-      );
+      return BanLogger.send({ embeds: [message] }).catch(console.error);
     }
   },
 };

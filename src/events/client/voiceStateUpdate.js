@@ -34,15 +34,21 @@ module.exports = {
       });
 
       embed.setAuthor({
-        name: 'Member Joined',
+        name: 'Member Joined Voice Channel',
         iconURL: newState.member.displayAvatarURL({ dynamic: true }),
       });
       embed.setDescription(
-        `${oldState.member} has join to ${newState.channel} at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
+        `${oldState.member} has joined to ${newState.channel}.`,
       );
+      embed.setFields([
+        {
+          name: '🕒 Joined At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
+      ]);
 
       return VoiceJoinLogger.send({ embeds: [embed] }).catch((err) =>
         console.error(err),
@@ -57,15 +63,21 @@ module.exports = {
       });
 
       embed.setAuthor({
-        name: 'Member Left',
+        name: 'Member Disconnected from Voice Channel',
         iconURL: newState.member.displayAvatarURL({ dynamic: true }),
       });
       embed.setDescription(
-        `${newState.member} has left from ${oldState.channel} at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
+        `${newState.member} has left from ${oldState.channel}.`,
       );
+      embed.setFields([
+        {
+          name: '🕒 Left At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
+      ]);
 
       return VoiceLeaveLogger.send({ embeds: [embed] }).catch((err) =>
         console.error(err),
@@ -89,7 +101,7 @@ module.exports = {
       });
 
       embed.setAuthor({
-        name: 'Member Moved',
+        name: 'Member Moved from Voice Channel',
         iconURL: newState.member.displayAvatarURL({ dynamic: true }),
       });
       embed.setDescription(
@@ -127,18 +139,20 @@ module.exports = {
       });
 
       embed.setAuthor({
-        name: 'Member Muted',
+        name: 'Member Muted from Voice Channel',
         iconURL: newState.member.displayAvatarURL({ dynamic: true }),
       });
       embed.setDescription(
-        `${oldState.member} has been muted from ${newState.channel} by ${
-          muteLog.executor
-        } at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
+        `${oldState.member} has been muted from text channels by ${muteLog.executor}.`,
       );
       embed.setFields([
+        {
+          name: '🕒 Muted At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
         {
           name: '📄 Reason',
           value: muteLog.reason ?? 'No reason',
@@ -165,18 +179,20 @@ module.exports = {
       });
 
       embed.setAuthor({
-        name: 'Member Unmuted',
+        name: 'Member Unmuted from Voice Channel',
         iconURL: newState.member.displayAvatarURL({ dynamic: true }),
       });
       embed.setDescription(
-        `${newState.member} has been unmuted from ${oldState.channel} by ${
-          unmuteLog.executor
-        } at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
+        `${newState.member} has been unmuted from text channels by ${unmuteLog.executor}.`,
       );
       embed.setFields([
+        {
+          name: '🕒 Unmuted At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
         {
           name: '📄 Reason',
           value: unmuteLog.reason ?? 'No reason',
@@ -203,18 +219,20 @@ module.exports = {
       });
 
       embed.setAuthor({
-        name: 'Member Deafen',
+        name: 'Member Deafened from Voice Channel',
         iconURL: newState.member.displayAvatarURL({ dynamic: true }),
       });
       embed.setDescription(
-        `${oldState.member} has been deafen from ${newState.channel} by ${
-          deafenLog.executor
-        } at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
+        `${oldState.member} has been deafen from ${newState.channel} by ${deafenLog.executor}.`,
       );
       embed.setFields([
+        {
+          name: '🕒 Deafened At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
         {
           name: '📄 Reason',
           value: deafenLog.reason ?? 'No reason',
@@ -241,18 +259,20 @@ module.exports = {
       });
 
       embed.setAuthor({
-        name: 'Member Undeafen',
+        name: 'Member Undeafened from Voice Channel',
         iconURL: newState.member.displayAvatarURL({ dynamic: true }),
       });
       embed.setDescription(
-        `${oldState.member} has been undeafen from ${newState.channel} by ${
-          deafenLog.executor
-        } at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
+        `${oldState.member} has been undeafen from ${newState.channel} by ${deafenLog.executor}.`,
       );
       embed.setFields([
+        {
+          name: '🕒 Undeafened At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
         {
           name: '📄 Reason',
           value: deafenLog.reason ?? 'No reason',
@@ -272,15 +292,21 @@ module.exports = {
       });
 
       embed.setAuthor({
-        name: 'Member Streaming',
+        name: 'Member Streaming in Voice Channel',
         iconURL: newState.member.displayAvatarURL({ dynamic: true }),
       });
       embed.setDescription(
-        `${oldState.member} is streaming in ${newState.channel} at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
+        `${oldState.member} is streaming in ${newState.channel}.`,
       );
+      embed.setFields([
+        {
+          name: '🕒 Streaming At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
+      ]);
 
       return VoiceStreamLogger.send({ embeds: [embed] }).catch((err) =>
         console.error(err),
