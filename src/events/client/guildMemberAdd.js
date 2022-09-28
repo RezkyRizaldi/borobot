@@ -41,7 +41,9 @@ module.exports = {
       })
       .setTimestamp(Date.now());
 
-    await member.send({ embeds: [embed] }).catch((err) => console.error(err));
+    if (!user.bot) {
+      await member.send({ embeds: [embed] }).catch((err) => console.error(err));
+    }
 
     await member.roles
       .add(!user.bot ? memberRole : botRole)

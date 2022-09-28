@@ -343,20 +343,22 @@ const applyOrRemoveRole = async ({
           }.`,
         });
 
-        await member
-          .send({
-            content: `You have been ${bold('muted')} from ${bold(
-              guild,
-            )} for ${inlineCode(reason)}.`,
-          })
-          .catch(async (err) => {
-            console.error(err);
+        if (!member.user.bot) {
+          await member
+            .send({
+              content: `You have been ${bold('muted')} from ${bold(
+                guild,
+              )} for ${inlineCode(reason)}.`,
+            })
+            .catch(async (err) => {
+              console.error(err);
 
-            await interaction.followUp({
-              content: `Could not send a DM to ${member}.`,
-              ephemeral: true,
+              await interaction.followUp({
+                content: `Could not send a DM to ${member}.`,
+                ephemeral: true,
+              });
             });
-          });
+        }
 
         if (isTemporary) {
           if (all && !voice.serverMute) {
@@ -373,22 +375,24 @@ const applyOrRemoveRole = async ({
             'server mute temporary duration has passed.',
           );
 
-          return member
-            .send({
-              content: `Congratulations! You have been ${bold(
-                'unmuted',
-              )} from ${bold(guild)} for ${inlineCode(
-                'server mute duration has passed',
-              )}.`,
-            })
-            .catch(async (err) => {
-              console.error(err);
+          if (!member.user.bot) {
+            return member
+              .send({
+                content: `Congratulations! You have been ${bold(
+                  'unmuted',
+                )} from ${bold(guild)} for ${inlineCode(
+                  'server mute duration has passed',
+                )}.`,
+              })
+              .catch(async (err) => {
+                console.error(err);
 
-              await interaction.followUp({
-                content: `Could not send a DM to ${member}.`,
-                ephemeral: true,
+                await interaction.followUp({
+                  content: `Could not send a DM to ${member}.`,
+                  ephemeral: true,
+                });
               });
-            });
+          }
         }
       });
     }
@@ -406,20 +410,22 @@ const applyOrRemoveRole = async ({
         }.`,
       });
 
-      await m
-        .send({
-          content: `Congratulations! You have been ${bold(
-            'unmuted',
-          )} from ${bold(guild)} for ${inlineCode(reason)}.`,
-        })
-        .catch(async (err) => {
-          console.error(err);
+      if (!m.user.bot) {
+        return m
+          .send({
+            content: `Congratulations! You have been ${bold(
+              'unmuted',
+            )} from ${bold(guild)} for ${inlineCode(reason)}.`,
+          })
+          .catch(async (err) => {
+            console.error(err);
 
-          await interaction.followUp({
-            content: `Could not send a DM to ${m}.`,
-            ephemeral: true,
+            await interaction.followUp({
+              content: `Could not send a DM to ${m}.`,
+              ephemeral: true,
+            });
           });
-        });
+      }
     });
   });
 };
@@ -476,20 +482,22 @@ const createVoiceMute = async ({
         }.`,
       });
 
-      await m
-        .send({
-          content: `You have been ${bold('muted')} from ${bold(
-            guild,
-          )} for ${inlineCode(reason)}.`,
-        })
-        .catch(async (err) => {
-          console.error(err);
+      if (!m.user.bot) {
+        await m
+          .send({
+            content: `You have been ${bold('muted')} from ${bold(
+              guild,
+            )} for ${inlineCode(reason)}.`,
+          })
+          .catch(async (err) => {
+            console.error(err);
 
-          await interaction.followUp({
-            content: `Could not send a DM to ${m}.`,
-            ephemeral: true,
+            await interaction.followUp({
+              content: `Could not send a DM to ${m}.`,
+              ephemeral: true,
+            });
           });
-        });
+      }
 
       if (isTemporary) {
         await wait(duration);
@@ -499,22 +507,24 @@ const createVoiceMute = async ({
           'server mute temporary duration has passed.',
         );
 
-        await member
-          .send({
-            content: `Congratulations! You have been ${bold(
-              'unmuted',
-            )} from ${bold(guild)} for ${inlineCode(
-              'server mute duration has passed',
-            )}.`,
-          })
-          .catch(async (err) => {
-            console.error(err);
+        if (!m.user.bot) {
+          return member
+            .send({
+              content: `Congratulations! You have been ${bold(
+                'unmuted',
+              )} from ${bold(guild)} for ${inlineCode(
+                'server mute duration has passed',
+              )}.`,
+            })
+            .catch(async (err) => {
+              console.error(err);
 
-            await interaction.followUp({
-              content: `Could not send a DM to ${member}.`,
-              ephemeral: true,
+              await interaction.followUp({
+                content: `Could not send a DM to ${member}.`,
+                ephemeral: true,
+              });
             });
-          });
+        }
       }
     });
   }
