@@ -1,5 +1,5 @@
 const { languages } = require('@vitalets/google-translate-api');
-const { ChannelType, Events } = require('discord.js');
+const { ChannelType, Events, PermissionFlagsBits } = require('discord.js');
 const { SearchResultType } = require('distube');
 
 const newSupportedLanguages = {
@@ -575,6 +575,106 @@ module.exports = {
     {
       name: '⬇️ Ascending',
       value: 'asc',
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  roleCreatePermissionChoices: [
+    {
+      name: '⛔ None',
+      value: 0,
+    },
+    {
+      name: '🔊 Manage Channels',
+      value: Number(PermissionFlagsBits.ManageChannels),
+    },
+    {
+      name: '🔐 Manage Roles',
+      value: Number(PermissionFlagsBits.ManageRoles),
+    },
+    {
+      name: '😀 Manage Emoji and Stickers',
+      value: Number(PermissionFlagsBits.ManageEmojisAndStickers),
+    },
+    {
+      name: '👁️‍🗨️ View Audit Log',
+      value: Number(PermissionFlagsBits.ViewAuditLog),
+    },
+    {
+      name: '🪝 Manage Webhooks',
+      value: Number(PermissionFlagsBits.ManageWebhooks),
+    },
+    {
+      name: '🏰 Manage Server',
+      value: Number(PermissionFlagsBits.ManageGuild),
+    },
+    {
+      name: '🔤 Change Nickname',
+      value: Number(PermissionFlagsBits.ChangeNickname),
+    },
+    {
+      name: '🔤 Manage Nicknames',
+      value: Number(PermissionFlagsBits.ManageNicknames),
+    },
+    {
+      name: '🔨 Kick Members',
+      value: Number(PermissionFlagsBits.KickMembers),
+    },
+    {
+      name: '🚫 Ban Members',
+      value: Number(PermissionFlagsBits.BanMembers),
+    },
+    {
+      name: '🕒 Timeout Members',
+      value: Number(PermissionFlagsBits.ModerateMembers),
+    },
+    {
+      name: '#️⃣ Create Public Threads',
+      value: Number(PermissionFlagsBits.CreatePublicThreads),
+    },
+    {
+      name: '🔒 Create Private Threads',
+      value: Number(PermissionFlagsBits.CreatePrivateThreads),
+    },
+    {
+      name: '🏷️ Mention @everyone, @here, and All Roles',
+      value: Number(PermissionFlagsBits.MentionEveryone),
+    },
+    {
+      name: '💬 Manage Messages',
+      value: Number(PermissionFlagsBits.ManageMessages),
+    },
+    {
+      name: '#️⃣ Manage Threads',
+      value: Number(PermissionFlagsBits.ManageThreads),
+    },
+    {
+      name: '🎙️ Send Text-to-Speech Messages',
+      value: Number(PermissionFlagsBits.SendTTSMessages),
+    },
+    {
+      name: '🗣️ Priority Speaker',
+      value: Number(PermissionFlagsBits.PrioritySpeaker),
+    },
+    {
+      name: '🔇 Mute Members',
+      value: Number(PermissionFlagsBits.MuteMembers),
+    },
+    {
+      name: '🦻 Deafen Members',
+      value: Number(PermissionFlagsBits.DeafenMembers),
+    },
+    {
+      name: '🚚 Move Members',
+      value: Number(PermissionFlagsBits.MoveMembers),
+    },
+    {
+      name: '📆 Manage Events',
+      value: Number(PermissionFlagsBits.ManageEvents),
+    },
+    {
+      name: '👑 Administrator',
+      value: Number(PermissionFlagsBits.Administrator),
     },
   ],
 };

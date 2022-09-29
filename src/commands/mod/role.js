@@ -1,11 +1,14 @@
 const {
   bold,
+  Colors,
   EmbedBuilder,
   PermissionFlagsBits,
   SlashCommandBuilder,
+  PermissionsBitField,
 } = require('discord.js');
 const { Pagination } = require('pagination.djs');
 
+const { roleCreatePermissionChoices } = require('../../constants');
 const { applyHexColor } = require('../../utils');
 
 module.exports = {
@@ -86,6 +89,80 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
+        .setName('create')
+        .setDescription('🆕 Create a new role.')
+        .addStringOption((option) =>
+          option
+            .setName('name')
+            .setDescription("🆕 The role's name.")
+            .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option.setName('color').setDescription("🎨 The role's color."),
+        )
+        .addBooleanOption((option) =>
+          option
+            .setName('hoist')
+            .setDescription(
+              '🪢 Whether to display the role separately or not.',
+            ),
+        )
+        .addBooleanOption((option) =>
+          option
+            .setName('mentionable')
+            .setDescription(
+              '🏷️ Whether to allow members to mention the role or not.',
+            ),
+        )
+        .addRoleOption((option) =>
+          option
+            .setName('position')
+            .setDescription(
+              "🛠️ The role's position to be specified on top of this role.",
+            ),
+        )
+        .addIntegerOption((option) =>
+          option
+            .setName('permission')
+            .setDescription("🔐 The role's permissions.")
+            .addChoices(...roleCreatePermissionChoices),
+        )
+        .addIntegerOption((option) =>
+          option
+            .setName('permission2')
+            .setDescription("🔐 The role's permissions.")
+            .addChoices(...roleCreatePermissionChoices),
+        )
+        .addIntegerOption((option) =>
+          option
+            .setName('permission3')
+            .setDescription("🔐 The role's permissions.")
+            .addChoices(...roleCreatePermissionChoices),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('reason')
+            .setDescription('📃 The reason for creating the role.'),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('delete')
+        .setDescription('🗑️ Delete a role.')
+        .addRoleOption((option) =>
+          option
+            .setName('role')
+            .setDescription('‍🛠️ The role to delete.')
+            .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('reason')
+            .setDescription('📃 The reason for deleting the role.'),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
         .setName('add')
         .setDescription('➕ Add a role to a member.')
         .addUserOption((option) =>
@@ -109,7 +186,7 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('remove')
-        .setDescription('➖ Remove a role from member.')
+        .setDescription('➖ Delete a role.')
         .addUserOption((option) =>
           option
             .setName('member')
@@ -147,11 +224,15 @@ module.exports = {
 
     /** @type {import('discord.js').Role} */
     const role = options.getRole('role');
+    const name = options.getString('name');
+    const color = options.getString('color');
     const reason = options.getString('reason') ?? 'No reason';
+    const convertedColor =
+      color !== null ? applyHexColor(color) : Colors.Default;
 
-    await interaction.deferReply({ ephemeral: true }).then(async () => {
-      switch (options.getSubcommandGroup()) {
-        case 'modify':
+    switch (options.getSubcommandGroup()) {
+      case 'modify':
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
           if (!role.editable) {
             return interaction.editReply({
               content: `You don't have appropiate permissions to modify the ${role} role.`,
@@ -159,9 +240,7 @@ module.exports = {
           }
 
           switch (options.getSubcommand()) {
-            case 'name': {
-              const name = options.getString('name');
-
+            case 'name':
               if (name.toLowerCase() === role.name.toLowerCase()) {
                 return interaction.editReply({
                   content: 'You have to specify a different name to modify.',
@@ -174,13 +253,8 @@ module.exports = {
                     content: `Successfully ${bold('modified')} ${r}.`,
                   }),
               );
-            }
 
-            case 'color': {
-              const color = options.getString('color');
-
-              const convertedColor = applyHexColor(color);
-
+            case 'color':
               if (
                 convertedColor.toLowerCase() === role.hexColor.toLowerCase()
               ) {
@@ -195,7 +269,6 @@ module.exports = {
                     content: `Successfully ${bold('modified')} ${r}.`,
                   }),
               );
-            }
 
             case 'position': {
               /** @type {import('discord.js').Role} */
@@ -222,11 +295,66 @@ module.exports = {
               );
             }
           }
-          break;
-      }
-    });
+        });
+    }
 
     switch (options.getSubcommand()) {
+      case 'create': {
+        const hoist = options.getBoolean('hoist') ?? false;
+        const mentionable = options.getBoolean('mentionable') ?? false;
+
+        /** @type {import('discord.js').Role} */
+        const position = options.getRole('position');
+        const permission = options.getInteger('permission');
+        const permission2 = options.getInteger('permission2');
+        const permission3 = options.getInteger('permission3');
+        /* global BigInt */
+        const permissionArray = [permission, permission2, permission3]
+          .filter((perm) => !!perm)
+          .map((perm) => BigInt(perm));
+
+        return interaction.deferReply({ ephemeral: true }).then(
+          async () =>
+            await guild.roles
+              .create({
+                name,
+                color: convertedColor,
+                hoist,
+                mentionable,
+                reason,
+                position: position ? position.position + 1 : 1,
+                permissions: permissionArray.length
+                  ? [...new Set(permissionArray)]
+                  : PermissionsBitField.Default,
+              })
+              .then(
+                async (r) =>
+                  await interaction.editReply({
+                    content: `${r} role created successfully.`,
+                  }),
+              ),
+        );
+      }
+
+      case 'delete':
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
+          if (
+            role.managed ||
+            role.position > guild.members.me.roles.highest.position
+          ) {
+            return interaction.editReply({
+              content: `You don't have appropiate permissions to delete ${role} role.`,
+            });
+          }
+
+          await guild.roles.delete(role, reason).then(
+            async () =>
+              await interaction.editReply({
+                content: 'Role deleted successfully.',
+              }),
+          );
+        });
+
       case 'add':
         return interaction.deferReply({ ephemeral: true }).then(async () => {
           if (!member.manageable) {
