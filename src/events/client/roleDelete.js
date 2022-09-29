@@ -9,7 +9,7 @@ const {
 } = require('discord.js');
 
 module.exports = {
-  name: Events.GuildRoleCreate,
+  name: Events.GuildRoleDelete,
 
   /**
    *
@@ -19,14 +19,14 @@ module.exports = {
     const { client, guild } = role;
 
     const RoleLogger = new WebhookClient({
-      id: process.env.ROLE_CREATE_WEBHOOK_ID,
-      token: process.env.ROLE_CREATE_WEBHOOK_TOKEN,
+      id: process.env.ROLE_DELETE_WEBHOOK_ID,
+      token: process.env.ROLE_DELETE_WEBHOOK_TOKEN,
     });
 
-    const createLog = await guild
+    const deleteLog = await guild
       .fetchAuditLogs({
         limit: 1,
-        type: AuditLogEvent.RoleCreate,
+        type: AuditLogEvent.RoleDelete,
       })
       .then((audit) => audit.entries.first());
 
@@ -38,10 +38,10 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setAuthor({
-        name: '🛠️ New Role Created',
+        name: '🛠️ Role Deleted',
       })
       .setDescription(
-        `${role} role was ${bold('created')} by ${createLog.executor}.`,
+        `${role} role was ${bold('deleted')} by ${deleteLog.executor}.`,
       )
       .setFields([
         {
@@ -55,8 +55,16 @@ module.exports = {
           inline: true,
         },
         {
+          name: '🕒 Deleted At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+          inline: true,
+        },
+        {
           name: '📄 Reason',
-          value: createLog.reason ?? 'No reason',
+          value: deleteLog.reason ?? 'No reason',
         },
       ]);
 
