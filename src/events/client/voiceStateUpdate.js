@@ -50,9 +50,7 @@ module.exports = {
         },
       ]);
 
-      return VoiceJoinLogger.send({ embeds: [embed] }).catch((err) =>
-        console.error(err),
-      );
+      return VoiceJoinLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the member leave from a voice channel or disconnected by a moderator
@@ -79,9 +77,7 @@ module.exports = {
         },
       ]);
 
-      return VoiceLeaveLogger.send({ embeds: [embed] }).catch((err) =>
-        console.error(err),
-      );
+      return VoiceLeaveLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the member being moved by a moderator
@@ -119,9 +115,7 @@ module.exports = {
         },
       ]);
 
-      return VoiceMoveLogger.send({ embeds: [embed] }).catch((err) =>
-        console.error(err),
-      );
+      return VoiceMoveLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the member being muted by a moderator
@@ -159,9 +153,7 @@ module.exports = {
         },
       ]);
 
-      return VoiceMuteLogger.send({ embeds: [embed] }).catch((err) =>
-        console.error(err),
-      );
+      return VoiceMuteLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the member being unmuted by a moderator
@@ -199,9 +191,7 @@ module.exports = {
         },
       ]);
 
-      return VoiceUnmuteLogger.send({ embeds: [embed] }).catch((err) =>
-        console.error(err),
-      );
+      return VoiceUnmuteLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the member being deafen by a moderator.
@@ -239,9 +229,7 @@ module.exports = {
         },
       ]);
 
-      return VoiceDeafenLogger.send({ embeds: [embed] }).catch((err) =>
-        console.error(err),
-      );
+      return VoiceDeafenLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the member being undeafen by a moderator.
@@ -279,9 +267,7 @@ module.exports = {
         },
       ]);
 
-      return VoiceDeafenLogger.send({ embeds: [embed] }).catch((err) =>
-        console.error(err),
-      );
+      return VoiceDeafenLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // IF the member is streaming using "Screen Share"
@@ -308,9 +294,7 @@ module.exports = {
         },
       ]);
 
-      return VoiceStreamLogger.send({ embeds: [embed] }).catch((err) =>
-        console.error(err),
-      );
+      return VoiceStreamLogger.send({ embeds: [embed] }).catch(console.error);
     }
   },
 };

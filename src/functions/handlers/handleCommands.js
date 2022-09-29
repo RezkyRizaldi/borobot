@@ -52,6 +52,6 @@ module.exports = (client) => {
       .then(() =>
         console.log('Successfully reloaded application (/) commands.'),
       )
-      .catch((err) => console.error(err));
+      .catch(console.error);
   };
 };

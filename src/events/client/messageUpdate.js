@@ -45,9 +45,7 @@ module.exports = {
         )}.`,
       );
 
-      return MessageLogger.send({ embeds: [embed] }).catch((err) =>
-        console.error(err),
-      );
+      return MessageLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     if (oldMessage.author.bot) return;
@@ -80,8 +78,6 @@ module.exports = {
       },
     );
 
-    await MessageLogger.send({ embeds: [embed] }).catch((err) =>
-      console.error(err),
-    );
+    await MessageLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };
