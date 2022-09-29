@@ -8,13 +8,30 @@ module.exports = {
    * @param {import('discord.js').CommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ client: { commands: import('discord.js').Collection<String, { data: import('discord.js').SlashCommandBuilder | import('discord.js').ContextMenuCommandBuilder, type: String, execute(): Promise<void> }>, components: import('discord.js').Collection<String, String> }}} */
+    /** @type {{ channel: import('discord.js').TextChannel, client: { commands: import('discord.js').Collection<String, { data: import('discord.js').SlashCommandBuilder | import('discord.js').ContextMenuCommandBuilder, type: String, execute(): Promise<void> }>, components: import('discord.js').Collection<String, String> }, guild: import('discord.js').Guild|null }} */
     const {
+      channel,
       client: { commands, components },
+      guild,
     } = interaction;
 
     return {
       [InteractionType.ApplicationCommand]: async () => {
+        if (
+          channel.id === guild.publicUpdatesChannelId ||
+          channel.id === guild.rulesChannelId ||
+          channel.id === guild.systemChannelId ||
+          channel.id === guild.widgetChannelId ||
+          channel.parent.id === process.env.DASHBOARD_CATEGORY_CHANNEL_ID
+        ) {
+          return interaction.deferReply({ ephemeral: true }).then(
+            async () =>
+              await interaction.editReply({
+                content: `You don't have appropiate permissions to use slash command in ${channel}`,
+              }),
+          );
+        }
+
         const command = commands.get(interaction.commandName);
 
         if (!command) {

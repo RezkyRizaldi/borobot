@@ -32,39 +32,45 @@ module.exports = {
       .then((audit) => audit.entries.first());
 
     const embed = new EmbedBuilder()
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(newRole.hexColor)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setAuthor({
-        name: '⚒️ Role Edited',
+        name: '🛠️ Role Edited',
       });
+
+    if (oldRole.position !== newRole.position) return;
 
     if (oldRole.name !== newRole.name) {
       embed.setDescription(
-        `${oldRole} role's name was ${bold('edited')} by ${
-          editLog.executor
-        } at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
+        `${oldRole} role's name was ${bold('edited')} by ${editLog.executor}.`,
       );
       embed.setFields([
         {
-          name: 'Before',
+          name: '🕒 Edited At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
+        {
+          name: '🕒 Before',
           value: oldRole.name,
         },
         {
-          name: 'After',
+          name: '🕒 After',
           value: newRole.name,
+        },
+        {
+          name: '📄 Reason',
+          value: editLog.reason ?? 'No reason',
         },
       ]);
 
-      return RoleLogger.send({ embeds: [embed] }).catch((err) =>
-        console.error(err),
-      );
+      return RoleLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     if (oldRole.hexColor !== newRole.hexColor) {
@@ -78,18 +84,27 @@ module.exports = {
       );
       embed.setFields([
         {
-          name: 'Before',
+          name: '🕒 Edited At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
+        {
+          name: '🕒 Before',
           value: oldRole.hexColor,
         },
         {
-          name: 'After',
+          name: '🕒 After',
           value: newRole.hexColor,
+        },
+        {
+          name: '📄 Reason',
+          value: editLog.reason ?? 'No reason',
         },
       ]);
 
-      return RoleLogger.send({ embeds: [embed] }).catch((err) =>
-        console.error(err),
-      );
+      return RoleLogger.send({ embeds: [embed] }).catch(console.error);
     }
   },
 };

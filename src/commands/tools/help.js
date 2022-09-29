@@ -35,7 +35,12 @@ module.exports = {
       .filter(({ name }) => name !== 'help')
       .map(({ name, description, type, options: opts }) => ({
         name,
-        description: description ?? 'No description.',
+        description:
+          name === 'Avatar'
+            ? "🖼️ Get the member's avatar."
+            : name === 'User Info'
+            ? 'ℹ️ Get information about a member.'
+            : description,
         type,
         options: opts,
       }))

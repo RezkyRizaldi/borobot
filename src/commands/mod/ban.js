@@ -129,20 +129,22 @@ module.exports = {
                 content: `Successfully ${bold('banned')} ${m.user.tag}.`,
               });
 
-              await m
-                .send({
-                  content: `You have been banned from ${bold(
-                    guild,
-                  )} for ${inlineCode(reason)}`,
-                })
-                .catch(async (err) => {
-                  console.error(err);
+              if (!m.user.bot) {
+                return m
+                  .send({
+                    content: `You have been banned from ${bold(
+                      guild,
+                    )} for ${inlineCode(reason)}`,
+                  })
+                  .catch(async (err) => {
+                    console.error(err);
 
-                  await interaction.followUp({
-                    content: `Could not send a DM to ${m}.`,
-                    ephemeral: true,
+                    await interaction.followUp({
+                      content: `Could not send a DM to ${m}.`,
+                      ephemeral: true,
+                    });
                   });
-                });
+              }
             });
         }
 
@@ -174,20 +176,22 @@ module.exports = {
                 } for ${inlineCode(`${duration / 1000} seconds`)}.`,
               });
 
-              await m
-                .send({
-                  content: `You have been banned from ${bold(
-                    guild,
-                  )} for ${inlineCode(reason)}`,
-                })
-                .catch(async (err) => {
-                  console.error(err);
+              if (!m.user.bot) {
+                await m
+                  .send({
+                    content: `You have been banned from ${bold(
+                      guild,
+                    )} for ${inlineCode(reason)}`,
+                  })
+                  .catch(async (err) => {
+                    console.error(err);
 
-                  await interaction.followUp({
-                    content: `Could not send a DM to ${m}.`,
-                    ephemeral: true,
+                    await interaction.followUp({
+                      content: `Could not send a DM to ${m}.`,
+                      ephemeral: true,
+                    });
                   });
-                });
+              }
 
               await wait(duration);
 
@@ -197,9 +201,9 @@ module.exports = {
 
               await guild.members
                 .unban(bannedUser, 'ban temporary duration has passed.')
-                .then(
-                  async (u) =>
-                    await u
+                .then(async (u) => {
+                  if (!u.bot) {
+                    return u
                       .send({
                         content: `Congratulations! You have been unbanned from ${bold(
                           guild,
@@ -214,8 +218,9 @@ module.exports = {
                           content: `Could not send a DM to ${u}.`,
                           ephemeral: true,
                         });
-                      }),
-                );
+                      });
+                  }
+                });
             });
         }
 
@@ -238,20 +243,22 @@ module.exports = {
               content: `Successfully ${bold('unbanned')} ${u.tag}.`,
             });
 
-            await u
-              .send({
-                content: `Congratulations! You have been unbanned from ${bold(
-                  guild,
-                )} for ${inlineCode(reason)}`,
-              })
-              .catch(async (err) => {
-                console.error(err);
+            if (!u.bot) {
+              return u
+                .send({
+                  content: `Congratulations! You have been unbanned from ${bold(
+                    guild,
+                  )} for ${inlineCode(reason)}`,
+                })
+                .catch(async (err) => {
+                  console.error(err);
 
-                await interaction.followUp({
-                  content: `Could not send a DM to ${u}.`,
-                  ephemeral: true,
+                  await interaction.followUp({
+                    content: `Could not send a DM to ${u}.`,
+                    ephemeral: true,
+                  });
                 });
-              });
+            }
           });
         }
 

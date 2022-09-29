@@ -45,9 +45,7 @@ module.exports = {
         )}.`,
       );
 
-      return MessageLogger.send({ embeds: [embed] }).catch((err) =>
-        console.error(err),
-      );
+      return MessageLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     if (oldMessage.author.bot) return;
@@ -71,17 +69,15 @@ module.exports = {
     );
     embed.setFields(
       {
-        name: 'Before',
+        name: '🕒 Before',
         value: applyMessageType(oldMessage),
       },
       {
-        name: 'After',
+        name: '🕒 After',
         value: applyMessageType(newMessage, true),
       },
     );
 
-    await MessageLogger.send({ embeds: [embed] }).catch((err) =>
-      console.error(err),
-    );
+    await MessageLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

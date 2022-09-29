@@ -3,11 +3,11 @@ const {
   AttachmentBuilder,
   AuditLogEvent,
   EmbedBuilder,
+  italic,
   time,
   TimestampStyles,
   WebhookClient,
 } = require('discord.js');
-const pluralize = require('pluralize');
 
 const { applyText } = require('../../utils');
 
@@ -29,6 +29,13 @@ module.exports = {
       })
       .setTimestamp(Date.now())
       .setColor(newMember.displayHexColor);
+
+    const roleLog = await guild
+      .fetchAuditLogs({
+        limit: 1,
+        type: AuditLogEvent.MemberRoleUpdate,
+      })
+      .then((audit) => audit.entries.first());
 
     // If the member has boosted the server
     if (!oldMember.premiumSince && newMember.premiumSince) {
@@ -74,23 +81,14 @@ module.exports = {
 
       await guild.systemChannel
         .send({ embeds: [embed], files: [attachment] })
-        .catch((err) => console.error(err));
+        .catch(console.error);
 
       embed.setDescription('Thank you for boosting test!');
 
-      await newMember
-        .send({ embeds: [embed] })
-        .catch((err) => console.error(err));
+      await newMember.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the member roles have changed
-    const roleLog = await guild
-      .fetchAuditLogs({
-        limit: 1,
-        type: AuditLogEvent.MemberRoleUpdate,
-      })
-      .then((audit) => audit.entries.first());
-
     if (roleLog.target.id === newMember.id) {
       const RoleAddLogger = new WebhookClient({
         id: process.env.MEMBER_ROLE_ADD_WEBHOOK_ID,
@@ -103,23 +101,32 @@ module.exports = {
 
       if (removedRoles.size) {
         embed.setAuthor({
-          name: 'Roles Removed',
+          name: 'Member Role Removed',
           iconURL: oldMember.displayAvatarURL({ dynamic: true }),
         });
         embed.setDescription(
-          `The ${pluralize('role', removedRoles.size)} ${removedRoles
+          `${removedRoles
             .map((role) => `${role}`)
-            .join(', ')} have been removed from ${oldMember} by ${
+            .join(', ')} have been removed from ${oldMember}'s role by ${
             roleLog.executor
-          } at ${time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          )}.`,
+          }.`,
         );
+        embed.setFields([
+          {
+            name: '🕒 Removed At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+            inline: true,
+          },
+          {
+            name: '📄 Reason',
+            value: roleLog.reason ?? 'No reason',
+          },
+        ]);
 
-        return RoleAddLogger.send({ embeds: [embed] }).catch((err) =>
-          console.error(err),
-        );
+        await RoleAddLogger.send({ embeds: [embed] }).catch(console.error);
       }
 
       const RoleRemoveLogger = new WebhookClient({
@@ -133,28 +140,120 @@ module.exports = {
 
       if (addedRoles.size) {
         embed.setAuthor({
-          name: 'Roles Added',
+          name: 'Member Roles Added',
           iconURL: newMember.displayAvatarURL({ dynamic: true }),
         });
         embed.setDescription(
-          `The ${pluralize('role', removedRoles.size)} ${addedRoles
+          `${addedRoles
             .map((role) => `${role}`)
-            .join(', ')} have been added to ${newMember} by ${
+            .join(', ')} have been added to ${newMember}'s role by ${
             roleLog.executor
-          } at ${time(
+          }.`,
+        );
+        embed.setFields([
+          {
+            name: '🕒 Added At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+            inline: true,
+          },
+          {
+            name: '📄 Reason',
+            value: roleLog.reason ?? 'No reason',
+          },
+        ]);
+
+        await RoleRemoveLogger.send({ embeds: [embed] }).catch(console.error);
+      }
+    }
+
+    const muteLog = await guild
+      .fetchAuditLogs({
+        limit: 1,
+        type: AuditLogEvent.MemberRoleUpdate,
+      })
+      .then((audit) => audit.entries.first());
+
+    const MuteLogger = new WebhookClient({
+      id: process.env.MEMBER_TEXT_MUTE_WEBHOOK_ID,
+      token: process.env.MEMBER_TEXT_MUTE_WEBHOOK_TOKEN,
+    });
+
+    const mutedRole = guild.roles.cache.find(
+      (role) => role.name.toLowerCase() === 'muted',
+    );
+
+    // If the member muted by a moderator
+    if (
+      !oldMember.roles.cache.has(mutedRole.id) &&
+      newMember.roles.cache.has(mutedRole.id)
+    ) {
+      embed.setAuthor({
+        name: 'Member Muted from Text Channel',
+        iconURL: newMember.displayAvatarURL({ dynamic: true }),
+      });
+      embed.setDescription(
+        `${newMember} has been muted from text channels by ${muteLog.executor}.`,
+      );
+      embed.setFields([
+        {
+          name: '🕒 Muted At',
+          value: time(
             Math.floor(Date.now() / 1000),
             TimestampStyles.RelativeTime,
-          )}.`,
-        );
+          ),
+          inline: true,
+        },
+        {
+          name: '📄 Reason',
+          value: muteLog.reason ?? 'No reason',
+        },
+      ]);
 
-        return RoleRemoveLogger.send({ embeds: [embed] }).catch((err) =>
-          console.error(err),
-        );
+      if (muteLog.target.id === newMember.id) {
+        await MuteLogger.send({ embeds: [embed] }).catch(console.error);
+      }
+    }
+
+    // If the member unmuted by a moderator
+    if (
+      oldMember.roles.cache.has(mutedRole.id) &&
+      !newMember.roles.cache.has(mutedRole.id)
+    ) {
+      embed.setAuthor({
+        name: 'Member Unmuted from Text Channel',
+        iconURL: newMember.displayAvatarURL({ dynamic: true }),
+      });
+      embed.setDescription(
+        `${newMember} has been unmuted from text channels by ${muteLog.executor}.`,
+      );
+      embed.setFields([
+        {
+          name: '🕒 Unmuted At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+          inline: true,
+        },
+        {
+          name: '📄 Reason',
+          value: muteLog.reason ?? 'No reason',
+        },
+      ]);
+
+      if (muteLog.target.id === newMember.id) {
+        await MuteLogger.send({ embeds: [embed] }).catch(console.error);
       }
     }
 
     // If the member timed out by a moderator
-    if (newMember.isCommunicationDisabled()) {
+    if (
+      !oldMember.isCommunicationDisabled() &&
+      newMember.isCommunicationDisabled()
+    ) {
       const TimeoutLogger = new WebhookClient({
         id: process.env.MEMBER_GUILD_TIMEOUT_WEBHOOK_ID,
         token: process.env.MEMBER_GUILD_TIMEOUT_WEBHOOK_TOKEN,
@@ -172,12 +271,25 @@ module.exports = {
         iconURL: newMember.displayAvatarURL({ dynamic: true }),
       });
       embed.setDescription(
-        `${newMember} has been timed out by ${timeoutLog.executor} at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
+        `${newMember} has been timed out by ${timeoutLog.executor}.`,
       );
       embed.setFields([
+        {
+          name: '🕒 Timed Out At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+          inline: true,
+        },
+        {
+          name: '🕒 Timed Out Until',
+          value: time(
+            newMember.communicationDisabledUntil,
+            TimestampStyles.RelativeTime,
+          ),
+          inline: true,
+        },
         {
           name: '📄 Reason',
           value: timeoutLog.reason ?? 'No reason',
@@ -185,13 +297,15 @@ module.exports = {
       ]);
 
       if (timeoutLog.target.id === newMember.id) {
-        return TimeoutLogger.send({ embeds: [embed] }).catch((err) =>
-          console.error(err),
-        );
+        await TimeoutLogger.send({ embeds: [embed] }).catch(console.error);
       }
     }
 
-    if (!newMember.isCommunicationDisabled()) {
+    // If the member timeout removed by a moderator
+    if (
+      oldMember.isCommunicationDisabled() &&
+      !newMember.isCommunicationDisabled()
+    ) {
       const TimeoutRemoveLogger = new WebhookClient({
         id: process.env.MEMBER_GUILD_TIMEOUT_REMOVE_WEBHOOK_ID,
         token: process.env.MEMBER_GUILD_TIMEOUT_REMOVE_WEBHOOK_TOKEN,
@@ -209,18 +323,73 @@ module.exports = {
         iconURL: newMember.displayAvatarURL({ dynamic: true }),
       });
       embed.setDescription(
-        `${newMember} timeout has been removed by ${
-          timeoutRemoveLog.executor
+        `${newMember} timeout has been removed by ${timeoutRemoveLog.executor}.`,
+      );
+      embed.setFields([
+        {
+          name: '🕒 Timeout Removed At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+          inline: true,
+        },
+        {
+          name: '📄 Reason',
+          value: timeoutRemoveLog.reason ?? 'No reason',
+        },
+      ]);
+
+      if (timeoutRemoveLog.target.id === newMember.id) {
+        await TimeoutRemoveLogger.send({ embeds: [embed] }).catch(
+          console.error,
+        );
+      }
+    }
+
+    // If the member's nickname changed.
+    if (oldMember.nickname !== newMember.nickname) {
+      const NicknameLogger = new WebhookClient({
+        id: process.env.MEMBER_NICKNAME_WEBHOOK_ID,
+        token: process.env.MEMBER_NICKNAME_WEBHOOK_TOKEN,
+      });
+
+      const nicknameLog = await guild
+        .fetchAuditLogs({
+          limit: 1,
+          type: AuditLogEvent.MemberUpdate,
+        })
+        .then((audit) => audit.entries.first());
+
+      embed.setAuthor({
+        name: 'Member Nickname Changed',
+        iconURL: newMember.displayAvatarURL({ dynamic: true }),
+      });
+      embed.setDescription(
+        `${newMember} nickname has been changed by ${
+          nicknameLog.executor
         } at ${time(
           Math.floor(Date.now() / 1000),
           TimestampStyles.RelativeTime,
         )}.`,
       );
+      embed.setFields(
+        {
+          name: '🕒 Before',
+          value: oldMember.nickname ?? italic('None'),
+        },
+        {
+          name: '🕒 After',
+          value: newMember.nickname ?? italic('None'),
+        },
+        {
+          name: '📄 Reason',
+          value: nicknameLog.reason ?? 'No reason',
+        },
+      );
 
-      if (timeoutRemoveLog.target.id === newMember.id) {
-        return TimeoutRemoveLogger.send({ embeds: [embed] }).catch((err) =>
-          console.error(err),
-        );
+      if (nicknameLog.target.id === newMember.id) {
+        await NicknameLogger.send({ embeds: [embed] }).catch(console.error);
       }
     }
   },

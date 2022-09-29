@@ -56,9 +56,7 @@ module.exports = {
         },
       ]);
 
-    await LeaveLogger.send({ embeds: [leaveMessage] }).catch((err) =>
-      console.error(err),
-    );
+    await LeaveLogger.send({ embeds: [leaveMessage] }).catch(console.error);
 
     // If the member kicked by a moderator
     const KickLogger = new WebhookClient({
@@ -111,9 +109,7 @@ module.exports = {
       ]);
 
     if (kickLog.target.id === user.id) {
-      return KickLogger.send({ embeds: [kickMessage] }).catch((err) =>
-        console.error(err),
-      );
+      return KickLogger.send({ embeds: [kickMessage] }).catch(console.error);
     }
 
     if (user.bot) {
@@ -125,7 +121,7 @@ module.exports = {
               .find((integration) => integration.account.id === user.id)
               .delete('Kicked out from the server'),
         )
-        .catch((err) => console.error(err));
+        .catch(console.error);
     }
   },
 };

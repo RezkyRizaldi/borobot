@@ -62,9 +62,7 @@ module.exports = {
       ]);
 
     if (UnbanLog.target.id === user.id) {
-      return UnbanLogger.send({ embeds: [message] }).catch((err) =>
-        console.error(err),
-      );
+      return UnbanLogger.send({ embeds: [message] }).catch(console.error);
     }
   },
 };

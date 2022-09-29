@@ -28,6 +28,6 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    return channel.send({ embeds: [embed] });
+    return channel.send({ embeds: [embed] }).catch(console.error);
   },
 };

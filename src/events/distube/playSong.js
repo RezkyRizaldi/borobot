@@ -68,6 +68,6 @@ module.exports = {
           await message.edit({ embeds: [embed] });
         }, 1000);
       })
-      .catch((err) => console.error(err));
+      .catch(console.error);
   },
 };

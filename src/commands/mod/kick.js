@@ -50,20 +50,22 @@ module.exports = {
           content: `Successfully ${bold('kicked')} ${m}.`,
         });
 
-        await m
-          .send({
-            content: `You have been kicked from ${bold(guild)} for ${inlineCode(
-              reason,
-            )}`,
-          })
-          .catch(async (err) => {
-            console.error(err);
+        if (!m.user.bot) {
+          return m
+            .send({
+              content: `You have been kicked from ${bold(
+                guild,
+              )} for ${inlineCode(reason)}`,
+            })
+            .catch(async (err) => {
+              console.error(err);
 
-            await interaction.followUp({
-              content: `Could not send a DM to ${m}.`,
-              ephemeral: true,
+              await interaction.followUp({
+                content: `Could not send a DM to ${m}.`,
+                ephemeral: true,
+              });
             });
-          });
+        }
       });
     });
   },
