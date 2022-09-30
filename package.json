@@ -56,6 +56,7 @@
     "genius-lyrics-api": "^3.2.0",
     "images-scraper": "^6.4.1",
     "libsodium-wrappers": "^0.7.10",
+    "moment": "^2.29.4",
     "node-url-shortener": "^2.0.3",
     "pagination.djs": "^4.0.3",
     "pluralize": "^8.0.0",

@@ -1,11 +1,13 @@
 const applyActivity = require('./applyActivity');
 const applyAFKTimeout = require('./applyAFKTimeout');
+const applyComparison = require('./applyComparison');
 const applyHexColor = require('./applyHexColor');
 const applyMessageType = require('./applyMessageType');
 const applyNSFWLevel = require('./applyNSFWLevel');
+const applyOrdinal = require('./applyOrdinal');
 const applyPresence = require('./applyPresence');
 const applyRepeatMode = require('./applyRepeatMode');
-const serverMute = require('./serverMute');
+const applySpacesBetweenPascalCase = require('./applySpacesBetweenPascalCase');
 const applyText = require('./applyText');
 const applyTier = require('./applyTier');
 const applyVerificationLevel = require('./applyVerificationLevel');
@@ -16,17 +18,20 @@ const getMessageType = require('./getMessageType');
 const groupMessageByAuthor = require('./groupMessageByAuthor');
 const groupMessageByType = require('./groupMessageByType');
 const isValidURL = require('./isValidURL');
+const serverMute = require('./serverMute');
 const truncate = require('./truncate');
 
 module.exports = {
   applyActivity,
   applyAFKTimeout,
+  applyComparison,
   applyHexColor,
   applyMessageType,
   applyNSFWLevel,
+  applyOrdinal,
   applyPresence,
   applyRepeatMode,
-  serverMute,
+  applySpacesBetweenPascalCase,
   applyText,
   applyTier,
   applyVerificationLevel,
@@ -37,5 +42,6 @@ module.exports = {
   groupMessageByAuthor,
   groupMessageByType,
   isValidURL,
+  serverMute,
   truncate,
 };
