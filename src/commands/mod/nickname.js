@@ -9,6 +9,24 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
+        .setName('reset')
+        .setDescription("📝 Reset the member's nickname.")
+        .addUserOption((option) =>
+          option
+            .setName('member')
+            .setDescription('👤 The member to set.')
+            .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('reason')
+            .setDescription(
+              "📃 The reason for resetting the member's nickname.",
+            ),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
         .setName('set')
         .setDescription("✏️ Set the member's nickname.")
         .addUserOption((option) =>
@@ -27,24 +45,6 @@ module.exports = {
           option
             .setName('reason')
             .setDescription("📃 The reason for setting the member's nickname."),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('reset')
-        .setDescription("📝 Reset the member's nickname.")
-        .addUserOption((option) =>
-          option
-            .setName('member')
-            .setDescription('👤 The member to set.')
-            .setRequired(true),
-        )
-        .addStringOption((option) =>
-          option
-            .setName('reason')
-            .setDescription(
-              "📃 The reason for resetting the member's nickname.",
-            ),
         ),
     ),
   type: 'Chat Input',

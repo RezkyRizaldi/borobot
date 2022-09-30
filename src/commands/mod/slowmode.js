@@ -14,6 +14,16 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
     .addSubcommand((subcommand) =>
       subcommand
+        .setName('off')
+        .setDescription('🐌 Turn off slowmode in this channel.')
+        .addStringOption((option) =>
+          option
+            .setName('reason')
+            .setDescription('📃 The reason for turn off the slowmode.'),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
         .setName('on')
         .setDescription('🐌 Turn on slowmode in this channel.')
         .addIntegerOption((option) =>
@@ -27,16 +37,6 @@ module.exports = {
           option
             .setName('reason')
             .setDescription('📃 The reason for turn on the slowmode.'),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('off')
-        .setDescription('🐌 Turn off slowmode in this channel.')
-        .addStringOption((option) =>
-          option
-            .setName('reason')
-            .setDescription('📃 The reason for turn off the slowmode.'),
         ),
     ),
   type: 'Chat Input',

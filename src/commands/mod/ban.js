@@ -42,6 +42,27 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
+        .setName('list')
+        .setDescription('📄 Show list of banned users.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('remove')
+        .setDescription('🔓 Unban a user from the server.')
+        .addUserOption((option) =>
+          option
+            .setName('user_id')
+            .setDescription('👤 The user id to unban.')
+            .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('reason')
+            .setDescription('📃 The reason for unbanning the user.'),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
         .setName('temp')
         .setDescription('🔐 Ban a member temporarily from the server.')
         .addUserOption((option) =>
@@ -71,27 +92,6 @@ module.exports = {
             .setName('reason')
             .setDescription('📃 The reason for banning the member.'),
         ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('remove')
-        .setDescription('🔓 Unban a user from the server.')
-        .addUserOption((option) =>
-          option
-            .setName('user_id')
-            .setDescription('👤 The user id to unban.')
-            .setRequired(true),
-        )
-        .addStringOption((option) =>
-          option
-            .setName('reason')
-            .setDescription('📃 The reason for unbanning the user.'),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('list')
-        .setDescription('📄 Show list of banned users.'),
     ),
   type: 'Chat Input',
 

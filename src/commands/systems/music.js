@@ -19,57 +19,6 @@ module.exports = {
     .setName('music')
     .setDescription('🎼 Music command.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Connect)
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('play')
-        .setDescription('🎶 Play a song.')
-        .addStringOption((option) =>
-          option
-            .setName('query')
-            .setDescription('🔠 The music search query.')
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('playskip')
-        .setDescription('🎶 Play a song and skip the current playing queue.')
-        .addStringOption((option) =>
-          option
-            .setName('query')
-            .setDescription('🔠 The music search query.')
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('playfirst')
-        .setDescription('🎶 Play a song and put it in the first queue.')
-        .addStringOption((option) =>
-          option
-            .setName('query')
-            .setDescription('🔠 The music search query.')
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('search')
-        .setDescription('🔍 search a song.')
-        .addStringOption((option) =>
-          option
-            .setName('query')
-            .setDescription('🔠 The music search query.')
-            .setRequired(true),
-        )
-        .addStringOption((option) =>
-          option
-            .setName('type')
-            .setDescription('🔣 The music search type.')
-            .setRequired(true)
-            .addChoices(...musicSearchChoices),
-        ),
-    )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('filters')
@@ -108,6 +57,17 @@ module.exports = {
             .setDescription('❌ Turn off the music filters.'),
         ),
     )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('play')
+        .setDescription('🎶 Play a song.')
+        .addStringOption((option) =>
+          option
+            .setName('query')
+            .setDescription('🔠 The music search query.')
+            .setRequired(true),
+        ),
+    )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('playback')
@@ -125,8 +85,8 @@ module.exports = {
         )
         .addSubcommand((subcommand) =>
           subcommand
-            .setName('seek')
-            .setDescription('🕒 Set the time of the music playback.')
+            .setName('rewind')
+            .setDescription('⏪ Fast reverse the music playback.')
             .addNumberOption((option) =>
               option
                 .setName('time')
@@ -136,8 +96,8 @@ module.exports = {
         )
         .addSubcommand((subcommand) =>
           subcommand
-            .setName('rewind')
-            .setDescription('⏪ Fast reverse the music playback.')
+            .setName('seek')
+            .setDescription('🕒 Set the time of the music playback.')
             .addNumberOption((option) =>
               option
                 .setName('time')
@@ -146,15 +106,60 @@ module.exports = {
             ),
         ),
     )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('playfirst')
+        .setDescription('🎶 Play a song and put it in the first queue.')
+        .addStringOption((option) =>
+          option
+            .setName('query')
+            .setDescription('🔠 The music search query.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('playskip')
+        .setDescription('🎶 Play a song and skip the current playing queue.')
+        .addStringOption((option) =>
+          option
+            .setName('query')
+            .setDescription('🔠 The music search query.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('search')
+        .setDescription('🔍 search a song.')
+        .addStringOption((option) =>
+          option
+            .setName('query')
+            .setDescription('🔠 The music search query.')
+            .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('type')
+            .setDescription('🔣 The music search type.')
+            .setRequired(true)
+            .addChoices(...musicSearchChoices),
+        ),
+    )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('settings')
         .setDescription('⚙️ The music settings.')
         .addSubcommand((subcommand) =>
           subcommand
-            .setName('lyrics')
-            .setDescription(
-              '🗒️ Get the music lyrics from current playing queue.',
+            .setName('controls')
+            .setDescription('🎚️ The music controller options.')
+            .addStringOption((option) =>
+              option
+                .setName('options')
+                .setDescription('🎚️ Set the music setting options.')
+                .setRequired(true)
+                .addChoices(...musicSettingChoices),
             ),
         )
         .addSubcommand((subcommand) =>
@@ -170,6 +175,13 @@ module.exports = {
         )
         .addSubcommand((subcommand) =>
           subcommand
+            .setName('lyrics')
+            .setDescription(
+              '🗒️ Get the music lyrics from current playing queue.',
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
             .setName('volume')
             .setDescription('🔊 Set the music volume.')
             .addNumberOption((option) =>
@@ -177,18 +189,6 @@ module.exports = {
                 .setName('percentage')
                 .setDescription('🔢 The music volume percentage.')
                 .setRequired(true),
-            ),
-        )
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('controls')
-            .setDescription('🎚️ The music controller options.')
-            .addStringOption((option) =>
-              option
-                .setName('options')
-                .setDescription('🎚️ Set the music setting options.')
-                .setRequired(true)
-                .addChoices(...musicSettingChoices),
             ),
         ),
     ),

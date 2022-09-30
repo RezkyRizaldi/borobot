@@ -16,75 +16,26 @@ module.exports = {
     .setName('role')
     .setDescription('🛠️ Set the roles for a member.')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
-    .addSubcommandGroup((subcommandGroup) =>
-      subcommandGroup
-        .setName('modify')
-        .setDescription('➕ Modify a role.')
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('name')
-            .setDescription('🔤 Modify the role name.')
-            .addRoleOption((option) =>
-              option
-                .setName('role')
-                .setDescription('🛠️ The role to modify.')
-                .setRequired(true),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('name')
-                .setDescription("🔤 The role's new name.")
-                .setRequired(true),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('reason')
-                .setDescription('📃 The reason for adding the role.'),
-            ),
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('add')
+        .setDescription('➕ Add a role to a member.')
+        .addUserOption((option) =>
+          option
+            .setName('member')
+            .setDescription('👤 The member to be added a new role.')
+            .setRequired(true),
         )
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('color')
-            .setDescription('🎨 Modify the role color.')
-            .addRoleOption((option) =>
-              option
-                .setName('role')
-                .setDescription('🛠️ The role to modify.')
-                .setRequired(true),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('color')
-                .setDescription("🎨 The role's new color.")
-                .setRequired(true),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('reason')
-                .setDescription('📃 The reason for adding the role.'),
-            ),
+        .addRoleOption((option) =>
+          option
+            .setName('role')
+            .setDescription('‍🛠️ The role to add.')
+            .setRequired(true),
         )
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('position')
-            .setDescription('🎨 Modify the role position (hierarchy).')
-            .addRoleOption((option) =>
-              option
-                .setName('role')
-                .setDescription('🛠️ The role to modify.')
-                .setRequired(true),
-            )
-            .addRoleOption((option) =>
-              option
-                .setName('to_role')
-                .setDescription('🛠️ The role to be modified.')
-                .setRequired(true),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('reason')
-                .setDescription('📃 The reason for adding the role.'),
-            ),
+        .addStringOption((option) =>
+          option
+            .setName('reason')
+            .setDescription('📃 The reason for adding the role.'),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -163,24 +114,78 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
-        .setName('add')
-        .setDescription('➕ Add a role to a member.')
-        .addUserOption((option) =>
-          option
-            .setName('member')
-            .setDescription('👤 The member to be added a new role.')
-            .setRequired(true),
+        .setName('list')
+        .setDescription('📄 Show list of server roles.'),
+    )
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('modify')
+        .setDescription('➕ Modify a role.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('color')
+            .setDescription('🎨 Modify the role color.')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('color')
+                .setDescription("🎨 The role's new color.")
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for adding the role.'),
+            ),
         )
-        .addRoleOption((option) =>
-          option
-            .setName('role')
-            .setDescription('‍🛠️ The role to add.')
-            .setRequired(true),
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('name')
+            .setDescription('🔤 Modify the role name.')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription("🔤 The role's new name.")
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for adding the role.'),
+            ),
         )
-        .addStringOption((option) =>
-          option
-            .setName('reason')
-            .setDescription('📃 The reason for adding the role.'),
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('position')
+            .setDescription('🎨 Modify the role position (hierarchy).')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addRoleOption((option) =>
+              option
+                .setName('to_role')
+                .setDescription('🛠️ The role to be modified.')
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for adding the role.'),
+            ),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -204,11 +209,6 @@ module.exports = {
             .setName('reason')
             .setDescription('📃 The reason for removing the role.'),
         ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('list')
-        .setDescription('📄 Show list of server roles.'),
     ),
   type: 'Chat Input',
 
