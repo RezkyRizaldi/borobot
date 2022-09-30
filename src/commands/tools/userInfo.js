@@ -8,7 +8,11 @@ const {
   TimestampStyles,
 } = require('discord.js');
 
-const { applyActivity, applyPresence } = require('../../utils');
+const {
+  applyActivity,
+  applyPresence,
+  applySpacesBetweenPascalCase,
+} = require('../../utils');
 
 module.exports = {
   data: new ContextMenuCommandBuilder()
@@ -30,6 +34,7 @@ module.exports = {
             ? `${member.roles.icon} `
             : member.roles.cache
                 .filter((role) => role.id !== guild.roles.everyone.id)
+                .sort((a, b) => b.position - a.position)
                 .map((role) => `${role}`)
                 .join(', ') || italic('None');
 
@@ -57,7 +62,7 @@ module.exports = {
                       : ''
                   }`,
               )
-              .join('\n') ?? italic('None');
+              .join('\n') || italic('None');
 
           const embed = new EmbedBuilder()
             .setAuthor({
@@ -89,11 +94,17 @@ module.exports = {
                 inline: true,
               },
               {
-                name: `🔐 Roles${
-                  member.roles.cache.size > 0 &&
-                  ` (${member.roles.cache.size - 1})`
+                name: `🛠️ Roles${
+                  member.roles.cache.size && ` (${member.roles.cache.size - 1})`
                 }`,
                 value: userRoles,
+              },
+              {
+                name: '🔐 Permissions',
+                value: member.permissions
+                  .toArray()
+                  .map((permission) => applySpacesBetweenPascalCase(permission))
+                  .join(', '),
               },
               {
                 name: '📆 Member Since',
