@@ -3,88 +3,68 @@ const {
   Colors,
   EmbedBuilder,
   PermissionFlagsBits,
-  SlashCommandBuilder,
   PermissionsBitField,
+  SlashCommandBuilder,
+  time,
+  TimestampStyles,
 } = require('discord.js');
+const moment = require('moment');
 const { Pagination } = require('pagination.djs');
 
-const { roleCreatePermissionChoices } = require('../../constants');
-const { applyHexColor } = require('../../utils');
+const {
+  roleCreatePermissionChoices,
+  // TODO: WIP
+  // roleModifyPermissionTypeChoices,
+} = require('../../constants');
+const {
+  applyComparison,
+  applyHexColor,
+  applyOrdinal,
+  applySpacesBetweenPascalCase,
+} = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('role')
-    .setDescription('🛠️ Set the roles for a member.')
+    .setDescription('🛠️ Role command.')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
-    .addSubcommandGroup((subcommandGroup) =>
-      subcommandGroup
-        .setName('modify')
-        .setDescription('➕ Modify a role.')
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('name')
-            .setDescription('🔤 Modify the role name.')
-            .addRoleOption((option) =>
-              option
-                .setName('role')
-                .setDescription('🛠️ The role to modify.')
-                .setRequired(true),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('name')
-                .setDescription("🔤 The role's new name.")
-                .setRequired(true),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('reason')
-                .setDescription('📃 The reason for adding the role.'),
-            ),
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('add')
+        .setDescription('➕ Add a role to a member.')
+        .addUserOption((option) =>
+          option
+            .setName('member')
+            .setDescription('👤 The member to be added a new role.')
+            .setRequired(true),
         )
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('color')
-            .setDescription('🎨 Modify the role color.')
-            .addRoleOption((option) =>
-              option
-                .setName('role')
-                .setDescription('🛠️ The role to modify.')
-                .setRequired(true),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('color')
-                .setDescription("🎨 The role's new color.")
-                .setRequired(true),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('reason')
-                .setDescription('📃 The reason for adding the role.'),
-            ),
+        .addRoleOption((option) =>
+          option
+            .setName('role')
+            .setDescription('‍🛠️ The role to add.')
+            .setRequired(true),
         )
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('position')
-            .setDescription('🎨 Modify the role position (hierarchy).')
-            .addRoleOption((option) =>
-              option
-                .setName('role')
-                .setDescription('🛠️ The role to modify.')
-                .setRequired(true),
-            )
-            .addRoleOption((option) =>
-              option
-                .setName('to_role')
-                .setDescription('🛠️ The role to be modified.')
-                .setRequired(true),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('reason')
-                .setDescription('📃 The reason for adding the role.'),
-            ),
+        .addStringOption((option) =>
+          option
+            .setName('reason')
+            .setDescription('📃 The reason for adding the role.'),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('compare')
+        .setDescription('⚖️ Compare two roles.')
+        .addRoleOption((option) =>
+          option
+            .setName('role')
+            .setDescription('🛠️ The first role to compare.')
+            .setRequired(true),
+        )
+        .addRoleOption((option) =>
+          option
+            .setName('to_role')
+            .setDescription('‍🛠️ The second role to compare.')
+            .setRequired(true),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -163,30 +143,175 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
-        .setName('add')
-        .setDescription('➕ Add a role to a member.')
-        .addUserOption((option) =>
-          option
-            .setName('member')
-            .setDescription('👤 The member to be added a new role.')
-            .setRequired(true),
-        )
+        .setName('info')
+        .setDescription('ℹ️ Show the information about the role.')
         .addRoleOption((option) =>
           option
             .setName('role')
-            .setDescription('‍🛠️ The role to add.')
+            .setDescription('🛠️ The role to show.')
             .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('list')
+        .setDescription('📄 Show list of server roles.'),
+    )
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('modify')
+        .setDescription('➕ Modify a role.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('color')
+            .setDescription('🎨 Modify the role color.')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('color')
+                .setDescription("🎨 The role's new color.")
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for modifying the role.'),
+            ),
         )
-        .addStringOption((option) =>
-          option
-            .setName('reason')
-            .setDescription('📃 The reason for adding the role.'),
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('hoist')
+            .setDescription('🪢 Modify the role hoist state.')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addBooleanOption((option) =>
+              option
+                .setName('hoist')
+                .setDescription(
+                  '🪢 Whether to display the role separately or not.',
+                )
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for modifying the role.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('mentionable')
+            .setDescription('🏷️ Modify the role mentionable state.')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addBooleanOption((option) =>
+              option
+                .setName('mentionable')
+                .setDescription(
+                  '🏷️ Whether to allow members to mention the role or not.',
+                )
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for modifying the role.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('name')
+            .setDescription('🔤 Modify the role name.')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription("🔤 The role's new name.")
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for modifying the role.'),
+            ),
+        )
+        // TODO: WIP
+        // .addSubcommand((subcommand) =>
+        //   subcommand
+        //     .setName('permissions')
+        //     .setDescription('🔐 Modify the role permissions.')
+        //     .addRoleOption((option) =>
+        //       option
+        //         .setName('role')
+        //         .setDescription('🛠️ The role to modify.')
+        //         .setRequired(true),
+        //     )
+        //     .addStringOption((option) =>
+        //       option
+        //         .setName('type')
+        //         .setDescription('🔣 The modifying type.')
+        //         .addChoices(...roleModifyPermissionTypeChoices)
+        //         .setRequired(true),
+        //     )
+        //     .addIntegerOption((option) =>
+        //       option
+        //         .setName('permission')
+        //         .setDescription("🔐 The role's permissions.")
+        //         .addChoices(...roleCreatePermissionChoices),
+        //     )
+        //     .addStringOption((option) =>
+        //       option
+        //         .setName('reason')
+        //         .setDescription('📃 The reason for modifying the role.'),
+        //     ),
+        // )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('position')
+            .setDescription('🎨 Modify the role position (hierarchy).')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addRoleOption((option) =>
+              option
+                .setName('position')
+                .setDescription(
+                  "🛠️ The role's position to be specified on top of this role.",
+                )
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for modifying the role.'),
+            ),
         ),
     )
     .addSubcommand((subcommand) =>
       subcommand
         .setName('remove')
-        .setDescription('➖ Delete a role.')
+        .setDescription('➖ Remove a role from a member.')
         .addUserOption((option) =>
           option
             .setName('member')
@@ -204,11 +329,6 @@ module.exports = {
             .setName('reason')
             .setDescription('📃 The reason for removing the role.'),
         ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('list')
-        .setDescription('📄 Show list of server roles.'),
     ),
   type: 'Chat Input',
 
@@ -226,9 +346,24 @@ module.exports = {
     const role = options.getRole('role');
     const name = options.getString('name');
     const color = options.getString('color');
+    const hoist = options.getBoolean('hoist');
+    const mentionable = options.getBoolean('mentionable');
+
+    /** @type {import('discord.js').Role} */
+    const targetRolePosition = options.getRole('position');
     const reason = options.getString('reason') ?? 'No reason';
     const convertedColor =
       color !== null ? applyHexColor(color) : Colors.Default;
+
+    const embed = new EmbedBuilder()
+      .setColor(guild.members.me.displayHexColor)
+      .setTimestamp(Date.now())
+      .setFooter({
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL({
+          dynamic: true,
+        }),
+      });
 
     switch (options.getSubcommandGroup()) {
       case 'modify':
@@ -271,40 +406,252 @@ module.exports = {
               );
 
             case 'position': {
-              /** @type {import('discord.js').Role} */
-              const target = options.getRole('to_role');
-
-              if (target.permissions.bitfield > role.permissions.bitfield) {
+              if (
+                targetRolePosition.permissions.bitfield >
+                role.permissions.bitfield
+              ) {
                 return interaction.editReply({
-                  content: `You don't have appropiate permissions to modify ${target} role's position.`,
+                  content: `You don't have appropiate permissions to modify ${targetRolePosition} role's position.`,
                 });
               }
 
-              if (role.position === target.position) {
+              if (role.position === targetRolePosition.position) {
                 return interaction.editReply({
                   content:
                     'You have to specify a different position to modify.',
                 });
               }
 
-              return role.setPosition(target.position, { reason }).then(
+              return role
+                .setPosition(targetRolePosition.position, { reason })
+                .then(
+                  async (r) =>
+                    await interaction.editReply({
+                      content: `Successfully ${bold('modified')} ${r}.`,
+                    }),
+                );
+            }
+
+            case 'hoist':
+              if (hoist === role.hoist) {
+                return interaction.editReply({
+                  content: `${role}'s hoist state ${
+                    role.hoist ? 'is already' : "isn't"
+                  } being turned on.`,
+                });
+              }
+
+              return role.setHoist(hoist, reason).then(
                 async (r) =>
                   await interaction.editReply({
-                    content: `Successfully ${bold('modified')} ${r}.`,
+                    content: `Successfully turned ${
+                      r.hoist ? 'on' : 'off'
+                    } ${r}'s hoist state.`,
                   }),
               );
-            }
+
+            case 'mentionable':
+              if (mentionable === role.mentionable) {
+                return interaction.editReply({
+                  content: `${role}'s mentionable state ${
+                    role.mentionable ? 'is already' : "isn't"
+                  } being turned on.`,
+                });
+              }
+
+              return role.setMentionable(mentionable, reason).then(
+                async (r) =>
+                  await interaction.editReply({
+                    content: `Successfully turned ${
+                      r.mentionable ? 'on' : 'off'
+                    } ${r}'s mentionable state.`,
+                  }),
+              );
+
+            // TODO: WIP
+            // case 'permissions': {
+            //   const type = options.getString('type');
+            //   const permission = BigInt(options.getInteger('permission'));
+
+            //   switch (type) {
+            //     case 'grant':
+            //       return role.permissions.add(permission);
+
+            //     default:
+            //       break;
+            //   }
+            // }
           }
         });
     }
 
     switch (options.getSubcommand()) {
-      case 'create': {
-        const hoist = options.getBoolean('hoist') ?? false;
-        const mentionable = options.getBoolean('mentionable') ?? false;
-
+      case 'compare': {
         /** @type {import('discord.js').Role} */
-        const position = options.getRole('position');
+        const targetRole = options.getRole('to_role');
+
+        if (role.id === targetRole.id) {
+          return interaction.deferReply({ ephemeral: true }).then(
+            async () =>
+              await interaction.editReply({
+                content: 'You have to specify another role to compare.',
+              }),
+          );
+        }
+
+        const positionComparison = role.position > targetRole.position;
+        const higherPosition = positionComparison ? role : targetRole;
+        const comparedPosition = positionComparison
+          ? role.comparePositionTo(targetRole)
+          : targetRole.comparePositionTo(role);
+
+        const rolePermissionsBitField = Number(role.permissions.bitfield);
+        const targetRolePermissionsBitField = Number(
+          targetRole.permissions.bitfield,
+        );
+        const permissionsComparison =
+          rolePermissionsBitField > targetRolePermissionsBitField;
+        const highestPermissions = permissionsComparison
+          ? role
+          : rolePermissionsBitField === targetRolePermissionsBitField
+          ? 'Equal'
+          : targetRole;
+        const permissionsValueComparison = applyComparison(
+          rolePermissionsBitField,
+          targetRolePermissionsBitField,
+        );
+
+        const roleMemberCount = role.members.size;
+        const targetRoleMemberCount = targetRole.members.size;
+        const memberCountComparison = roleMemberCount > targetRoleMemberCount;
+        const highestMemberCount = memberCountComparison
+          ? role
+          : roleMemberCount === targetRoleMemberCount
+          ? 'Equal'
+          : targetRole;
+        const memberCountValueComparison = applyComparison(
+          roleMemberCount,
+          targetRoleMemberCount,
+        );
+
+        const roleCreatedTimestamp = role.createdTimestamp;
+        const targetRoleCreatedTimestamp = targetRole.createdTimestamp;
+        const createdTimestampComparison =
+          roleCreatedTimestamp < targetRoleCreatedTimestamp;
+        const firstMade = createdTimestampComparison
+          ? role
+          : roleCreatedTimestamp === targetRoleCreatedTimestamp
+          ? 'Same time'
+          : targetRole;
+        const createdAtValueComparison = Math.abs(
+          moment(role.createdAt).diff(targetRole.createdAt),
+        );
+
+        return interaction.deferReply().then(async () => {
+          embed.setAuthor({
+            name: `⚖️ ${role.name} & ${targetRole.name} Role Comparison`,
+          });
+          embed.setFields([
+            {
+              name: '🔢 Higher Position',
+              value: `${higherPosition} (+${comparedPosition})`,
+              inline: true,
+            },
+            {
+              name: '🔐 Highest Permissions',
+              value: `${highestPermissions} ${
+                permissionsValueComparison > 0
+                  ? `(+${permissionsValueComparison})`
+                  : ''
+              }`,
+              inline: true,
+            },
+            {
+              name: '👤 Highest Member Count',
+              value: `${highestMemberCount} ${
+                memberCountValueComparison > 0
+                  ? `(+${memberCountValueComparison})`
+                  : ''
+              }`,
+              inline: true,
+            },
+            {
+              name: '📆 First Made',
+              value: `${firstMade} ${
+                createdAtValueComparison > 0
+                  ? `(+${moment.duration(createdAtValueComparison).humanize()})`
+                  : ''
+              }`,
+              inline: true,
+            },
+          ]);
+
+          await interaction.editReply({ embeds: [embed] });
+        });
+      }
+
+      case 'info':
+        return interaction.deferReply().then(async () => {
+          embed.setAuthor({
+            name: `ℹ️ ${role.name}'s Role Information`,
+          });
+          embed.setFields([
+            {
+              name: '📆 Created At',
+              value: time(role.createdAt, TimestampStyles.RelativeTime),
+              inline: true,
+            },
+            {
+              name: '🎨 Color',
+              value: role.hexColor,
+              inline: true,
+            },
+            {
+              name: '🪢 Hoist',
+              value: role.hoist ? 'Yes' : 'No',
+              inline: true,
+            },
+            {
+              name: '🏷️ Mentionable',
+              value: role.mentionable ? 'Yes' : 'No',
+              inline: true,
+            },
+            {
+              name: '⚙️ Managed',
+              value: role.managed ? 'Yes' : 'No',
+              inline: true,
+            },
+            {
+              name: '👤 Member Count',
+              value: `${role.members.size}`,
+              inline: true,
+            },
+            {
+              name: '🔢 Position',
+              value: applyOrdinal(role.position),
+              inline: true,
+            },
+            {
+              name: '🔐 Permissions',
+              value: role.permissions
+                .toArray()
+                .map((permission) => applySpacesBetweenPascalCase(permission))
+                .join(', '),
+            },
+          ]);
+
+          if (role.unicodeEmoji) {
+            embed.spliceFields(7, 0, {
+              name: '😀 Emoji',
+              value: role.unicodeEmoji,
+              inline: true,
+            });
+          }
+
+          await interaction.editReply({ embeds: [embed] });
+        });
+
+      case 'create': {
         const permission = options.getInteger('permission');
         const permission2 = options.getInteger('permission2');
         const permission3 = options.getInteger('permission3');
@@ -319,10 +666,12 @@ module.exports = {
               .create({
                 name,
                 color: convertedColor,
-                hoist,
-                mentionable,
+                hoist: hoist ?? false,
+                mentionable: mentionable ?? false,
                 reason,
-                position: position ? position.position + 1 : 1,
+                position: targetRolePosition
+                  ? targetRolePosition.position + 1
+                  : 1,
                 permissions: permissionArray.length
                   ? [...new Set(permissionArray)]
                   : PermissionsBitField.Default,
@@ -430,26 +779,17 @@ module.exports = {
                   }),
                 });
                 pagination.setAuthor({
-                  name: `🔐 ${guild} Role Lists (${rls.size})`,
+                  name: `🛠️ ${guild} Role Lists (${rls.size})`,
                 });
                 pagination.setDescriptions(descriptions);
 
                 return pagination.render();
               }
 
-              const embed = new EmbedBuilder()
-                .setColor(guild.members.me.displayHexColor)
-                .setTimestamp(Date.now())
-                .setFooter({
-                  text: client.user.username,
-                  iconURL: client.user.displayAvatarURL({
-                    dynamic: true,
-                  }),
-                })
-                .setAuthor({
-                  name: `🔐 ${guild} Role Lists (${rls.size})`,
-                })
-                .setDescription(descriptions.join('\n'));
+              embed.setAuthor({
+                name: `🛠️ ${guild} Role Lists (${rls.size})`,
+              });
+              embed.setDescription(descriptions.join('\n'));
 
               await interaction.editReply({ embeds: [embed] });
             }),

@@ -53,15 +53,55 @@ module.exports = {
       return VoiceJoinLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
-    // If the member leave from a voice channel or disconnected by a moderator
+    // If the member leave from a voice channel
     if (oldState.channel && !newState.channel) {
+      const disconnectLog = await newState.guild
+        .fetchAuditLogs({
+          limit: 1,
+          type: AuditLogEvent.MemberDisconnect,
+        })
+        .then((audit) => audit.entries.first());
+
+      const diff = Math.abs(
+        (new Date().getTime() - disconnectLog.createdAt.getTime()) / 1000,
+      );
+
+      // If the member disconnected from a voice channel by a moderator
+      if (diff <= 5) {
+        const VoiceDisconnectLogger = new WebhookClient({
+          id: process.env.MEMBER_VOICE_DISCONNECT_WEBHOOK_ID,
+          token: process.env.MEMBER_VOICE_DISCONNECT_WEBHOOK_TOKEN,
+        });
+
+        embed.setAuthor({
+          name: 'Member Disconnected from Voice Channel',
+          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+        });
+        embed.setDescription(
+          `${newState.member} has disconnected from ${oldState.channel} by ${disconnectLog.executor}.`,
+        );
+        embed.setFields([
+          {
+            name: '🕒 Disconnected At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+        ]);
+
+        return VoiceDisconnectLogger.send({ embeds: [embed] }).catch(
+          console.error,
+        );
+      }
+
       const VoiceLeaveLogger = new WebhookClient({
         id: process.env.MEMBER_VOICE_LEAVE_WEBHOOK_ID,
         token: process.env.MEMBER_VOICE_LEAVE_WEBHOOK_TOKEN,
       });
 
       embed.setAuthor({
-        name: 'Member Disconnected from Voice Channel',
+        name: 'Member Left from Voice Channel',
         iconURL: newState.member.displayAvatarURL({ dynamic: true }),
       });
       embed.setDescription(
@@ -89,33 +129,39 @@ module.exports = {
         })
         .then((audit) => audit.entries.first());
 
-      if (new Date() - moveLog.createdAt > 5 * 1000) return;
-
-      const VoiceMoveLogger = new WebhookClient({
-        id: process.env.MEMBER_VOICE_MOVE_WEBHOOK_ID,
-        token: process.env.MEMBER_VOICE_MOVE_WEBHOOK_TOKEN,
-      });
-
-      embed.setAuthor({
-        name: 'Member Moved from Voice Channel',
-        iconURL: newState.member.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${newState.member} has been moved from ${oldState.channel} to ${
-          newState.channel
-        } by ${moveLog.executor} at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
+      const diff = Math.abs(
+        (new Date().getTime() - moveLog.createdAt.getTime()) / 1000,
       );
-      embed.setFields([
-        {
-          name: '📄 Reason',
-          value: moveLog.reason ?? 'No reason',
-        },
-      ]);
 
-      return VoiceMoveLogger.send({ embeds: [embed] }).catch(console.error);
+      if (diff <= 5) {
+        const VoiceMoveLogger = new WebhookClient({
+          id: process.env.MEMBER_VOICE_MOVE_WEBHOOK_ID,
+          token: process.env.MEMBER_VOICE_MOVE_WEBHOOK_TOKEN,
+        });
+
+        embed.setAuthor({
+          name: 'Member Moved from Voice Channel',
+          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+        });
+        embed.setDescription(
+          `${newState.member} has been moved from ${oldState.channel} to ${newState.channel} by ${moveLog.executor}.`,
+        );
+        embed.setFields([
+          {
+            name: '🕒 Moved At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          {
+            name: '📄 Reason',
+            value: moveLog.reason ?? 'No reason',
+          },
+        ]);
+
+        return VoiceMoveLogger.send({ embeds: [embed] }).catch(console.error);
+      }
     }
 
     // If the member being muted by a moderator

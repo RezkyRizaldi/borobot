@@ -9,7 +9,6 @@ const {
   TimestampStyles,
 } = require('discord.js');
 const Scraper = require('images-scraper').default;
-const { API } = require('nhentai-api');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
@@ -36,6 +35,35 @@ module.exports = {
       subcommandGroup
         .setName('anime')
         .setDescription('🖼️ Anime command.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('character')
+            .setDescription('👤 Search anime characters from MyAnimeList.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription("🔤 The anime character's name search query."),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('order')
+                .setDescription("🔤 The anime character's order search query.")
+                .addChoices(...animeCharacterSearchOrderChoices),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('sort')
+                .setDescription("🔣 The anime character's sort search query.")
+                .addChoices(...searchSortingChoices),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('initial')
+                .setDescription(
+                  "🔣 The anime character's initial search query.",
+                ),
+            ),
+        )
         .addSubcommand((subcommand) =>
           subcommand
             .setName('info')
@@ -81,52 +109,36 @@ module.exports = {
                 .setName('initial')
                 .setDescription('🔣 The anime initial search query.'),
             ),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('definition')
+        .setDescription(
+          '❓ Search the definition of a term from Urban Dictionary.',
         )
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('character')
-            .setDescription('👤 Search anime characters from MyAnimeList.')
-            .addStringOption((option) =>
-              option
-                .setName('name')
-                .setDescription("🔤 The anime character's name search query."),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('order')
-                .setDescription("🔤 The anime character's order search query.")
-                .addChoices(...animeCharacterSearchOrderChoices),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('sort')
-                .setDescription("🔣 The anime character's sort search query.")
-                .addChoices(...searchSortingChoices),
-            )
-            .addStringOption((option) =>
-              option
-                .setName('initial')
-                .setDescription(
-                  "🔣 The anime character's initial search query.",
-                ),
-            ),
+        .addStringOption((option) =>
+          option
+            .setName('term')
+            .setDescription("🔠 The definition's term.")
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('image')
+        .setDescription('🖼️ Search any images from Google.')
+        .addStringOption((option) =>
+          option
+            .setName('query')
+            .setDescription('🔠 The image search query.')
+            .setRequired(true),
         ),
     )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('github')
         .setDescription('ℹ️ Search a GitHub information.')
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('user')
-            .setDescription('👤 Search GitHub user account information.')
-            .addStringOption((option) =>
-              option
-                .setName('username')
-                .setDescription("🔠 The GitHub user's username.")
-                .setRequired(true),
-            ),
-        )
         .addSubcommand((subcommand) =>
           subcommand
             .setName('repositories')
@@ -155,6 +167,17 @@ module.exports = {
                 .setName('order')
                 .setDescription('🔣 The Search query ordering type.')
                 .addChoices(...searchSortingChoices),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('user')
+            .setDescription('👤 Search GitHub user account information.')
+            .addStringOption((option) =>
+              option
+                .setName('username')
+                .setDescription("🔠 The GitHub user's username.")
+                .setRequired(true),
             ),
         ),
     )
@@ -200,41 +223,6 @@ module.exports = {
           option
             .setName('initial')
             .setDescription('🔣 The manga initial search query.'),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('doujin')
-        .setDescription('🖼️ Search dounjinshi from Nhentai.')
-        .addStringOption((option) =>
-          option
-            .setName('query')
-            .setDescription('🔠 The doujinshi search query.')
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('image')
-        .setDescription('🖼️ Search any images from Google.')
-        .addStringOption((option) =>
-          option
-            .setName('query')
-            .setDescription('🔠 The image search query.')
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('definition')
-        .setDescription(
-          '❓ Search the definition of a term from Urban Dictionary.',
-        )
-        .addStringOption((option) =>
-          option
-            .setName('term')
-            .setDescription("🔠 The definition's term.")
-            .setRequired(true),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -1105,25 +1093,6 @@ module.exports = {
               await pagination.render();
             });
           });
-      }
-
-      case 'doujin': {
-        if (!channel.nsfw) {
-          return interaction.deferReply({ ephemeral: true }).then(
-            async () =>
-              await interaction.editReply({
-                content: `Please use this command in a NSFW Channel.\n${italic(
-                  'eg.',
-                )} ${NSFWChannels}`,
-              }),
-          );
-        }
-
-        const query = options.getString('query');
-
-        const api = new API();
-
-        return api.search(query).then(async (res) => console.log(res));
       }
 
       case 'image': {

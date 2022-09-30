@@ -9,6 +9,23 @@ module.exports = {
     .setName('fun')
     .setDescription('🎉 Fun command.')
     .addSubcommand((subcommand) =>
+      subcommand.setName('boobs').setDescription('🚫 Send a boobs gif.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('cuddle')
+        .setDescription('😍 Send a cuddling gif.')
+        .addUserOption((option) =>
+          option
+            .setName('target')
+            .setDescription('👤 The target member to cuddle.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand.setName('hentai').setDescription('🚫 Send a hentai gif.'),
+    )
+    .addSubcommand((subcommand) =>
       subcommand
         .setName('hug')
         .setDescription('🤗 Send a hugging gif.')
@@ -16,61 +33,6 @@ module.exports = {
           option
             .setName('target')
             .setDescription('👤 The target member to hug.')
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('kiss')
-        .setDescription('😘 Send a kissing gif.')
-        .addUserOption((option) =>
-          option
-            .setName('target')
-            .setDescription('👤 The target member to kiss.')
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('slap')
-        .setDescription('🤚 Send a slapping gif.')
-        .addUserOption((option) =>
-          option
-            .setName('target')
-            .setDescription('👤 The target member to slap.')
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('punch')
-        .setDescription('👊 Send a punching gif.')
-        .addUserOption((option) =>
-          option
-            .setName('target')
-            .setDescription('👤 The target member to punch.')
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('wink')
-        .setDescription('😉 Send a winking gif.')
-        .addUserOption((option) =>
-          option
-            .setName('target')
-            .setDescription('👤 The target member to wink.')
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('pat')
-        .setDescription('🖐️ Send a patting gif.')
-        .addUserOption((option) =>
-          option
-            .setName('target')
-            .setDescription('👤 The target member to pat.')
             .setRequired(true),
         ),
     )
@@ -87,12 +49,48 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
-        .setName('cuddle')
-        .setDescription('😍 Send a cuddling gif.')
+        .setName('kiss')
+        .setDescription('😘 Send a kissing gif.')
         .addUserOption((option) =>
           option
             .setName('target')
-            .setDescription('👤 The target member to cuddle.')
+            .setDescription('👤 The target member to kiss.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand.setName('lesbian').setDescription('🚫 Send a lesbian gif.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('pat')
+        .setDescription('🖐️ Send a patting gif.')
+        .addUserOption((option) =>
+          option
+            .setName('target')
+            .setDescription('👤 The target member to pat.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('punch')
+        .setDescription('👊 Send a punching gif.')
+        .addUserOption((option) =>
+          option
+            .setName('target')
+            .setDescription('👤 The target member to punch.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('slap')
+        .setDescription('🤚 Send a slapping gif.')
+        .addUserOption((option) =>
+          option
+            .setName('target')
+            .setDescription('👤 The target member to slap.')
             .setRequired(true),
         ),
     )
@@ -109,13 +107,15 @@ module.exports = {
         ),
     )
     .addSubcommand((subcommand) =>
-      subcommand.setName('hentai').setDescription('🚫 Send a hentai gif.'),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand.setName('boobs').setDescription('🚫 Send a boobs gif.'),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand.setName('lesbian').setDescription('🚫 Send a lesbian gif.'),
+      subcommand
+        .setName('wink')
+        .setDescription('😉 Send a winking gif.')
+        .addUserOption((option) =>
+          option
+            .setName('target')
+            .setDescription('👤 The target member to wink.')
+            .setRequired(true),
+        ),
     ),
   type: 'Chat Input',
 

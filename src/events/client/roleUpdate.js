@@ -75,12 +75,7 @@ module.exports = {
 
     if (oldRole.hexColor !== newRole.hexColor) {
       embed.setDescription(
-        `${oldRole} role's color was ${bold('edited')} by ${
-          editLog.executor
-        } at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
+        `${oldRole} role's color was ${bold('edited')} by ${editLog.executor}.`,
       );
       embed.setFields([
         {
@@ -97,6 +92,52 @@ module.exports = {
         {
           name: '🕒 After',
           value: newRole.hexColor,
+        },
+        {
+          name: '📄 Reason',
+          value: editLog.reason ?? 'No reason',
+        },
+      ]);
+
+      return RoleLogger.send({ embeds: [embed] }).catch(console.error);
+    }
+
+    if (oldRole.hoist !== newRole.hoist) {
+      embed.setDescription(
+        `${oldRole} role's hoist state was ${bold(
+          `turned ${newRole.hoist ? 'on' : 'off'}`,
+        )} by ${editLog.executor}.`,
+      );
+      embed.setFields([
+        {
+          name: '🕒 Edited At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
+        {
+          name: '📄 Reason',
+          value: editLog.reason ?? 'No reason',
+        },
+      ]);
+
+      return RoleLogger.send({ embeds: [embed] }).catch(console.error);
+    }
+
+    if (oldRole.mentionable !== newRole.mentionable) {
+      embed.setDescription(
+        `${oldRole} role's mentionable state was ${bold(
+          `turned ${newRole.mentionable ? 'on' : 'off'}`,
+        )} by ${editLog.executor}.`,
+      );
+      embed.setFields([
+        {
+          name: '🕒 Edited At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
         },
         {
           name: '📄 Reason',

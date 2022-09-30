@@ -677,4 +677,21 @@ module.exports = {
       value: Number(PermissionFlagsBits.Administrator),
     },
   ],
+
+  // TODO: WIP
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  // roleModifyPermissionTypeChoices: [
+  //   {
+  //     name: '🟢 Grant',
+  //     value: 'grant',
+  //   },
+  //   {
+  //     name: '🚫 Deny',
+  //     value: 'deny',
+  //   },
+  //   {
+  //     name: '🔴 Clear',
+  //     value: 'clear',
+  //   },
+  // ],
 };

@@ -16,18 +16,6 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.Connect)
     .addSubcommand((subcommand) =>
       subcommand
-        .setName('youtube')
-        .setDescription('🎥 Watch YouTube video in a voice channel.')
-        .addChannelOption((option) =>
-          option
-            .setName('channel')
-            .setDescription('🔊 Voice channel to be used to watch.')
-            .addChannelTypes(ChannelType.GuildVoice)
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
         .setName('anime')
         .setDescription('🎥 Watch anime stream from GogoAnime.')
         .addStringOption((option) =>
@@ -40,6 +28,18 @@ module.exports = {
           option
             .setName('episode')
             .setDescription('🔢 The anime episode search query.'),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('youtube')
+        .setDescription('🎥 Watch YouTube video in a voice channel.')
+        .addChannelOption((option) =>
+          option
+            .setName('channel')
+            .setDescription('🔊 Voice channel to be used to watch.')
+            .addChannelTypes(ChannelType.GuildVoice)
+            .setRequired(true),
         ),
     ),
   type: 'Chat Input',
