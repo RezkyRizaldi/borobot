@@ -1,7 +1,9 @@
+/* global BigInt */
 const {
   bold,
   Colors,
   EmbedBuilder,
+  inlineCode,
   PermissionFlagsBits,
   PermissionsBitField,
   SlashCommandBuilder,
@@ -10,16 +12,17 @@ const {
 } = require('discord.js');
 const moment = require('moment');
 const { Pagination } = require('pagination.djs');
+const pluralize = require('pluralize');
 
 const {
-  roleCreatePermissionChoices,
-  // TODO: WIP
-  // roleModifyPermissionTypeChoices,
+  roleModifyPermissionTypeChoices,
+  rolePermissionChoices,
 } = require('../../constants');
 const {
   applyComparison,
   applyHexColor,
   applyOrdinal,
+  applyPermission,
   applySpacesBetweenPascalCase,
 } = require('../../utils');
 
@@ -105,19 +108,19 @@ module.exports = {
           option
             .setName('permission')
             .setDescription("🔐 The role's permissions.")
-            .addChoices(...roleCreatePermissionChoices),
+            .addChoices(...rolePermissionChoices),
         )
         .addIntegerOption((option) =>
           option
             .setName('permission2')
             .setDescription("🔐 The role's permissions.")
-            .addChoices(...roleCreatePermissionChoices),
+            .addChoices(...rolePermissionChoices),
         )
         .addIntegerOption((option) =>
           option
             .setName('permission3')
             .setDescription("🔐 The role's permissions.")
-            .addChoices(...roleCreatePermissionChoices),
+            .addChoices(...rolePermissionChoices),
         )
         .addStringOption((option) =>
           option
@@ -253,36 +256,36 @@ module.exports = {
                 .setDescription('📃 The reason for modifying the role.'),
             ),
         )
-        // TODO: WIP
-        // .addSubcommand((subcommand) =>
-        //   subcommand
-        //     .setName('permissions')
-        //     .setDescription('🔐 Modify the role permissions.')
-        //     .addRoleOption((option) =>
-        //       option
-        //         .setName('role')
-        //         .setDescription('🛠️ The role to modify.')
-        //         .setRequired(true),
-        //     )
-        //     .addStringOption((option) =>
-        //       option
-        //         .setName('type')
-        //         .setDescription('🔣 The modifying type.')
-        //         .addChoices(...roleModifyPermissionTypeChoices)
-        //         .setRequired(true),
-        //     )
-        //     .addIntegerOption((option) =>
-        //       option
-        //         .setName('permission')
-        //         .setDescription("🔐 The role's permissions.")
-        //         .addChoices(...roleCreatePermissionChoices),
-        //     )
-        //     .addStringOption((option) =>
-        //       option
-        //         .setName('reason')
-        //         .setDescription('📃 The reason for modifying the role.'),
-        //     ),
-        // )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('permissions')
+            .setDescription('🔐 Modify the role permissions.')
+            .addRoleOption((option) =>
+              option
+                .setName('role')
+                .setDescription('🛠️ The role to modify.')
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('type')
+                .setDescription('🔣 The modifying type.')
+                .addChoices(...roleModifyPermissionTypeChoices)
+                .setRequired(true),
+            )
+            .addIntegerOption((option) =>
+              option
+                .setName('permission')
+                .setDescription("🔐 The role's permissions.")
+                .addChoices(...rolePermissionChoices)
+                .setRequired(true),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('reason')
+                .setDescription('📃 The reason for modifying the role.'),
+            ),
+        )
         .addSubcommand((subcommand) =>
           subcommand
             .setName('position')
@@ -468,19 +471,76 @@ module.exports = {
                   }),
               );
 
-            // TODO: WIP
-            // case 'permissions': {
-            //   const type = options.getString('type');
-            //   const permission = BigInt(options.getInteger('permission'));
+            case 'permissions': {
+              const type = options.getString('type');
+              const permission = BigInt(options.getInteger('permission'));
+              const permissions = role.permissions.toArray();
+              const missingPermissions = role.permissions.missing(permission);
 
-            //   switch (type) {
-            //     case 'grant':
-            //       return role.permissions.add(permission);
+              pluralize.addPluralRule(/permission$/i, 'permissions');
 
-            //     default:
-            //       break;
-            //   }
-            // }
+              switch (type) {
+                case 'grant': {
+                  if (permission === BigInt(0)) {
+                    return interaction.editReply({
+                      content: 'You have to specify a permission to grant.',
+                    });
+                  }
+
+                  if (role.permissions.has(permission)) {
+                    return interaction.editReply({
+                      content: `${inlineCode(
+                        applyPermission(permission),
+                      )} permission is already granted for ${role} role.`,
+                    });
+                  }
+
+                  return role
+                    .setPermissions(role.permissions.add(permission), reason)
+                    .then(
+                      async (r) =>
+                        await interaction.editReply({
+                          content: `Successfully granted ${missingPermissions
+                            .map((perm) =>
+                              inlineCode(applySpacesBetweenPascalCase(perm)),
+                            )
+                            .join(', ')} ${pluralize(
+                            'permission',
+                            missingPermissions.length,
+                          )} for ${r} role.`,
+                        }),
+                    );
+                }
+
+                case 'deny':
+                  if (!role.permissions.has(permission)) {
+                    return interaction.editReply({
+                      content: `${inlineCode(
+                        applyPermission(permission),
+                      )} permission is already denied for ${role} role.`,
+                    });
+                  }
+
+                  return role
+                    .setPermissions(role.permissions.remove(permission), reason)
+                    .then(
+                      async (r) =>
+                        await interaction.editReply({
+                          content: `Successfully denied ${permissions
+                            .filter(
+                              (perm) => !r.permissions.toArray().includes(perm),
+                            )
+                            .map((perm) =>
+                              inlineCode(applySpacesBetweenPascalCase(perm)),
+                            )
+                            .join(', ')} ${pluralize(
+                            'permission',
+                            missingPermissions.length,
+                          )} for ${r} role.`,
+                        }),
+                    );
+              }
+            }
           }
         });
     }
@@ -655,7 +715,6 @@ module.exports = {
         const permission = options.getInteger('permission');
         const permission2 = options.getInteger('permission2');
         const permission3 = options.getInteger('permission3');
-        /* global BigInt */
         const permissionArray = [permission, permission2, permission3]
           .filter((perm) => !!perm)
           .map((perm) => BigInt(perm));

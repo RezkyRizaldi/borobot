@@ -5,6 +5,7 @@ const applyHexColor = require('./applyHexColor');
 const applyMessageType = require('./applyMessageType');
 const applyNSFWLevel = require('./applyNSFWLevel');
 const applyOrdinal = require('./applyOrdinal');
+const applyPermission = require('./applyPermission');
 const applyPresence = require('./applyPresence');
 const applyRepeatMode = require('./applyRepeatMode');
 const applySpacesBetweenPascalCase = require('./applySpacesBetweenPascalCase');
@@ -29,6 +30,7 @@ module.exports = {
   applyMessageType,
   applyNSFWLevel,
   applyOrdinal,
+  applyPermission,
   applyPresence,
   applyRepeatMode,
   applySpacesBetweenPascalCase,

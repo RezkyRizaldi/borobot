@@ -1,5 +1,10 @@
 const { languages } = require('@vitalets/google-translate-api');
-const { ChannelType, Events, PermissionFlagsBits } = require('discord.js');
+const {
+  ChannelType,
+  Events,
+  PermissionFlagsBits,
+  PermissionsBitField,
+} = require('discord.js');
 const { SearchResultType } = require('distube');
 
 const newSupportedLanguages = {
@@ -579,10 +584,14 @@ module.exports = {
   ],
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
-  roleCreatePermissionChoices: [
+  rolePermissionChoices: [
     {
       name: '⛔ None',
       value: 0,
+    },
+    {
+      name: '⚫ Default',
+      value: Number(PermissionsBitField.Default),
     },
     {
       name: '🔊 Manage Channels',
@@ -678,20 +687,15 @@ module.exports = {
     },
   ],
 
-  // TODO: WIP
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
-  // roleModifyPermissionTypeChoices: [
-  //   {
-  //     name: '🟢 Grant',
-  //     value: 'grant',
-  //   },
-  //   {
-  //     name: '🚫 Deny',
-  //     value: 'deny',
-  //   },
-  //   {
-  //     name: '🔴 Clear',
-  //     value: 'clear',
-  //   },
-  // ],
+  roleModifyPermissionTypeChoices: [
+    {
+      name: '🟢 Grant',
+      value: 'grant',
+    },
+    {
+      name: '🚫 Deny',
+      value: 'deny',
+    },
+  ],
 };
