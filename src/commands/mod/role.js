@@ -77,7 +77,7 @@ module.exports = {
         .addStringOption((option) =>
           option
             .setName('name')
-            .setDescription("🆕 The role's name.")
+            .setDescription("🔤 The role's name.")
             .setRequired(true),
         )
         .addStringOption((option) =>
@@ -163,7 +163,7 @@ module.exports = {
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('modify')
-        .setDescription('➕ Modify a role.')
+        .setDescription('✏️ Modify a role.')
         .addSubcommand((subcommand) =>
           subcommand
             .setName('color')
@@ -289,7 +289,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('position')
-            .setDescription('🎨 Modify the role position (hierarchy).')
+            .setDescription('🔢 Modify the role position (hierarchy).')
             .addRoleOption((option) =>
               option
                 .setName('role')
@@ -683,7 +683,7 @@ module.exports = {
             },
             {
               name: '👤 Member Count',
-              value: `${role.members.size}`,
+              value: pluralize('member', role.members.size, true),
               inline: true,
             },
             {
@@ -695,7 +695,9 @@ module.exports = {
               name: '🔐 Permissions',
               value: role.permissions
                 .toArray()
-                .map((permission) => applySpacesBetweenPascalCase(permission))
+                .map((permission) =>
+                  inlineCode(applySpacesBetweenPascalCase(permission)),
+                )
                 .join(', '),
             },
           ]);
@@ -838,7 +840,8 @@ module.exports = {
                   }),
                 });
                 pagination.setAuthor({
-                  name: `🛠️ ${guild} Role Lists (${rls.size})`,
+                  name: `${guild} Role Lists (${rls.size})`,
+                  iconURL: guild.iconURL({ dynamic: true }),
                 });
                 pagination.setDescriptions(descriptions);
 
@@ -846,7 +849,8 @@ module.exports = {
               }
 
               embed.setAuthor({
-                name: `🛠️ ${guild} Role Lists (${rls.size})`,
+                name: `${guild} Role Lists (${rls.size})`,
+                iconURL: guild.iconURL({ dynamic: true }),
               });
               embed.setDescription(descriptions.join('\n'));
 

@@ -47,27 +47,27 @@ module.exports = {
         name: '🛠️ Role Edited',
       });
 
-    if (oldRole.position !== newRole.position) return;
-
     if (oldRole.name !== newRole.name) {
       embed.setDescription(
         `${oldRole} role's name was ${bold('edited')} by ${editLog.executor}.`,
       );
       embed.setFields([
         {
+          name: '🕒 Before',
+          value: oldRole.name,
+          inline: true,
+        },
+        {
+          name: '🕒 After',
+          value: newRole.name,
+          inline: true,
+        },
+        {
           name: '🕒 Edited At',
           value: time(
             Math.floor(Date.now() / 1000),
             TimestampStyles.RelativeTime,
           ),
-        },
-        {
-          name: '🕒 Before',
-          value: oldRole.name,
-        },
-        {
-          name: '🕒 After',
-          value: newRole.name,
         },
         {
           name: '📄 Reason',
@@ -84,19 +84,21 @@ module.exports = {
       );
       embed.setFields([
         {
+          name: '🕒 Before',
+          value: oldRole.hexColor,
+          inline: true,
+        },
+        {
+          name: '🕒 After',
+          value: newRole.hexColor,
+          inline: true,
+        },
+        {
           name: '🕒 Edited At',
           value: time(
             Math.floor(Date.now() / 1000),
             TimestampStyles.RelativeTime,
           ),
-        },
-        {
-          name: '🕒 Before',
-          value: oldRole.hexColor,
-        },
-        {
-          name: '🕒 After',
-          value: newRole.hexColor,
         },
         {
           name: '📄 Reason',

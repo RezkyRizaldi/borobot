@@ -366,21 +366,25 @@ module.exports = {
         iconURL: newMember.displayAvatarURL({ dynamic: true }),
       });
       embed.setDescription(
-        `${newMember} nickname has been changed by ${
-          nicknameLog.executor
-        } at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
+        `${newMember} nickname has been changed by ${nicknameLog.executor}.`,
       );
       embed.setFields(
         {
           name: '🕒 Before',
           value: oldMember.nickname ?? italic('None'),
+          inline: true,
         },
         {
           name: '🕒 After',
           value: newMember.nickname ?? italic('None'),
+          inline: true,
+        },
+        {
+          name: '🕒 Edited At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
         },
         {
           name: '📄 Reason',
