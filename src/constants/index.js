@@ -698,4 +698,20 @@ module.exports = {
       value: 'deny',
     },
   ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  channelType: [
+    {
+      name: '#️⃣ Text',
+      value: ChannelType.GuildText,
+    },
+    {
+      name: '🔊 Voice',
+      value: ChannelType.GuildVoice,
+    },
+    {
+      name: '📁 Category',
+      value: ChannelType.GuildCategory,
+    },
+  ],
 };
