@@ -1,6 +1,6 @@
 {
   "name": "borobot",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "description": "A simple Discord Bot build with discord.js v14",
   "displayName": "Borobot",
   "bugs": {
@@ -44,7 +44,6 @@
     "anime-images-api": "^2.0.0",
     "ascii-table": "^0.0.9",
     "axios": "^0.27.2",
-    "clipboardy": "^3.0.0",
     "color-convert": "^2.0.1",
     "ctk-anime-scraper": "^3.5.0",
     "discord-api-types": "^0.37.11",
