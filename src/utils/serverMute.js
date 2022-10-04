@@ -4,6 +4,7 @@ const {
   Colors,
   inlineCode,
   EmbedBuilder,
+  OverwriteType,
 } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
@@ -277,21 +278,91 @@ const findOrCreateRole = async (interaction) => {
       .then(async (role) => {
         guild.channels.cache
           .filter((channel) => channel.type === ChannelType.GuildText)
-          .map(
-            async (channel) =>
-              await channel.permissionOverwrites.create(role, {
-                SendMessages: false,
-                AddReactions: false,
-                CreatePublicThreads: false,
-                CreatePrivateThreads: false,
-                SendMessagesInThreads: false,
-                Speak: false,
-              }),
-          );
+          .map(async (channel) => {
+            if (!channel.parent) {
+              await channel.permissionOverwrites.create(
+                mutedRole,
+                {
+                  SendMessages: false,
+                  AddReactions: false,
+                  CreatePublicThreads: false,
+                  CreatePrivateThreads: false,
+                  SendMessagesInThreads: false,
+                  Speak: false,
+                },
+                {
+                  type: OverwriteType.Role,
+                  reason: 'servermute command setup.',
+                },
+              );
+            }
+
+            await channel.parent.permissionOverwrites
+              .create(
+                mutedRole,
+                {
+                  SendMessages: false,
+                  AddReactions: false,
+                  CreatePublicThreads: false,
+                  CreatePrivateThreads: false,
+                  SendMessagesInThreads: false,
+                  Speak: false,
+                },
+                {
+                  type: OverwriteType.Role,
+                  reason: 'servermute command setup.',
+                },
+              )
+              .then((ch) =>
+                ch.children.cache.map(async (c) => await c.lockPermissions()),
+              );
+          });
 
         return role;
       });
   }
+
+  guild.channels.cache
+    .filter((channel) => channel.type === ChannelType.GuildText)
+    .map(async (channel) => {
+      if (!channel.parent) {
+        await channel.permissionOverwrites.create(
+          mutedRole,
+          {
+            SendMessages: false,
+            AddReactions: false,
+            CreatePublicThreads: false,
+            CreatePrivateThreads: false,
+            SendMessagesInThreads: false,
+            Speak: false,
+          },
+          {
+            type: OverwriteType.Role,
+            reason: 'servermute command setup.',
+          },
+        );
+      }
+
+      await channel.parent.permissionOverwrites
+        .create(
+          mutedRole,
+          {
+            SendMessages: false,
+            AddReactions: false,
+            CreatePublicThreads: false,
+            CreatePrivateThreads: false,
+            SendMessagesInThreads: false,
+            Speak: false,
+          },
+          {
+            type: OverwriteType.Role,
+            reason: 'servermute command setup.',
+          },
+        )
+        .then((ch) =>
+          ch.children.cache.map(async (c) => await c.lockPermissions()),
+        );
+    });
 
   return new Promise((resolve) => {
     resolve(mutedRole);
