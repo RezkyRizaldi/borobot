@@ -191,13 +191,6 @@ module.exports = {
       );
       embed.setFields([
         {
-          name: '🕒 Edited At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
           name: '🕒 Previous Permissions',
           value:
             oldRolePermissions
@@ -207,11 +200,18 @@ module.exports = {
               .join(', ') ?? italic('None'),
         },
         {
+          name: '🕒 Edited At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
+        {
           name: '📄 Reason',
           value: editLog.reason ?? 'No reason',
         },
       ]);
-      embed.spliceFields(2, 0, {
+      embed.spliceFields(1, 0, {
         name: `${
           oldRolePermissions.length < newRolePermissions.length
             ? '🟢 Granted'

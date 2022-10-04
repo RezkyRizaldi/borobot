@@ -1,13 +1,20 @@
+/* global BigInt */
 const {
   AuditLogEvent,
   bold,
   EmbedBuilder,
   Events,
+  inlineCode,
   italic,
   time,
+  OverwriteType,
+  roleMention,
   TimestampStyles,
+  userMention,
   WebhookClient,
 } = require('discord.js');
+
+const { applySpacesBetweenPascalCase } = require('../../utils');
 
 module.exports = {
   name: Events.ChannelUpdate,
@@ -161,6 +168,85 @@ module.exports = {
           value: editLog.reason ?? 'No reason',
         },
       ]);
+
+      return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+    }
+
+    const oldChannelPermissions = oldChannel.permissionOverwrites.cache.filter(
+      (permission) => permission.id !== guild.roles.everyone.id,
+    );
+    const newChannelPermissions = newChannel.permissionOverwrites.cache.filter(
+      (permission) => permission.id !== guild.roles.everyone.id,
+    );
+
+    /** @type {import('discord.js').PermissionOverwrites[]} */
+    const oldChannelPermissionsArray = [...oldChannelPermissions.values()];
+
+    /** @type {import('discord.js').PermissionOverwrites[]} */
+    const newChannelPermissionsArray = [...newChannelPermissions.values()];
+
+    const grantedPermission = newChannelPermissionsArray.filter(
+      (permission) => !oldChannelPermissionsArray.includes(permission),
+    )[newChannelPermissionsArray.length - 1];
+
+    const deniedPermission = oldChannelPermissionsArray.filter(
+      (permissions) => !newChannelPermissionsArray.includes(permissions),
+    )[0];
+
+    if (oldChannelPermissions.size !== newChannelPermissions.size) {
+      embed.setDescription(
+        `${newChannel} permissions was ${bold(
+          oldChannelPermissions.size < newChannelPermissions.size
+            ? 'granted'
+            : 'denied',
+        )} for ${
+          oldChannelPermissions.size < newChannelPermissions.size
+            ? grantedPermission.type === OverwriteType.Role
+              ? roleMention(grantedPermission.id)
+              : userMention(grantedPermission.id)
+            : deniedPermission.type === OverwriteType.Role
+            ? roleMention(deniedPermission.id)
+            : userMention(deniedPermission.id)
+        } by ${editLog.executor}.`,
+      );
+      embed.setFields([
+        {
+          name: '🕒 Edited At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
+        {
+          name: '📄 Reason',
+          value: editLog.reason ?? 'No reason',
+        },
+      ]);
+      embed.spliceFields(0, 0, {
+        name: `${
+          oldChannelPermissions.size < newChannelPermissions.size
+            ? '🟢 Granted'
+            : '🚫 Denied'
+        } Permissions`,
+        value:
+          oldChannelPermissions.size < newChannelPermissions.size
+            ? grantedPermission.allow.bitfield !== BigInt(0)
+              ? grantedPermission.allow
+                  .toArray()
+                  .map((permission) =>
+                    inlineCode(applySpacesBetweenPascalCase(permission)),
+                  )
+                  .join(', ')
+              : italic('None')
+            : deniedPermission.deny.bitfield !== BigInt(0)
+            ? deniedPermission.deny
+                .toArray()
+                .map((permission) =>
+                  inlineCode(applySpacesBetweenPascalCase(permission)),
+                )
+                .join(', ')
+            : italic('None'),
+      });
 
       return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
     }
