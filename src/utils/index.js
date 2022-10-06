@@ -15,6 +15,7 @@ const applyStagePrivacyLevel = require('./applyStagePrivacyLevel');
 const applyStickerFormat = require('./applyStickerFormat');
 const applyStickerType = require('./applyStickerType');
 const applyText = require('./applyText');
+const applyThreadAutoArchiveDuration = require('./applyThreadAutoArchiveDuration');
 const applyTier = require('./applyTier');
 const applyTitleCase = require('./applyTitleCase');
 const applyVerificationLevel = require('./applyVerificationLevel');
@@ -47,6 +48,7 @@ module.exports = {
   applyStickerFormat,
   applyStickerType,
   applyText,
+  applyThreadAutoArchiveDuration,
   applyTier,
   applyTitleCase,
   applyVerificationLevel,
