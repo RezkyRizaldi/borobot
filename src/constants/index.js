@@ -598,7 +598,7 @@ module.exports = {
       value: Number(PermissionFlagsBits.ManageChannels),
     },
     {
-      name: '🔐 Manage Roles',
+      name: '🛠️ Manage Roles',
       value: Number(PermissionFlagsBits.ManageRoles),
     },
     {

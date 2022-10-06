@@ -45,7 +45,7 @@ module.exports = {
       )
       .setFields([
         {
-          name: 'Name',
+          name: '🔤 Name',
           value: role.name,
           inline: true,
         },

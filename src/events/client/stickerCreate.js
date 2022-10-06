@@ -49,7 +49,7 @@ module.exports = {
       )
       .setFields([
         {
-          name: 'Name',
+          name: '🔤 Name',
           value: hyperlink(
             sticker.name,
             sticker.url,
@@ -58,12 +58,12 @@ module.exports = {
           inline: true,
         },
         {
-          name: 'Format',
+          name: '🗃️ Format',
           value: applyStickerFormat(sticker.format),
           inline: true,
         },
         {
-          name: 'Type',
+          name: '🔣 Type',
           value: applyStickerType(sticker.type),
           inline: true,
         },

@@ -3,9 +3,9 @@ const {
   bold,
   EmbedBuilder,
   Events,
-  WebhookClient,
   time,
   TimestampStyles,
+  WebhookClient,
 } = require('discord.js');
 
 const { channelType } = require('../../constants');
@@ -51,7 +51,7 @@ module.exports = {
       )
       .setFields([
         {
-          name: 'Name',
+          name: '🔤 Name',
           value: channel.name,
           inline: true,
         },

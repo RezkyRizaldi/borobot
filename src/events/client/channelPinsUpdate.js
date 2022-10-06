@@ -2,9 +2,9 @@ const {
   bold,
   EmbedBuilder,
   Events,
-  WebhookClient,
   time,
   TimestampStyles,
+  WebhookClient,
 } = require('discord.js');
 
 module.exports = {

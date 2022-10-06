@@ -46,7 +46,7 @@ module.exports = {
       )
       .setFields([
         {
-          name: 'Name',
+          name: '🔤 Name',
           value: hyperlink(
             sticker.name,
             sticker.url,

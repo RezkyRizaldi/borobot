@@ -3,10 +3,12 @@ const {
   bold,
   EmbedBuilder,
   Events,
-  WebhookClient,
   time,
   TimestampStyles,
+  WebhookClient,
 } = require('discord.js');
+
+const { applyStagePrivacyLevel } = require('../../utils');
 
 module.exports = {
   name: Events.StageInstanceCreate,
@@ -47,8 +49,13 @@ module.exports = {
       )
       .setFields([
         {
-          name: 'Name',
+          name: '🔤 Name',
           value: channel.name,
+          inline: true,
+        },
+        {
+          name: '🔏 Privacy Level',
+          value: applyStagePrivacyLevel(stage.privacyLevel),
           inline: true,
         },
         {

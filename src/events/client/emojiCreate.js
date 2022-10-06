@@ -47,7 +47,7 @@ module.exports = {
       )
       .setFields([
         {
-          name: 'Name',
+          name: '🔤 Name',
           value: hyperlink(
             emoji.name ?? italic('None'),
             emoji.url,

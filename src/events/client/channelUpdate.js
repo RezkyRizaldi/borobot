@@ -95,7 +95,7 @@ module.exports = {
       );
       embed.setFields([
         {
-          name: '🕒 Edited At',
+          name: `🕒 Turned ${newChannel.nsfw ? 'On' : 'Off'} At`,
           value: time(
             Math.floor(Date.now() / 1000),
             TimestampStyles.RelativeTime,
@@ -248,7 +248,11 @@ module.exports = {
       );
       embed.setFields([
         {
-          name: '🕒 Edited At',
+          name: `🕒 ${
+            oldChannelPermissions.size < newChannelPermissions.size
+              ? 'Granted'
+              : 'Denied'
+          } At`,
           value: time(
             Math.floor(Date.now() / 1000),
             TimestampStyles.RelativeTime,
