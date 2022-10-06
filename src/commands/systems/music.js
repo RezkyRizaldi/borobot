@@ -257,6 +257,15 @@ module.exports = {
       );
     }
 
+    if (voiceChannel.full) {
+      return interaction.deferReply({ ephemeral: true }).then(
+        async () =>
+          await interaction.editReply({
+            content: `${voiceChannel} user limit is already full.`,
+          }),
+      );
+    }
+
     const query = options.getString('query');
 
     switch (options.getSubcommand()) {

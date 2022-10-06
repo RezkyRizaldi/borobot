@@ -13,7 +13,9 @@ const {
   userMention,
   WebhookClient,
 } = require('discord.js');
+const pluralize = require('pluralize');
 
+const { channelType } = require('../../constants');
 const { applySpacesBetweenPascalCase } = require('../../utils');
 
 module.exports = {
@@ -47,7 +49,9 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setAuthor({
-        name: '#️⃣ Channel Edited',
+        name: `${
+          channelType.find((type) => oldChannel.type === type.value).name
+        } Channel Edited`,
       });
 
     if (oldChannel.name !== newChannel.name) {
@@ -106,7 +110,7 @@ module.exports = {
       return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
-    if (oldChannel.parent !== newChannel.parent) {
+    if (oldChannel.parentId !== newChannel.parentId) {
       embed.setDescription(
         `${oldChannel} channel's category was ${bold('edited')} by ${
           editLog.executor
@@ -121,6 +125,39 @@ module.exports = {
         {
           name: '🕒 After',
           value: newChannel.parent ?? italic('None'),
+          inline: true,
+        },
+        {
+          name: '🕒 Edited At',
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
+        {
+          name: '📄 Reason',
+          value: editLog.reason ?? 'No reason',
+        },
+      ]);
+
+      return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+    }
+
+    if (oldChannel.userLimit !== newChannel.userLimit) {
+      embed.setDescription(
+        `${oldChannel} channel's user limit was ${bold('edited')} by ${
+          editLog.executor
+        }.`,
+      );
+      embed.setFields([
+        {
+          name: '🕒 Before',
+          value: pluralize('user', oldChannel.userLimit, true),
+          inline: true,
+        },
+        {
+          name: '🕒 After',
+          value: pluralize('user', newChannel.userLimit, true),
           inline: true,
         },
         {

@@ -40,7 +40,9 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setAuthor({
-        name: '#️⃣ New Channel Created',
+        name: `${
+          channelType.find((type) => channel.type === type.value).name
+        } Channel Created`,
       })
       .setDescription(
         `${channel} channel was ${bold('created')} ${
@@ -51,11 +53,6 @@ module.exports = {
         {
           name: 'Name',
           value: channel.name,
-          inline: true,
-        },
-        {
-          name: '🔣 Type',
-          value: channelType.find((type) => channel.type === type.value).name,
           inline: true,
         },
         {
