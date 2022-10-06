@@ -68,6 +68,6 @@ module.exports = {
         },
       ]);
 
-    return RoleLogger.send({ embeds: [embed] }).catch(console.error);
+    await RoleLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

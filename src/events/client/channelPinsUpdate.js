@@ -45,6 +45,6 @@ module.exports = {
         },
       ]);
 
-    return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+    await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

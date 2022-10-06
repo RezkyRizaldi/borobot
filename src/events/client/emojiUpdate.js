@@ -70,6 +70,6 @@ module.exports = {
         },
       ]);
 
-    return EmojiLogger.send({ embeds: [embed] }).catch(console.error);
+    await EmojiLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };
