@@ -340,7 +340,7 @@ module.exports = {
               await ch.lockPermissions();
             }
 
-            await interaction.deferReply().then(
+            await interaction.deferReply({ ephemeral: true }).then(
               async () =>
                 await interaction.editReply({
                   content: `${ch} created successfully.`,
@@ -350,7 +350,7 @@ module.exports = {
 
       case 'delete':
         if (!channel.deletable) {
-          return interaction.deferReply().then(
+          return interaction.deferReply({ ephemeral: true }).then(
             async () =>
               await interaction.editReply({
                 content: `You don't have appropiate permissions to delete the ${channel} channel.`,
@@ -360,7 +360,7 @@ module.exports = {
 
         return channel.delete(reason).then(
           async () =>
-            await interaction.deferReply().then(
+            await interaction.deferReply({ ephemeral: true }).then(
               async () =>
                 await interaction.editReply({
                   content: 'Channel deleted successfully.',
