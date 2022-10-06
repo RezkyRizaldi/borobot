@@ -16,6 +16,7 @@ const path = require('path');
 const {
   GuildBans,
   GuildInvites,
+  GuildEmojisAndStickers,
   GuildMembers,
   GuildMessageReactions,
   GuildMessages,
@@ -32,6 +33,7 @@ const client = new Client({
   intents: [
     GuildBans,
     GuildInvites,
+    GuildEmojisAndStickers,
     GuildMembers,
     GuildMessageReactions,
     GuildMessages,
