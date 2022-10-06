@@ -588,9 +588,16 @@ module.exports = {
                 }),
               });
               pagination.setAuthor({
-                name: `${guild} Channel Lists (${channels.size})`,
-                iconURL: guild.iconURL({ dynamic: true }),
+                name: `#️⃣ ${guild} Channel Lists (${channels.size})`,
               });
+
+              if (guild.icon) {
+                pagination.setAuthor({
+                  name: `${guild} Channel Lists (${channels.size})`,
+                  iconURL: guild.iconURL({ dynamic: true }),
+                });
+              }
+
               pagination.setDescriptions(descriptions);
 
               await pagination.render();
