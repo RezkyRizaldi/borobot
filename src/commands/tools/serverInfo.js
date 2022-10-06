@@ -12,9 +12,13 @@ const pluralize = require('pluralize');
 
 const {
   applyAFKTimeout,
+  applyDefaultMessageNotifications,
+  applyExplicitContentFilter,
   applyNSFWLevel,
   applyTier,
+  applyTitleCase,
   applyVerificationLevel,
+  getPreferredLocale,
 } = require('../../utils');
 
 module.exports = {
@@ -139,10 +143,8 @@ module.exports = {
           }\nWidget Channel: ${guild.widgetChannel ?? italic('None')}`,
         },
         {
-          name: '🔮 Features',
-          value: guild.features.length
-            ? guild.features.join(', ')
-            : italic('None'),
+          name: '☢️ Explicit Content Filter',
+          value: applyExplicitContentFilter(guild.explicitContentFilter),
           inline: true,
         },
         {
@@ -154,6 +156,16 @@ module.exports = {
           name: '🔒 NSFW Level',
           value: applyNSFWLevel(guild.nsfwLevel),
           inline: true,
+        },
+        {
+          name: '🔮 Features',
+          value: guild.features.length
+            ? guild.features
+                .map((feature) =>
+                  applyTitleCase(feature.replace(/_/g, ' ').toLowerCase()),
+                )
+                .join(', ')
+            : italic('None'),
         },
         {
           name: '🖼️ Assets',
@@ -206,10 +218,17 @@ module.exports = {
           inline: true,
         },
         {
+          name: '🔔 Default Message Notifications',
+          value: applyDefaultMessageNotifications(
+            guild.defaultMessageNotifications,
+          ),
+          inline: true,
+        },
+        {
           name: '🔠 Misc',
           value: `Partnered: ${guild.partnered ? 'Yes' : 'No'}\nVerified: ${
             guild.verified ? 'Yes' : 'No'
-          }`,
+          }\nPrimary Language: ${getPreferredLocale(guild.preferredLocale)}`,
         },
       ]);
 
