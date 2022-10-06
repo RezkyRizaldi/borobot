@@ -11,6 +11,7 @@ const {
 } = require('discord.js');
 
 const {
+  applyAFKTimeout,
   applyDefaultMessageNotifications,
   applyExplicitContentFilter,
   applyNSFWLevel,
@@ -88,6 +89,30 @@ module.exports = {
           value: newGuild.afkChannel
             ? `${newGuild.afkChannel}`
             : italic('None'),
+          inline: true,
+        },
+      );
+
+      return ServerLogger.send({ embeds: [embed] }).catch(console.error);
+    }
+
+    if (oldGuild.afkTimeout !== newGuild.afkTimeout) {
+      embed.setDescription(
+        `${oldGuild}'s server inactive channel was ${bold('edited')} by ${
+          editLog.executor
+        }.`,
+      );
+      embed.spliceFields(
+        0,
+        0,
+        {
+          name: '🕒 Before',
+          value: applyAFKTimeout(oldGuild.afkTimeout),
+          inline: true,
+        },
+        {
+          name: '🕒 After',
+          value: applyAFKTimeout(newGuild.afkTimeout),
           inline: true,
         },
       );

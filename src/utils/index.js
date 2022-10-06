@@ -13,6 +13,7 @@ const applyRepeatMode = require('./applyRepeatMode');
 const applySpacesBetweenPascalCase = require('./applySpacesBetweenPascalCase');
 const applyText = require('./applyText');
 const applyTier = require('./applyTier');
+const applyTitleCase = require('./applyTitleCase');
 const applyVerificationLevel = require('./applyVerificationLevel');
 const getImageReadLocale = require('./getImageReadLocale');
 const getLanguage = require('./getLanguage');
@@ -41,6 +42,7 @@ module.exports = {
   applySpacesBetweenPascalCase,
   applyText,
   applyTier,
+  applyTitleCase,
   applyVerificationLevel,
   getImageReadLocale,
   getLanguage,
