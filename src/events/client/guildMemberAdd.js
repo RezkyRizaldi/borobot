@@ -1,4 +1,6 @@
 const {
+  AuditLogEvent,
+  bold,
   EmbedBuilder,
   Events,
   time,
@@ -33,7 +35,6 @@ module.exports = {
       .setAuthor({
         name: `👋 Welcome to ${guild}`,
       })
-      .setDescription(`hope you enjoy here, ${member}!`)
       .setColor(guild.members.me.displayHexColor)
       .setFooter({
         text: client.user.username,
@@ -48,21 +49,56 @@ module.exports = {
     await member.roles
       .add(!user.bot ? memberRole : botRole)
       .then(async (m) => {
+        if (!m.user.bot) {
+          embed.setDescription(`hope you enjoy here, ${m}!`);
+          embed.setColor(m.displayHexColor);
+          embed.setThumbnail(m.displayAvatarURL({ dynamic: true }));
+          embed.setFields([
+            {
+              name: '🆔 Member ID',
+              value: m.user.id,
+              inline: true,
+            },
+            {
+              name: '🎊 Account Created',
+              value: time(m.user.createdAt, TimestampStyles.RelativeTime),
+              inline: true,
+            },
+            {
+              name: '📆 Joined At',
+              value: time(m.joinedAt, TimestampStyles.RelativeTime),
+              inline: true,
+            },
+          ]);
+
+          return WelcomeLogger.send({ embeds: [embed] });
+        }
+
+        const botLog = await guild
+          .fetchAuditLogs({
+            limit: 1,
+            type: AuditLogEvent.BotAdd,
+          })
+          .then((audit) => audit.entries.first());
+
+        embed.setDescription(
+          `${m} bot was ${bold('added')} by ${botLog.executor}.`,
+        );
         embed.setColor(m.displayHexColor);
-        embed.setThumbnail(member.displayAvatarURL({ dynamic: true }));
+        embed.setThumbnail(m.displayAvatarURL({ dynamic: true }));
         embed.setFields([
           {
-            name: '🆔 Member ID',
-            value: user.id,
+            name: '🆔 Bot ID',
+            value: m.user.id,
             inline: true,
           },
           {
             name: '🎊 Account Created',
-            value: time(user.createdAt, TimestampStyles.RelativeTime),
+            value: time(m.user.createdAt, TimestampStyles.RelativeTime),
             inline: true,
           },
           {
-            name: '📆 Joined At',
+            name: '📆 Added At',
             value: time(m.joinedAt, TimestampStyles.RelativeTime),
             inline: true,
           },
