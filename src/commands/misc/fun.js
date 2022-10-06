@@ -134,6 +134,7 @@ module.exports = {
       .map((ch) => ch)
       .join(', ');
 
+    /** @type {import('discord.js').GuildMember} */
     const target = options.getMember('target');
 
     const embed = new EmbedBuilder().setTimestamp(Date.now()).setFooter({

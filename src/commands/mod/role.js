@@ -840,18 +840,32 @@ module.exports = {
                   }),
                 });
                 pagination.setAuthor({
-                  name: `${guild} Role Lists (${rls.size})`,
-                  iconURL: guild.iconURL({ dynamic: true }),
+                  name: `🔐 ${guild} Role Lists (${rls.size})`,
                 });
+
+                if (guild.icon) {
+                  pagination.setAuthor({
+                    name: `${guild} Role Lists (${rls.size})`,
+                    iconURL: guild.iconURL({ dynamic: true }),
+                  });
+                }
+
                 pagination.setDescriptions(descriptions);
 
                 return pagination.render();
               }
 
               embed.setAuthor({
-                name: `${guild} Role Lists (${rls.size})`,
-                iconURL: guild.iconURL({ dynamic: true }),
+                name: `🔐 ${guild} Role Lists (${rls.size})`,
               });
+
+              if (guild.icon) {
+                embed.setAuthor({
+                  name: `${guild} Role Lists (${rls.size})`,
+                  iconURL: guild.iconURL({ dynamic: true }),
+                });
+              }
+
               embed.setDescription(descriptions.join('\n'));
 
               await interaction.editReply({ embeds: [embed] });

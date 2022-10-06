@@ -50,8 +50,7 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setAuthor({
-        name: 'Server Edited',
-        iconURL: oldGuild.iconURL({ dynamic: true }),
+        name: '✏️ Server Edited',
       })
       .setFields([
         {
@@ -67,6 +66,13 @@ module.exports = {
           value: editLog.reason ?? 'No reason',
         },
       ]);
+
+    if (oldGuild.icon) {
+      embed.setAuthor({
+        name: 'Server Edited',
+        iconURL: oldGuild.iconURL({ dynamic: true }),
+      });
+    }
 
     if (oldGuild.afkChannelId !== newGuild.afkChannelId) {
       embed.setDescription(
