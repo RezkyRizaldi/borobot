@@ -11,6 +11,7 @@ const applyPermission = require('./applyPermission');
 const applyPresence = require('./applyPresence');
 const applyRepeatMode = require('./applyRepeatMode');
 const applySpacesBetweenPascalCase = require('./applySpacesBetweenPascalCase');
+const applyStagePrivacyLevel = require('./applyStagePrivacyLevel');
 const applyText = require('./applyText');
 const applyTier = require('./applyTier');
 const applyTitleCase = require('./applyTitleCase');
@@ -40,6 +41,7 @@ module.exports = {
   applyPresence,
   applyRepeatMode,
   applySpacesBetweenPascalCase,
+  applyStagePrivacyLevel,
   applyText,
   applyTier,
   applyTitleCase,
