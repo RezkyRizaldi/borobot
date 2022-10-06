@@ -12,6 +12,8 @@ const applyPresence = require('./applyPresence');
 const applyRepeatMode = require('./applyRepeatMode');
 const applySpacesBetweenPascalCase = require('./applySpacesBetweenPascalCase');
 const applyStagePrivacyLevel = require('./applyStagePrivacyLevel');
+const applyStickerFormat = require('./applyStickerFormat');
+const applyStickerType = require('./applyStickerType');
 const applyText = require('./applyText');
 const applyTier = require('./applyTier');
 const applyTitleCase = require('./applyTitleCase');
@@ -42,6 +44,8 @@ module.exports = {
   applyRepeatMode,
   applySpacesBetweenPascalCase,
   applyStagePrivacyLevel,
+  applyStickerFormat,
+  applyStickerType,
   applyText,
   applyTier,
   applyTitleCase,
