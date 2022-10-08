@@ -40,10 +40,12 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setAuthor({
-        name: '😀 New Emoji Created',
+        name: `😀 New ${emoji.animated ? 'Animated' : ''} Emoji Created`,
       })
       .setDescription(
-        `${emoji} emoji was ${bold('created')} by ${createLog.executor}.`,
+        `${emoji} emoji was ${bold('created')} ${
+          emoji.author ? `by ${emoji.author}` : ''
+        }.`,
       )
       .setFields([
         {
@@ -53,11 +55,6 @@ module.exports = {
             emoji.url,
             'Click here to view the emoji.',
           ),
-          inline: true,
-        },
-        {
-          name: '👤 Created By',
-          value: emoji.author ? `${emoji.author}` : italic('Unknown'),
           inline: true,
         },
         {

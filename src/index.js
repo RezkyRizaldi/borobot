@@ -25,7 +25,8 @@ const {
   GuildVoiceStates,
   MessageContent,
 } = GatewayIntentBits;
-const { Channel, GuildMember, Message, Reaction, User } = Partials;
+const { Channel, GuildMember, Message, Reaction, ThreadMember, User } =
+  Partials;
 
 /** @type {{ commands: import('discord.js').Collection, components: import('discord.js').Collection, distube: import('distube').DisTube, discordTogether: import('discord-together').DiscordTogether<{[x: string]: string}>, handleEvents(): Promise<void>, handleComponents(): Promise<void>, handleCommands(): Promise<void> }} */
 
@@ -42,7 +43,7 @@ const client = new Client({
     GuildVoiceStates,
     MessageContent,
   ],
-  partials: [Channel, Message, GuildMember, Reaction, User],
+  partials: [Channel, Message, GuildMember, Reaction, ThreadMember, User],
 });
 
 client.commands = new Collection();

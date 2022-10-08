@@ -5,6 +5,7 @@ const applyDefaultMessageNotifications = require('./applyDefaultMessageNotificat
 const applyExplicitContentFilter = require('./applyExplicitContentFilter');
 const applyHexColor = require('./applyHexColor');
 const applyMessageType = require('./applyMessageType');
+const applyMFALevel = require('./applyMFALevel');
 const applyNSFWLevel = require('./applyNSFWLevel');
 const applyOrdinal = require('./applyOrdinal');
 const applyPermission = require('./applyPermission');
@@ -38,6 +39,7 @@ module.exports = {
   applyExplicitContentFilter,
   applyHexColor,
   applyMessageType,
+  applyMFALevel,
   applyNSFWLevel,
   applyOrdinal,
   applyPermission,

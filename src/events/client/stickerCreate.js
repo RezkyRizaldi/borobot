@@ -4,7 +4,6 @@ const {
   EmbedBuilder,
   Events,
   hyperlink,
-  italic,
   time,
   TimestampStyles,
   WebhookClient,
@@ -45,7 +44,9 @@ module.exports = {
         name: '😀 New Sticker Created',
       })
       .setDescription(
-        `${sticker} sticker was ${bold('created')} by ${createLog.executor}.`,
+        `${sticker} sticker was ${bold('created')} ${
+          sticker.user ? `by ${sticker.user}` : ''
+        }.`,
       )
       .setFields([
         {
@@ -65,11 +66,6 @@ module.exports = {
         {
           name: '🔣 Type',
           value: applyStickerType(sticker.type),
-          inline: true,
-        },
-        {
-          name: '👤 Created By',
-          value: sticker.user ? `${sticker.user}` : italic('Unknown'),
           inline: true,
         },
         {

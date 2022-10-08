@@ -52,7 +52,7 @@ module.exports = {
           thread.ownerId ? `by ${userMention(thread.ownerId)}` : ''
         } for ${inlineCode(
           applyThreadAutoArchiveDuration(thread.autoArchiveDuration),
-        )}.`,
+        )} inactivity duration.`,
       )
       .setFields([
         {

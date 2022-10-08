@@ -7,9 +7,9 @@ const { GuildNSFWLevel } = require('discord.js');
  */
 module.exports = (level) => {
   return {
-    [GuildNSFWLevel.Default]: 'No Restrictions',
+    [GuildNSFWLevel.Default]: 'No restrictions',
     [GuildNSFWLevel.Explicit]: 'Explicit',
     [GuildNSFWLevel.Safe]: 'Safe',
-    [GuildNSFWLevel.AgeRestricted]: 'Age Restricted',
+    [GuildNSFWLevel.AgeRestricted]: 'Age restricted',
   }[level];
 };

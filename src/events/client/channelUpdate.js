@@ -119,12 +119,12 @@ module.exports = {
       embed.setFields([
         {
           name: '🕒 Before',
-          value: oldChannel.parent ?? italic('None'),
+          value: oldChannel.parent ? `${oldChannel.parent}` : italic('None'),
           inline: true,
         },
         {
           name: '🕒 After',
-          value: newChannel.parent ?? italic('None'),
+          value: newChannel.parent ? `${newChannel.parent}` : italic('None'),
           inline: true,
         },
         {
