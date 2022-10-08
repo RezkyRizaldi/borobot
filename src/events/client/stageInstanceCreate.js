@@ -8,27 +8,27 @@ const {
   WebhookClient,
 } = require('discord.js');
 
-const { channelType } = require('../../constants');
+const { applyStagePrivacyLevel } = require('../../utils');
 
 module.exports = {
-  name: Events.ChannelCreate,
+  name: Events.StageInstanceCreate,
 
   /**
    *
-   * @param {import('discord.js').GuildChannel} channel
+   * @param {import('discord.js').StageInstance} stage
    */
-  async execute(channel) {
-    const { client, guild } = channel;
+  async execute(stage) {
+    const { channel, client, guild } = stage;
 
-    const ChannelLogger = new WebhookClient({
-      id: process.env.CHANNEL_CREATE_WEBHOOK_ID,
-      token: process.env.CHANNEL_CREATE_WEBHOOK_TOKEN,
+    const StageLogger = new WebhookClient({
+      id: process.env.CHANNEL_STAGE_WEBHOOK_ID,
+      token: process.env.CHANNEL_STAGE_WEBHOOK_TOKEN,
     });
 
     const createLog = await guild
       .fetchAuditLogs({
         limit: 1,
-        type: AuditLogEvent.ChannelCreate,
+        type: AuditLogEvent.StageInstanceCreate,
       })
       .then((audit) => audit.entries.first());
 
@@ -40,12 +40,10 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setAuthor({
-        name: `${
-          channelType.find((type) => channel.type === type.value).name
-        } Channel Created`,
+        name: '🎤 New Stage Channel Created',
       })
       .setDescription(
-        `${channel} channel was ${bold('created')} ${
+        `${channel} stage channel was ${bold('created')} ${
           channel.parent ? `in ${channel.parent}` : ''
         } by ${createLog.executor}.`,
       )
@@ -53,6 +51,11 @@ module.exports = {
         {
           name: '🔤 Name',
           value: channel.name,
+          inline: true,
+        },
+        {
+          name: '🔏 Privacy Level',
+          value: applyStagePrivacyLevel(stage.privacyLevel),
           inline: true,
         },
         {
@@ -66,6 +69,6 @@ module.exports = {
         },
       ]);
 
-    await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+    await StageLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

@@ -277,7 +277,11 @@ const findOrCreateRole = async (interaction) => {
       })
       .then(async (role) => {
         guild.channels.cache
-          .filter((channel) => channel.type === ChannelType.GuildText)
+          .filter(
+            (channel) =>
+              channel.type !== ChannelType.GuildVoice &&
+              channel.type !== ChannelType.GuildStageVoice,
+          )
           .map(async (channel) => {
             if (!channel.parent) {
               await channel.permissionOverwrites.create(
@@ -323,7 +327,11 @@ const findOrCreateRole = async (interaction) => {
   }
 
   guild.channels.cache
-    .filter((channel) => channel.type === ChannelType.GuildText)
+    .filter(
+      (channel) =>
+        channel.type !== ChannelType.GuildVoice &&
+        channel.type !== ChannelType.GuildStageVoice,
+    )
     .map(async (channel) => {
       if (!channel.parent) {
         await channel.permissionOverwrites.create(

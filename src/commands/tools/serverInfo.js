@@ -2,6 +2,7 @@ const {
   ChannelType,
   EmbedBuilder,
   hyperlink,
+  inlineCode,
   italic,
   SlashCommandBuilder,
   time,
@@ -12,9 +13,14 @@ const pluralize = require('pluralize');
 
 const {
   applyAFKTimeout,
+  applyDefaultMessageNotifications,
+  applyExplicitContentFilter,
+  applyMFALevel,
   applyNSFWLevel,
   applyTier,
+  applyTitleCase,
   applyVerificationLevel,
+  getPreferredLocale,
 } = require('../../utils');
 
 module.exports = {
@@ -38,6 +44,15 @@ module.exports = {
     ).size;
     const voiceChannelCount = guild.channels.cache.filter(
       (channel) => channel.type === ChannelType.GuildVoice,
+    ).size;
+    const stageChannelCount = guild.channels.cache.filter(
+      (channel) => channel.type === ChannelType.GuildStageVoice,
+    ).size;
+    const announcementChannelCount = guild.channels.cache.filter(
+      (channel) => channel.type === ChannelType.GuildAnnouncement,
+    ).size;
+    const forumChannelCount = guild.channels.cache.filter(
+      (channel) => channel.type === ChannelType.GuildForum,
     ).size;
     const onlineMemberCount = await guild.members
       .fetch({ withPresences: true })
@@ -100,7 +115,11 @@ module.exports = {
         },
         {
           name: `👥 Members${
-            guild.memberCount > 0 && ` (${guild.memberCount})`
+            guild.memberCount > 0
+              ? ` (${guild.memberCount}${
+                  guild.maximumMembers ? `/${guild.maximumMembers}` : ''
+                })`
+              : ''
           }`,
           value: `${pluralize('Online', onlineMemberCount, true)} | ${pluralize(
             'Booster',
@@ -119,30 +138,18 @@ module.exports = {
           inline: true,
         },
         {
-          name: '🔐 Roles',
+          name: '🛠️ Roles',
           value: pluralize('Role', roleCount, true),
+          inline: true,
         },
         {
-          name: `💬 Channels${
-            guild.channels.channelCountWithoutThreads > 0 &&
-            ` (${guild.channels.channelCountWithoutThreads})`
-          }`,
-          value: `${categoryChannelCount} Category | ${textChannelCount} Text | ${voiceChannelCount} Voice\nRules Channel: ${
-            guild.rulesChannel ?? italic('None')
-          }\nSystem Channel: ${
-            guild.systemChannel ?? italic('None')
-          }\nPublic Updates Channel: ${
-            guild.publicUpdatesChannel ?? italic('None')
-          }\nAFK Channel: ${
-            `${guild.afkChannel} (${applyAFKTimeout(guild.afkTimeout)})` ??
-            italic('None')
-          }\nWidget Channel: ${guild.widgetChannel ?? italic('None')}`,
+          name: '🔒 MFA Level',
+          value: applyMFALevel(guild.mfaLevel),
+          inline: true,
         },
         {
-          name: '🔮 Features',
-          value: guild.features.length
-            ? guild.features.join(', ')
-            : italic('None'),
+          name: '☢️ Explicit Content Filter',
+          value: applyExplicitContentFilter(guild.explicitContentFilter),
           inline: true,
         },
         {
@@ -206,10 +213,47 @@ module.exports = {
           inline: true,
         },
         {
+          name: '🔔 Default Message Notifications',
+          value: applyDefaultMessageNotifications(
+            guild.defaultMessageNotifications,
+          ),
+          inline: true,
+        },
+        {
           name: '🔠 Misc',
           value: `Partnered: ${guild.partnered ? 'Yes' : 'No'}\nVerified: ${
             guild.verified ? 'Yes' : 'No'
+          }\nPrimary Language: ${getPreferredLocale(guild.preferredLocale)}`,
+          inline: true,
+        },
+        {
+          name: `💬 Channels${
+            guild.channels.channelCountWithoutThreads > 0 &&
+            ` (${guild.channels.channelCountWithoutThreads})`
           }`,
+          value: `📁 ${categoryChannelCount} Category | #️⃣ ${textChannelCount} Text | 🔊 ${voiceChannelCount} Voice | 🎤 ${stageChannelCount} Stage | 📣 ${announcementChannelCount} Announcement | 🗯️ ${forumChannelCount} Forum\nRules Channel: ${
+            guild.rulesChannel ?? italic('None')
+          }\nSystem Channel: ${
+            guild.systemChannel ?? italic('None')
+          }\nPublic Updates Channel: ${
+            guild.publicUpdatesChannel ?? italic('None')
+          }\nAFK Channel: ${
+            guild.afkChannel
+              ? `${guild.afkChannel} with ${inlineCode(
+                  applyAFKTimeout(guild.afkTimeout),
+                )} inactivity timeout`
+              : italic('None')
+          }\nWidget Channel: ${guild.widgetChannel ?? italic('None')}`,
+        },
+        {
+          name: '🔮 Features',
+          value: guild.features.length
+            ? guild.features
+                .map((feature) =>
+                  applyTitleCase(feature.replace(/_/g, ' ').toLowerCase()),
+                )
+                .join(', ')
+            : italic('None'),
         },
       ]);
 

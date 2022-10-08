@@ -3,32 +3,32 @@ const {
   bold,
   EmbedBuilder,
   Events,
+  hyperlink,
+  italic,
   time,
   TimestampStyles,
   WebhookClient,
 } = require('discord.js');
 
-const { channelType } = require('../../constants');
-
 module.exports = {
-  name: Events.ChannelCreate,
+  name: Events.GuildEmojiCreate,
 
   /**
    *
-   * @param {import('discord.js').GuildChannel} channel
+   * @param {import('discord.js').GuildEmoji} emoji
    */
-  async execute(channel) {
-    const { client, guild } = channel;
+  async execute(emoji) {
+    const { client, guild } = emoji;
 
-    const ChannelLogger = new WebhookClient({
-      id: process.env.CHANNEL_CREATE_WEBHOOK_ID,
-      token: process.env.CHANNEL_CREATE_WEBHOOK_TOKEN,
+    const EmojiLogger = new WebhookClient({
+      id: process.env.SERVER_EMOJI_WEBHOOK_ID,
+      token: process.env.SERVER_EMOJI_WEBHOOK_TOKEN,
     });
 
     const createLog = await guild
       .fetchAuditLogs({
         limit: 1,
-        type: AuditLogEvent.ChannelCreate,
+        type: AuditLogEvent.EmojiCreate,
       })
       .then((audit) => audit.entries.first());
 
@@ -40,24 +40,26 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setAuthor({
-        name: `${
-          channelType.find((type) => channel.type === type.value).name
-        } Channel Created`,
+        name: `😀 New ${emoji.animated ? 'Animated' : ''} Emoji Created`,
       })
       .setDescription(
-        `${channel} channel was ${bold('created')} ${
-          channel.parent ? `in ${channel.parent}` : ''
-        } by ${createLog.executor}.`,
+        `${emoji} emoji was ${bold('created')} ${
+          emoji.author ? `by ${emoji.author}` : ''
+        }.`,
       )
       .setFields([
         {
           name: '🔤 Name',
-          value: channel.name,
+          value: hyperlink(
+            emoji.name ?? italic('None'),
+            emoji.url,
+            'Click here to view the emoji.',
+          ),
           inline: true,
         },
         {
           name: '🕒 Created At',
-          value: time(channel.createdAt, TimestampStyles.RelativeTime),
+          value: time(emoji.createdAt, TimestampStyles.RelativeTime),
           inline: true,
         },
         {
@@ -66,6 +68,6 @@ module.exports = {
         },
       ]);
 
-    await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+    await EmojiLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

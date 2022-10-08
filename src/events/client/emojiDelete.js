@@ -3,55 +3,61 @@ const {
   bold,
   EmbedBuilder,
   Events,
+  hyperlink,
+  italic,
   time,
   TimestampStyles,
   WebhookClient,
 } = require('discord.js');
 
 module.exports = {
-  name: Events.GuildRoleDelete,
+  name: Events.GuildEmojiDelete,
 
   /**
    *
-   * @param {import('discord.js').Role} role
+   * @param {import('discord.js').GuildEmoji} emoji
    */
-  async execute(role) {
-    const { client, guild } = role;
+  async execute(emoji) {
+    const { client, guild } = emoji;
 
-    const RoleLogger = new WebhookClient({
-      id: process.env.ROLE_DELETE_WEBHOOK_ID,
-      token: process.env.ROLE_DELETE_WEBHOOK_TOKEN,
+    const EmojiLogger = new WebhookClient({
+      id: process.env.SERVER_EMOJI_WEBHOOK_ID,
+      token: process.env.SERVER_EMOJI_WEBHOOK_TOKEN,
     });
 
     const deleteLog = await guild
       .fetchAuditLogs({
         limit: 1,
-        type: AuditLogEvent.RoleDelete,
+        type: AuditLogEvent.EmojiDelete,
       })
       .then((audit) => audit.entries.first());
 
     const embed = new EmbedBuilder()
-      .setColor(role.hexColor)
+      .setColor(guild.members.me.displayHexColor)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setAuthor({
-        name: '🛠️ Role Deleted',
+        name: '😀 Emoji Deleted',
       })
       .setDescription(
-        `${role} role was ${bold('deleted')} by ${deleteLog.executor}.`,
+        `${emoji} emoji was ${bold('deleted')} by ${deleteLog.executor}.`,
       )
       .setFields([
         {
           name: '🔤 Name',
-          value: role.name,
+          value: hyperlink(
+            emoji.name ?? italic('None'),
+            emoji.url,
+            'Click here to view the emoji.',
+          ),
           inline: true,
         },
         {
           name: '🕒 Created At',
-          value: time(role.createdAt, TimestampStyles.RelativeTime),
+          value: time(emoji.createdAt, TimestampStyles.RelativeTime),
           inline: true,
         },
         {
@@ -68,6 +74,6 @@ module.exports = {
         },
       ]);
 
-    await RoleLogger.send({ embeds: [embed] }).catch(console.error);
+    await EmojiLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

@@ -9,49 +9,51 @@ const {
 } = require('discord.js');
 
 module.exports = {
-  name: Events.GuildRoleDelete,
+  name: Events.StageInstanceDelete,
 
   /**
    *
-   * @param {import('discord.js').Role} role
+   * @param {import('discord.js').StageInstance} stage
    */
-  async execute(role) {
-    const { client, guild } = role;
+  async execute(stage) {
+    const { channel, client, guild } = stage;
 
-    const RoleLogger = new WebhookClient({
-      id: process.env.ROLE_DELETE_WEBHOOK_ID,
-      token: process.env.ROLE_DELETE_WEBHOOK_TOKEN,
+    const StageLogger = new WebhookClient({
+      id: process.env.CHANNEL_STAGE_WEBHOOK_ID,
+      token: process.env.CHANNEL_STAGE_WEBHOOK_TOKEN,
     });
 
     const deleteLog = await guild
       .fetchAuditLogs({
         limit: 1,
-        type: AuditLogEvent.RoleDelete,
+        type: AuditLogEvent.StageInstanceDelete,
       })
       .then((audit) => audit.entries.first());
 
     const embed = new EmbedBuilder()
-      .setColor(role.hexColor)
+      .setColor(guild.members.me.displayHexColor)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setAuthor({
-        name: '🛠️ Role Deleted',
+        name: '🎤 Stage Channel Deleted',
       })
       .setDescription(
-        `${role} role was ${bold('deleted')} by ${deleteLog.executor}.`,
+        `${channel} stage channel was ${bold('deleted')} by ${
+          deleteLog.executor
+        }.`,
       )
       .setFields([
         {
           name: '🔤 Name',
-          value: role.name,
+          value: channel.name,
           inline: true,
         },
         {
           name: '🕒 Created At',
-          value: time(role.createdAt, TimestampStyles.RelativeTime),
+          value: time(channel.createdAt, TimestampStyles.RelativeTime),
           inline: true,
         },
         {
@@ -68,6 +70,6 @@ module.exports = {
         },
       ]);
 
-    await RoleLogger.send({ embeds: [embed] }).catch(console.error);
+    await StageLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

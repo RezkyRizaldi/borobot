@@ -1,6 +1,7 @@
 const {
   EmbedBuilder,
   hyperlink,
+  OAuth2Scopes,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } = require('discord.js');
@@ -34,7 +35,10 @@ module.exports = {
       .setDescription(
         `Here's your ${hyperlink(
           'invite link',
-          `https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=applications.commands%20bot`,
+          client.generateInvite({
+            permissions: [PermissionFlagsBits.Administrator],
+            scopes: [OAuth2Scopes.ApplicationsCommands, OAuth2Scopes.Bot],
+          }),
           'Get your invite link here',
         )} for invite me to your server!`,
       )

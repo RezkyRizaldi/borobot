@@ -72,9 +72,16 @@ module.exports = {
       });
 
       embed.setAuthor({
-        name: 'Server Boosted',
-        iconURL: guild.iconURL({ dynamic: true }),
+        name: '🚀 Server Boosted',
       });
+
+      if (guild.icon) {
+        embed.setAuthor({
+          name: 'Server Boosted',
+          iconURL: guild.iconURL({ dynamic: true }),
+        });
+      }
+
       embed.setThumbnail(newMember.displayAvatarURL({ dynamic: true }));
       embed.setDescription(`Welcome to test, ${newMember.displayName}!`);
       embed.setImage('attachment://nitro.png');
