@@ -39,6 +39,48 @@ const newSupportedLanguages = {
   ug: 'Uyghur',
 };
 
+const threadChannels = [
+  {
+    name: '📣 Announcement Thread',
+    value: ChannelType.AnnouncementThread,
+  },
+  {
+    name: '👁️‍🗨️ Public Thread',
+    value: ChannelType.PublicThread,
+  },
+  {
+    name: '🔒 Private Thread',
+    value: ChannelType.PrivateThread,
+  },
+];
+
+const guildChannels = [
+  {
+    name: '#️⃣ Text',
+    value: ChannelType.GuildText,
+  },
+  {
+    name: '🔊 Voice',
+    value: ChannelType.GuildVoice,
+  },
+  {
+    name: '📁 Category',
+    value: ChannelType.GuildCategory,
+  },
+  {
+    name: '📣 Announcement',
+    value: ChannelType.GuildAnnouncement,
+  },
+  {
+    name: '🎤 Stage',
+    value: ChannelType.GuildStageVoice,
+  },
+  {
+    name: '🗯️ Forum',
+    value: ChannelType.GuildForum,
+  },
+];
+
 module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   banChoices: [
@@ -700,18 +742,8 @@ module.exports = {
   ],
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
-  channelType: [
-    {
-      name: '#️⃣ Text',
-      value: ChannelType.GuildText,
-    },
-    {
-      name: '🔊 Voice',
-      value: ChannelType.GuildVoice,
-    },
-    {
-      name: '📁 Category',
-      value: ChannelType.GuildCategory,
-    },
-  ],
+  channelCreateChoices: guildChannels,
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  channelType: [...guildChannels, ...threadChannels],
 };

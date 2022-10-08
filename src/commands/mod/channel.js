@@ -2,6 +2,7 @@ const {
   bold,
   ChannelType,
   EmbedBuilder,
+  formatEmoji,
   inlineCode,
   italic,
   OverwriteType,
@@ -16,8 +17,12 @@ const {
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
 
-const { channelType } = require('../../constants');
-const { applyOrdinal, applySpacesBetweenPascalCase } = require('../../utils');
+const { channelCreateChoices, channelType } = require('../../constants');
+const {
+  applyOrdinal,
+  applySpacesBetweenPascalCase,
+  applyThreadAutoArchiveDuration,
+} = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -39,13 +44,12 @@ module.exports = {
             .setName('type')
             .setDescription("🔣 The channel's type.")
             .setRequired(true)
-            .addChoices(...channelType),
+            .addChoices(...channelCreateChoices),
         )
         .addChannelOption((option) =>
           option
             .setName('category')
-            .setDescription("🔣 The channel's category.")
-            .addChannelTypes(ChannelType.GuildCategory),
+            .setDescription("🔣 The channel's category."),
         )
         .addStringOption((option) =>
           option.setName('topic').setDescription("🗣️ The channel's topic."),
@@ -106,8 +110,7 @@ module.exports = {
               option
                 .setName('category')
                 .setDescription("🔤 The channel's new category channel.")
-                .setRequired(true)
-                .addChannelTypes(ChannelType.GuildCategory),
+                .setRequired(true),
             )
             .addStringOption((option) =>
               option
@@ -218,11 +221,12 @@ module.exports = {
     const nsfw = options.getBoolean('nsfw');
     const name = options.getString('name');
     const type = options.getInteger('type');
-    const parent =
-      type === ChannelType.GuildCategory
-        ? null
-        : options.getChannel('category');
+
+    /** @type {import('discord.js').GuildChannel} */
+    const parent = options.getChannel('category');
     const topic = options.getString('topic');
+
+    /** @type {import('discord.js').GuildChannel} */
     const targetChannel = options.getChannel('position');
 
     /** @type {import('discord.js').GuildChannel} */
@@ -326,7 +330,11 @@ module.exports = {
     }
 
     switch (options.getSubcommand()) {
-      case 'create':
+      case 'create': {
+        const mutedRole = guild.roles.cache.find(
+          (role) => role.name.toLowerCase() === 'muted',
+        );
+
         return guild.channels
           .create({
             name,
@@ -336,9 +344,32 @@ module.exports = {
             reason,
           })
           .then(async (ch) => {
-            if (ch.parent) {
-              await ch.lockPermissions();
+            if (!ch.parent) {
+              await ch.permissionOverwrites.create(
+                mutedRole,
+                {
+                  SendMessages: false,
+                  AddReactions: false,
+                  CreatePublicThreads: false,
+                  CreatePrivateThreads: false,
+                  SendMessagesInThreads: false,
+                  Speak: false,
+                },
+                {
+                  type: OverwriteType.Role,
+                  reason: 'servermute command setup.',
+                },
+              );
+
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: `${ch} created successfully.`,
+                  }),
+              );
             }
+
+            await ch.lockPermissions();
 
             await interaction.deferReply({ ephemeral: true }).then(
               async () =>
@@ -347,6 +378,7 @@ module.exports = {
                 }),
             );
           });
+      }
 
       case 'delete':
         if (!channel.deletable) {
@@ -370,6 +402,32 @@ module.exports = {
 
       case 'info':
         return interaction.deferReply().then(async () => {
+          const channelTopic = channel.topic ?? italic('No topic');
+
+          const isNSFW = channel.nsfw ? 'Yes' : 'No';
+
+          const bitrate = `${channel.bitrate / 1000}kbps`;
+
+          const memberCountVoiceBasedChannel = pluralize(
+            'member',
+            channel.members.size,
+            true,
+          );
+          const userLimitVoiceBasedChannel =
+            channel.userLimit > 0
+              ? pluralize('user', channel.userLimit, true)
+              : 'Unlimited';
+
+          const slowmode = inlineCode(
+            `${
+              channel.rateLimitPerUser > 0
+                ? `${channel.rateLimitPerUser} seconds`
+                : 'Off'
+            }`,
+          );
+
+          const regionOverride = channel.rtcRegion ?? 'Automatic';
+
           const embed = new EmbedBuilder()
             .setColor(guild.members.me.displayHexColor)
             .setTimestamp(Date.now())
@@ -393,172 +451,843 @@ module.exports = {
                 value: channelType.find((t) => channel.type === t.value).name,
                 inline: true,
               },
-              {
-                name: '🔢 Position',
-                value: `${applyOrdinal(channel.position + 1)}${
-                  channel.type !== ChannelType.GuildCategory && channel.parent
-                    ? ` in ${channel.parent}`
-                    : ''
-                }`,
+            ]);
+
+          switch (channel.type) {
+            case ChannelType.GuildText:
+            case ChannelType.GuildAnnouncement: {
+              const activeThreads = await channel.threads.fetchActive();
+              const archivedThreads = await channel.threads.fetchArchived();
+
+              embed.spliceFields(1, 0, {
+                name: '📁 Category',
+                value: channel.parent ? `${channel.parent}` : italic('None'),
                 inline: true,
-              },
-              {
+              });
+              embed.spliceFields(
+                channel.parent ? 3 : 2,
+                0,
+                {
+                  name: '🔢 Position',
+                  value: `${applyOrdinal(channel.position + 1)}${
+                    channel.type !== ChannelType.GuildCategory && channel.parent
+                      ? ` in ${channel.parent}`
+                      : ''
+                  }`,
+                  inline: true,
+                },
+                {
+                  name: '🗣️ Topic',
+                  value: channelTopic,
+                  inline: true,
+                },
+                {
+                  name: '💬 Message Count',
+                  value: pluralize(
+                    'message',
+                    channel.messages.cache.size,
+                    true,
+                  ),
+                  inline: true,
+                },
+                {
+                  name: '📌 Pinned Message Count',
+                  value: pluralize(
+                    'pinned message',
+                    await channel.messages
+                      .fetchPinned()
+                      .then((pinned) => pinned.size),
+                    true,
+                  ),
+                  inline: true,
+                },
+              );
+              embed.spliceFields(
+                7,
+                0,
+                {
+                  name: '⚠️ NSFW',
+                  value: isNSFW,
+                  inline: true,
+                },
+                {
+                  name: '🐌 Slowmode',
+                  value: slowmode,
+                  inline: true,
+                },
+                {
+                  name: '➕ Extra',
+                  value: `${
+                    channel.id === guild.rulesChannelId
+                      ? 'Rules'
+                      : channel.id === guild.publicUpdatesChannelId
+                      ? 'Public Updates'
+                      : channel.id === guild.systemChannelId
+                      ? 'System'
+                      : 'Widget'
+                  } Channel`,
+                  inline: true,
+                },
+                {
+                  name: '💭 Threads',
+                  value: `👁️‍🗨️ ${
+                    channel.threads.cache.filter(
+                      (thread) => thread.type === ChannelType.PublicThread,
+                    ).size
+                  } Public ${
+                    activeThreads.threads.size || archivedThreads.threads.size
+                      ? `(${
+                          activeThreads.threads.filter(
+                            (thread) =>
+                              thread.type === ChannelType.PublicThread,
+                          ).size
+                            ? `${
+                                activeThreads.threads.filter(
+                                  (thread) =>
+                                    thread.type === ChannelType.PublicThread,
+                                ).size
+                              } active`
+                            : ''
+                        }${
+                          activeThreads.threads.size &&
+                          archivedThreads.threads.size
+                            ? ', '
+                            : ''
+                        }${
+                          archivedThreads.threads.filter(
+                            (thread) =>
+                              thread.type === ChannelType.PublicThread,
+                          ).size
+                            ? `${
+                                archivedThreads.threads.filter(
+                                  (thread) =>
+                                    thread.type === ChannelType.PublicThread,
+                                ).size
+                              } archived`
+                            : ''
+                        })`
+                      : ''
+                  } | 🔒 ${
+                    channel.threads.cache.filter(
+                      (thread) => thread.type === ChannelType.PrivateThread,
+                    ).size
+                  } Private ${
+                    activeThreads.threads.filter(
+                      (thread) => thread.type === ChannelType.PrivateThread,
+                    ).size ||
+                    archivedThreads.threads.filter(
+                      (thread) => thread.type === ChannelType.PrivateThread,
+                    ).size
+                      ? `(${
+                          activeThreads.threads.filter(
+                            (thread) =>
+                              thread.type === ChannelType.PrivateThread,
+                          ).size
+                            ? `${
+                                activeThreads.threads.filter(
+                                  (thread) =>
+                                    thread.type === ChannelType.PrivateThread,
+                                ).size
+                              } active`
+                            : ''
+                        }${
+                          activeThreads.threads.filter(
+                            (thread) =>
+                              thread.type === ChannelType.PrivateThread,
+                          ).size &&
+                          archivedThreads.threads.filter(
+                            (thread) =>
+                              thread.type === ChannelType.PrivateThread,
+                          ).size
+                            ? ', '
+                            : ''
+                        }${
+                          archivedThreads.threads.filter(
+                            (thread) =>
+                              thread.type === ChannelType.PrivateThread,
+                          ).size
+                            ? `${
+                                archivedThreads.threads.filter(
+                                  (thread) =>
+                                    thread.type === ChannelType.PrivateThread,
+                                ).size
+                              } archived`
+                            : ''
+                        })`
+                      : ''
+                  } | 📣 ${
+                    channel.threads.cache.filter(
+                      (thread) =>
+                        thread.type === ChannelType.AnnouncementThread,
+                    ).size
+                  } Announcement ${
+                    activeThreads.threads.filter(
+                      (thread) =>
+                        thread.type === ChannelType.AnnouncementThread,
+                    ).size ||
+                    archivedThreads.threads.filter(
+                      (thread) =>
+                        thread.type === ChannelType.AnnouncementThread,
+                    ).size
+                      ? `(${
+                          activeThreads.threads.filter(
+                            (thread) =>
+                              thread.type === ChannelType.AnnouncementThread,
+                          ).size
+                            ? `${
+                                activeThreads.threads.filter(
+                                  (thread) =>
+                                    thread.type ===
+                                    ChannelType.AnnouncementThread,
+                                ).size
+                              } active`
+                            : ''
+                        }${
+                          activeThreads.threads.filter(
+                            (thread) =>
+                              thread.type === ChannelType.AnnouncementThread,
+                          ).size &&
+                          archivedThreads.threads.filter(
+                            (thread) =>
+                              thread.type === ChannelType.AnnouncementThread,
+                          ).size
+                            ? ', '
+                            : ''
+                        }${
+                          archivedThreads.threads.filter(
+                            (thread) =>
+                              thread.type === ChannelType.AnnouncementThread,
+                          ).size
+                            ? `${
+                                archivedThreads.threads.filter(
+                                  (thread) =>
+                                    thread.type ===
+                                    ChannelType.AnnouncementThread,
+                                ).size
+                              } archived`
+                            : ''
+                        })`
+                      : ''
+                  }${
+                    channel.defaultAutoArchiveDuration
+                      ? `\nInactivity duration: ${inlineCode(
+                          applyThreadAutoArchiveDuration(
+                            channel.defaultAutoArchiveDuration,
+                          ),
+                        )}`
+                      : ''
+                  }`,
+                },
+                {
+                  name: '🔐 Permissions',
+                  value: `${
+                    channel.permissionsLocked
+                      ? `Synced with ${channel.parent}`
+                      : ''
+                  }\n${
+                    channel.permissionOverwrites.cache.size
+                      ? channel.permissionOverwrites.cache
+                          .map(
+                            (permission) =>
+                              `${bold('•')} ${
+                                permission.type === OverwriteType.Role
+                                  ? permission.id === guild.roles.everyone.id
+                                    ? guild.roles.everyone
+                                    : roleMention(permission.id)
+                                  : userMention(permission.id)
+                              }\n${
+                                permission.allow.toArray().length
+                                  ? `Allowed: ${permission.allow
+                                      .toArray()
+                                      .map((allowedPermission) =>
+                                        inlineCode(
+                                          applySpacesBetweenPascalCase(
+                                            allowedPermission,
+                                          ),
+                                        ),
+                                      )
+                                      .join(', ')}\n`
+                                  : ''
+                              }${
+                                permission.deny.toArray().length
+                                  ? `Denied: ${permission.deny
+                                      .toArray()
+                                      .map((deniedPermission) =>
+                                        inlineCode(
+                                          applySpacesBetweenPascalCase(
+                                            deniedPermission,
+                                          ),
+                                        ),
+                                      )
+                                      .join(', ')}`
+                                  : ''
+                              }`,
+                          )
+                          .join('\n\n')
+                      : italic('None')
+                  }`,
+                },
+              );
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case ChannelType.GuildVoice: {
+              embed.spliceFields(1, 0, {
+                name: '📁 Category',
+                value: channel.parent ? `${channel.parent}` : italic('None'),
+                inline: true,
+              });
+              embed.spliceFields(
+                channel.parent ? 3 : 2,
+                0,
+                {
+                  name: '🔢 Position',
+                  value: `${applyOrdinal(channel.position + 1)}${
+                    channel.type !== ChannelType.GuildCategory && channel.parent
+                      ? ` in ${channel.parent}`
+                      : ''
+                  }`,
+                  inline: true,
+                },
+                {
+                  name: '👥 Member Count in Voice',
+                  value: memberCountVoiceBasedChannel,
+                  inline: true,
+                },
+                {
+                  name: '💬 Message Count in Voice',
+                  value: pluralize(
+                    'message',
+                    channel.messages.cache.size,
+                    true,
+                  ),
+                  inline: true,
+                },
+                {
+                  name: '⚡ Bitrate',
+                  value: bitrate,
+                  inline: true,
+                },
+                {
+                  name: '👥 User Limit',
+                  value: userLimitVoiceBasedChannel,
+                  inline: true,
+                },
+                {
+                  name: '🎥 Video Quality',
+                  value:
+                    channel.videoQualityMode === VideoQualityMode.Auto
+                      ? 'Auto'
+                      : 'Full HD',
+                  inline: true,
+                },
+                {
+                  name: '🌐 Region Override',
+                  value: regionOverride,
+                  inline: true,
+                },
+              );
+              embed.spliceFields(
+                8,
+                0,
+                {
+                  name: '⚠️ NSFW',
+                  value: isNSFW,
+                  inline: true,
+                },
+                {
+                  name: '🐌 Slowmode',
+                  value: slowmode,
+                  inline: true,
+                },
+              );
+
+              if (channel.id === guild.afkChannelId) {
+                embed.spliceFields(10, 0, {
+                  name: '➕ Extra',
+                  value: 'AFK Channel',
+                  inline: true,
+                });
+              }
+
+              embed.spliceFields(
+                channel.id === guild.afkChannelId ? 11 : 10,
+                0,
+                {
+                  name: '🔐 Permissions',
+                  value: `${
+                    channel.permissionsLocked
+                      ? `Synced with ${channel.parent}`
+                      : ''
+                  }\n${
+                    channel.permissionOverwrites.cache.size
+                      ? channel.permissionOverwrites.cache
+                          .map(
+                            (permission) =>
+                              `${bold('•')} ${
+                                permission.type === OverwriteType.Role
+                                  ? permission.id === guild.roles.everyone.id
+                                    ? guild.roles.everyone
+                                    : roleMention(permission.id)
+                                  : userMention(permission.id)
+                              }\n${
+                                permission.allow.toArray().length
+                                  ? `Allowed: ${permission.allow
+                                      .toArray()
+                                      .map((allowedPermission) =>
+                                        inlineCode(
+                                          applySpacesBetweenPascalCase(
+                                            allowedPermission,
+                                          ),
+                                        ),
+                                      )
+                                      .join(', ')}\n`
+                                  : ''
+                              }${
+                                permission.deny.toArray().length
+                                  ? `Denied: ${permission.deny
+                                      .toArray()
+                                      .map((deniedPermission) =>
+                                        inlineCode(
+                                          applySpacesBetweenPascalCase(
+                                            deniedPermission,
+                                          ),
+                                        ),
+                                      )
+                                      .join(', ')}`
+                                  : ''
+                              }`,
+                          )
+                          .join('\n\n')
+                      : italic('None')
+                  }`,
+                },
+              );
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case ChannelType.GuildCategory: {
+              embed.spliceFields(
+                3,
+                0,
+                {
+                  name: '🔢 Position',
+                  value: `${applyOrdinal(channel.position + 1)}${
+                    channel.type !== ChannelType.GuildCategory && channel.parent
+                      ? ` in ${channel.parent}`
+                      : ''
+                  }`,
+                  inline: true,
+                },
+                {
+                  name: '#️⃣ Channels',
+                  value: channel.children.cache.size
+                    ? channel.children.cache
+                        .map((child) => `${child}`)
+                        .join(', ')
+                    : italic('None'),
+                },
+              );
+              embed.spliceFields(5, 0, {
                 name: '🔐 Permissions',
                 value: `${
                   channel.permissionsLocked
                     ? `Synced with ${channel.parent}`
                     : ''
-                }\n${channel.permissionOverwrites.cache
-                  .map(
-                    (permission) =>
-                      `${bold('•')} ${
-                        permission.type === OverwriteType.Role
-                          ? permission.id === guild.roles.everyone.id
-                            ? guild.roles.everyone
-                            : roleMention(permission.id)
-                          : userMention(permission.id)
-                      }\n${
-                        permission.allow.toArray().length
-                          ? `Allowed: ${permission.allow
-                              .toArray()
-                              .map((allowedPermission) =>
-                                inlineCode(
-                                  applySpacesBetweenPascalCase(
-                                    allowedPermission,
-                                  ),
-                                ),
+                }\n${
+                  channel.permissionOverwrites.cache.size
+                    ? channel.permissionOverwrites.cache
+                        .map(
+                          (permission) =>
+                            `${bold('•')} ${
+                              permission.type === OverwriteType.Role
+                                ? permission.id === guild.roles.everyone.id
+                                  ? guild.roles.everyone
+                                  : roleMention(permission.id)
+                                : userMention(permission.id)
+                            }\n${
+                              permission.allow.toArray().length
+                                ? `Allowed: ${permission.allow
+                                    .toArray()
+                                    .map((allowedPermission) =>
+                                      inlineCode(
+                                        applySpacesBetweenPascalCase(
+                                          allowedPermission,
+                                        ),
+                                      ),
+                                    )
+                                    .join(', ')}\n`
+                                : ''
+                            }${
+                              permission.deny.toArray().length
+                                ? `Denied: ${permission.deny
+                                    .toArray()
+                                    .map((deniedPermission) =>
+                                      inlineCode(
+                                        applySpacesBetweenPascalCase(
+                                          deniedPermission,
+                                        ),
+                                      ),
+                                    )
+                                    .join(', ')}`
+                                : ''
+                            }`,
+                        )
+                        .join('\n\n')
+                    : italic('None')
+                }`,
+              });
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case ChannelType.PublicThread:
+            case ChannelType.PrivateThread:
+            case ChannelType.AnnouncementThread: {
+              embed.spliceFields(
+                1,
+                0,
+                {
+                  name: '👤 Created By',
+                  value: channel.ownerId
+                    ? userMention(channel.ownerId)
+                    : italic('Unknown'),
+                  inline: true,
+                },
+                {
+                  name: '#️⃣ Channel',
+                  value: channel.parent ? `${channel.parent}` : italic('None'),
+                  inline: true,
+                },
+              );
+              embed.spliceFields(
+                channel.parent ? 4 : 3,
+                0,
+                {
+                  name: '👥 Member Count in Thread',
+                  value: pluralize('member', channel.members.cache.size, true),
+                  inline: true,
+                },
+                {
+                  name: '💬 Message Count',
+                  value: pluralize(
+                    'message',
+                    channel.messages.cache.size,
+                    true,
+                  ),
+                  inline: true,
+                },
+                {
+                  name: '📌 Pinned Message Count',
+                  value: pluralize(
+                    'pinned message',
+                    await channel.messages
+                      .fetchPinned()
+                      .then((pinned) => pinned.size),
+                    true,
+                  ),
+                  inline: true,
+                },
+                {
+                  name: '📊 Status',
+                  value: channel.archived
+                    ? channel.locked
+                      ? `Locked at ${time(
+                          channel.archivedAt,
+                          TimestampStyles.RelativeTime,
+                        )}`
+                      : `Closed at ${time(
+                          channel.archivedAt,
+                          TimestampStyles.RelativeTime,
+                        )}`
+                    : 'Active',
+                  inline: true,
+                },
+                {
+                  name: '🕒 Inactivity Duration',
+                  value: inlineCode(
+                    applyThreadAutoArchiveDuration(channel.autoArchiveDuration),
+                  ),
+                  inline: true,
+                },
+                {
+                  name: '🐌 Slowmode',
+                  value: slowmode,
+                  inline: true,
+                },
+              );
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case ChannelType.GuildStageVoice: {
+              embed.spliceFields(1, 0, {
+                name: '📁 Category',
+                value: channel.parent ? `${channel.parent}` : italic('None'),
+                inline: true,
+              });
+              embed.spliceFields(
+                channel.parent ? 3 : 2,
+                0,
+                {
+                  name: '🔢 Position',
+                  value: `${applyOrdinal(channel.position + 1)}${
+                    channel.type !== ChannelType.GuildCategory && channel.parent
+                      ? ` in ${channel.parent}`
+                      : ''
+                  }`,
+                  inline: true,
+                },
+                {
+                  name: '👥 Member Count in Stage',
+                  value: memberCountVoiceBasedChannel,
+                  inline: true,
+                },
+                {
+                  name: '⚡ Bitrate',
+                  value: bitrate,
+                  inline: true,
+                },
+                {
+                  name: '👥 User Limit',
+                  value: userLimitVoiceBasedChannel,
+                  inline: true,
+                },
+                {
+                  name: '🌐 Region Override',
+                  value: regionOverride,
+                  inline: true,
+                },
+                {
+                  name: '🔐 Permissions',
+                  value: `${
+                    channel.permissionsLocked
+                      ? `Synced with ${channel.parent}`
+                      : ''
+                  }\n${
+                    channel.permissionOverwrites.cache.size
+                      ? channel.permissionOverwrites.cache
+                          .map(
+                            (permission) =>
+                              `${bold('•')} ${
+                                permission.type === OverwriteType.Role
+                                  ? permission.id === guild.roles.everyone.id
+                                    ? guild.roles.everyone
+                                    : roleMention(permission.id)
+                                  : userMention(permission.id)
+                              }\n${
+                                permission.allow.toArray().length
+                                  ? `Allowed: ${permission.allow
+                                      .toArray()
+                                      .map((allowedPermission) =>
+                                        inlineCode(
+                                          applySpacesBetweenPascalCase(
+                                            allowedPermission,
+                                          ),
+                                        ),
+                                      )
+                                      .join(', ')}\n`
+                                  : ''
+                              }${
+                                permission.deny.toArray().length
+                                  ? `Denied: ${permission.deny
+                                      .toArray()
+                                      .map((deniedPermission) =>
+                                        inlineCode(
+                                          applySpacesBetweenPascalCase(
+                                            deniedPermission,
+                                          ),
+                                        ),
+                                      )
+                                      .join(', ')}`
+                                  : ''
+                              }`,
+                          )
+                          .join('\n\n')
+                      : italic('None')
+                  }`,
+                },
+              );
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case ChannelType.GuildForum: {
+              const moderatorOnlyTags = channel.availableTags.filter(
+                (tag) => tag.moderated,
+              );
+              const allMembertags = channel.availableTags.filter(
+                (tag) => !tag.moderated,
+              );
+
+              embed.spliceFields(1, 0, {
+                name: '📁 Category',
+                value: channel.parent ? `${channel.parent}` : italic('None'),
+                inline: true,
+              });
+              embed.spliceFields(
+                channel.parent ? 3 : 2,
+                0,
+                {
+                  name: '🔢 Position',
+                  value: `${applyOrdinal(channel.position + 1)}${
+                    channel.type !== ChannelType.GuildCategory && channel.parent
+                      ? ` in ${channel.parent}`
+                      : ''
+                  }`,
+                  inline: true,
+                },
+                {
+                  name: '📋 Post Guidelines',
+                  value: channelTopic,
+                  inline: true,
+                },
+                {
+                  name: '😀 Default Reaction Emoji',
+                  value: channel.defaultReactionEmoji
+                    ? channel.defaultReactionEmoji.id
+                      ? formatEmoji(channel.defaultReactionEmoji.id)
+                      : channel.defaultReactionEmoji.name
+                    : italic('None'),
+                  inline: true,
+                },
+              );
+              embed.spliceFields(
+                6,
+                0,
+                {
+                  name: '⚠️ NSFW',
+                  value: isNSFW,
+                  inline: true,
+                },
+                {
+                  name: '🐌 Slowmode',
+                  value: slowmode,
+                  inline: true,
+                },
+                {
+                  name: '🏷️ Tags',
+                  value: channel.availableTags.length
+                    ? `${
+                        moderatorOnlyTags.length
+                          ? `${bold('• Moderator Only')}\n${moderatorOnlyTags
+                              .map(
+                                (tag) =>
+                                  `${
+                                    tag.emoji
+                                      ? tag.emoji.id
+                                        ? formatEmoji(tag.emoji.id)
+                                        : tag.emoji.name
+                                      : ''
+                                  } ${tag.name}`,
                               )
                               .join(', ')}\n`
                           : ''
                       }${
-                        permission.deny.toArray().length
-                          ? `Denied: ${permission.deny
-                              .toArray()
-                              .map((deniedPermission) =>
-                                inlineCode(
-                                  applySpacesBetweenPascalCase(
-                                    deniedPermission,
-                                  ),
-                                ),
+                        allMembertags.length
+                          ? `${bold('• All Member')}\n${allMembertags
+                              .map(
+                                (tag) =>
+                                  `${
+                                    tag.emoji
+                                      ? tag.emoji.id
+                                        ? formatEmoji(tag.emoji.id)
+                                        : tag.emoji.name
+                                      : ''
+                                  } ${tag.name}`,
                               )
                               .join(', ')}`
                           : ''
-                      }`,
-                  )
-                  .join('\n\n')}`,
-              },
-            ]);
+                      }`
+                    : italic('None'),
+                },
+                {
+                  name: '💭 Threads',
+                  value: `👁️‍🗨️ ${
+                    channel.threads.cache.filter(
+                      (thread) => thread.type === ChannelType.PublicThread,
+                    ).size
+                  } Public | 🔒 ${
+                    channel.threads.cache.filter(
+                      (thread) => thread.type === ChannelType.PrivateThread,
+                    ).size
+                  } Private | 📣 ${
+                    channel.threads.cache.filter(
+                      (thread) =>
+                        thread.type === ChannelType.AnnouncementThread,
+                    ).size
+                  } Announcement${
+                    channel.defaultAutoArchiveDuration
+                      ? `\nInactivity duration: ${inlineCode(
+                          applyThreadAutoArchiveDuration(
+                            channel.defaultAutoArchiveDuration,
+                          ),
+                        )}`
+                      : ''
+                  }\nSlowmode: ${inlineCode(
+                    `${
+                      channel.defaultThreadRateLimitPerUser > 0
+                        ? `${channel.defaultThreadRateLimitPerUser} seconds`
+                        : 'Off'
+                    }`,
+                  )}`,
+                },
+                {
+                  name: '🔐 Permissions',
+                  value: `${
+                    channel.permissionsLocked
+                      ? `Synced with ${channel.parent}`
+                      : ''
+                  }\n${
+                    channel.permissionOverwrites.cache.size
+                      ? channel.permissionOverwrites.cache
+                          .map(
+                            (permission) =>
+                              `${bold('•')} ${
+                                permission.type === OverwriteType.Role
+                                  ? permission.id === guild.roles.everyone.id
+                                    ? guild.roles.everyone
+                                    : roleMention(permission.id)
+                                  : userMention(permission.id)
+                              }\n${
+                                permission.allow.toArray().length
+                                  ? `Allowed: ${permission.allow
+                                      .toArray()
+                                      .map((allowedPermission) =>
+                                        inlineCode(
+                                          applySpacesBetweenPascalCase(
+                                            allowedPermission,
+                                          ),
+                                        ),
+                                      )
+                                      .join(', ')}\n`
+                                  : ''
+                              }${
+                                permission.deny.toArray().length
+                                  ? `Denied: ${permission.deny
+                                      .toArray()
+                                      .map((deniedPermission) =>
+                                        inlineCode(
+                                          applySpacesBetweenPascalCase(
+                                            deniedPermission,
+                                          ),
+                                        ),
+                                      )
+                                      .join(', ')}`
+                                  : ''
+                              }`,
+                          )
+                          .join('\n\n')
+                      : italic('None')
+                  }`,
+                },
+              );
 
-          if (channel.type !== ChannelType.GuildCategory) {
-            embed.spliceFields(1, 0, {
-              name: '📁 Category',
-              value: `${channel.parent}` ?? italic('None'),
-              inline: true,
-            });
+              return interaction.editReply({ embeds: [embed] });
+            }
           }
-
-          if (channel.type === ChannelType.GuildText) {
-            embed.spliceFields(
-              channel.parent ? 3 : 2,
-              0,
-              {
-                name: '🗣️ Topic',
-                value: channel.topic ?? italic('No topic'),
-                inline: true,
-              },
-              {
-                name: '💬 Message Count',
-                value: pluralize('message', channel.messages.cache.size, true),
-                inline: true,
-              },
-              {
-                name: '📌 Pinned Message Count',
-                value: pluralize(
-                  'pinned message',
-                  await channel.messages
-                    .fetchPinned()
-                    .then((pinned) => pinned.size),
-                  true,
-                ),
-                inline: true,
-              },
-              {
-                name: '💭 Thread Count',
-                value: pluralize('thread', channel.threads.cache.size, true),
-                inline: true,
-              },
-            );
-          }
-
-          if (channel.type === ChannelType.GuildVoice) {
-            embed.spliceFields(
-              channel.parent ? 3 : 2,
-              0,
-              {
-                name: '👥 Member Count in Voice',
-                value: pluralize('member', channel.members.size, true),
-                inline: true,
-              },
-              {
-                name: '💬 Message Count in Voice',
-                value: pluralize('message', channel.messages.cache.size, true),
-                inline: true,
-              },
-              {
-                name: '👥 User Limit',
-                value:
-                  channel.userLimit > 0
-                    ? pluralize('user', channel.userLimit, true)
-                    : 'Unlimited',
-                inline: true,
-              },
-              {
-                name: '🎥 Video Quality',
-                value:
-                  channel.videoQualityMode === VideoQualityMode.Auto
-                    ? 'Auto'
-                    : 'Full HD',
-                inline: true,
-              },
-            );
-          }
-
-          if (channel.type !== ChannelType.GuildCategory) {
-            embed.spliceFields(8, 0, {
-              name: '⚠️ NSFW',
-              value: channel.nsfw ? 'Yes' : 'No',
-              inline: true,
-            });
-          }
-
-          if (
-            channel.type === ChannelType.GuildVoice &&
-            channel.id === guild.afkChannelId
-          ) {
-            embed.spliceFields(9, 0, {
-              name: '➕ Extra',
-              value: 'AFK Channel',
-              inline: true,
-            });
-          }
-
-          if (channel.type === ChannelType.GuildText) {
-            embed.spliceFields(9, 0, {
-              name: '➕ Extra',
-              value: `${
-                channel.id === guild.rulesChannelId
-                  ? 'Rules'
-                  : channel.id === guild.publicUpdatesChannelId
-                  ? 'Announcement'
-                  : channel.id === guild.systemChannelId
-                  ? 'System'
-                  : 'Widget'
-              } Channel`,
-              inline: true,
-            });
-          }
-
-          await interaction.editReply({ embeds: [embed] });
         });
 
       case 'list':
