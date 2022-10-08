@@ -43,7 +43,7 @@
     "@vitalets/google-translate-api": "^8.0.0",
     "anime-images-api": "^2.0.0",
     "ascii-table": "^0.0.9",
-    "axios": "^1.0.0",
+    "axios": "^1.1.2",
     "color-convert": "^2.0.1",
     "ctk-anime-scraper": "^3.5.0",
     "discord-api-types": "^0.37.12",
