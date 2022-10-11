@@ -1,5 +1,5 @@
 const AnimeImages = require('anime-images-api');
-const axios = require('axios').default;
+const axios = require('axios');
 const { EmbedBuilder, italic, SlashCommandBuilder } = require('discord.js');
 
 const { waifuChoices } = require('../../constants');
