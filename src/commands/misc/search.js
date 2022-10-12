@@ -1,5 +1,6 @@
 const axios = require('axios');
 const {
+  bold,
   EmbedBuilder,
   hyperlink,
   inlineCode,
@@ -10,6 +11,7 @@ const {
   userMention,
 } = require('discord.js');
 const Scraper = require('images-scraper').default;
+const moment = require('moment');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
@@ -26,7 +28,12 @@ const {
   mdnLocales,
   searchSortingChoices,
 } = require('../../constants');
-const { truncate } = require('../../utils');
+const {
+  applySluggable,
+  applyTitleCase,
+  getWikiaURL,
+  truncate,
+} = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -137,6 +144,54 @@ module.exports = {
             .setName('query')
             .setDescription('🔠 The image search query.')
             .setRequired(true),
+        ),
+    )
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('genshin')
+        .setDescription('ℹ️ Search a Genshin Impact information.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('artifact')
+            .setDescription('🛡️ Search Genshin Impact artifact information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription(
+                  '🔠 The Genshin Impact artifact name search query.',
+                ),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('character')
+            .setDescription('👤 Search Genshin Impact character information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription(
+                  '🔠 The Genshin Impact character name search query.',
+                ),
+            )
+            .addBooleanOption((option) =>
+              option
+                .setName('detailed')
+                .setDescription(
+                  '📋 Whether to display the information in detail or not.',
+                ),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('weapon')
+            .setDescription('🗡️ Search Genshin Impact weapon information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription(
+                  '🔠 The Genshin Impact weapon name search query.',
+                ),
+            ),
         ),
     )
     .addSubcommandGroup((subcommandGroup) =>
@@ -875,6 +930,547 @@ module.exports = {
           }
         }
         break;
+
+      case 'genshin': {
+        const baseURL = 'https://api.genshin.dev';
+        const baseImageURL =
+          'https://static.wikia.nocookie.net/gensin-impact/images/';
+
+        switch (options.getSubcommand()) {
+          case 'artifact': {
+            const name = options.getString('name');
+
+            if (!name) {
+              return interaction.deferReply().then(
+                async () =>
+                  await axios
+                    .get(`${baseURL}/artifacts`)
+                    .then(async ({ data }) => {
+                      const responses = data.map(
+                        (item, index) =>
+                          `${bold(`${index + 1}.`)} ${applyTitleCase(
+                            item.replace(/-/g, ' '),
+                          )}`,
+                      );
+
+                      const pagination = new Pagination(interaction, {
+                        limit: 10,
+                      });
+
+                      pagination.setColor(guild.members.me.displayHexColor);
+                      pagination.setTimestamp(Date.now());
+                      pagination.setFooter({
+                        text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                        iconURL: client.user.displayAvatarURL({
+                          dynamic: true,
+                        }),
+                      });
+                      pagination.setAuthor({
+                        name: `Genshin Impact Artifact Lists (${data.length})`,
+                        iconURL: `${baseImageURL}8/80/Genshin_Impact.png`,
+                      });
+                      pagination.setDescriptions(responses);
+
+                      await pagination.render();
+                    }),
+              );
+            }
+
+            return axios
+              .get(`${baseURL}/artifacts/${applySluggable(name)}`)
+              .then(async ({ data }) => {
+                embed.setThumbnail(
+                  `${baseImageURL}6/6a/Icon_Inventory_Artifacts.png`,
+                );
+                embed.setAuthor({
+                  name: `🛡️ ${data.name}`,
+                });
+                embed.setFields([
+                  {
+                    name: '⭐ Rarity',
+                    value:
+                      data.max_rarity > 1
+                        ? `1-${data.max_rarity} ⭐`
+                        : `${data.max_rarity} ⭐`,
+                  },
+                ]);
+
+                if (data['1-piece_bonus']) {
+                  embed.addFields([
+                    {
+                      name: '🎁 1-piece Bonus',
+                      value: data['1-piece_bonus'],
+                    },
+                  ]);
+                }
+
+                if (data['2-piece_bonus']) {
+                  embed.addFields([
+                    {
+                      name: '🎁 2-piece Bonus',
+                      value: data['2-piece_bonus'],
+                    },
+                  ]);
+                }
+
+                if (data['3-piece_bonus']) {
+                  embed.addFields([
+                    {
+                      name: '🎁 3-piece Bonus',
+                      value: data['3-piece_bonus'],
+                    },
+                  ]);
+                }
+
+                if (data['4-piece_bonus']) {
+                  embed.addFields([
+                    {
+                      name: '🎁 4-piece Bonus',
+                      value: data['4-piece_bonus'],
+                    },
+                  ]);
+                }
+
+                if (data['5-piece_bonus']) {
+                  embed.addFields([
+                    {
+                      name: '🎁 5-piece Bonus',
+                      value: data['5-piece_bonus'],
+                    },
+                  ]);
+                }
+
+                await interaction
+                  .deferReply()
+                  .then(
+                    async () =>
+                      await interaction.editReply({ embeds: [embed] }),
+                  );
+              })
+              .catch(async (err) => {
+                console.error(err);
+
+                if (err.response?.status === 404) {
+                  await interaction.deferReply({ ephemeral: true }).then(
+                    async () =>
+                      await interaction.editReply({
+                        content: `No character found with name ${inlineCode(
+                          name,
+                        )}.`,
+                      }),
+                  );
+                }
+              });
+          }
+
+          case 'character': {
+            const name = options.getString('name');
+            const detailed = options.getBoolean('detailed');
+
+            if (!name) {
+              return interaction.deferReply().then(
+                async () =>
+                  await axios
+                    .get(`${baseURL}/characters`)
+                    .then(async ({ data }) => {
+                      const responses = data.map(
+                        (item, index) =>
+                          `${bold(`${index + 1}.`)} ${applyTitleCase(
+                            item.replace(/-/g, ' '),
+                          )}`,
+                      );
+
+                      const pagination = new Pagination(interaction, {
+                        limit: 10,
+                      });
+
+                      pagination.setColor(guild.members.me.displayHexColor);
+                      pagination.setTimestamp(Date.now());
+                      pagination.setFooter({
+                        text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                        iconURL: client.user.displayAvatarURL({
+                          dynamic: true,
+                        }),
+                      });
+                      pagination.setAuthor({
+                        name: `Genshin Impact Character Lists (${data.length})`,
+                        iconURL: `${baseImageURL}8/80/Genshin_Impact.png`,
+                      });
+                      pagination.setDescriptions(responses);
+
+                      await pagination.render();
+                    }),
+              );
+            }
+
+            return axios
+              .get(
+                `${baseURL}/characters/${
+                  name.toLowerCase().includes('itto')
+                    ? 'arataki-itto'
+                    : name.toLowerCase() === 'hutao'
+                    ? 'hu-tao'
+                    : name.toLowerCase().includes('kazuha')
+                    ? 'kazuha'
+                    : name.toLowerCase().includes('kokomi')
+                    ? 'kokomi'
+                    : name.toLowerCase().includes('shinobu')
+                    ? 'kuki-shinobu'
+                    : name.toLowerCase().includes('raiden')
+                    ? 'raiden'
+                    : name.toLowerCase().includes('sara')
+                    ? 'sara'
+                    : name.toLowerCase().includes('heizou')
+                    ? 'shikanoin-heizou'
+                    : name.toLowerCase() === 'childe'
+                    ? 'tartaglia'
+                    : name.toLowerCase().includes('miko')
+                    ? 'yae-miko'
+                    : name.toLowerCase() === 'yunjin'
+                    ? 'yun-jin'
+                    : applySluggable(name)
+                }`,
+              )
+              .then(async ({ data }) => {
+                embed.setThumbnail(
+                  getWikiaURL(`Character_${data.name}_Thumb.png`, baseImageURL),
+                );
+                embed.setAuthor({
+                  name: `👤 ${
+                    data.name === 'Ayato' ? 'Kamisato Ayato' : data.name
+                  }`,
+                });
+                embed.setFields([
+                  {
+                    name: '🔤 Title',
+                    value: data.title || italic('None'),
+                    inline: true,
+                  },
+                  {
+                    name: '🪄 Vision',
+                    value: data.vision,
+                    inline: true,
+                  },
+                  {
+                    name: '🗡️ Weapon',
+                    value: data.weapon,
+                    inline: true,
+                  },
+                  {
+                    name: '🗺️ Nation',
+                    value: data.nation,
+                    inline: true,
+                  },
+                  {
+                    name: '🏰 Affiliation',
+                    value: data.affiliation,
+                    inline: true,
+                  },
+                  {
+                    name: '⭐ Rarity',
+                    value: '⭐'.repeat(data.rarity),
+                    inline: true,
+                  },
+                  {
+                    name: '✨ Constellation',
+                    value: data.constellation,
+                    inline: true,
+                  },
+                  {
+                    name: '🎂 Birthday',
+                    value: moment(data.birthday).format('MMMM Do'),
+                    inline: true,
+                  },
+                ]);
+
+                if (data.description) {
+                  embed.setDescription(data.description);
+                }
+
+                if (detailed) {
+                  const pagination = new Pagination(interaction);
+
+                  const activeTalentEmbed = new EmbedBuilder()
+                    .setColor(guild.members.me.displayHexColor)
+                    .setTimestamp(Date.now())
+                    .setDescription(
+                      `${bold('Active Talents')}\n${data.skillTalents
+                        .map(
+                          (skill) =>
+                            `${bold(`• ${skill.name}`)} (${
+                              skill.unlock
+                            })\n${skill.description
+                              .replace(/\n\n/g, '\n')
+                              .replace(/\n$/, '')}${
+                              skill.upgrades
+                                ? `\n${bold('- Attributes')}\n${skill.upgrades
+                                    .map(
+                                      (upgrade) =>
+                                        `${upgrade.name}: ${upgrade.value}`,
+                                    )
+                                    .join('\n')}`
+                                : ''
+                            }`,
+                        )
+                        .join('\n\n')}`,
+                    )
+                    .setThumbnail(
+                      getWikiaURL(
+                        `Character_${data.name}_Thumb.png`,
+                        baseImageURL,
+                      ),
+                    )
+                    .setAuthor({
+                      name: `👤 ${data.name}`,
+                    });
+
+                  const passiveTalentEmbed = new EmbedBuilder()
+                    .setColor(guild.members.me.displayHexColor)
+                    .setTimestamp(Date.now())
+                    .setDescription(
+                      `${bold('Passive Talents')}\n${data.passiveTalents
+                        .map(
+                          (skill) =>
+                            `${bold(`• ${skill.name}`)} (${
+                              skill.unlock
+                            })\n${skill.description.replace(/\n\n/g, '\n')}`,
+                        )
+                        .join('\n\n')}`,
+                    )
+                    .setThumbnail(
+                      getWikiaURL(
+                        `Character_${data.name}_Thumb.png`,
+                        baseImageURL,
+                      ),
+                    )
+                    .setAuthor({
+                      name: `👤 ${data.name}`,
+                    });
+
+                  const constellationEmbed = new EmbedBuilder()
+                    .setColor(guild.members.me.displayHexColor)
+                    .setTimestamp(Date.now())
+                    .setDescription(
+                      `${bold('Constellations')}\n${data.constellations
+                        .map(
+                          (skill) =>
+                            `${bold(`• ${skill.name}`)} (${
+                              skill.unlock
+                            })\n${skill.description.replace(/\n\n/g, '\n')}`,
+                        )
+                        .join('\n\n')}`,
+                    )
+                    .setThumbnail(
+                      getWikiaURL(
+                        `Character_${data.name}_Thumb.png`,
+                        baseImageURL,
+                      ),
+                    )
+                    .setAuthor({
+                      name: `👤 ${data.name}`,
+                    });
+
+                  let embeds = [
+                    embed,
+                    activeTalentEmbed,
+                    passiveTalentEmbed,
+                    constellationEmbed,
+                  ];
+
+                  if (data.outfits) {
+                    /** @type {import('discord.js').EmbedBuilder[]} */
+                    const outfitEmbed = data.outfits.map((outfit) =>
+                      new EmbedBuilder()
+                        .setColor(guild.members.me.displayHexColor)
+                        .setTimestamp(Date.now())
+                        .setDescription(
+                          `${bold('• Outfits')}\n${outfit.description}`,
+                        )
+                        .setThumbnail(
+                          getWikiaURL(
+                            `Character_${data.name}_Thumb.png`,
+                            baseImageURL,
+                          ),
+                        )
+                        .setImage(
+                          getWikiaURL(
+                            `Outfit_${outfit.name}_Thumb.png`,
+                            baseImageURL,
+                          ),
+                        )
+                        .setAuthor({
+                          name: `👤 ${data.name}`,
+                        })
+                        .setFields([
+                          {
+                            name: '🔣 Type',
+                            value: outfit.type,
+                            inline: true,
+                          },
+                          {
+                            name: '⭐ Rarity',
+                            value: '⭐'.repeat(outfit.rarity),
+                            inline: true,
+                          },
+                          {
+                            name: '💰 Price',
+                            value: `${outfit.price} 💎`,
+                            inline: true,
+                          },
+                        ]),
+                    );
+
+                    embeds.push(...outfitEmbed);
+                  }
+
+                  embeds = embeds.map((emb, index, array) =>
+                    emb.setFooter({
+                      text: `${client.user.username} | Page ${index + 1} of ${
+                        array.length
+                      }`,
+                      iconURL: client.user.displayAvatarURL({
+                        dynamic: true,
+                      }),
+                    }),
+                  );
+
+                  pagination.setEmbeds(embeds);
+
+                  return pagination.render();
+                }
+
+                await interaction
+                  .deferReply()
+                  .then(
+                    async () =>
+                      await interaction.editReply({ embeds: [embed] }),
+                  );
+              })
+              .catch(async (err) => {
+                console.error(err);
+
+                if (err.response?.status === 404) {
+                  await interaction.deferReply({ ephemeral: true }).then(
+                    async () =>
+                      await interaction.editReply({
+                        content: `No character found with name ${inlineCode(
+                          name,
+                        )}.`,
+                      }),
+                  );
+                }
+              });
+          }
+
+          case 'weapon': {
+            const name = options.getString('name');
+
+            if (!name) {
+              return interaction.deferReply().then(
+                async () =>
+                  await axios
+                    .get(`${baseURL}/weapons`)
+                    .then(async ({ data }) => {
+                      const responses = data.map(
+                        (item, index) =>
+                          `${bold(`${index + 1}.`)} ${applyTitleCase(
+                            item.replace(/-/g, ' '),
+                          )}`,
+                      );
+
+                      const pagination = new Pagination(interaction, {
+                        limit: 10,
+                      });
+
+                      pagination.setColor(guild.members.me.displayHexColor);
+                      pagination.setTimestamp(Date.now());
+                      pagination.setFooter({
+                        text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                        iconURL: client.user.displayAvatarURL({
+                          dynamic: true,
+                        }),
+                      });
+                      pagination.setAuthor({
+                        name: `Genshin Impact Weapon Lists (${data.length})`,
+                        iconURL: `${baseImageURL}8/80/Genshin_Impact.png`,
+                      });
+                      pagination.setDescriptions(responses);
+
+                      await pagination.render();
+                    }),
+              );
+            }
+
+            return axios
+              .get(`${baseURL}/weapons/${applySluggable(name)}`)
+              .then(async ({ data }) => {
+                embed.setThumbnail(
+                  getWikiaURL(`Weapon_${data.name}.png`, baseImageURL),
+                );
+                embed.setAuthor({
+                  name: `🗡️ ${data.name}`,
+                });
+                embed.setFields([
+                  {
+                    name: '🔣 Type',
+                    value: data.type,
+                    inline: true,
+                  },
+                  {
+                    name: '⭐ Rarity',
+                    value: '⭐'.repeat(data.rarity),
+                    inline: true,
+                  },
+                  {
+                    name: '⚔️ Base ATK',
+                    value: `${data.baseAttack}`,
+                    inline: true,
+                  },
+                  {
+                    name: '⚔️ Sub-stat Type',
+                    value:
+                      data.subStat !== '-' ? data.subStat : italic('Unknown'),
+                    inline: true,
+                  },
+                  {
+                    name: '📥 Obtaining',
+                    value: data.location,
+                    inline: true,
+                  },
+                  {
+                    name: '⚔️ Passive',
+                    value:
+                      data.passiveName !== '-'
+                        ? `${bold(data.passiveName)} - ${data.passiveDesc}`
+                        : italic('None'),
+                  },
+                ]);
+
+                await interaction
+                  .deferReply()
+                  .then(
+                    async () =>
+                      await interaction.editReply({ embeds: [embed] }),
+                  );
+              })
+              .catch(async (err) => {
+                console.error(err);
+
+                if (err.response?.status === 404) {
+                  await interaction.deferReply({ ephemeral: true }).then(
+                    async () =>
+                      await interaction.editReply({
+                        content: `No character found with name ${inlineCode(
+                          name,
+                        )}.`,
+                      }),
+                  );
+                }
+              });
+          }
+        }
+        break;
+      }
     }
 
     switch (options.getSubcommand()) {
@@ -1379,10 +1975,7 @@ module.exports = {
                               .map((tag) =>
                                 hyperlink(
                                   tag,
-                                  `https://top.gg/tag/${tag
-                                    .toLowerCase()
-                                    .replace(/ /g, '-')
-                                    .replace(/[^\w-]+/g, '')}`,
+                                  `https://top.gg/tag/${applySluggable(tag)}`,
                                 ),
                               )
                               .join(', ')

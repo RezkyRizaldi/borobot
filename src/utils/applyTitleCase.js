@@ -6,5 +6,21 @@
 module.exports = (string) =>
   string
     .split(' ')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) =>
+      ![
+        'of',
+        'the',
+        'and',
+        'for',
+        'to',
+        'a',
+        'an',
+        'in',
+        'on',
+        'it',
+        'but',
+      ].includes(word)
+        ? word.charAt(0).toUpperCase() + word.slice(1)
+        : word,
+    )
     .join(' ');
