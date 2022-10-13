@@ -11,6 +11,7 @@ const applyOrdinal = require('./applyOrdinal');
 const applyPermission = require('./applyPermission');
 const applyPresence = require('./applyPresence');
 const applyRepeatMode = require('./applyRepeatMode');
+const applySluggable = require('./applySluggable');
 const applySpacesBetweenPascalCase = require('./applySpacesBetweenPascalCase');
 const applyStagePrivacyLevel = require('./applyStagePrivacyLevel');
 const applyStickerFormat = require('./applyStickerFormat');
@@ -25,6 +26,7 @@ const getLanguage = require('./getLanguage');
 const getMessageType = require('./getMessageType');
 const getPreferredLocale = require('./getPreferredLocale');
 const getTranslateFlag = require('./getTranslateFlag');
+const getWikiaURL = require('./getWikiaURL');
 const groupMessageByAuthor = require('./groupMessageByAuthor');
 const groupMessageByType = require('./groupMessageByType');
 const isValidURL = require('./isValidURL');
@@ -45,6 +47,7 @@ module.exports = {
   applyPermission,
   applyPresence,
   applyRepeatMode,
+  applySluggable,
   applySpacesBetweenPascalCase,
   applyStagePrivacyLevel,
   applyStickerFormat,
@@ -59,6 +62,7 @@ module.exports = {
   getMessageType,
   getPreferredLocale,
   getTranslateFlag,
+  getWikiaURL,
   groupMessageByAuthor,
   groupMessageByType,
   isValidURL,

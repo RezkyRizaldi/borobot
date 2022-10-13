@@ -197,7 +197,7 @@ module.exports = {
               .map((permission) =>
                 inlineCode(applySpacesBetweenPascalCase(permission)),
               )
-              .join(', ') ?? italic('None'),
+              .join(', ') || italic('None'),
         },
         {
           name: '🕒 Edited At',

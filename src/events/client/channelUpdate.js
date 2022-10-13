@@ -1,10 +1,8 @@
-/* global BigInt */
 const {
   AuditLogEvent,
   bold,
   EmbedBuilder,
   Events,
-  inlineCode,
   italic,
   time,
   OverwriteType,
@@ -12,6 +10,7 @@ const {
   TimestampStyles,
   userMention,
   WebhookClient,
+  inlineCode,
 } = require('discord.js');
 const pluralize = require('pluralize');
 
@@ -209,49 +208,79 @@ module.exports = {
       return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
-    const oldChannelPermissions = oldChannel.permissionOverwrites.cache.filter(
+    const oldChannelPermissions = oldChannel.permissionOverwrites.cache;
+    const newChannelPermissions = newChannel.permissionOverwrites.cache;
+
+    const oldChannelPermissionsWithoutEveryone = oldChannelPermissions.filter(
       (permission) => permission.id !== guild.roles.everyone.id,
     );
-    const newChannelPermissions = newChannel.permissionOverwrites.cache.filter(
+
+    const newChannelPermissionsWithoutEveryone = newChannelPermissions.filter(
       (permission) => permission.id !== guild.roles.everyone.id,
     );
 
-    /** @type {import('discord.js').PermissionOverwrites[]} */
-    const oldChannelPermissionsArray = [...oldChannelPermissions.values()];
+    const oldChannelPermissionsArray = [
+      ...oldChannelPermissionsWithoutEveryone.values(),
+    ];
+    const newChannelPermissionsArray = [
+      ...newChannelPermissionsWithoutEveryone.values(),
+    ];
 
-    /** @type {import('discord.js').PermissionOverwrites[]} */
-    const newChannelPermissionsArray = [...newChannelPermissions.values()];
-
-    const grantedPermission = newChannelPermissionsArray.filter(
-      (permission) => !oldChannelPermissionsArray.includes(permission),
+    const attachedPermission = newChannelPermissionsArray.filter(
+      (permissions) => !oldChannelPermissionsArray.includes(permissions),
     )[newChannelPermissionsArray.length - 1];
 
-    const deniedPermission = oldChannelPermissionsArray.filter(
+    const detachedPermission = oldChannelPermissionsArray.filter(
       (permissions) => !newChannelPermissionsArray.includes(permissions),
-    )[0];
+    )[oldChannelPermissionsArray.length - 1];
 
-    if (oldChannelPermissions.size !== newChannelPermissions.size) {
+    if (
+      oldChannelPermissionsWithoutEveryone.size !==
+      newChannelPermissionsWithoutEveryone.size
+    ) {
+      const permissionCreateLog = await guild
+        .fetchAuditLogs({
+          limit: 1,
+          type: AuditLogEvent.ChannelOverwriteCreate,
+        })
+        .then((audit) => audit.entries.first());
+
+      const permissionDeleteLog = await guild
+        .fetchAuditLogs({
+          limit: 1,
+          type: AuditLogEvent.ChannelOverwriteDelete,
+        })
+        .then((audit) => audit.entries.first());
+
       embed.setDescription(
         `${newChannel} permissions was ${bold(
-          oldChannelPermissions.size < newChannelPermissions.size
-            ? 'granted'
-            : 'denied',
+          oldChannelPermissionsWithoutEveryone.size <
+            newChannelPermissionsWithoutEveryone.size
+            ? 'attached'
+            : 'detached',
         )} for ${
-          oldChannelPermissions.size < newChannelPermissions.size
-            ? grantedPermission.type === OverwriteType.Role
-              ? roleMention(grantedPermission.id)
-              : userMention(grantedPermission.id)
-            : deniedPermission.type === OverwriteType.Role
-            ? roleMention(deniedPermission.id)
-            : userMention(deniedPermission.id)
-        } by ${editLog.executor}.`,
+          oldChannelPermissionsWithoutEveryone.size <
+          newChannelPermissionsWithoutEveryone.size
+            ? attachedPermission.type === OverwriteType.Role
+              ? roleMention(attachedPermission.id)
+              : userMention(attachedPermission.id)
+            : detachedPermission.type === OverwriteType.Role
+            ? roleMention(detachedPermission.id)
+            : userMention(detachedPermission.id)
+        } by ${
+          oldChannelPermissionsWithoutEveryone.size <
+          newChannelPermissionsWithoutEveryone.size
+            ? permissionCreateLog.executor
+            : permissionDeleteLog.executor
+        }.`,
       );
       embed.setFields([
         {
           name: `🕒 ${
-            oldChannelPermissions.size < newChannelPermissions.size
-              ? 'Granted'
-              : 'Denied'
+            oldChannelPermissionsWithoutEveryone.size <
+            newChannelPermissionsWithoutEveryone.size
+              ? 'Attached'
+              : 'Detached'
           } At`,
           value: time(
             Math.floor(Date.now() / 1000),
@@ -263,31 +292,268 @@ module.exports = {
           value: editLog.reason ?? 'No reason',
         },
       ]);
-      embed.spliceFields(0, 0, {
-        name: `${
-          oldChannelPermissions.size < newChannelPermissions.size
-            ? '🟢 Granted'
-            : '🚫 Denied'
-        } Permissions`,
-        value:
-          oldChannelPermissions.size < newChannelPermissions.size
-            ? grantedPermission.allow.bitfield !== BigInt(0)
-              ? grantedPermission.allow
+
+      return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+    }
+
+    const permissionUpdateLog = await guild
+      .fetchAuditLogs({
+        limit: 1,
+        type: AuditLogEvent.ChannelOverwriteUpdate,
+      })
+      .then((audit) => audit.entries.first());
+
+    const oldGrantedPermissions = oldChannelPermissions.filter((oldPerm) =>
+      newChannelPermissions.some(
+        (newPerm) => oldPerm.allow.bitfield !== newPerm.allow.bitfield,
+      ),
+    );
+
+    const newGrantedPermissions = newChannelPermissions.filter((oldPerm) =>
+      oldChannelPermissions.some(
+        (newPerm) => oldPerm.allow.bitfield !== newPerm.allow.bitfield,
+      ),
+    );
+
+    if (
+      oldGrantedPermissions.reduce(
+        (acc, curr) => acc + Number(curr.allow),
+        0,
+      ) !==
+      newGrantedPermissions.reduce((acc, curr) => acc + Number(curr.allow), 0)
+    ) {
+      const newGrantedPermission =
+        newGrantedPermissions.size > 1
+          ? newGrantedPermissions.find(
+              (perm) => perm.id === permissionUpdateLog.extra.id,
+            )
+          : newGrantedPermissions.first();
+
+      const oldGrantedPermission =
+        oldGrantedPermissions.size > 1
+          ? oldGrantedPermissions.find(
+              (perm) => perm.id === permissionUpdateLog.extra.id,
+            )
+          : oldGrantedPermissions.first();
+
+      embed.setDescription(
+        `${newChannel} permissions was ${bold(
+          newGrantedPermission.allow
+            .toArray()
+            .filter(
+              (permission) =>
+                !oldGrantedPermission.allow.toArray().includes(permission),
+            ).length
+            ? 'granted'
+            : 'resetted',
+        )} for ${
+          newGrantedPermission.type === OverwriteType.Role
+            ? newGrantedPermission.id === guild.roles.everyone.id
+              ? guild.roles.everyone
+              : roleMention(newGrantedPermission.id)
+            : userMention(newGrantedPermission.id)
+        } by ${permissionUpdateLog.executor}.`,
+      );
+      embed.setFields([
+        {
+          name: '🕒 Previous Permissions',
+          value:
+            oldGrantedPermission.allow
+              .toArray()
+              .map((permission) =>
+                inlineCode(applySpacesBetweenPascalCase(permission)),
+              )
+              .join(', ') || italic('None'),
+        },
+        {
+          name: `${
+            newGrantedPermission.allow
+              .toArray()
+              .filter(
+                (permission) =>
+                  !oldGrantedPermission.allow.toArray().includes(permission),
+              ).length
+              ? '🟢 Granted'
+              : '⚫ Resetted'
+          } Permissions`,
+          value: oldGrantedPermissions.size
+            ? newGrantedPermission.allow
+                .toArray()
+                .filter(
+                  (permission) =>
+                    !oldGrantedPermission.allow.toArray().includes(permission),
+                ).length
+              ? newGrantedPermission.allow
                   .toArray()
+                  .filter(
+                    (permission) =>
+                      !oldGrantedPermission.allow
+                        .toArray()
+                        .includes(permission),
+                  )
                   .map((permission) =>
                     inlineCode(applySpacesBetweenPascalCase(permission)),
                   )
                   .join(', ')
-              : italic('None')
-            : deniedPermission.deny.bitfield !== BigInt(0)
-            ? deniedPermission.deny
+              : newGrantedPermission.allow
+                  .missing(oldGrantedPermission.allow.bitfield)
+                  .map((permission) =>
+                    inlineCode(applySpacesBetweenPascalCase(permission)),
+                  )
+                  .join(', ')
+            : newGrantedPermission.allow
                 .toArray()
                 .map((permission) =>
                   inlineCode(applySpacesBetweenPascalCase(permission)),
                 )
-                .join(', ')
-            : italic('None'),
-      });
+                .join(', '),
+        },
+        {
+          name: `🕒 ${
+            newGrantedPermission.allow
+              .toArray()
+              .filter(
+                (permission) =>
+                  !oldGrantedPermission.allow.toArray().includes(permission),
+              ).length
+              ? 'Granted'
+              : 'Resetted'
+          } At`,
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
+        {
+          name: '📄 Reason',
+          value: permissionUpdateLog.reason ?? 'No reason',
+        },
+      ]);
+
+      return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+    }
+
+    const oldDeniedPermissions = oldChannelPermissions.filter((oldPerm) =>
+      newChannelPermissions.some(
+        (newPerm) => oldPerm.deny.bitfield !== newPerm.deny.bitfield,
+      ),
+    );
+
+    const newDeniedPermissions = newChannelPermissions.filter((oldPerm) =>
+      oldChannelPermissions.some(
+        (newPerm) => oldPerm.deny.bitfield !== newPerm.deny.bitfield,
+      ),
+    );
+
+    if (
+      oldDeniedPermissions.reduce((acc, curr) => acc + Number(curr.deny), 0) !==
+      newDeniedPermissions.reduce((acc, curr) => acc + Number(curr.deny), 0)
+    ) {
+      const newDeniedPermission =
+        newDeniedPermissions.size > 1
+          ? newDeniedPermissions.find(
+              (perm) => perm.id === permissionUpdateLog.extra.id,
+            )
+          : newDeniedPermissions.first();
+
+      const oldDeniedPermission =
+        oldDeniedPermissions.size > 1
+          ? oldDeniedPermissions.find(
+              (perm) => perm.id === permissionUpdateLog.extra.id,
+            )
+          : oldDeniedPermissions.first();
+
+      embed.setDescription(
+        `${newChannel} permissions was ${bold(
+          newDeniedPermission.deny
+            .toArray()
+            .filter(
+              (permission) =>
+                !oldDeniedPermission.deny.toArray().includes(permission),
+            ).length
+            ? 'denied'
+            : 'resetted',
+        )} for ${
+          newDeniedPermission.type === OverwriteType.Role
+            ? newDeniedPermission.id === guild.roles.everyone.id
+              ? guild.roles.everyone
+              : roleMention(newDeniedPermission.id)
+            : userMention(newDeniedPermission.id)
+        } by ${permissionUpdateLog.executor}.`,
+      );
+      embed.setFields([
+        {
+          name: '🕒 Previous Permissions',
+          value:
+            oldDeniedPermission.deny
+              .toArray()
+              .map((permission) =>
+                inlineCode(applySpacesBetweenPascalCase(permission)),
+              )
+              .join(', ') || italic('None'),
+        },
+        {
+          name: `${
+            newDeniedPermission.deny
+              .toArray()
+              .filter(
+                (permission) =>
+                  !oldDeniedPermission.deny.toArray().includes(permission),
+              ).length
+              ? '🚫 Denied'
+              : '⚫ Resetted'
+          } Permissions`,
+          value: oldDeniedPermissions.size
+            ? newDeniedPermission.deny
+                .toArray()
+                .filter(
+                  (permission) =>
+                    !oldDeniedPermission.deny.toArray().includes(permission),
+                ).length
+              ? newDeniedPermission.deny
+                  .toArray()
+                  .filter(
+                    (permission) =>
+                      !oldDeniedPermission.deny.toArray().includes(permission),
+                  )
+                  .map((permission) =>
+                    inlineCode(applySpacesBetweenPascalCase(permission)),
+                  )
+                  .join(', ')
+              : newDeniedPermission.deny
+                  .missing(oldDeniedPermission.deny.bitfield)
+                  .map((permission) =>
+                    inlineCode(applySpacesBetweenPascalCase(permission)),
+                  )
+                  .join(', ')
+            : newDeniedPermission.deny
+                .toArray()
+                .map((permission) =>
+                  inlineCode(applySpacesBetweenPascalCase(permission)),
+                )
+                .join(', '),
+        },
+        {
+          name: `🕒 ${
+            newDeniedPermission.deny
+              .toArray()
+              .filter(
+                (permission) =>
+                  !oldDeniedPermission.deny.toArray().includes(permission),
+              ).length
+              ? 'Denied'
+              : 'Resetted'
+          } At`,
+          value: time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          ),
+        },
+        {
+          name: '📄 Reason',
+          value: permissionUpdateLog.reason ?? 'No reason',
+        },
+      ]);
 
       return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
     }
