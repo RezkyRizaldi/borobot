@@ -1,5 +1,7 @@
 const {
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   ChannelType,
   EmbedBuilder,
   formatEmoji,
@@ -217,6 +219,9 @@ module.exports = {
    */
   async execute(interaction) {
     const { client, guild, options } = interaction;
+
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
 
     const nsfw = options.getBoolean('nsfw');
     const name = options.getString('name');
@@ -1326,6 +1331,17 @@ module.exports = {
                   iconURL: guild.iconURL({ dynamic: true }),
                 });
               }
+
+              pagination.buttons = {
+                ...pagination.buttons,
+                extra: new ButtonBuilder()
+                  .setCustomId('jump')
+                  .setEmoji('🔍')
+                  .setDisabled(false)
+                  .setStyle(ButtonStyle.Primary),
+              };
+
+              paginations.set(pagination.interaction.id, pagination);
 
               pagination.setDescriptions(descriptions);
 

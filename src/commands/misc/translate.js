@@ -1,5 +1,11 @@
 const translate = require('@vitalets/google-translate-api');
-const { bold, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const {
+  bold,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+  SlashCommandBuilder,
+} = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 
@@ -46,6 +52,9 @@ module.exports = {
   async execute(interaction) {
     const { client, guild, options } = interaction;
 
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
+
     const embed = new EmbedBuilder()
       .setColor(guild.members.me.displayHexColor)
       .setTimestamp(Date.now())
@@ -89,6 +98,17 @@ module.exports = {
             name: `🌐 Translation Locale Lists (${locales.length})`,
           });
           pagination.setDescriptions(responses);
+
+          pagination.buttons = {
+            ...pagination.buttons,
+            extra: new ButtonBuilder()
+              .setCustomId('jump')
+              .setEmoji('🔍')
+              .setDisabled(false)
+              .setStyle(ButtonStyle.Primary),
+          };
+
+          paginations.set(pagination.interaction.id, pagination);
 
           await pagination.render();
         });

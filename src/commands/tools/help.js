@@ -1,6 +1,8 @@
 const {
   ApplicationCommandOptionType,
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   EmbedBuilder,
   inlineCode,
   SlashCommandBuilder,
@@ -26,8 +28,8 @@ module.exports = {
     /** @type {{ client: import('discord.js').Client, guild: import('discord.js').Guild, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
     const { client, guild, options } = interaction;
 
-    /** @type {{ commandArray: { name: String, description: String|undefined, type: Number|undefined, options: import('discord.js').ApplicationCommandChoicesOption[] }[] }} */
-    const { commandArray: commands } = client;
+    /** @type {{ commandArray: { name: String, description: String|undefined, type: Number|undefined, options: import('discord.js').ApplicationCommandChoicesOption[] }[], paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { commandArray: commands, paginations } = client;
 
     const command = options.getString('command');
 
@@ -71,6 +73,17 @@ module.exports = {
           })),
         );
         pagination.paginateFields();
+
+        pagination.buttons = {
+          ...pagination.buttons,
+          extra: new ButtonBuilder()
+            .setCustomId('jump')
+            .setEmoji('🔍')
+            .setDisabled(false)
+            .setStyle(ButtonStyle.Primary),
+        };
+
+        paginations.set(pagination.interaction.id, pagination);
 
         return pagination.render();
       }

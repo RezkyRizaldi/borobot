@@ -1,6 +1,8 @@
 const {
-  EmbedBuilder,
   bold,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
   inlineCode,
   PermissionFlagsBits,
   SlashCommandBuilder,
@@ -68,6 +70,9 @@ module.exports = {
    */
   async execute(interaction) {
     const { client, guild, options, user } = interaction;
+
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
@@ -200,6 +205,17 @@ module.exports = {
               name: `🚫 Timed Out Member Lists (${timedoutMembers.size})`,
             });
             pagination.setDescriptions(descriptions);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('🔍')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Primary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
 
             return pagination.render();
           }

@@ -1,6 +1,8 @@
 /* global BigInt */
 const {
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   Colors,
   EmbedBuilder,
   inlineCode,
@@ -341,6 +343,9 @@ module.exports = {
    */
   async execute(interaction) {
     const { client, guild, options } = interaction;
+
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
@@ -851,6 +856,17 @@ module.exports = {
                 }
 
                 pagination.setDescriptions(descriptions);
+
+                pagination.buttons = {
+                  ...pagination.buttons,
+                  extra: new ButtonBuilder()
+                    .setCustomId('jump')
+                    .setEmoji('🔍')
+                    .setDisabled(false)
+                    .setStyle(ButtonStyle.Primary),
+                };
+
+                paginations.set(pagination.interaction.id, pagination);
 
                 return pagination.render();
               }

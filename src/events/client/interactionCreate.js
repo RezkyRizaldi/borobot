@@ -105,22 +105,19 @@ module.exports = {
           });
         }
 
-        await modal
-          .execute(interaction)
-          .then(() => interaction.reply({ content: 'success' }))
-          .catch(async (err) => {
-            console.error(err);
+        await modal.execute(interaction).catch(async (err) => {
+          console.error(err);
 
-            if (interaction.replied || interaction.deferred) {
-              return interaction.editReply({
-                content: 'There was an error while executing this command!',
-              });
-            }
-
-            await interaction.reply({
+          if (interaction.replied || interaction.deferred) {
+            return interaction.editReply({
               content: 'There was an error while executing this command!',
             });
+          }
+
+          await interaction.reply({
+            content: 'There was an error while executing this command!',
           });
+        });
       },
     }[interaction.type]();
   },

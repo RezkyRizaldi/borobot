@@ -28,7 +28,7 @@ const {
 const { Channel, GuildMember, Message, Reaction, ThreadMember, User } =
   Partials;
 
-/** @type {{ commands: import('discord.js').Collection, components: import('discord.js').Collection, distube: import('distube').DisTube, discordTogether: import('discord-together').DiscordTogether<{[x: string]: string}>, handleEvents(): Promise<void>, handleComponents(): Promise<void>, handleCommands(): Promise<void> }} */
+/** @type {{ commands: import('discord.js').Collection, components: import('discord.js').Collection, paginations: import('discord.js').Collection, distube: import('distube').DisTube, discordTogether: import('discord-together').DiscordTogether<{[x: string]: string}>, handleEvents(): Promise<void>, handleComponents(): Promise<void>, handleCommands(): Promise<void> }} */
 
 const client = new Client({
   intents: [
@@ -48,6 +48,7 @@ const client = new Client({
 
 client.commands = new Collection();
 client.components = new Collection();
+client.paginations = new Collection();
 client.commandArray = [];
 
 client.distube = new DisTube(client, {

@@ -1,5 +1,7 @@
 const {
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   EmbedBuilder,
   inlineCode,
   PermissionFlagsBits,
@@ -207,6 +209,9 @@ module.exports = {
       member,
       options,
     } = interaction;
+
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
 
     /** @type {{ distube: import('distube').DisTube }} */
     const { distube } = client;
@@ -929,6 +934,17 @@ module.exports = {
                         name: `🔃 Music Queue (${queue.songs.length})`,
                       });
                       pagination.setDescriptions(descriptions);
+
+                      pagination.buttons = {
+                        ...pagination.buttons,
+                        extra: new ButtonBuilder()
+                          .setCustomId('jump')
+                          .setEmoji('🔍')
+                          .setDisabled(false)
+                          .setStyle(ButtonStyle.Primary),
+                      };
+
+                      paginations.set(pagination.interaction.id, pagination);
 
                       await pagination.render();
                     });
