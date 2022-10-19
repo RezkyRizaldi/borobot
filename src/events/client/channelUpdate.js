@@ -1,3 +1,4 @@
+const { capitalCase } = require('change-case');
 const {
   AuditLogEvent,
   bold,
@@ -15,7 +16,6 @@ const {
 const pluralize = require('pluralize');
 
 const { channelType } = require('../../constants');
-const { applySpacesBetweenPascalCase } = require('../../utils');
 
 module.exports = {
   name: Events.ChannelUpdate,
@@ -360,9 +360,7 @@ module.exports = {
           value:
             oldGrantedPermission.allow
               .toArray()
-              .map((permission) =>
-                inlineCode(applySpacesBetweenPascalCase(permission)),
-              )
+              .map((permission) => inlineCode(capitalCase(permission)))
               .join(', ') || italic('None'),
         },
         {
@@ -391,21 +389,15 @@ module.exports = {
                         .toArray()
                         .includes(permission),
                   )
-                  .map((permission) =>
-                    inlineCode(applySpacesBetweenPascalCase(permission)),
-                  )
+                  .map((permission) => inlineCode(capitalCase(permission)))
                   .join(', ')
               : newGrantedPermission.allow
                   .missing(oldGrantedPermission.allow.bitfield)
-                  .map((permission) =>
-                    inlineCode(applySpacesBetweenPascalCase(permission)),
-                  )
+                  .map((permission) => inlineCode(capitalCase(permission)))
                   .join(', ')
             : newGrantedPermission.allow
                 .toArray()
-                .map((permission) =>
-                  inlineCode(applySpacesBetweenPascalCase(permission)),
-                )
+                .map((permission) => inlineCode(capitalCase(permission)))
                 .join(', '),
         },
         {
@@ -487,9 +479,7 @@ module.exports = {
           value:
             oldDeniedPermission.deny
               .toArray()
-              .map((permission) =>
-                inlineCode(applySpacesBetweenPascalCase(permission)),
-              )
+              .map((permission) => inlineCode(capitalCase(permission)))
               .join(', ') || italic('None'),
         },
         {
@@ -516,21 +506,15 @@ module.exports = {
                     (permission) =>
                       !oldDeniedPermission.deny.toArray().includes(permission),
                   )
-                  .map((permission) =>
-                    inlineCode(applySpacesBetweenPascalCase(permission)),
-                  )
+                  .map((permission) => inlineCode(capitalCase(permission)))
                   .join(', ')
               : newDeniedPermission.deny
                   .missing(oldDeniedPermission.deny.bitfield)
-                  .map((permission) =>
-                    inlineCode(applySpacesBetweenPascalCase(permission)),
-                  )
+                  .map((permission) => inlineCode(capitalCase(permission)))
                   .join(', ')
             : newDeniedPermission.deny
                 .toArray()
-                .map((permission) =>
-                  inlineCode(applySpacesBetweenPascalCase(permission)),
-                )
+                .map((permission) => inlineCode(capitalCase(permission)))
                 .join(', '),
         },
         {

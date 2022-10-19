@@ -146,7 +146,7 @@ module.exports = {
       embed.setDescription(truncate(response, 4096));
 
       const secondEmbed = new EmbedBuilder().setDescription(
-        truncate(response, response.length, 4096),
+        truncate(response.slice(4096, response.length), 4096),
       );
 
       return MessageLogger.send({ embeds: [embed, secondEmbed] }).catch(

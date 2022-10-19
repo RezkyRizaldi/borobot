@@ -1,3 +1,4 @@
+const { capitalCase } = require('change-case');
 const {
   ChannelType,
   EmbedBuilder,
@@ -9,16 +10,15 @@ const {
   TimestampStyles,
   userMention,
 } = require('discord.js');
+const moment = require('moment');
 const pluralize = require('pluralize');
 
 const {
-  applyAFKTimeout,
   applyDefaultMessageNotifications,
   applyExplicitContentFilter,
   applyMFALevel,
   applyNSFWLevel,
   applyTier,
-  applyTitleCase,
   applyVerificationLevel,
   getPreferredLocale,
 } = require('../../utils');
@@ -116,8 +116,10 @@ module.exports = {
         {
           name: `👥 Members${
             guild.memberCount > 0
-              ? ` (${guild.memberCount}${
-                  guild.maximumMembers ? `/${guild.maximumMembers}` : ''
+              ? ` (${guild.memberCount.toLocaleString()}${
+                  guild.maximumMembers
+                    ? `/${guild.maximumMembers.toLocaleString()}`
+                    : ''
                 })`
               : ''
           }`,
@@ -240,7 +242,7 @@ module.exports = {
           }\nAFK Channel: ${
             guild.afkChannel
               ? `${guild.afkChannel} with ${inlineCode(
-                  applyAFKTimeout(guild.afkTimeout),
+                  moment.duration(guild.afkTimeout, 's').humanize(),
                 )} inactivity timeout`
               : italic('None')
           }\nWidget Channel: ${guild.widgetChannel ?? italic('None')}`,
@@ -248,11 +250,7 @@ module.exports = {
         {
           name: '🔮 Features',
           value: guild.features.length
-            ? guild.features
-                .map((feature) =>
-                  applyTitleCase(feature.replace(/_/g, ' ').toLowerCase()),
-                )
-                .join(', ')
+            ? guild.features.map((feature) => capitalCase(feature)).join(', ')
             : italic('None'),
         },
       ]);

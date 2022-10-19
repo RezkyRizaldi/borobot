@@ -1,4 +1,5 @@
 /* global BigInt */
+const { capitalCase } = require('change-case');
 const {
   AuditLogEvent,
   bold,
@@ -10,8 +11,6 @@ const {
   TimestampStyles,
   WebhookClient,
 } = require('discord.js');
-
-const { applySpacesBetweenPascalCase } = require('../../utils');
 
 module.exports = {
   name: Events.GuildRoleUpdate,
@@ -194,9 +193,7 @@ module.exports = {
           name: '🕒 Previous Permissions',
           value:
             oldRolePermissions
-              .map((permission) =>
-                inlineCode(applySpacesBetweenPascalCase(permission)),
-              )
+              .map((permission) => inlineCode(capitalCase(permission)))
               .join(', ') || italic('None'),
         },
         {
@@ -223,17 +220,13 @@ module.exports = {
                 .filter(
                   (permission) => !oldRolePermissions.includes(permission),
                 )
-                .map((permission) =>
-                  inlineCode(applySpacesBetweenPascalCase(permission)),
-                )
+                .map((permission) => inlineCode(capitalCase(permission)))
                 .join(', ')
             : oldRolePermissions
                 .filter(
                   (permission) => !newRolePermissions.includes(permission),
                 )
-                .map((permission) =>
-                  inlineCode(applySpacesBetweenPascalCase(permission)),
-                )
+                .map((permission) => inlineCode(capitalCase(permission)))
                 .join(', '),
       });
 

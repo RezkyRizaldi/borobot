@@ -1,3 +1,4 @@
+const { capitalCase } = require('change-case');
 const {
   bold,
   ButtonBuilder,
@@ -16,15 +17,12 @@ const {
   userMention,
   VideoQualityMode,
 } = require('discord.js');
+const ordinal = require('ordinal');
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
 
 const { channelCreateChoices, channelType } = require('../../constants');
-const {
-  applyOrdinal,
-  applySpacesBetweenPascalCase,
-  applyThreadAutoArchiveDuration,
-} = require('../../utils');
+const { applyThreadAutoArchiveDuration } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -474,7 +472,7 @@ module.exports = {
                 0,
                 {
                   name: '🔢 Position',
-                  value: `${applyOrdinal(channel.position + 1)}${
+                  value: `${ordinal(channel.position + 1)}${
                     channel.type !== ChannelType.GuildCategory && channel.parent
                       ? ` in ${channel.parent}`
                       : ''
@@ -706,9 +704,7 @@ module.exports = {
                                       .toArray()
                                       .map((allowedPermission) =>
                                         inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            allowedPermission,
-                                          ),
+                                          capitalCase(allowedPermission),
                                         ),
                                       )
                                       .join(', ')}\n`
@@ -719,9 +715,7 @@ module.exports = {
                                       .toArray()
                                       .map((deniedPermission) =>
                                         inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            deniedPermission,
-                                          ),
+                                          capitalCase(deniedPermission),
                                         ),
                                       )
                                       .join(', ')}`
@@ -748,7 +742,7 @@ module.exports = {
                 0,
                 {
                   name: '🔢 Position',
-                  value: `${applyOrdinal(channel.position + 1)}${
+                  value: `${ordinal(channel.position + 1)}${
                     channel.type !== ChannelType.GuildCategory && channel.parent
                       ? ` in ${channel.parent}`
                       : ''
@@ -842,9 +836,7 @@ module.exports = {
                                       .toArray()
                                       .map((allowedPermission) =>
                                         inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            allowedPermission,
-                                          ),
+                                          capitalCase(allowedPermission),
                                         ),
                                       )
                                       .join(', ')}\n`
@@ -855,9 +847,7 @@ module.exports = {
                                       .toArray()
                                       .map((deniedPermission) =>
                                         inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            deniedPermission,
-                                          ),
+                                          capitalCase(deniedPermission),
                                         ),
                                       )
                                       .join(', ')}`
@@ -879,7 +869,7 @@ module.exports = {
                 0,
                 {
                   name: '🔢 Position',
-                  value: `${applyOrdinal(channel.position + 1)}${
+                  value: `${ordinal(channel.position + 1)}${
                     channel.type !== ChannelType.GuildCategory && channel.parent
                       ? ` in ${channel.parent}`
                       : ''
@@ -918,9 +908,7 @@ module.exports = {
                                     .toArray()
                                     .map((allowedPermission) =>
                                       inlineCode(
-                                        applySpacesBetweenPascalCase(
-                                          allowedPermission,
-                                        ),
+                                        capitalCase(allowedPermission),
                                       ),
                                     )
                                     .join(', ')}\n`
@@ -930,11 +918,7 @@ module.exports = {
                                 ? `Denied: ${permission.deny
                                     .toArray()
                                     .map((deniedPermission) =>
-                                      inlineCode(
-                                        applySpacesBetweenPascalCase(
-                                          deniedPermission,
-                                        ),
-                                      ),
+                                      inlineCode(capitalCase(deniedPermission)),
                                     )
                                     .join(', ')}`
                                 : ''
@@ -1038,7 +1022,7 @@ module.exports = {
                 0,
                 {
                   name: '🔢 Position',
-                  value: `${applyOrdinal(channel.position + 1)}${
+                  value: `${ordinal(channel.position + 1)}${
                     channel.type !== ChannelType.GuildCategory && channel.parent
                       ? ` in ${channel.parent}`
                       : ''
@@ -1088,9 +1072,7 @@ module.exports = {
                                       .toArray()
                                       .map((allowedPermission) =>
                                         inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            allowedPermission,
-                                          ),
+                                          capitalCase(allowedPermission),
                                         ),
                                       )
                                       .join(', ')}\n`
@@ -1101,9 +1083,7 @@ module.exports = {
                                       .toArray()
                                       .map((deniedPermission) =>
                                         inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            deniedPermission,
-                                          ),
+                                          capitalCase(deniedPermission),
                                         ),
                                       )
                                       .join(', ')}`
@@ -1137,7 +1117,7 @@ module.exports = {
                 0,
                 {
                   name: '🔢 Position',
-                  value: `${applyOrdinal(channel.position + 1)}${
+                  value: `${ordinal(channel.position + 1)}${
                     channel.type !== ChannelType.GuildCategory && channel.parent
                       ? ` in ${channel.parent}`
                       : ''
@@ -1262,9 +1242,7 @@ module.exports = {
                                       .toArray()
                                       .map((allowedPermission) =>
                                         inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            allowedPermission,
-                                          ),
+                                          capitalCase(allowedPermission),
                                         ),
                                       )
                                       .join(', ')}\n`
@@ -1275,9 +1253,7 @@ module.exports = {
                                       .toArray()
                                       .map((deniedPermission) =>
                                         inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            deniedPermission,
-                                          ),
+                                          capitalCase(deniedPermission),
                                         ),
                                       )
                                       .join(', ')}`

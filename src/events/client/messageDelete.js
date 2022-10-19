@@ -7,8 +7,9 @@ const {
   TimestampStyles,
   WebhookClient,
 } = require('discord.js');
+const truncate = require('truncate');
 
-const { applyMessageType, truncate } = require('../../utils');
+const { applyMessageType } = require('../../utils');
 
 module.exports = {
   name: Events.MessageDelete,
@@ -73,7 +74,7 @@ module.exports = {
       embed.setDescription(truncate(response, 4096));
 
       const secondEmbed = new EmbedBuilder().setDescription(
-        truncate(response, response.length, 4096),
+        truncate(response, 4096 - response.length),
       );
 
       return MessageLogger.send({ embeds: [embed, secondEmbed] }).catch(
