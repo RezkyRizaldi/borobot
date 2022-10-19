@@ -78,9 +78,9 @@ module.exports = {
           ...pagination.buttons,
           extra: new ButtonBuilder()
             .setCustomId('jump')
-            .setEmoji('🔍')
+            .setEmoji('↕️')
             .setDisabled(false)
-            .setStyle(ButtonStyle.Primary),
+            .setStyle(ButtonStyle.Secondary),
         };
 
         paginations.set(pagination.interaction.id, pagination);
