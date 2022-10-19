@@ -59,11 +59,13 @@
     "minecraft-data": "^3.16.0",
     "moment": "^2.29.4",
     "node-url-shortener": "^2.0.3",
+    "ordinal": "^1.0.3",
     "pagination.djs": "^4.0.5",
     "pluralize": "^8.0.0",
     "qrcode": "^1.5.1",
     "string-progressbar": "^1.0.4",
     "tesseract.js": "^3.0.3",
+    "truncate": "^3.0.0",
     "yt-search": "^2.10.3",
     "ytdl-core": "^4.11.2"
   },

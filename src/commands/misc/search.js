@@ -1,6 +1,9 @@
 const axios = require('axios');
+const { capitalCase, paramCase, snakeCase } = require('change-case');
 const {
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   EmbedBuilder,
   hyperlink,
   inlineCode,
@@ -10,10 +13,12 @@ const {
   TimestampStyles,
 } = require('discord.js');
 const Scraper = require('images-scraper').default;
+const minecraftData = require('minecraft-data');
 const moment = require('moment');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
+const truncate = require('truncate');
 
 const {
   animeCharacterSearchOrderChoices,
@@ -28,10 +33,9 @@ const {
   searchSortingChoices,
 } = require('../../constants');
 const {
-  applySluggable,
-  applyTitleCase,
+  getFormattedBlockName,
   getWikiaURL,
-  truncate,
+  getFormattedParam,
 } = require('../../utils');
 
 module.exports = {
@@ -302,6 +306,139 @@ module.exports = {
             .setDescription("🔠 The documentation's preferred locale.")
             .addChoices(...mdnLocales),
         ),
+    )
+    .addSubcommandGroup(
+      (subcommandGroup) =>
+        subcommandGroup
+          .setName('minecraft')
+          .setDescription('ℹ️ Search a Minecraft information.')
+          // .addSubcommand((subcommand) =>
+          //   subcommand
+          //     .setName('attribute')
+          //     .setDescription('📊 Search Minecraft attribute information.')
+          //     .addStringOption((option) =>
+          //       option
+          //         .setName('name')
+          //         .setDescription(
+          //           '🔠 The Minecraft attribute name search query.',
+          //         ),
+          //     ),
+          // )
+          .addSubcommand((subcommand) =>
+            subcommand
+              .setName('block')
+              .setDescription('🟫 Search Minecraft block information.')
+              .addStringOption((option) =>
+                option
+                  .setName('name')
+                  .setDescription('🔠 The Minecraft block name search query.'),
+              ),
+          ),
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('biome')
+      //     .setDescription('🌄 Search Minecraft biome information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft biome name search query.'),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('effect')
+      //     .setDescription('💫 Search Minecraft effect information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft effect name search query.'),
+      //     ),
+      // )
+      // TODO: WIP
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('enchantment')
+      //     .setDescription('🪧 Search Minecraft enchantment information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription(
+      //           '🔠 The Minecraft enchantment name search query.',
+      //         ),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('entity')
+      //     .setDescription('🔣 Search Minecraft entity information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft entity name search query.'),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('food')
+      //     .setDescription('🍎 Search Minecraft food information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft food name search query.'),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('instrument')
+      //     .setDescription('🎹 Search Minecraft instrument information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription(
+      //           '🔠 The Minecraft instrument name search query.',
+      //         ),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('item')
+      //     .setDescription('🎒 Search Minecraft item information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft item name search query.'),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('material')
+      //     .setDescription('⛏️ Search Minecraft material information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft material name search query.'),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('particle')
+      //     .setDescription('✨ Search Minecraft particle information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft particle name search query.'),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('recipe')
+      //     .setDescription('🍴 Search Minecraft recipe information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft recipe name search query.'),
+      //     ),
+      // ),
     ),
   type: 'Chat Input',
 
@@ -311,6 +448,9 @@ module.exports = {
    */
   async execute(interaction) {
     const { channel, client, guild, options } = interaction;
+
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
 
     const NSFWChannels = guild.channels.cache
       .filter((ch) => ch.nsfw)
@@ -794,7 +934,15 @@ module.exports = {
                         {
                           name: '💫 Synopsis',
                           value: item.synopsis
-                            ? truncate(item.synopsis, 1024)
+                            ? item.synopsis.includes('[Written by MAL Rewrite]')
+                              ? truncate(
+                                  item.synopsis.replace(
+                                    '[Written by MAL Rewrite]',
+                                    '',
+                                  ),
+                                  1024 - 3,
+                                )
+                              : truncate(item.synopsis, 1024 - 3)
                             : italic('No available'),
                         },
                         {
@@ -948,7 +1096,7 @@ module.exports = {
                     .then(async ({ data }) => {
                       const responses = data.map(
                         (item, index) =>
-                          `${bold(`${index + 1}.`)} ${applyTitleCase(
+                          `${bold(`${index + 1}.`)} ${capitalCase(
                             item.replace(/-/g, ' '),
                           )}`,
                       );
@@ -977,7 +1125,7 @@ module.exports = {
             }
 
             return axios
-              .get(`${baseURL}/artifacts/${applySluggable(name)}`)
+              .get(`${baseURL}/artifacts/${paramCase(name)}`)
               .then(async ({ data }) => {
                 embed.setThumbnail(
                   `${baseImageURL}6/6a/Icon_Inventory_Artifacts.png`,
@@ -1075,7 +1223,7 @@ module.exports = {
                     .then(async ({ data }) => {
                       const responses = data.map(
                         (item, index) =>
-                          `${bold(`${index + 1}.`)} ${applyTitleCase(
+                          `${bold(`${index + 1}.`)} ${capitalCase(
                             item.replace(/-/g, ' '),
                           )}`,
                       );
@@ -1104,33 +1252,7 @@ module.exports = {
             }
 
             return axios
-              .get(
-                `${baseURL}/characters/${
-                  name.toLowerCase().includes('itto')
-                    ? 'arataki-itto'
-                    : name.toLowerCase() === 'hutao'
-                    ? 'hu-tao'
-                    : name.toLowerCase().includes('kazuha')
-                    ? 'kazuha'
-                    : name.toLowerCase().includes('kokomi')
-                    ? 'kokomi'
-                    : name.toLowerCase().includes('shinobu')
-                    ? 'kuki-shinobu'
-                    : name.toLowerCase().includes('raiden')
-                    ? 'raiden'
-                    : name.toLowerCase().includes('sara')
-                    ? 'sara'
-                    : name.toLowerCase().includes('heizou')
-                    ? 'shikanoin-heizou'
-                    : name.toLowerCase() === 'childe'
-                    ? 'tartaglia'
-                    : name.toLowerCase().includes('miko')
-                    ? 'yae-miko'
-                    : name.toLowerCase() === 'yunjin'
-                    ? 'yun-jin'
-                    : applySluggable(name)
-                }`,
-              )
+              .get(`${baseURL}/characters/${getFormattedParam(name)}`)
               .then(async ({ data }) => {
                 embed.setThumbnail(
                   getWikiaURL(`Character_${data.name}_Thumb.png`, baseImageURL),
@@ -1373,7 +1495,7 @@ module.exports = {
                     .then(async ({ data }) => {
                       const responses = data.map(
                         (item, index) =>
-                          `${bold(`${index + 1}.`)} ${applyTitleCase(
+                          `${bold(`${index + 1}.`)} ${capitalCase(
                             item.replace(/-/g, ' '),
                           )}`,
                       );
@@ -1402,7 +1524,7 @@ module.exports = {
             }
 
             return axios
-              .get(`${baseURL}/weapons/${applySluggable(name)}`)
+              .get(`${baseURL}/weapons/${paramCase(name)}`)
               .then(async ({ data }) => {
                 embed.setThumbnail(
                   getWikiaURL(`Weapon_${data.name}.png`, baseImageURL),
@@ -1471,6 +1593,118 @@ module.exports = {
         }
         break;
       }
+
+      case 'minecraft':
+        {
+          const mcData = minecraftData('1.19');
+          const baseImageURL =
+            'https://static.wikia.nocookie.net/minecraft_gamepedia/images/';
+
+          switch (options.getSubcommand()) {
+            case 'block': {
+              const name = options.getString('name');
+
+              if (!name) {
+                return interaction.deferReply().then(async () => {
+                  const responses = mcData.blocksArray.map(
+                    (item, index) =>
+                      `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: `Minecraft ${
+                      mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
+                    } Edition v${
+                      mcData.version.minecraftVersion
+                    } Block Lists (${mcData.blocksArray.length})`,
+                    iconURL: `${baseImageURL}9/93/Grass_Block_JE7_BE6.png`,
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('🔍')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Primary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
+              }
+
+              const block =
+                mcData.blocksByName[getFormattedBlockName(snakeCase(name))];
+
+              console.log(mcData.blocksArray);
+
+              embed.setThumbnail(
+                getWikiaURL(
+                  `${block.displayName}.png`,
+                  baseImageURL,
+                  mcData.version.type,
+                ),
+              );
+              embed.setAuthor({
+                name: `🟫 ${block.displayName}`,
+              });
+              embed.setFields([
+                {
+                  name: '🔣 Bounding Box',
+                  value: capitalCase(block.boundingBox),
+                  inline: true,
+                },
+                {
+                  name: '⛏️ Diggable',
+                  value: block.diggable ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '💪 Hardness',
+                  value: `${block.hardness}`,
+                  inline: true,
+                },
+                {
+                  name: '🛡️ Resistance',
+                  value: `${block.resistance}`,
+                  inline: true,
+                },
+                {
+                  name: '📦 Stack size',
+                  value: `${block.stackSize}/stack`,
+                  inline: true,
+                },
+                {
+                  name: '🥃 Transparent',
+                  value: block.transparent ? 'Yes' : 'No',
+                  inline: true,
+                },
+              ]);
+
+              await interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            }
+          }
+        }
+        break;
     }
 
     switch (options.getSubcommand()) {
@@ -1672,7 +1906,15 @@ module.exports = {
                     {
                       name: '💫 Synopsis',
                       value: item.synopsis
-                        ? truncate(item.synopsis, 1024)
+                        ? item.synopsis.includes('[Written by MAL Rewrite]')
+                          ? truncate(
+                              item.synopsis.replace(
+                                '[Written by MAL Rewrite]',
+                                '',
+                              ),
+                              1024 - 3,
+                            )
+                          : truncate(item.synopsis, 1024 - 3)
                         : italic('No available'),
                     },
                   ]);
@@ -1771,21 +2013,20 @@ module.exports = {
             )}`;
 
             embed.setAuthor({
-              name: `🔠 ${word}`,
+              name: `🔠 ${capitalCase(word)}`,
               url: permalink,
             });
             embed.setFields([
               {
                 name: '🔤 Definition',
-                value: truncate(
-                  `${definition}${formattedCite}`,
-                  1024,
-                  formattedCite.length + 3,
-                ),
+                value: `${truncate(
+                  definition,
+                  1024 - formattedCite.length - 3,
+                )}${formattedCite}`,
               },
               {
                 name: '🔤 Example',
-                value: truncate(example, 1024),
+                value: truncate(example, 1024 - 3),
               },
               {
                 name: '⭐ Rating',
@@ -1976,7 +2217,7 @@ module.exports = {
       //                         .map((tag) =>
       //                           hyperlink(
       //                             tag,
-      //                             `https://top.gg/tag/${applySluggable(tag)}`,
+      //                             `https://top.gg/tag/${paramCase(tag)}`,
       //                           ),
       //                         )
       //                         .join(', ')
