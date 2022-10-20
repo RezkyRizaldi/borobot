@@ -1,5 +1,7 @@
 const {
   ApplicationCommandOptionType,
+  ApplicationCommandType,
+  chatInputApplicationCommandMention,
   bold,
   ButtonBuilder,
   ButtonStyle,
@@ -28,25 +30,25 @@ module.exports = {
     /** @type {{ client: import('discord.js').Client, guild: import('discord.js').Guild, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
     const { client, guild, options } = interaction;
 
-    /** @type {{ commandArray: { name: String, description: String|undefined, type: Number|undefined, options: import('discord.js').ApplicationCommandChoicesOption[] }[], paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
-    const { commandArray: commands, paginations } = client;
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
 
     const command = options.getString('command');
 
-    const cmds = commands
-      .filter(({ name }) => name !== 'help')
-      .map(({ name, description, type, options: opts }) => ({
-        name,
-        description:
-          name === 'Avatar'
-            ? "🖼️ Get the member's avatar."
-            : name === 'User Info'
-            ? 'ℹ️ Get information about a member.'
-            : description,
-        type,
-        options: opts,
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
+    const commands = await guild.commands.fetch().then((cmds) =>
+      cmds
+        .filter((cmd) => cmd.name !== 'help')
+        .mapValues((cmd) => ({
+          ...cmd,
+          description:
+            cmd.name === 'Avatar'
+              ? "🖼️ Get the member's avatar."
+              : cmd.name === 'User Info'
+              ? 'ℹ️ Get information about a member.'
+              : cmd.description,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    );
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
       if (!command) {
@@ -63,13 +65,16 @@ module.exports = {
           }),
         });
         pagination.setAuthor({
-          name: `${client.user.username} Commands (${cmds.length})`,
+          name: `${client.user.username} Commands (${commands.size})`,
           iconURL: client.user.displayAvatarURL({ dynamic: true }),
         });
         pagination.setFields(
-          cmds.map((option) => ({
-            name: option.type !== undefined ? option.name : `/${option.name}`,
-            value: option.description,
+          commands.map((cmd) => ({
+            name:
+              cmd.type !== ApplicationCommandType.ChatInput
+                ? cmd.name
+                : chatInputApplicationCommandMention(cmd.name, cmd.id),
+            value: cmd.description,
           })),
         );
         pagination.paginateFields();
@@ -89,10 +94,9 @@ module.exports = {
       }
 
       if (
-        !cmds.some(
+        !commands.some(
           (cmd) =>
-            cmd.name.toLowerCase().replace(/\s+/g, '') ===
-            command.toLowerCase().replace(/\s+/g, ''),
+            cmd.name.toLowerCase().trim() === command.toLowerCase().trim(),
         )
       ) {
         return interaction.editReply({
@@ -100,10 +104,8 @@ module.exports = {
         });
       }
 
-      const cmd = cmds.find(
-        (c) =>
-          c.name.toLowerCase().replace(/\s+/g, '') ===
-          command.toLowerCase().replace(/\s+/g, ''),
+      const cmd = commands.find(
+        (c) => c.name.toLowerCase().trim() === command.toLowerCase().trim(),
       );
 
       const embed = new EmbedBuilder()
@@ -114,9 +116,11 @@ module.exports = {
           }),
         })
         .setDescription(
-          `Information about the ${bold(
-            cmd.type !== undefined ? cmd.name : `/${cmd.name}`,
-          )} command.`,
+          `Information about the ${
+            cmd.type !== ApplicationCommandType.ChatInput
+              ? bold(cmd.name)
+              : chatInputApplicationCommandMention(cmd.name, cmd.id)
+          } command.`,
         )
         .setColor(guild.members.me.displayHexColor)
         .setFooter({
@@ -130,124 +134,83 @@ module.exports = {
           {
             name: 'Command Type',
             value:
-              cmd.type !== undefined ? 'Context Menu Command' : 'Slash Command',
+              cmd.type !== ApplicationCommandType.ChatInput
+                ? 'Context Menu Command'
+                : 'Slash Command',
             inline: true,
           },
         ]);
 
-      if (cmd.options !== undefined) {
-        if (
-          cmd.options.some(
-            (option) =>
-              option.type === ApplicationCommandOptionType.SubcommandGroup,
-          )
-        ) {
+      if (cmd.options.length) {
+        const hasSubcommandGroup = cmd.options.some(
+          (option) =>
+            option.type === ApplicationCommandOptionType.SubcommandGroup,
+        );
+
+        const hasSubcommand = cmd.options.some(
+          (option) => option.type === ApplicationCommandOptionType.Subcommand,
+        );
+
+        const hasChoices = cmd.options.some(
+          (option) => option.choices !== undefined,
+        );
+
+        const subcommandGroups = cmd.options.filter(
+          (option) =>
+            option.type === ApplicationCommandOptionType.SubcommandGroup,
+        );
+
+        const subcommands = cmd.options.filter(
+          (option) => option.type === ApplicationCommandOptionType.Subcommand,
+        );
+
+        const regularCommands = cmd.options.filter(
+          (option) =>
+            option.type !== ApplicationCommandOptionType.SubcommandGroup &&
+            option.type !== ApplicationCommandOptionType.Subcommand,
+        );
+
+        const choices = cmd.options.filter(
+          (option) => option.choices !== undefined,
+        );
+
+        const hasNestedSubcommandGroup = subcommandGroups.some(
+          (option) => option.options !== undefined,
+        );
+
+        const hasNestedChoices = cmd.options.some((option) =>
+          option.options?.some((opt) => opt.choices !== undefined),
+        );
+
+        if (hasSubcommandGroup) {
           embed.addFields([
             {
               name: 'Subcommand Groups',
-              value: cmd.options
-                .filter(
-                  (option) =>
-                    option.type ===
-                    ApplicationCommandOptionType.SubcommandGroup,
-                )
+              value: subcommandGroups
                 .map(
                   (option) =>
-                    `${inlineCode(option.name)} => ${option.description}`,
+                    `${chatInputApplicationCommandMention(
+                      cmd.name,
+                      option.name,
+                      cmd.id,
+                    )} => ${option.description}`,
                 )
                 .join('\n'),
             },
           ]);
-        }
 
-        if (
-          cmd.options.some(
-            (option) => option.type === ApplicationCommandOptionType.Subcommand,
-          )
-        ) {
-          embed.addFields([
-            {
-              name: 'Subcommands',
-              value: cmd.options
-                .filter(
-                  (option) =>
-                    option.type === ApplicationCommandOptionType.Subcommand,
-                )
-                .map((opt) => `${inlineCode(opt.name)} => ${opt.description}`)
-                .join('\n'),
-            },
-          ]);
-        }
-
-        if (
-          cmd.options.some(
-            (option) =>
-              option.type !== ApplicationCommandOptionType.SubcommandGroup &&
-              option.type !== ApplicationCommandOptionType.Subcommand,
-          )
-        ) {
-          embed.addFields([
-            {
-              name: 'Command Options',
-              value: cmd.options
-                .filter(
-                  (option) =>
-                    option.type !==
-                      ApplicationCommandOptionType.SubcommandGroup &&
-                    option.type !== ApplicationCommandOptionType.Subcommand,
-                )
-                .map(
-                  (opt) =>
-                    `${inlineCode(
-                      `${opt.name}${
-                        opt.required !== undefined &&
-                        opt.required.valueOf() === true
-                          ? ''
-                          : '?'
-                      }`,
-                    )} => ${opt.description}`,
-                )
-                .join('\n'),
-            },
-          ]);
-        }
-
-        if (cmd.options.some((option) => option.choices !== undefined)) {
-          embed.addFields([
-            {
-              name: 'Command Option Choices',
-              value: cmd.options
-                .filter((option) => option.choices !== undefined)
-                .map(
-                  (option) =>
-                    `${bold(`• ${option.name}`)}\n${option.choices
-                      .map((choice) => choice.name)
-                      .join('\n')}`,
-                )
-                .join('\n'),
-            },
-          ]);
-        }
-
-        if (cmd.options.some((option) => option.options !== undefined)) {
-          if (
-            cmd.options.some(
-              (option) =>
-                option.type === ApplicationCommandOptionType.SubcommandGroup,
-            )
-          ) {
+          if (hasNestedSubcommandGroup) {
             embed.addFields([
               {
                 name: 'Subcommand Group Subcommands',
-                value: cmd.options
-                  .filter(
-                    (option) =>
-                      option.type ===
-                      ApplicationCommandOptionType.SubcommandGroup,
-                  )
+                value: subcommandGroups
                   .flatMap(
                     (option) =>
-                      `${bold(`• ${option.name}`)}\n${option.options
+                      `${bold('•')} ${chatInputApplicationCommandMention(
+                        cmd.name,
+                        option.name,
+                        cmd.id,
+                      )}\n${option.options
                         .map(
                           (opt) =>
                             `${inlineCode(opt.name)} => ${opt.description}`,
@@ -261,29 +224,21 @@ module.exports = {
             embed.addFields([
               {
                 name: 'Subcommand Group Subcommand Options',
-                value: cmd.options
-                  .filter(
-                    (option) =>
-                      option.type ===
-                      ApplicationCommandOptionType.SubcommandGroup,
-                  )
-                  .map((option) =>
+                value: subcommandGroups
+                  .flatMap((option) =>
                     option.options
-                      .filter((opt) => opt.options.length)
                       .map(
                         (opt) =>
-                          `${bold(
-                            `• ${option.name} ${opt.name}`,
-                          )}\n${opt.options
+                          `${bold('•')} ${chatInputApplicationCommandMention(
+                            cmd.name,
+                            option.name,
+                            opt.name,
+                            cmd.id,
+                          )}\n${option.options
                             .map(
                               (o) =>
                                 `${inlineCode(
-                                  `${o.name}${
-                                    o.required !== undefined &&
-                                    o.required.valueOf() === true
-                                      ? ''
-                                      : '?'
-                                  }`,
+                                  `${o.name}${o.required ? '' : '?'}`,
                                 )} => ${o.description}`,
                             )
                             .join('\n')}`,
@@ -294,28 +249,41 @@ module.exports = {
               },
             ]);
           }
+        }
+
+        if (hasSubcommand) {
+          embed.addFields([
+            {
+              name: 'Subcommands',
+              value: subcommands
+                .map(
+                  (option) =>
+                    `${chatInputApplicationCommandMention(
+                      cmd.name,
+                      option.name,
+                      cmd.id,
+                    )} => ${option.description}`,
+                )
+                .join('\n'),
+            },
+          ]);
 
           embed.addFields([
             {
               name: 'Subcommand Options',
-              value: cmd.options
-                .filter((option) => option.options.length)
-                .filter(
+              value: subcommands
+                .filter((option) => option.options !== undefined)
+                .map(
                   (option) =>
-                    option.type === ApplicationCommandOptionType.Subcommand,
-                )
-                .flatMap(
-                  (option) =>
-                    `${bold(`• ${option.name}`)}\n${option.options
+                    `${bold('•')} ${chatInputApplicationCommandMention(
+                      cmd.name,
+                      option.name,
+                      cmd.id,
+                    )}\n${option.options
                       .map(
                         (opt) =>
                           `${inlineCode(
-                            `${opt.name}${
-                              opt.required !== undefined &&
-                              opt.required.valueOf() === true
-                                ? ''
-                                : '?'
-                            }`,
+                            `${opt.name}${opt.required ? '' : '?'}`,
                           )} => ${opt.description}`,
                       )
                       .join('\n')}`,
@@ -323,34 +291,63 @@ module.exports = {
                 .join('\n\n'),
             },
           ]);
+        }
 
-          if (
-            cmd.options.some((option) =>
-              option.options.some((opt) => opt.choices !== undefined),
-            )
-          ) {
-            embed.addFields([
-              {
-                name: 'Subcommand Option Choices',
-                value: cmd.options
-                  .filter((option) => option.options !== undefined)
-                  .map((option) =>
-                    option.options
-                      .filter((opt) => opt.choices !== undefined)
-                      .map(
-                        (opt) =>
-                          `${bold(
-                            `• ${option.name} ${opt.name}`,
-                          )}\n${opt.choices
-                            .map((choice) => choice.name)
-                            .join('\n')}`,
-                      )
-                      .join('\n\n'),
-                  )
-                  .join('\n\n'),
-              },
-            ]);
-          }
+        if (!hasSubcommandGroup && !hasSubcommand) {
+          embed.addFields([
+            {
+              name: 'Command Options',
+              value: regularCommands
+                .map(
+                  (opt) =>
+                    `${inlineCode(
+                      `${opt.name}${opt.required ? '' : '?'}`,
+                    )} => ${opt.description}`,
+                )
+                .join('\n'),
+            },
+          ]);
+        }
+
+        if (hasChoices) {
+          embed.addFields([
+            {
+              name: 'Command Option Choices',
+              value: choices
+                .map(
+                  (option) =>
+                    `${bold(`• ${option.name}`)}\n${option.choices
+                      .map((choice) => choice.name)
+                      .join('\n')}`,
+                )
+                .join('\n'),
+            },
+          ]);
+        }
+
+        if (hasNestedChoices) {
+          embed.addFields([
+            {
+              name: 'Subcommand Option Choices',
+              value: cmd.options
+                .filter((option) => option.options !== undefined)
+                .flatMap((option) =>
+                  option.options
+                    .filter((opt) => opt.choices !== undefined)
+                    .map(
+                      (opt) =>
+                        `${bold('•')} ${chatInputApplicationCommandMention(
+                          cmd.name,
+                          option.name,
+                          cmd.id,
+                        )} ${opt.name}\n${opt.choices
+                          .map((choice) => choice.name)
+                          .join('\n')}`,
+                    ),
+                )
+                .join('\n\n'),
+            },
+          ]);
         }
       }
 
