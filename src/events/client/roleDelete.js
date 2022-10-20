@@ -40,9 +40,7 @@ module.exports = {
       .setAuthor({
         name: '🛠️ Role Deleted',
       })
-      .setDescription(
-        `${role} role was ${bold('deleted')} by ${deleteLog.executor}.`,
-      )
+      .setDescription(`A role was ${bold('deleted')} by ${deleteLog.executor}.`)
       .setFields([
         {
           name: '🔤 Name',

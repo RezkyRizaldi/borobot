@@ -45,9 +45,9 @@ module.exports = {
         } Channel Deleted`,
       })
       .setDescription(
-        `${channel} channel ${
-          channel.parent ? `in ${channel.parent}` : ''
-        } was ${bold('deleted')} by ${deleteLog.executor}.`,
+        `A channel ${channel.parent ? `in ${channel.parent}` : ''} was ${bold(
+          'deleted',
+        )} by ${deleteLog.executor}.`,
       )
       .setFields([
         {

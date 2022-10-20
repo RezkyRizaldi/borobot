@@ -43,7 +43,7 @@ module.exports = {
         name: '😀 Emoji Deleted',
       })
       .setDescription(
-        `${emoji} emoji was ${bold('deleted')} by ${deleteLog.executor}.`,
+        `An emoji was ${bold('deleted')} by ${deleteLog.executor}.`,
       )
       .setFields([
         {
