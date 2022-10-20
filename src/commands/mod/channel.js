@@ -49,7 +49,8 @@ module.exports = {
         .addChannelOption((option) =>
           option
             .setName('category')
-            .setDescription("🔣 The channel's category."),
+            .setDescription("🔣 The channel's category.")
+            .addChannelTypes(ChannelType.GuildCategory),
         )
         .addStringOption((option) =>
           option.setName('topic').setDescription("🗣️ The channel's topic."),
@@ -110,7 +111,8 @@ module.exports = {
               option
                 .setName('category')
                 .setDescription("🔤 The channel's new category channel.")
-                .setRequired(true),
+                .setRequired(true)
+                .addChannelTypes(ChannelType.GuildCategory),
             )
             .addStringOption((option) =>
               option
@@ -225,7 +227,7 @@ module.exports = {
     const name = options.getString('name');
     const type = options.getInteger('type');
 
-    /** @type {import('discord.js').GuildChannel} */
+    /** @type {import('discord.js').CategoryChannel} */
     const parent = options.getChannel('category');
     const topic = options.getString('topic');
 
@@ -241,6 +243,12 @@ module.exports = {
         return interaction.deferReply({ ephemeral: true }).then(async () => {
           switch (options.getSubcommand()) {
             case 'category':
+              if (channel.type === parent.type) {
+                return interaction.editReply({
+                  content: `Can't modify ${channel} channel's category since it is a category channel.`,
+                });
+              }
+
               if (channel.parent && channel.parent === parent) {
                 return interaction.editReply({
                   content: `${channel} is already in ${channel.parent} category channel.`,
@@ -342,7 +350,7 @@ module.exports = {
           .create({
             name,
             type,
-            parent,
+            parent: type === ChannelType.GuildCategory ? null : parent,
             topic,
             reason,
           })
