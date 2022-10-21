@@ -229,7 +229,7 @@ module.exports = async (interaction, subcommand) => {
         }
 
         default: {
-          if (!textMutedMembers.size && !voiceMutedMembers.size) {
+          if (!mutedMembers.size) {
             return interaction.editReply({
               content: `No one muted in ${bold(guild)}.`,
             });
@@ -317,6 +317,7 @@ const findOrCreateRole = async (interaction) => {
         guild.channels.cache
           .filter(
             (channel) =>
+              channel.type !== ChannelType.GuildCategory &&
               channel.type !== ChannelType.GuildVoice &&
               channel.type !== ChannelType.GuildStageVoice,
           )
@@ -367,6 +368,7 @@ const findOrCreateRole = async (interaction) => {
   guild.channels.cache
     .filter(
       (channel) =>
+        channel.type !== ChannelType.GuildCategory &&
         channel.type !== ChannelType.GuildVoice &&
         channel.type !== ChannelType.GuildStageVoice,
     )
