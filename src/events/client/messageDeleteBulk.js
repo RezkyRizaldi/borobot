@@ -10,12 +10,12 @@ const {
   WebhookClient,
 } = require('discord.js');
 const pluralize = require('pluralize');
+const truncate = require('truncate');
 
 const {
   applyMessageType,
   groupMessageByAuthor,
   groupMessageByType,
-  truncate,
 } = require('../../utils');
 
 module.exports = {
