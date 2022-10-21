@@ -15,6 +15,7 @@ const applyText = require('./applyText');
 const applyThreadAutoArchiveDuration = require('./applyThreadAutoArchiveDuration');
 const applyTier = require('./applyTier');
 const applyVerificationLevel = require('./applyVerificationLevel');
+const applyVideoQualityMode = require('./applyVideoQualityMode');
 const getFormattedBlockName = require('./getFormattedBlockName');
 const getFormattedParam = require('./getFormattedParam');
 const getImageReadLocale = require('./getImageReadLocale');
@@ -25,6 +26,7 @@ const getTranslateFlag = require('./getTranslateFlag');
 const getWikiaURL = require('./getWikiaURL');
 const groupMessageByAuthor = require('./groupMessageByAuthor');
 const groupMessageByType = require('./groupMessageByType');
+const isAlphabeticLetter = require('./isAlphabeticLetter');
 const isValidURL = require('./isValidURL');
 const serverMute = require('./serverMute');
 
@@ -46,6 +48,7 @@ module.exports = {
   applyThreadAutoArchiveDuration,
   applyTier,
   applyVerificationLevel,
+  applyVideoQualityMode,
   getFormattedBlockName,
   getFormattedParam,
   getImageReadLocale,
@@ -56,6 +59,7 @@ module.exports = {
   getWikiaURL,
   groupMessageByAuthor,
   groupMessageByType,
+  isAlphabeticLetter,
   isValidURL,
   serverMute,
 };

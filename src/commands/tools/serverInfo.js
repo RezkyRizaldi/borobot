@@ -57,6 +57,7 @@ module.exports = {
     const onlineMemberCount = await guild.members
       .fetch({ withPresences: true })
       .then((m) => m.filter((member) => !!member.presence).size);
+    const boosterCount = guild.premiumSubscriptionCount;
     const emojiCount = guild.emojis.cache.size;
     const roleCount = guild.roles.cache.size;
     const stickerCount = guild.stickers.cache.size;
@@ -123,25 +124,32 @@ module.exports = {
                 })`
               : ''
           }`,
-          value: `${pluralize('Online', onlineMemberCount, true)} | ${pluralize(
+          value: `${onlineMemberCount.toLocaleString()} ${pluralize(
+            'Online',
+            onlineMemberCount,
+          )} | ${boosterCount.toLocaleString()} ${pluralize(
             'Booster',
-            guild.premiumSubscriptionCount,
-            true,
+            boosterCount,
           )}`,
           inline: true,
         },
         {
           name: '😀 Emoji & Sticker',
-          value: `${pluralize('Emoji', emojiCount, true)} | ${pluralize(
+          value: `${emojiCount.toLocaleString()} ${pluralize(
+            'Emoji',
+            emojiCount,
+          )} | ${stickerCount.toLocaleString()} ${pluralize(
             'Sticker',
             stickerCount,
-            true,
           )}`,
           inline: true,
         },
         {
           name: '🛠️ Roles',
-          value: pluralize('Role', roleCount, true),
+          value: `${roleCount.toLocaleString()} ${pluralize(
+            'Role',
+            roleCount,
+          )}`,
           inline: true,
         },
         {
@@ -230,10 +238,11 @@ module.exports = {
         },
         {
           name: `💬 Channels${
-            guild.channels.channelCountWithoutThreads > 0 &&
-            ` (${guild.channels.channelCountWithoutThreads})`
+            guild.channels.channelCountWithoutThreads > 0
+              ? ` (${guild.channels.channelCountWithoutThreads.toLocaleString()})`
+              : ''
           }`,
-          value: `📁 ${categoryChannelCount} Category | #️⃣ ${textChannelCount} Text | 🔊 ${voiceChannelCount} Voice | 🎤 ${stageChannelCount} Stage | 📣 ${announcementChannelCount} Announcement | 🗯️ ${forumChannelCount} Forum\nRules Channel: ${
+          value: `📁 ${categoryChannelCount.toLocaleString()} Category | #️⃣ ${textChannelCount.toLocaleString()} Text | 🔊 ${voiceChannelCount.toLocaleString()} Voice | 🎤 ${stageChannelCount.toLocaleString()} Stage | 📣 ${announcementChannelCount.toLocaleString()} Announcement | 🗯️ ${forumChannelCount.toLocaleString()} Forum\nRules Channel: ${
             guild.rulesChannel ?? italic('None')
           }\nSystem Channel: ${
             guild.systemChannel ?? italic('None')

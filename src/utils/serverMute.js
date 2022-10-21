@@ -148,7 +148,7 @@ module.exports = async (interaction, subcommand) => {
               }),
             });
             pagination.setAuthor({
-              name: `🔇 Muted Members from Text Channels (${textMutedMembers.size})`,
+              name: `🔇 Muted Members from Text Channels (${textMutedMembers.size.toLocaleString()})`,
             });
             pagination.setDescriptions(descriptions);
 
@@ -167,7 +167,7 @@ module.exports = async (interaction, subcommand) => {
           }
 
           embed.setAuthor({
-            name: `🔇 Muted Members from Text Channels (${textMutedMembers.size})`,
+            name: `🔇 Muted Members from Text Channels (${textMutedMembers.size.toLocaleString()})`,
           });
           embed.setDescription(descriptions.join('\n'));
 
@@ -202,7 +202,7 @@ module.exports = async (interaction, subcommand) => {
               }),
             });
             pagination.setAuthor({
-              name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size})`,
+              name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size.toLocaleString()})`,
             });
             pagination.setDescriptions(descriptions);
 
@@ -221,7 +221,7 @@ module.exports = async (interaction, subcommand) => {
           }
 
           embed.setAuthor({
-            name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size})`,
+            name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size.toLocaleString()})`,
           });
           embed.setDescription(descriptions.join('\n'));
 
@@ -256,7 +256,7 @@ module.exports = async (interaction, subcommand) => {
               }),
             });
             pagination.setAuthor({
-              name: `🔇 Muted Members from ${guild} (${mutedMembers.size})`,
+              name: `🔇 Muted Members from ${guild} (${mutedMembers.size.toLocaleString()})`,
             });
             pagination.setDescriptions(descriptions);
 
@@ -275,7 +275,7 @@ module.exports = async (interaction, subcommand) => {
           }
 
           embed.setAuthor({
-            name: `🔇 Muted Members from ${guild} (${mutedMembers.size})`,
+            name: `🔇 Muted Members from ${guild} (${mutedMembers.size.toLocaleString()})`,
           });
           embed.setDescription(descriptions.join('\n'));
 

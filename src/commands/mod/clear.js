@@ -185,10 +185,9 @@ module.exports = {
                 groupedMessages
                   .map(
                     (arrMessage, index, array) =>
-                      `Deleted ${bold(`${array[index].length}`)} ${pluralize(
-                        'message',
-                        array[index].length,
-                      )}${
+                      `Deleted ${bold(
+                        `${array[index].length.toLocaleString()}`,
+                      )} ${pluralize('message', array[index].length)}${
                         arrMessage[index]?.author
                           ? ` from ${userMention(arrMessage[index].author.id)}`
                           : ''
@@ -202,7 +201,7 @@ module.exports = {
 
             case !!member:
               embed.setDescription(
-                `Deleted ${bold(`${msgs.size}`)} ${pluralize(
+                `Deleted ${bold(`${msgs.size.toLocaleString()}`)} ${pluralize(
                   'message',
                   msgs.size,
                 )}${
@@ -221,10 +220,9 @@ module.exports = {
                 groupedMessages
                   .map(
                     (arrMessage, index, array) =>
-                      `Deleted ${bold(`${array[index].length}`)} ${pluralize(
-                        'message',
-                        array[index].length,
-                      )}${
+                      `Deleted ${bold(
+                        `${array[index].length.toLocaleString()}`,
+                      )} ${pluralize('message', array[index].length)}${
                         arrMessage[index]?.author
                           ? ` from ${userMention(arrMessage[index].author.id)}`
                           : ''
@@ -238,7 +236,7 @@ module.exports = {
 
             default: {
               embed.setDescription(
-                `Deleted ${bold(`${msgs.size}`)} ${pluralize(
+                `Deleted ${bold(`${msgs.size.toLocaleString()}`)} ${pluralize(
                   'message',
                   msgs.size,
                 )}.`,

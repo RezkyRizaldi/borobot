@@ -37,6 +37,7 @@ const {
   getFormattedBlockName,
   getWikiaURL,
   getFormattedParam,
+  isAlphabeticLetter,
 } = require('../../utils');
 
 module.exports = {
@@ -505,22 +506,18 @@ module.exports = {
                       },
                       {
                         name: '📊 Stats',
-                        value: `${pluralize(
+                        value: `${data.followers.toLocaleString()} ${pluralize(
                           'follower',
                           data.followers,
-                          true,
-                        )} | ${pluralize(
+                        )} | ${data.following.toLocaleString()} ${pluralize(
                           'following',
                           data.following,
-                          true,
-                        )} | ${pluralize(
+                        )} | ${data.public_repos.toLocaleString()} ${pluralize(
                           'public repository',
                           data.public_repos,
-                          true,
-                        )} | ${pluralize(
+                        )} | ${data.public_gists.toLocaleString()} ${pluralize(
                           'public gists',
                           data.public_gists,
-                          true,
                         )}`,
                         inline: true,
                       },
@@ -548,7 +545,10 @@ module.exports = {
                       embed.addFields([
                         {
                           name: '👤 Twitter Account',
-                          value: `https://twitter.com/${data.twitter_username}`,
+                          value: hyperlink(
+                            `@${data.twitter_username}`,
+                            `https://twitter.com/${data.twitter_username}`,
+                          ),
                           inline: true,
                         },
                       ]);
@@ -679,22 +679,18 @@ module.exports = {
                         },
                         {
                           name: '📊 Stats',
-                          value: `⭐ ${pluralize(
+                          value: `⭐ ${item.stargazers_count.toLocaleString()} ${pluralize(
                             'star',
                             item.stargazers_count,
-                            true,
-                          )} | 👁️‍🗨️ ${pluralize(
+                          )} | 👁️‍🗨️ ${item.watchers_count.toLocaleString()} ${pluralize(
                             'watcher',
                             item.watchers_count,
-                            true,
-                          )} | 🕎 ${pluralize(
+                          )} | 🕎 ${item.forks_count.toLocaleString()} ${pluralize(
                             'fork',
                             item.forks_count,
-                            true,
-                          )} | 🪲 ${pluralize(
+                          )} | 🪲 ${item.open_issues_count.toLocaleString()} ${pluralize(
                             'issue',
                             item.open_issues_count,
-                            true,
                           )}`,
                         },
                       ]);
@@ -799,18 +795,16 @@ module.exports = {
               query.append('sort', sort);
             }
 
-            if (letter) {
-              if (!letter.charAt(0).match(/[a-z]/i)) {
-                return interaction.deferReply({ ephemeral: true }).then(
-                  async () =>
-                    await interaction.editReply({
-                      content: 'You have to specify an alphabetic character.',
-                    }),
-                );
-              }
-
-              query.append('letter', [...letter][0]);
+            if (!isAlphabeticLetter(letter)) {
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: 'You have to specify an alphabetic character.',
+                  }),
+              );
             }
+
+            query.append('letter', letter.charAt(0));
 
             return axios
               .get(`https://api.jikan.moe/v4/anime?${query}`)
@@ -860,7 +854,10 @@ module.exports = {
                           name: '🎬 Episode',
                           value: `${
                             item.episodes
-                              ? pluralize('episode', item.episodes, true)
+                              ? `${item.episodes.toLocaleString()} ${pluralize(
+                                  'episode',
+                                  item.episodes,
+                                )}`
                               : '??? episodes'
                           } (${item.duration})`,
                           inline: true,
@@ -904,10 +901,7 @@ module.exports = {
                           value:
                             item.season || item.year
                               ? `${
-                                  item.season
-                                    ? item.season.charAt(0).toUpperCase() +
-                                      item.season.slice(1)
-                                    : ''
+                                  item.season ? capitalCase(item.season) : ''
                                 } ${item.year ?? ''}`
                               : italic('Unknown'),
                           inline: true,
@@ -1073,7 +1067,10 @@ module.exports = {
                         },
                         {
                           name: '❤️ Favorite',
-                          value: pluralize('favorite', item.favorites, true),
+                          value: `${item.favorites.toLocaleString()} ${pluralize(
+                            'favorite',
+                            item.favorites,
+                          )}`,
                           inline: true,
                         },
                       ]);
@@ -1277,9 +1274,7 @@ module.exports = {
                     .then(async ({ data }) => {
                       const responses = data.map(
                         (item, index) =>
-                          `${bold(`${index + 1}.`)} ${capitalCase(
-                            item.replace(/-/g, ' '),
-                          )}`,
+                          `${bold(`${index + 1}.`)} ${capitalCase(item)}`,
                       );
 
                       const pagination = new Pagination(interaction, {
@@ -1894,20 +1889,16 @@ module.exports = {
           query.append('sort', sort);
         }
 
-        if (letter) {
-          const firstChar = letter.charAt(0);
-
-          if (!firstChar.match(/[a-z]/i)) {
-            return interaction.deferReply({ ephemeral: true }).then(
-              async () =>
-                await interaction.editReply({
-                  content: 'You have to specify an alphabetic character.',
-                }),
-            );
-          }
-
-          query.append('letter', firstChar);
+        if (letter && !isAlphabeticLetter(letter)) {
+          return interaction.deferReply({ ephemeral: true }).then(
+            async () =>
+              await interaction.editReply({
+                content: 'You have to specify an alphabetic character.',
+              }),
+          );
         }
+
+        query.append('letter', letter.charAt(0));
 
         return axios
           .get(`https://api.jikan.moe/v4/manga?${query}`)
@@ -1957,11 +1948,17 @@ module.exports = {
                       name: '📚 Volume & Chapter',
                       value: `${
                         item.volumes
-                          ? pluralize('volume', item.volumes, true)
+                          ? `${item.volumes.toLocaleString()} ${pluralize(
+                              'volume',
+                              item.volumes,
+                            )}`
                           : '??? volumes'
                       } ${
                         item.chapters
-                          ? `(${pluralize('chapter', item.chapters, true)})`
+                          ? `${item.chapters.toLocaleString()} (${pluralize(
+                              'chapter',
+                              item.chapters,
+                            )})`
                           : ''
                       }`,
                       inline: true,
@@ -2186,7 +2183,7 @@ module.exports = {
               },
               {
                 name: '⭐ Rating',
-                value: `${thumbs_up} 👍 | ${thumbs_down} 👎`,
+                value: `${thumbs_up.toLocaleString()} 👍 | ${thumbs_down.toLocaleString()} 👎`,
               },
             ]);
 

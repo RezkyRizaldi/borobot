@@ -625,7 +625,7 @@ module.exports = {
               name: '👤 Highest Member Count',
               value: `${highestMemberCount} ${
                 memberCountValueComparison > 0
-                  ? `(+${memberCountValueComparison})`
+                  ? `(+${memberCountValueComparison.toLocaleString()})`
                   : ''
               }`,
               inline: true,
@@ -678,7 +678,10 @@ module.exports = {
             },
             {
               name: '👤 Member Count',
-              value: pluralize('member', role.members.size, true),
+              value: `${role.members.size.toLocaleString()} ${pluralize(
+                'member',
+                role.members.size,
+              )}`,
               inline: true,
             },
             {
@@ -833,12 +836,12 @@ module.exports = {
                   }),
                 });
                 pagination.setAuthor({
-                  name: `🔐 ${guild} Role Lists (${rls.size})`,
+                  name: `🔐 ${guild} Role Lists (${rls.size.toLocaleString()})`,
                 });
 
                 if (guild.icon) {
                   pagination.setAuthor({
-                    name: `${guild} Role Lists (${rls.size})`,
+                    name: `${guild} Role Lists (${rls.size.toLocaleString()})`,
                     iconURL: guild.iconURL({ dynamic: true }),
                   });
                 }
@@ -860,12 +863,12 @@ module.exports = {
               }
 
               embed.setAuthor({
-                name: `🔐 ${guild} Role Lists (${rls.size})`,
+                name: `🔐 ${guild} Role Lists (${rls.size.toLocaleString()})`,
               });
 
               if (guild.icon) {
                 embed.setAuthor({
-                  name: `${guild} Role Lists (${rls.size})`,
+                  name: `${guild} Role Lists (${rls.size.toLocaleString()})`,
                   iconURL: guild.iconURL({ dynamic: true }),
                 });
               }

@@ -931,7 +931,7 @@ module.exports = {
                         }),
                       });
                       pagination.setAuthor({
-                        name: `🔃 Music Queue (${queue.songs.length})`,
+                        name: `🔃 Music Queue (${queue.songs.length.toLocaleString()})`,
                       });
                       pagination.setDescriptions(descriptions);
 
@@ -952,7 +952,7 @@ module.exports = {
 
                 return interaction.deferReply().then(async () => {
                   embed.setAuthor({
-                    name: `🔃 Music Queue (${queue.songs.length})`,
+                    name: `🔃 Music Queue (${queue.songs.length.toLocaleString()})`,
                   });
                   embed.setDescription(descriptions.join('\n'));
 

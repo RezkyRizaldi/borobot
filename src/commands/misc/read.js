@@ -70,7 +70,7 @@ module.exports = {
             }),
           });
           pagination.setAuthor({
-            name: `🌐 Image Reader Locale Lists (${locales.length})`,
+            name: `🌐 Image Reader Locale Lists (${locales.length.toLocaleString()})`,
           });
           pagination.setDescriptions(responses);
 

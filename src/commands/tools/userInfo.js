@@ -37,10 +37,7 @@ module.exports = {
 
           const userClientStatus = member.presence?.clientStatus
             ? Object.keys(member.presence.clientStatus)
-                .map(
-                  (status) =>
-                    `${status.charAt(0).toUpperCase()}${status.slice(1)}`,
-                )
+                .map((status) => capitalCase(status))
                 .join(', ')
             : italic('None');
 
@@ -92,7 +89,9 @@ module.exports = {
               },
               {
                 name: `🛠️ Roles${
-                  member.roles.cache.size && ` (${member.roles.cache.size - 1})`
+                  member.roles.cache.size
+                    ? ` (${(member.roles.cache.size - 1).toLocaleString()})`
+                    : ''
                 }`,
                 value: userRoles,
               },

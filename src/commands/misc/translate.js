@@ -95,7 +95,7 @@ module.exports = {
             }),
           });
           pagination.setAuthor({
-            name: `🌐 Translation Locale Lists (${locales.length})`,
+            name: `🌐 Translation Locale Lists (${locales.length.toLocaleString()})`,
           });
           pagination.setDescriptions(responses);
 

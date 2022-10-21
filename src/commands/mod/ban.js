@@ -294,7 +294,7 @@ module.exports = {
                 }),
               });
               pagination.setAuthor({
-                name: `🚫 Banned User Lists (${bannedUsers.size})`,
+                name: `🚫 Banned User Lists (${bannedUsers.size.toLocaleString()})`,
               });
               pagination.setDescriptions(descriptions);
 

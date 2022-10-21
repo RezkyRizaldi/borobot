@@ -68,19 +68,7 @@ module.exports = {
       name: 'Message Deleted',
       iconURL: author.displayAvatarURL({ dynamic: true }),
     });
-    embed.setDescription(response);
-
-    if (response.length > 4096) {
-      embed.setDescription(truncate(response, 4096));
-
-      const secondEmbed = new EmbedBuilder().setDescription(
-        truncate(response, 4096 - response.length),
-      );
-
-      return MessageLogger.send({ embeds: [embed, secondEmbed] }).catch(
-        console.error,
-      );
-    }
+    embed.setDescription(truncate(response, 4096 - 3));
 
     await MessageLogger.send({ embeds: [embed] }).catch(console.error);
   },

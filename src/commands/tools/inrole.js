@@ -63,7 +63,9 @@ module.exports = {
           iconURL: client.user.displayAvatarURL({ dynamic: true }),
         });
         pagination.setAuthor({
-          name: `👥 Member Lists with Role ${role.name} (${membersWithRole.size})`,
+          name: `👥 Member Lists with Role ${
+            role.name
+          } (${membersWithRole.size.toLocaleString()})`,
         });
         pagination.setDescriptions(descriptions);
 
@@ -89,7 +91,9 @@ module.exports = {
           iconURL: client.user.displayAvatarURL({ dynamic: true }),
         })
         .setAuthor({
-          name: `👥 Member Lists with Role ${role.name} (${membersWithRole.size})`,
+          name: `👥 Member Lists with Role ${
+            role.name
+          } (${membersWithRole.size.toLocaleString()})`,
         })
         .setDescription(descriptions.join('\n'));
 

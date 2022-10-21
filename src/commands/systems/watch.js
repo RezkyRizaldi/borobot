@@ -114,10 +114,9 @@ module.exports = {
               async ({ episodeCount, name, slug }) => {
                 if (episode > episodeCount) {
                   return interaction.editReply({
-                    content: `${name} only have ${pluralize(
+                    content: `${name} only have ${episodeCount.toLocaleString()} ${pluralize(
                       'episode',
                       episodeCount,
-                      true,
                     )}.`,
                   });
                 }
