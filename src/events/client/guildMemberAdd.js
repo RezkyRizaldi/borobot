@@ -7,6 +7,7 @@ const {
   TimestampStyles,
   WebhookClient,
 } = require('discord.js');
+const ordinal = require('ordinal');
 
 module.exports = {
   name: Events.GuildMemberAdd,
@@ -50,7 +51,11 @@ module.exports = {
       .add(!user.bot ? memberRole : botRole)
       .then(async (m) => {
         if (!m.user.bot) {
-          embed.setDescription(`hope you enjoy here, ${m}!`);
+          embed.setDescription(
+            `hope you enjoy here, ${m}! You're the ${ordinal(
+              guild.memberCount,
+            )} member in ${guild}.`,
+          );
           embed.setColor(m.displayHexColor);
           embed.setThumbnail(m.displayAvatarURL({ dynamic: true }));
           embed.setFields([

@@ -1,5 +1,7 @@
 const {
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   EmbedBuilder,
   inlineCode,
   PermissionFlagsBits,
@@ -207,6 +209,9 @@ module.exports = {
       member,
       options,
     } = interaction;
+
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
 
     /** @type {{ distube: import('distube').DisTube }} */
     const { distube } = client;
@@ -926,9 +931,20 @@ module.exports = {
                         }),
                       });
                       pagination.setAuthor({
-                        name: `🔃 Music Queue (${queue.songs.length})`,
+                        name: `🔃 Music Queue (${queue.songs.length.toLocaleString()})`,
                       });
                       pagination.setDescriptions(descriptions);
+
+                      pagination.buttons = {
+                        ...pagination.buttons,
+                        extra: new ButtonBuilder()
+                          .setCustomId('jump')
+                          .setEmoji('↕️')
+                          .setDisabled(false)
+                          .setStyle(ButtonStyle.Secondary),
+                      };
+
+                      paginations.set(pagination.interaction.id, pagination);
 
                       await pagination.render();
                     });
@@ -936,7 +952,7 @@ module.exports = {
 
                 return interaction.deferReply().then(async () => {
                   embed.setAuthor({
-                    name: `🔃 Music Queue (${queue.songs.length})`,
+                    name: `🔃 Music Queue (${queue.songs.length.toLocaleString()})`,
                   });
                   embed.setDescription(descriptions.join('\n'));
 

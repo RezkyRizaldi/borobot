@@ -42,7 +42,7 @@ module.exports = {
         name: '😀 Sticker Deleted',
       })
       .setDescription(
-        `${sticker} sticker was ${bold('deleted')} by ${deleteLog.executor}.`,
+        `A sticker was ${bold('deleted')} by ${deleteLog.executor}.`,
       )
       .setFields([
         {

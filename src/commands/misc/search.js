@@ -1,6 +1,9 @@
 const axios = require('axios');
+const { capitalCase, paramCase, snakeCase } = require('change-case');
 const {
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   EmbedBuilder,
   hyperlink,
   inlineCode,
@@ -10,16 +13,19 @@ const {
   TimestampStyles,
 } = require('discord.js');
 const Scraper = require('images-scraper').default;
+const minecraftData = require('minecraft-data');
 const moment = require('moment');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
+const truncate = require('truncate');
 
 const {
   animeCharacterSearchOrderChoices,
   animeSearchOrderChoices,
   animeSearchStatusChoices,
   animeSearchTypeChoices,
+  extraMcData,
   githubRepoSortingTypeChoices,
   mangaSearchOrderChoices,
   mangaSearchStatusChoices,
@@ -28,10 +34,10 @@ const {
   searchSortingChoices,
 } = require('../../constants');
 const {
-  applySluggable,
-  applyTitleCase,
+  getFormattedBlockName,
   getWikiaURL,
-  truncate,
+  getFormattedParam,
+  isAlphabeticLetter,
 } = require('../../utils');
 
 module.exports = {
@@ -302,6 +308,139 @@ module.exports = {
             .setDescription("🔠 The documentation's preferred locale.")
             .addChoices(...mdnLocales),
         ),
+    )
+    .addSubcommandGroup(
+      (subcommandGroup) =>
+        subcommandGroup
+          .setName('minecraft')
+          .setDescription('ℹ️ Search a Minecraft information.')
+          // .addSubcommand((subcommand) =>
+          //   subcommand
+          //     .setName('attribute')
+          //     .setDescription('📊 Search Minecraft attribute information.')
+          //     .addStringOption((option) =>
+          //       option
+          //         .setName('name')
+          //         .setDescription(
+          //           '🔠 The Minecraft attribute name search query.',
+          //         ),
+          //     ),
+          // )
+          .addSubcommand((subcommand) =>
+            subcommand
+              .setName('block')
+              .setDescription('🟫 Search Minecraft block information.')
+              .addStringOption((option) =>
+                option
+                  .setName('name')
+                  .setDescription('🔠 The Minecraft block name search query.'),
+              ),
+          ),
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('biome')
+      //     .setDescription('🌄 Search Minecraft biome information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft biome name search query.'),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('effect')
+      //     .setDescription('💫 Search Minecraft effect information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft effect name search query.'),
+      //     ),
+      // )
+      // TODO: WIP
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('enchantment')
+      //     .setDescription('🪧 Search Minecraft enchantment information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription(
+      //           '🔠 The Minecraft enchantment name search query.',
+      //         ),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('entity')
+      //     .setDescription('🔣 Search Minecraft entity information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft entity name search query.'),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('food')
+      //     .setDescription('🍎 Search Minecraft food information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft food name search query.'),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('instrument')
+      //     .setDescription('🎹 Search Minecraft instrument information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription(
+      //           '🔠 The Minecraft instrument name search query.',
+      //         ),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('item')
+      //     .setDescription('🎒 Search Minecraft item information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft item name search query.'),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('material')
+      //     .setDescription('⛏️ Search Minecraft material information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft material name search query.'),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('particle')
+      //     .setDescription('✨ Search Minecraft particle information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft particle name search query.'),
+      //     ),
+      // )
+      // .addSubcommand((subcommand) =>
+      //   subcommand
+      //     .setName('recipe')
+      //     .setDescription('🍴 Search Minecraft recipe information.')
+      //     .addStringOption((option) =>
+      //       option
+      //         .setName('name')
+      //         .setDescription('🔠 The Minecraft recipe name search query.'),
+      //     ),
+      // ),
     ),
   type: 'Chat Input',
 
@@ -311,6 +450,9 @@ module.exports = {
    */
   async execute(interaction) {
     const { channel, client, guild, options } = interaction;
+
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
 
     const NSFWChannels = guild.channels.cache
       .filter((ch) => ch.nsfw)
@@ -364,22 +506,18 @@ module.exports = {
                       },
                       {
                         name: '📊 Stats',
-                        value: `${pluralize(
+                        value: `${data.followers.toLocaleString()} ${pluralize(
                           'follower',
                           data.followers,
-                          true,
-                        )} | ${pluralize(
+                        )} | ${data.following.toLocaleString()} ${pluralize(
                           'following',
                           data.following,
-                          true,
-                        )} | ${pluralize(
+                        )} | ${data.public_repos.toLocaleString()} ${pluralize(
                           'public repository',
                           data.public_repos,
-                          true,
-                        )} | ${pluralize(
+                        )} | ${data.public_gists.toLocaleString()} ${pluralize(
                           'public gists',
                           data.public_gists,
-                          true,
                         )}`,
                         inline: true,
                       },
@@ -407,7 +545,10 @@ module.exports = {
                       embed.addFields([
                         {
                           name: '👤 Twitter Account',
-                          value: `https://twitter.com/${data.twitter_username}`,
+                          value: hyperlink(
+                            `@${data.twitter_username}`,
+                            `https://twitter.com/${data.twitter_username}`,
+                          ),
                           inline: true,
                         },
                       ]);
@@ -538,22 +679,18 @@ module.exports = {
                         },
                         {
                           name: '📊 Stats',
-                          value: `⭐ ${pluralize(
+                          value: `⭐ ${item.stargazers_count.toLocaleString()} ${pluralize(
                             'star',
                             item.stargazers_count,
-                            true,
-                          )} | 👁️‍🗨️ ${pluralize(
+                          )} | 👁️‍🗨️ ${item.watchers_count.toLocaleString()} ${pluralize(
                             'watcher',
                             item.watchers_count,
-                            true,
-                          )} | 🕎 ${pluralize(
+                          )} | 🕎 ${item.forks_count.toLocaleString()} ${pluralize(
                             'fork',
                             item.forks_count,
-                            true,
-                          )} | 🪲 ${pluralize(
+                          )} | 🪲 ${item.open_issues_count.toLocaleString()} ${pluralize(
                             'issue',
                             item.open_issues_count,
-                            true,
                           )}`,
                         },
                       ]);
@@ -585,6 +722,17 @@ module.exports = {
                   const pagination = new Pagination(interaction);
 
                   pagination.setEmbeds(embeds);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
 
                   await pagination.render();
                 });
@@ -647,18 +795,16 @@ module.exports = {
               query.append('sort', sort);
             }
 
-            if (letter) {
-              if (!letter.charAt(0).match(/[a-z]/i)) {
-                return interaction.deferReply({ ephemeral: true }).then(
-                  async () =>
-                    await interaction.editReply({
-                      content: 'You have to specify an alphabetic character.',
-                    }),
-                );
-              }
-
-              query.append('letter', [...letter][0]);
+            if (!isAlphabeticLetter(letter)) {
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: 'You have to specify an alphabetic character.',
+                  }),
+              );
             }
+
+            query.append('letter', letter.charAt(0));
 
             return axios
               .get(`https://api.jikan.moe/v4/anime?${query}`)
@@ -708,7 +854,10 @@ module.exports = {
                           name: '🎬 Episode',
                           value: `${
                             item.episodes
-                              ? pluralize('episode', item.episodes, true)
+                              ? `${item.episodes.toLocaleString()} ${pluralize(
+                                  'episode',
+                                  item.episodes,
+                                )}`
                               : '??? episodes'
                           } (${item.duration})`,
                           inline: true,
@@ -752,10 +901,7 @@ module.exports = {
                           value:
                             item.season || item.year
                               ? `${
-                                  item.season
-                                    ? item.season.charAt(0).toUpperCase() +
-                                      item.season.slice(1)
-                                    : ''
+                                  item.season ? capitalCase(item.season) : ''
                                 } ${item.year ?? ''}`
                               : italic('Unknown'),
                           inline: true,
@@ -794,7 +940,15 @@ module.exports = {
                         {
                           name: '💫 Synopsis',
                           value: item.synopsis
-                            ? truncate(item.synopsis, 1024)
+                            ? item.synopsis.includes('[Written by MAL Rewrite]')
+                              ? truncate(
+                                  item.synopsis.replace(
+                                    '[Written by MAL Rewrite]',
+                                    '',
+                                  ),
+                                  1024 - 3,
+                                )
+                              : truncate(item.synopsis, 1024 - 3)
                             : italic('No available'),
                         },
                         {
@@ -815,6 +969,17 @@ module.exports = {
                   const pagination = new Pagination(interaction);
 
                   pagination.setEmbeds(embeds);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
 
                   await pagination.render();
                 });
@@ -902,13 +1067,21 @@ module.exports = {
                         },
                         {
                           name: '❤️ Favorite',
-                          value: pluralize('favorite', item.favorites, true),
+                          value: `${item.favorites.toLocaleString()} ${pluralize(
+                            'favorite',
+                            item.favorites,
+                          )}`,
                           inline: true,
                         },
                       ]);
 
                     if (item.about) {
-                      newEmbed.setDescription(item.about);
+                      newEmbed.setDescription(
+                        truncate(
+                          item.about.replace(/\n\n\n/g, '\n\n'),
+                          4096 - 3,
+                        ),
+                      );
                     }
 
                     if (item.images) {
@@ -924,6 +1097,17 @@ module.exports = {
 
                   pagination.setEmbeds(embeds);
 
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
                   await pagination.render();
                 });
               });
@@ -933,8 +1117,6 @@ module.exports = {
 
       case 'genshin': {
         const baseURL = 'https://api.genshin.dev';
-        const baseImageURL =
-          'https://static.wikia.nocookie.net/gensin-impact/images/';
 
         switch (options.getSubcommand()) {
           case 'artifact': {
@@ -948,7 +1130,7 @@ module.exports = {
                     .then(async ({ data }) => {
                       const responses = data.map(
                         (item, index) =>
-                          `${bold(`${index + 1}.`)} ${applyTitleCase(
+                          `${bold(`${index + 1}.`)} ${capitalCase(
                             item.replace(/-/g, ' '),
                           )}`,
                       );
@@ -967,9 +1149,23 @@ module.exports = {
                       });
                       pagination.setAuthor({
                         name: `Genshin Impact Artifact Lists (${data.length})`,
-                        iconURL: `${baseImageURL}8/80/Genshin_Impact.png`,
+                        iconURL: getWikiaURL({
+                          fileName: 'Genshin_Impact',
+                          path: 'gensin-impact',
+                        }),
                       });
                       pagination.setDescriptions(responses);
+
+                      pagination.buttons = {
+                        ...pagination.buttons,
+                        extra: new ButtonBuilder()
+                          .setCustomId('jump')
+                          .setEmoji('↕️')
+                          .setDisabled(false)
+                          .setStyle(ButtonStyle.Secondary),
+                      };
+
+                      paginations.set(pagination.interaction.id, pagination);
 
                       await pagination.render();
                     }),
@@ -977,10 +1173,13 @@ module.exports = {
             }
 
             return axios
-              .get(`${baseURL}/artifacts/${applySluggable(name)}`)
+              .get(`${baseURL}/artifacts/${paramCase(name)}`)
               .then(async ({ data }) => {
                 embed.setThumbnail(
-                  `${baseImageURL}6/6a/Icon_Inventory_Artifacts.png`,
+                  getWikiaURL({
+                    fileName: 'Icon_Inventory_Artifacts',
+                    path: 'gensin-impact',
+                  }),
                 );
                 embed.setAuthor({
                   name: `🛡️ ${data.name}`,
@@ -1075,9 +1274,7 @@ module.exports = {
                     .then(async ({ data }) => {
                       const responses = data.map(
                         (item, index) =>
-                          `${bold(`${index + 1}.`)} ${applyTitleCase(
-                            item.replace(/-/g, ' '),
-                          )}`,
+                          `${bold(`${index + 1}.`)} ${capitalCase(item)}`,
                       );
 
                       const pagination = new Pagination(interaction, {
@@ -1094,9 +1291,23 @@ module.exports = {
                       });
                       pagination.setAuthor({
                         name: `Genshin Impact Character Lists (${data.length})`,
-                        iconURL: `${baseImageURL}8/80/Genshin_Impact.png`,
+                        iconURL: getWikiaURL({
+                          fileName: 'Genshin_Impact',
+                          path: 'gensin-impact',
+                        }),
                       });
                       pagination.setDescriptions(responses);
+
+                      pagination.buttons = {
+                        ...pagination.buttons,
+                        extra: new ButtonBuilder()
+                          .setCustomId('jump')
+                          .setEmoji('↕️')
+                          .setDisabled(false)
+                          .setStyle(ButtonStyle.Secondary),
+                      };
+
+                      paginations.set(pagination.interaction.id, pagination);
 
                       await pagination.render();
                     }),
@@ -1104,41 +1315,19 @@ module.exports = {
             }
 
             return axios
-              .get(
-                `${baseURL}/characters/${
-                  name.toLowerCase().includes('itto')
-                    ? 'arataki-itto'
-                    : name.toLowerCase() === 'hutao'
-                    ? 'hu-tao'
-                    : name.toLowerCase().includes('kazuha')
-                    ? 'kazuha'
-                    : name.toLowerCase().includes('kokomi')
-                    ? 'kokomi'
-                    : name.toLowerCase().includes('shinobu')
-                    ? 'kuki-shinobu'
-                    : name.toLowerCase().includes('raiden')
-                    ? 'raiden'
-                    : name.toLowerCase().includes('sara')
-                    ? 'sara'
-                    : name.toLowerCase().includes('heizou')
-                    ? 'shikanoin-heizou'
-                    : name.toLowerCase() === 'childe'
-                    ? 'tartaglia'
-                    : name.toLowerCase().includes('miko')
-                    ? 'yae-miko'
-                    : name.toLowerCase() === 'yunjin'
-                    ? 'yun-jin'
-                    : applySluggable(name)
-                }`,
-              )
+              .get(`${baseURL}/characters/${getFormattedParam(name)}`)
               .then(async ({ data }) => {
+                const formattedName =
+                  data.name === 'Ayato' ? 'Kamisato Ayato' : data.name;
+
                 embed.setThumbnail(
-                  getWikiaURL(`Character_${data.name}_Thumb.png`, baseImageURL),
+                  getWikiaURL({
+                    fileName: `Character_${formattedName}_Thumb`,
+                    path: 'gensin-impact',
+                  }),
                 );
                 embed.setAuthor({
-                  name: `👤 ${
-                    data.name === 'Ayato' ? 'Kamisato Ayato' : data.name
-                  }`,
+                  name: `👤 ${formattedName}`,
                 });
                 embed.setFields([
                   {
@@ -1215,13 +1404,13 @@ module.exports = {
                         .join('\n\n')}`,
                     )
                     .setThumbnail(
-                      getWikiaURL(
-                        `Character_${data.name}_Thumb.png`,
-                        baseImageURL,
-                      ),
+                      getWikiaURL({
+                        fileName: `Character_${formattedName}_Thumb`,
+                        path: 'gensin-impact',
+                      }),
                     )
                     .setAuthor({
-                      name: `👤 ${data.name}`,
+                      name: `👤 ${formattedName}`,
                     });
 
                   const passiveTalentEmbed = new EmbedBuilder()
@@ -1238,13 +1427,13 @@ module.exports = {
                         .join('\n\n')}`,
                     )
                     .setThumbnail(
-                      getWikiaURL(
-                        `Character_${data.name}_Thumb.png`,
-                        baseImageURL,
-                      ),
+                      getWikiaURL({
+                        fileName: `Character_${formattedName}_Thumb`,
+                        path: 'gensin-impact',
+                      }),
                     )
                     .setAuthor({
-                      name: `👤 ${data.name}`,
+                      name: `👤 ${formattedName}`,
                     });
 
                   const constellationEmbed = new EmbedBuilder()
@@ -1261,13 +1450,13 @@ module.exports = {
                         .join('\n\n')}`,
                     )
                     .setThumbnail(
-                      getWikiaURL(
-                        `Character_${data.name}_Thumb.png`,
-                        baseImageURL,
-                      ),
+                      getWikiaURL({
+                        fileName: `Character_${formattedName}_Thumb`,
+                        path: 'gensin-impact',
+                      }),
                     )
                     .setAuthor({
-                      name: `👤 ${data.name}`,
+                      name: `👤 ${formattedName}`,
                     });
 
                   let embeds = [
@@ -1287,19 +1476,19 @@ module.exports = {
                           `${bold('• Outfits')}\n${outfit.description}`,
                         )
                         .setThumbnail(
-                          getWikiaURL(
-                            `Character_${data.name}_Thumb.png`,
-                            baseImageURL,
-                          ),
+                          getWikiaURL({
+                            fileName: `Character_${formattedName}_Thumb`,
+                            path: 'gensin-impact',
+                          }),
                         )
                         .setImage(
-                          getWikiaURL(
-                            `Outfit_${outfit.name}_Thumb.png`,
-                            baseImageURL,
-                          ),
+                          getWikiaURL({
+                            fileName: `Outfit_${outfit.name}_Thumb`,
+                            path: 'gensin-impact',
+                          }),
                         )
                         .setAuthor({
-                          name: `👤 ${data.name}`,
+                          name: `👤 ${formattedName}`,
                         })
                         .setFields([
                           {
@@ -1335,6 +1524,17 @@ module.exports = {
                   );
 
                   pagination.setEmbeds(embeds);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
 
                   return pagination.render();
                 }
@@ -1373,7 +1573,7 @@ module.exports = {
                     .then(async ({ data }) => {
                       const responses = data.map(
                         (item, index) =>
-                          `${bold(`${index + 1}.`)} ${applyTitleCase(
+                          `${bold(`${index + 1}.`)} ${capitalCase(
                             item.replace(/-/g, ' '),
                           )}`,
                       );
@@ -1392,9 +1592,23 @@ module.exports = {
                       });
                       pagination.setAuthor({
                         name: `Genshin Impact Weapon Lists (${data.length})`,
-                        iconURL: `${baseImageURL}8/80/Genshin_Impact.png`,
+                        iconURL: getWikiaURL({
+                          fileName: 'Genshin_Impact',
+                          path: 'gensin-impact',
+                        }),
                       });
                       pagination.setDescriptions(responses);
+
+                      pagination.buttons = {
+                        ...pagination.buttons,
+                        extra: new ButtonBuilder()
+                          .setCustomId('jump')
+                          .setEmoji('↕️')
+                          .setDisabled(false)
+                          .setStyle(ButtonStyle.Secondary),
+                      };
+
+                      paginations.set(pagination.interaction.id, pagination);
 
                       await pagination.render();
                     }),
@@ -1402,10 +1616,13 @@ module.exports = {
             }
 
             return axios
-              .get(`${baseURL}/weapons/${applySluggable(name)}`)
+              .get(`${baseURL}/weapons/${paramCase(name)}`)
               .then(async ({ data }) => {
                 embed.setThumbnail(
-                  getWikiaURL(`Weapon_${data.name}.png`, baseImageURL),
+                  getWikiaURL({
+                    fileName: `Weapon_${data.name}`,
+                    path: 'gensin-impact',
+                  }),
                 );
                 embed.setAuthor({
                   name: `🗡️ ${data.name}`,
@@ -1471,6 +1688,152 @@ module.exports = {
         }
         break;
       }
+
+      case 'minecraft':
+        {
+          const mcData = minecraftData('1.19');
+
+          switch (options.getSubcommand()) {
+            case 'block': {
+              const name = options.getString('name');
+
+              if (!name) {
+                return interaction.deferReply().then(async () => {
+                  const filteredMcData = mcData.blocksArray.filter(
+                    (item, index, array) =>
+                      array.findIndex(
+                        (duplicate) =>
+                          duplicate.displayName === item.displayName,
+                      ) === index,
+                  );
+
+                  const responses = filteredMcData.map(
+                    (item, index) =>
+                      `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: `Minecraft ${
+                      mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
+                    } Edition v${
+                      mcData.version.minecraftVersion
+                    } Block Lists (${filteredMcData.length})`,
+                    iconURL:
+                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
+              }
+
+              /** @type {import('minecraft-data').Block} */
+              const block = {
+                ...mcData.blocksByName[getFormattedBlockName(snakeCase(name))],
+                ...extraMcData[getFormattedBlockName(snakeCase(name))],
+              };
+
+              embed.setDescription(block.description);
+              embed.setThumbnail(
+                getWikiaURL({
+                  fileName: `${block.displayName}${
+                    block.state ? `_(${block.state})` : ''
+                  }${block.version ? `_${block.version}` : ''}`,
+                  path: 'minecraft_gamepedia',
+                  type: mcData.version.type,
+                }),
+              );
+              embed.setAuthor({
+                name: `🟫 ${block.displayName}`,
+              });
+              embed.setFields([
+                {
+                  name: '⛏️ Tool',
+                  value: capitalCase(
+                    block.material !== 'default'
+                      ? block.material.slice(
+                          block.material.indexOf('/'),
+                          block.material.length,
+                        )
+                      : italic('None'),
+                  ),
+                  inline: true,
+                },
+                {
+                  name: '💪 Hardness',
+                  value: `${block.hardness}`,
+                  inline: true,
+                },
+                {
+                  name: '🛡️ Blast Resistance',
+                  value: `${block.resistance}`,
+                  inline: true,
+                },
+                {
+                  name: '📦 Stackable',
+                  value:
+                    block.stackSize > 0 ? `Yes (${block.stackSize})` : 'No',
+                  inline: true,
+                },
+                {
+                  name: '🥃 Transparent',
+                  value: block.transparent ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '🔦 Luminant',
+                  value: block.luminant ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '🔥 Flammable',
+                  value: block.flammable ? 'Yes' : 'No',
+                  inline: true,
+                },
+              ]);
+
+              if (block.renewable) {
+                embed.addFields([
+                  {
+                    name: '🆕 Renewable',
+                    value: block.renewable ? 'Yes' : 'No',
+                    inline: true,
+                  },
+                ]);
+              }
+
+              await interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            }
+          }
+        }
+        break;
     }
 
     switch (options.getSubcommand()) {
@@ -1526,20 +1889,16 @@ module.exports = {
           query.append('sort', sort);
         }
 
-        if (letter) {
-          const firstChar = letter.charAt(0);
-
-          if (!firstChar.match(/[a-z]/i)) {
-            return interaction.deferReply({ ephemeral: true }).then(
-              async () =>
-                await interaction.editReply({
-                  content: 'You have to specify an alphabetic character.',
-                }),
-            );
-          }
-
-          query.append('letter', firstChar);
+        if (letter && !isAlphabeticLetter(letter)) {
+          return interaction.deferReply({ ephemeral: true }).then(
+            async () =>
+              await interaction.editReply({
+                content: 'You have to specify an alphabetic character.',
+              }),
+          );
         }
+
+        query.append('letter', letter.charAt(0));
 
         return axios
           .get(`https://api.jikan.moe/v4/manga?${query}`)
@@ -1589,11 +1948,17 @@ module.exports = {
                       name: '📚 Volume & Chapter',
                       value: `${
                         item.volumes
-                          ? pluralize('volume', item.volumes, true)
+                          ? `${item.volumes.toLocaleString()} ${pluralize(
+                              'volume',
+                              item.volumes,
+                            )}`
                           : '??? volumes'
                       } ${
                         item.chapters
-                          ? `(${pluralize('chapter', item.chapters, true)})`
+                          ? `${item.chapters.toLocaleString()} (${pluralize(
+                              'chapter',
+                              item.chapters,
+                            )})`
                           : ''
                       }`,
                       inline: true,
@@ -1672,7 +2037,15 @@ module.exports = {
                     {
                       name: '💫 Synopsis',
                       value: item.synopsis
-                        ? truncate(item.synopsis, 1024)
+                        ? item.synopsis.includes('[Written by MAL Rewrite]')
+                          ? truncate(
+                              item.synopsis.replace(
+                                '[Written by MAL Rewrite]',
+                                '',
+                              ),
+                              1024 - 3,
+                            )
+                          : truncate(item.synopsis, 1024 - 3)
                         : italic('No available'),
                     },
                   ]);
@@ -1689,6 +2062,17 @@ module.exports = {
               const pagination = new Pagination(interaction);
 
               pagination.setEmbeds(embeds);
+
+              pagination.buttons = {
+                ...pagination.buttons,
+                extra: new ButtonBuilder()
+                  .setCustomId('jump')
+                  .setEmoji('↕️')
+                  .setDisabled(false)
+                  .setStyle(ButtonStyle.Secondary),
+              };
+
+              paginations.set(pagination.interaction.id, pagination);
 
               await pagination.render();
             });
@@ -1729,6 +2113,17 @@ module.exports = {
                 name: '🖼️ Image Search Results',
               });
               pagination.setImages(results.map((result) => result.url));
+
+              pagination.buttons = {
+                ...pagination.buttons,
+                extra: new ButtonBuilder()
+                  .setCustomId('jump')
+                  .setEmoji('↕️')
+                  .setDisabled(false)
+                  .setStyle(ButtonStyle.Secondary),
+              };
+
+              paginations.set(pagination.interaction.id, pagination);
 
               await pagination.render();
             },
@@ -1771,25 +2166,24 @@ module.exports = {
             )}`;
 
             embed.setAuthor({
-              name: `🔠 ${word}`,
+              name: `🔠 ${capitalCase(word)}`,
               url: permalink,
             });
             embed.setFields([
               {
                 name: '🔤 Definition',
-                value: truncate(
-                  `${definition}${formattedCite}`,
-                  1024,
-                  formattedCite.length + 3,
-                ),
+                value: `${truncate(
+                  definition,
+                  1024 - formattedCite.length - 3,
+                )}${formattedCite}`,
               },
               {
                 name: '🔤 Example',
-                value: truncate(example, 1024),
+                value: truncate(example, 1024 - 3),
               },
               {
                 name: '⭐ Rating',
-                value: `${thumbs_up} 👍 | ${thumbs_down} 👎`,
+                value: `${thumbs_up.toLocaleString()} 👍 | ${thumbs_down.toLocaleString()} 👎`,
               },
             ]);
 
@@ -1976,7 +2370,7 @@ module.exports = {
       //                         .map((tag) =>
       //                           hyperlink(
       //                             tag,
-      //                             `https://top.gg/tag/${applySluggable(tag)}`,
+      //                             `https://top.gg/tag/${paramCase(tag)}`,
       //                           ),
       //                         )
       //                         .join(', ')

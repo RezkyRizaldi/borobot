@@ -1,6 +1,9 @@
 /* global BigInt */
+const { capitalCase } = require('change-case');
 const {
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   Colors,
   EmbedBuilder,
   inlineCode,
@@ -11,6 +14,7 @@ const {
   TimestampStyles,
 } = require('discord.js');
 const moment = require('moment');
+const ordinal = require('ordinal');
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
 
@@ -18,13 +22,7 @@ const {
   roleModifyPermissionTypeChoices,
   rolePermissionChoices,
 } = require('../../constants');
-const {
-  applyComparison,
-  applyHexColor,
-  applyOrdinal,
-  applyPermission,
-  applySpacesBetweenPascalCase,
-} = require('../../utils');
+const { applyHexColor, applyPermission } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -342,6 +340,9 @@ module.exports = {
   async execute(interaction) {
     const { client, guild, options } = interaction;
 
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
+
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
 
@@ -501,9 +502,7 @@ module.exports = {
                       async (r) =>
                         await interaction.editReply({
                           content: `Successfully granted ${missingPermissions
-                            .map((perm) =>
-                              inlineCode(applySpacesBetweenPascalCase(perm)),
-                            )
+                            .map((perm) => inlineCode(capitalCase(perm)))
                             .join(', ')} ${pluralize(
                             'permission',
                             missingPermissions.length,
@@ -530,9 +529,7 @@ module.exports = {
                             .filter(
                               (perm) => !r.permissions.toArray().includes(perm),
                             )
-                            .map((perm) =>
-                              inlineCode(applySpacesBetweenPascalCase(perm)),
-                            )
+                            .map((perm) => inlineCode(capitalCase(perm)))
                             .join(', ')} ${pluralize(
                             'permission',
                             missingPermissions.length,
@@ -576,9 +573,8 @@ module.exports = {
           : rolePermissionsBitField === targetRolePermissionsBitField
           ? 'Equal'
           : targetRole;
-        const permissionsValueComparison = applyComparison(
-          rolePermissionsBitField,
-          targetRolePermissionsBitField,
+        const permissionsValueComparison = Math.abs(
+          rolePermissionsBitField - targetRolePermissionsBitField,
         );
 
         const roleMemberCount = role.members.size;
@@ -589,9 +585,8 @@ module.exports = {
           : roleMemberCount === targetRoleMemberCount
           ? 'Equal'
           : targetRole;
-        const memberCountValueComparison = applyComparison(
-          roleMemberCount,
-          targetRoleMemberCount,
+        const memberCountValueComparison = Math.abs(
+          roleMemberCount - targetRoleMemberCount,
         );
 
         const roleCreatedTimestamp = role.createdTimestamp;
@@ -630,7 +625,7 @@ module.exports = {
               name: '👤 Highest Member Count',
               value: `${highestMemberCount} ${
                 memberCountValueComparison > 0
-                  ? `(+${memberCountValueComparison})`
+                  ? `(+${memberCountValueComparison.toLocaleString()})`
                   : ''
               }`,
               inline: true,
@@ -683,21 +678,22 @@ module.exports = {
             },
             {
               name: '👤 Member Count',
-              value: pluralize('member', role.members.size, true),
+              value: `${role.members.size.toLocaleString()} ${pluralize(
+                'member',
+                role.members.size,
+              )}`,
               inline: true,
             },
             {
               name: '🔢 Position',
-              value: applyOrdinal(role.position),
+              value: ordinal(role.position),
               inline: true,
             },
             {
               name: '🔐 Permissions',
               value: role.permissions
                 .toArray()
-                .map((permission) =>
-                  inlineCode(applySpacesBetweenPascalCase(permission)),
-                )
+                .map((permission) => inlineCode(capitalCase(permission)))
                 .join(', '),
             },
           ]);
@@ -840,28 +836,39 @@ module.exports = {
                   }),
                 });
                 pagination.setAuthor({
-                  name: `🔐 ${guild} Role Lists (${rls.size})`,
+                  name: `🔐 ${guild} Role Lists (${rls.size.toLocaleString()})`,
                 });
 
                 if (guild.icon) {
                   pagination.setAuthor({
-                    name: `${guild} Role Lists (${rls.size})`,
+                    name: `${guild} Role Lists (${rls.size.toLocaleString()})`,
                     iconURL: guild.iconURL({ dynamic: true }),
                   });
                 }
 
                 pagination.setDescriptions(descriptions);
 
+                pagination.buttons = {
+                  ...pagination.buttons,
+                  extra: new ButtonBuilder()
+                    .setCustomId('jump')
+                    .setEmoji('↕️')
+                    .setDisabled(false)
+                    .setStyle(ButtonStyle.Secondary),
+                };
+
+                paginations.set(pagination.interaction.id, pagination);
+
                 return pagination.render();
               }
 
               embed.setAuthor({
-                name: `🔐 ${guild} Role Lists (${rls.size})`,
+                name: `🔐 ${guild} Role Lists (${rls.size.toLocaleString()})`,
               });
 
               if (guild.icon) {
                 embed.setAuthor({
-                  name: `${guild} Role Lists (${rls.size})`,
+                  name: `${guild} Role Lists (${rls.size.toLocaleString()})`,
                   iconURL: guild.iconURL({ dynamic: true }),
                 });
               }

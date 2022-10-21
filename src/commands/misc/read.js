@@ -1,5 +1,7 @@
 const {
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   EmbedBuilder,
   hyperlink,
   SlashCommandBuilder,
@@ -40,6 +42,9 @@ module.exports = {
   async execute(interaction) {
     const { client, guild, options } = interaction;
 
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
+
     switch (options.getSubcommand()) {
       case 'list':
         return interaction.deferReply({ ephemeral: true }).then(async () => {
@@ -65,9 +70,20 @@ module.exports = {
             }),
           });
           pagination.setAuthor({
-            name: `🌐 Image Reader Locale Lists (${locales.length})`,
+            name: `🌐 Image Reader Locale Lists (${locales.length.toLocaleString()})`,
           });
           pagination.setDescriptions(responses);
+
+          pagination.buttons = {
+            ...pagination.buttons,
+            extra: new ButtonBuilder()
+              .setCustomId('jump')
+              .setEmoji('↕️')
+              .setDisabled(false)
+              .setStyle(ButtonStyle.Secondary),
+          };
+
+          paginations.set(pagination.interaction.id, pagination);
 
           await pagination.render();
         });

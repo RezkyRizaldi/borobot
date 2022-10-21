@@ -1,5 +1,7 @@
 const {
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   EmbedBuilder,
   inlineCode,
   PermissionFlagsBits,
@@ -101,6 +103,9 @@ module.exports = {
    */
   async execute(interaction) {
     const { client, guild, options, user } = interaction;
+
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
       switch (options.getSubcommand()) {
@@ -289,9 +294,20 @@ module.exports = {
                 }),
               });
               pagination.setAuthor({
-                name: `🚫 Banned User Lists (${bannedUsers.size})`,
+                name: `🚫 Banned User Lists (${bannedUsers.size.toLocaleString()})`,
               });
               pagination.setDescriptions(descriptions);
+
+              pagination.buttons = {
+                ...pagination.buttons,
+                extra: new ButtonBuilder()
+                  .setCustomId('jump')
+                  .setEmoji('↕️')
+                  .setDisabled(false)
+                  .setStyle(ButtonStyle.Secondary),
+              };
+
+              paginations.set(pagination.interaction.id, pagination);
 
               return pagination.render();
             }

@@ -35,7 +35,7 @@ module.exports = (client) => {
         arr.push(file);
       }
     }
-    table.setTitle(`Commands${arr.length && ` (${arr.length})`}`);
+    table.setTitle(`Commands${arr.length ? ` (${arr.length})` : ''}`);
     console.log(table.toString());
 
     const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);

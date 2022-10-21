@@ -9,9 +9,9 @@ const {
   TimestampStyles,
   WebhookClient,
 } = require('discord.js');
+const moment = require('moment');
 
 const {
-  applyAFKTimeout,
   applyDefaultMessageNotifications,
   applyExplicitContentFilter,
   applyNSFWLevel,
@@ -113,12 +113,12 @@ module.exports = {
         0,
         {
           name: '🕒 Before',
-          value: applyAFKTimeout(oldGuild.afkTimeout),
+          value: moment.duration(oldGuild.afkTimeout).humanize(),
           inline: true,
         },
         {
           name: '🕒 After',
-          value: applyAFKTimeout(newGuild.afkTimeout),
+          value: moment.duration(newGuild.afkTimeout).humanize(),
           inline: true,
         },
       );

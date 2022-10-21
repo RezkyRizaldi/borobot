@@ -1,3 +1,4 @@
+const { capitalCase } = require('change-case');
 const {
   ApplicationCommandType,
   bold,
@@ -8,11 +9,7 @@ const {
   TimestampStyles,
 } = require('discord.js');
 
-const {
-  applyActivity,
-  applyPresence,
-  applySpacesBetweenPascalCase,
-} = require('../../utils');
+const { applyActivity, applyPresence } = require('../../utils');
 
 module.exports = {
   data: new ContextMenuCommandBuilder()
@@ -40,10 +37,7 @@ module.exports = {
 
           const userClientStatus = member.presence?.clientStatus
             ? Object.keys(member.presence.clientStatus)
-                .map(
-                  (status) =>
-                    `${status.charAt(0).toUpperCase()}${status.slice(1)}`,
-                )
+                .map((status) => capitalCase(status))
                 .join(', ')
             : italic('None');
 
@@ -95,7 +89,9 @@ module.exports = {
               },
               {
                 name: `🛠️ Roles${
-                  member.roles.cache.size && ` (${member.roles.cache.size - 1})`
+                  member.roles.cache.size
+                    ? ` (${(member.roles.cache.size - 1).toLocaleString()})`
+                    : ''
                 }`,
                 value: userRoles,
               },
@@ -103,7 +99,7 @@ module.exports = {
                 name: '🔐 Permissions',
                 value: member.permissions
                   .toArray()
-                  .map((permission) => applySpacesBetweenPascalCase(permission))
+                  .map((permission) => capitalCase(permission))
                   .join(', '),
               },
               {

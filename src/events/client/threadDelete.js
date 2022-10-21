@@ -41,7 +41,7 @@ module.exports = {
         name: '💭 Thread Channel Deleted',
       })
       .setDescription(
-        `${thread} thread channel ${
+        `A thread channel ${
           thread.parent ? `in ${thread.parent}` : ''
         } was ${bold('deleted')} by ${deleteLog.executor}.`,
       )

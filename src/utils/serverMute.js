@@ -1,5 +1,7 @@
 const {
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   ChannelType,
   Colors,
   inlineCode,
@@ -17,6 +19,9 @@ const { Pagination } = require('pagination.djs');
  */
 module.exports = async (interaction, subcommand) => {
   const { client, guild, options, user } = interaction;
+
+  /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+  const { paginations } = client;
 
   /** @type {import('discord.js').GuildMember} */
   const member = options.getMember('member');
@@ -143,15 +148,26 @@ module.exports = async (interaction, subcommand) => {
               }),
             });
             pagination.setAuthor({
-              name: `🔇 Muted Members from Text Channels (${textMutedMembers.size})`,
+              name: `🔇 Muted Members from Text Channels (${textMutedMembers.size.toLocaleString()})`,
             });
             pagination.setDescriptions(descriptions);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
 
             return pagination.render();
           }
 
           embed.setAuthor({
-            name: `🔇 Muted Members from Text Channels (${textMutedMembers.size})`,
+            name: `🔇 Muted Members from Text Channels (${textMutedMembers.size.toLocaleString()})`,
           });
           embed.setDescription(descriptions.join('\n'));
 
@@ -186,15 +202,26 @@ module.exports = async (interaction, subcommand) => {
               }),
             });
             pagination.setAuthor({
-              name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size})`,
+              name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size.toLocaleString()})`,
             });
             pagination.setDescriptions(descriptions);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
 
             return pagination.render();
           }
 
           embed.setAuthor({
-            name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size})`,
+            name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size.toLocaleString()})`,
           });
           embed.setDescription(descriptions.join('\n'));
 
@@ -202,7 +229,7 @@ module.exports = async (interaction, subcommand) => {
         }
 
         default: {
-          if (!textMutedMembers.size && !voiceMutedMembers.size) {
+          if (!mutedMembers.size) {
             return interaction.editReply({
               content: `No one muted in ${bold(guild)}.`,
             });
@@ -229,15 +256,26 @@ module.exports = async (interaction, subcommand) => {
               }),
             });
             pagination.setAuthor({
-              name: `🔇 Muted Members from ${guild} (${mutedMembers.size})`,
+              name: `🔇 Muted Members from ${guild} (${mutedMembers.size.toLocaleString()})`,
             });
             pagination.setDescriptions(descriptions);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
 
             return pagination.render();
           }
 
           embed.setAuthor({
-            name: `🔇 Muted Members from ${guild} (${mutedMembers.size})`,
+            name: `🔇 Muted Members from ${guild} (${mutedMembers.size.toLocaleString()})`,
           });
           embed.setDescription(descriptions.join('\n'));
 
@@ -279,6 +317,7 @@ const findOrCreateRole = async (interaction) => {
         guild.channels.cache
           .filter(
             (channel) =>
+              channel.type !== ChannelType.GuildCategory &&
               channel.type !== ChannelType.GuildVoice &&
               channel.type !== ChannelType.GuildStageVoice,
           )
@@ -329,6 +368,7 @@ const findOrCreateRole = async (interaction) => {
   guild.channels.cache
     .filter(
       (channel) =>
+        channel.type !== ChannelType.GuildCategory &&
         channel.type !== ChannelType.GuildVoice &&
         channel.type !== ChannelType.GuildStageVoice,
     )

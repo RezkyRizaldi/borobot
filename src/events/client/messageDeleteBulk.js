@@ -10,12 +10,12 @@ const {
   WebhookClient,
 } = require('discord.js');
 const pluralize = require('pluralize');
+const truncate = require('truncate');
 
 const {
   applyMessageType,
   groupMessageByAuthor,
   groupMessageByType,
-  truncate,
 } = require('../../utils');
 
 module.exports = {
@@ -48,7 +48,7 @@ module.exports = {
         name: '❌ Messages Deleted',
       });
       embed.setDescription(
-        `${messages.size} messages was ${bold('deleted')} in ${
+        `${messages.size.toLocaleString()} messages was ${bold('deleted')} in ${
           messages.first().channel
         } at ${time(
           Math.floor(Date.now() / 1000),
@@ -79,10 +79,9 @@ module.exports = {
       const response = `${groupedMessages
         .flatMap(
           (arrMessage) =>
-            `${arrMessage.reduce(
-              (acc, curr) => acc + curr.length,
-              0,
-            )} ${pluralize(
+            `${arrMessage
+              .reduce((acc, curr) => acc + curr.length, 0)
+              .toLocaleString()} ${pluralize(
               'message',
               arrMessage.reduce((acc, curr) => acc + curr.length, 0),
             )} from ${userMention(arrMessage[0][0].author.id)} was ${bold(
@@ -125,7 +124,7 @@ module.exports = {
       return MessageLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
-    const response = `${messages.size} messages from ${
+    const response = `${messages.size.toLocaleString()} messages from ${
       messages.first().author
     } was ${bold('deleted')} by ${bulkDeleteLog.executor} in ${
       messages.first().channel
@@ -140,19 +139,7 @@ module.exports = {
       name: 'Messages Deleted',
       iconURL: messages.first().author.displayAvatarURL({ dynamic: true }),
     });
-    embed.setDescription(response);
-
-    if (response.length > 4096) {
-      embed.setDescription(truncate(response, 4096));
-
-      const secondEmbed = new EmbedBuilder().setDescription(
-        truncate(response, response.length, 4096),
-      );
-
-      return MessageLogger.send({ embeds: [embed, secondEmbed] }).catch(
-        console.error,
-      );
-    }
+    embed.setDescription(truncate(response, 4096 - 3));
 
     await MessageLogger.send({ embeds: [embed] }).catch(console.error);
   },

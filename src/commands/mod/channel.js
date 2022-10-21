@@ -1,5 +1,8 @@
+const { capitalCase } = require('change-case');
 const {
   bold,
+  ButtonBuilder,
+  ButtonStyle,
   ChannelType,
   EmbedBuilder,
   formatEmoji,
@@ -12,16 +15,15 @@ const {
   time,
   TimestampStyles,
   userMention,
-  VideoQualityMode,
 } = require('discord.js');
+const ordinal = require('ordinal');
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
 
 const { channelCreateChoices, channelType } = require('../../constants');
 const {
-  applyOrdinal,
-  applySpacesBetweenPascalCase,
   applyThreadAutoArchiveDuration,
+  applyVideoQualityMode,
 } = require('../../utils');
 
 module.exports = {
@@ -49,7 +51,8 @@ module.exports = {
         .addChannelOption((option) =>
           option
             .setName('category')
-            .setDescription("🔣 The channel's category."),
+            .setDescription("🔣 The channel's category.")
+            .addChannelTypes(ChannelType.GuildCategory),
         )
         .addStringOption((option) =>
           option.setName('topic').setDescription("🗣️ The channel's topic."),
@@ -110,7 +113,8 @@ module.exports = {
               option
                 .setName('category')
                 .setDescription("🔤 The channel's new category channel.")
-                .setRequired(true),
+                .setRequired(true)
+                .addChannelTypes(ChannelType.GuildCategory),
             )
             .addStringOption((option) =>
               option
@@ -218,11 +222,14 @@ module.exports = {
   async execute(interaction) {
     const { client, guild, options } = interaction;
 
+    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+    const { paginations } = client;
+
     const nsfw = options.getBoolean('nsfw');
     const name = options.getString('name');
     const type = options.getInteger('type');
 
-    /** @type {import('discord.js').GuildChannel} */
+    /** @type {import('discord.js').CategoryChannel} */
     const parent = options.getChannel('category');
     const topic = options.getString('topic');
 
@@ -238,6 +245,12 @@ module.exports = {
         return interaction.deferReply({ ephemeral: true }).then(async () => {
           switch (options.getSubcommand()) {
             case 'category':
+              if (channel.type === parent.type) {
+                return interaction.editReply({
+                  content: `Can't modify ${channel} channel's category since it is a category channel.`,
+                });
+              }
+
               if (channel.parent && channel.parent === parent) {
                 return interaction.editReply({
                   content: `${channel} is already in ${channel.parent} category channel.`,
@@ -339,7 +352,7 @@ module.exports = {
           .create({
             name,
             type,
-            parent,
+            parent: type === ChannelType.GuildCategory ? null : parent,
             topic,
             reason,
           })
@@ -403,21 +416,16 @@ module.exports = {
       case 'info':
         return interaction.deferReply().then(async () => {
           const channelTopic = channel.topic ?? italic('No topic');
-
           const isNSFW = channel.nsfw ? 'Yes' : 'No';
-
           const bitrate = `${channel.bitrate / 1000}kbps`;
-
-          const memberCountVoiceBasedChannel = pluralize(
+          const memberCount = `${channel.members.size.toLocaleString()} ${pluralize(
             'member',
             channel.members.size,
-            true,
-          );
+          )}`;
           const userLimitVoiceBasedChannel =
             channel.userLimit > 0
               ? pluralize('user', channel.userLimit, true)
               : 'Unlimited';
-
           const slowmode = inlineCode(
             `${
               channel.rateLimitPerUser > 0
@@ -425,8 +433,144 @@ module.exports = {
                 : 'Off'
             }`,
           );
-
           const regionOverride = channel.rtcRegion ?? 'Automatic';
+          const messageCount = channel.messages.cache.size;
+
+          const pinnedMessageCount = await channel.messages
+            .fetchPinned()
+            .then((pinned) => pinned.size);
+
+          const permissionOverwrites = channel.permissionOverwrites.cache;
+
+          const permissionOverwritesList = permissionOverwrites
+            .map((permission) => {
+              const allowedPermissions = permission.allow.toArray();
+              const deniedPermissions = permission.deny.toArray();
+
+              return `${bold('•')} ${
+                permission.type === OverwriteType.Role
+                  ? permission.id === guild.roles.everyone.id
+                    ? guild.roles.everyone
+                    : roleMention(permission.id)
+                  : userMention(permission.id)
+              }\n${
+                allowedPermissions.length
+                  ? `Allowed: ${allowedPermissions
+                      .map((allowedPermission) =>
+                        inlineCode(capitalCase(allowedPermission)),
+                      )
+                      .join(', ')}\n`
+                  : ''
+              }${
+                deniedPermissions.length
+                  ? `Denied: ${deniedPermissions
+                      .map((deniedPermission) =>
+                        inlineCode(capitalCase(deniedPermission)),
+                      )
+                      .join(', ')}`
+                  : ''
+              }`;
+            })
+            .join('\n\n');
+
+          const activeThreads = await channel.threads
+            .fetchActive()
+            .then((threads) => threads);
+
+          const archivedThreads = await channel.threads
+            .fetchArchived()
+            .then((threads) => threads);
+
+          const publicThreads = channel.threads.cache.filter(
+            (thread) => thread.type === ChannelType.PublicThread,
+          );
+
+          const activePublicThreads = activeThreads.filter(
+            (thread) => thread.type === ChannelType.PublicThread,
+          );
+
+          const archivedPublicThreads = archivedThreads.filter(
+            (thread) => thread.type === ChannelType.PublicThread,
+          );
+
+          const privateThreads = channel.threads.cache.filter(
+            (thread) => thread.type === ChannelType.PrivateThread,
+          );
+
+          const activePrivateThreads = activeThreads.filter(
+            (thread) => thread.type === ChannelType.PrivateThread,
+          );
+
+          const archivedPrivateThreads = archivedThreads.filter(
+            (thread) => thread.type === ChannelType.PrivateThread,
+          );
+
+          const announcementThreads = channel.threads.cache.filter(
+            (thread) => thread.type === ChannelType.AnnouncementThread,
+          );
+
+          const activeAnnouncementThreads = activeThreads.filter(
+            (thread) => thread.type === ChannelType.AnnouncementThread,
+          );
+
+          const archivedAnnouncementThreads = archivedThreads.filter(
+            (thread) => thread.type === ChannelType.AnnouncementThread,
+          );
+
+          const threadList = `👁️‍🗨️ ${publicThreads.size.toLocaleString()} Public ${
+            activeThreads.size || archivedThreads.size
+              ? `(${
+                  activePublicThreads.size.toLocaleString()
+                    ? `${activePublicThreads.size.toLocaleString()} active`
+                    : ''
+                }${activeThreads.size && archivedThreads.size ? ', ' : ''}${
+                  archivedPublicThreads.size
+                    ? `${archivedPublicThreads.size.toLocaleString()} archived`
+                    : ''
+                })`
+              : ''
+          } | 🔒 ${privateThreads.size.toLocaleString()} Private ${
+            activePrivateThreads.size || archivedPrivateThreads.size
+              ? `(${
+                  activePrivateThreads.size
+                    ? `${activePrivateThreads.size.toLocaleString()} active`
+                    : ''
+                }${
+                  activePrivateThreads.size && archivedPrivateThreads.size
+                    ? ', '
+                    : ''
+                }${
+                  archivedPrivateThreads.size
+                    ? `${archivedPrivateThreads.size.toLocaleString()} archived`
+                    : ''
+                })`
+              : ''
+          } | 📣 ${announcementThreads.size} Announcement ${
+            activeAnnouncementThreads.size || archivedAnnouncementThreads.size
+              ? `(${
+                  activeAnnouncementThreads.size
+                    ? `${activeAnnouncementThreads.size.toLocaleString()} active`
+                    : ''
+                }${
+                  activeAnnouncementThreads.size &&
+                  archivedAnnouncementThreads.size
+                    ? ', '
+                    : ''
+                }${
+                  archivedAnnouncementThreads.size
+                    ? `${archivedAnnouncementThreads.size.toLocaleString()} archived`
+                    : ''
+                })`
+              : ''
+          }${
+            channel.defaultAutoArchiveDuration
+              ? `\nInactivity duration: ${inlineCode(
+                  applyThreadAutoArchiveDuration(
+                    channel.defaultAutoArchiveDuration,
+                  ),
+                )}`
+              : ''
+          }`;
 
           const embed = new EmbedBuilder()
             .setColor(guild.members.me.displayHexColor)
@@ -456,9 +600,6 @@ module.exports = {
           switch (channel.type) {
             case ChannelType.GuildText:
             case ChannelType.GuildAnnouncement: {
-              const activeThreads = await channel.threads.fetchActive();
-              const archivedThreads = await channel.threads.fetchArchived();
-
               embed.spliceFields(1, 0, {
                 name: '📁 Category',
                 value: channel.parent ? `${channel.parent}` : italic('None'),
@@ -469,7 +610,7 @@ module.exports = {
                 0,
                 {
                   name: '🔢 Position',
-                  value: `${applyOrdinal(channel.position + 1)}${
+                  value: `${ordinal(channel.position + 1)}${
                     channel.type !== ChannelType.GuildCategory && channel.parent
                       ? ` in ${channel.parent}`
                       : ''
@@ -483,22 +624,18 @@ module.exports = {
                 },
                 {
                   name: '💬 Message Count',
-                  value: pluralize(
+                  value: `${messageCount.toLocaleString()} ${pluralize(
                     'message',
-                    channel.messages.cache.size,
-                    true,
-                  ),
+                    messageCount,
+                  )}`,
                   inline: true,
                 },
                 {
                   name: '📌 Pinned Message Count',
-                  value: pluralize(
+                  value: `${pinnedMessageCount.toLocaleString()} ${pluralize(
                     'pinned message',
-                    await channel.messages
-                      .fetchPinned()
-                      .then((pinned) => pinned.size),
-                    true,
-                  ),
+                    pinnedMessageCount,
+                  )}`,
                   inline: true,
                 },
               );
@@ -530,153 +667,7 @@ module.exports = {
                 },
                 {
                   name: '💭 Threads',
-                  value: `👁️‍🗨️ ${
-                    channel.threads.cache.filter(
-                      (thread) => thread.type === ChannelType.PublicThread,
-                    ).size
-                  } Public ${
-                    activeThreads.threads.size || archivedThreads.threads.size
-                      ? `(${
-                          activeThreads.threads.filter(
-                            (thread) =>
-                              thread.type === ChannelType.PublicThread,
-                          ).size
-                            ? `${
-                                activeThreads.threads.filter(
-                                  (thread) =>
-                                    thread.type === ChannelType.PublicThread,
-                                ).size
-                              } active`
-                            : ''
-                        }${
-                          activeThreads.threads.size &&
-                          archivedThreads.threads.size
-                            ? ', '
-                            : ''
-                        }${
-                          archivedThreads.threads.filter(
-                            (thread) =>
-                              thread.type === ChannelType.PublicThread,
-                          ).size
-                            ? `${
-                                archivedThreads.threads.filter(
-                                  (thread) =>
-                                    thread.type === ChannelType.PublicThread,
-                                ).size
-                              } archived`
-                            : ''
-                        })`
-                      : ''
-                  } | 🔒 ${
-                    channel.threads.cache.filter(
-                      (thread) => thread.type === ChannelType.PrivateThread,
-                    ).size
-                  } Private ${
-                    activeThreads.threads.filter(
-                      (thread) => thread.type === ChannelType.PrivateThread,
-                    ).size ||
-                    archivedThreads.threads.filter(
-                      (thread) => thread.type === ChannelType.PrivateThread,
-                    ).size
-                      ? `(${
-                          activeThreads.threads.filter(
-                            (thread) =>
-                              thread.type === ChannelType.PrivateThread,
-                          ).size
-                            ? `${
-                                activeThreads.threads.filter(
-                                  (thread) =>
-                                    thread.type === ChannelType.PrivateThread,
-                                ).size
-                              } active`
-                            : ''
-                        }${
-                          activeThreads.threads.filter(
-                            (thread) =>
-                              thread.type === ChannelType.PrivateThread,
-                          ).size &&
-                          archivedThreads.threads.filter(
-                            (thread) =>
-                              thread.type === ChannelType.PrivateThread,
-                          ).size
-                            ? ', '
-                            : ''
-                        }${
-                          archivedThreads.threads.filter(
-                            (thread) =>
-                              thread.type === ChannelType.PrivateThread,
-                          ).size
-                            ? `${
-                                archivedThreads.threads.filter(
-                                  (thread) =>
-                                    thread.type === ChannelType.PrivateThread,
-                                ).size
-                              } archived`
-                            : ''
-                        })`
-                      : ''
-                  } | 📣 ${
-                    channel.threads.cache.filter(
-                      (thread) =>
-                        thread.type === ChannelType.AnnouncementThread,
-                    ).size
-                  } Announcement ${
-                    activeThreads.threads.filter(
-                      (thread) =>
-                        thread.type === ChannelType.AnnouncementThread,
-                    ).size ||
-                    archivedThreads.threads.filter(
-                      (thread) =>
-                        thread.type === ChannelType.AnnouncementThread,
-                    ).size
-                      ? `(${
-                          activeThreads.threads.filter(
-                            (thread) =>
-                              thread.type === ChannelType.AnnouncementThread,
-                          ).size
-                            ? `${
-                                activeThreads.threads.filter(
-                                  (thread) =>
-                                    thread.type ===
-                                    ChannelType.AnnouncementThread,
-                                ).size
-                              } active`
-                            : ''
-                        }${
-                          activeThreads.threads.filter(
-                            (thread) =>
-                              thread.type === ChannelType.AnnouncementThread,
-                          ).size &&
-                          archivedThreads.threads.filter(
-                            (thread) =>
-                              thread.type === ChannelType.AnnouncementThread,
-                          ).size
-                            ? ', '
-                            : ''
-                        }${
-                          archivedThreads.threads.filter(
-                            (thread) =>
-                              thread.type === ChannelType.AnnouncementThread,
-                          ).size
-                            ? `${
-                                archivedThreads.threads.filter(
-                                  (thread) =>
-                                    thread.type ===
-                                    ChannelType.AnnouncementThread,
-                                ).size
-                              } archived`
-                            : ''
-                        })`
-                      : ''
-                  }${
-                    channel.defaultAutoArchiveDuration
-                      ? `\nInactivity duration: ${inlineCode(
-                          applyThreadAutoArchiveDuration(
-                            channel.defaultAutoArchiveDuration,
-                          ),
-                        )}`
-                      : ''
-                  }`,
+                  value: threadList,
                 },
                 {
                   name: '🔐 Permissions',
@@ -685,45 +676,8 @@ module.exports = {
                       ? `Synced with ${channel.parent}`
                       : ''
                   }\n${
-                    channel.permissionOverwrites.cache.size
-                      ? channel.permissionOverwrites.cache
-                          .map(
-                            (permission) =>
-                              `${bold('•')} ${
-                                permission.type === OverwriteType.Role
-                                  ? permission.id === guild.roles.everyone.id
-                                    ? guild.roles.everyone
-                                    : roleMention(permission.id)
-                                  : userMention(permission.id)
-                              }\n${
-                                permission.allow.toArray().length
-                                  ? `Allowed: ${permission.allow
-                                      .toArray()
-                                      .map((allowedPermission) =>
-                                        inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            allowedPermission,
-                                          ),
-                                        ),
-                                      )
-                                      .join(', ')}\n`
-                                  : ''
-                              }${
-                                permission.deny.toArray().length
-                                  ? `Denied: ${permission.deny
-                                      .toArray()
-                                      .map((deniedPermission) =>
-                                        inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            deniedPermission,
-                                          ),
-                                        ),
-                                      )
-                                      .join(', ')}`
-                                  : ''
-                              }`,
-                          )
-                          .join('\n\n')
+                    permissionOverwrites.size
+                      ? permissionOverwritesList
                       : italic('None')
                   }`,
                 },
@@ -743,7 +697,7 @@ module.exports = {
                 0,
                 {
                   name: '🔢 Position',
-                  value: `${applyOrdinal(channel.position + 1)}${
+                  value: `${ordinal(channel.position + 1)}${
                     channel.type !== ChannelType.GuildCategory && channel.parent
                       ? ` in ${channel.parent}`
                       : ''
@@ -752,16 +706,15 @@ module.exports = {
                 },
                 {
                   name: '👥 Member Count in Voice',
-                  value: memberCountVoiceBasedChannel,
+                  value: memberCount,
                   inline: true,
                 },
                 {
                   name: '💬 Message Count in Voice',
-                  value: pluralize(
+                  value: `${messageCount.toLocaleString()} ${pluralize(
                     'message',
-                    channel.messages.cache.size,
-                    true,
-                  ),
+                    messageCount,
+                  )}`,
                   inline: true,
                 },
                 {
@@ -776,10 +729,7 @@ module.exports = {
                 },
                 {
                   name: '🎥 Video Quality',
-                  value:
-                    channel.videoQualityMode === VideoQualityMode.Auto
-                      ? 'Auto'
-                      : 'Full HD',
+                  value: applyVideoQualityMode(channel.videoQualityMode),
                   inline: true,
                 },
                 {
@@ -821,45 +771,8 @@ module.exports = {
                       ? `Synced with ${channel.parent}`
                       : ''
                   }\n${
-                    channel.permissionOverwrites.cache.size
-                      ? channel.permissionOverwrites.cache
-                          .map(
-                            (permission) =>
-                              `${bold('•')} ${
-                                permission.type === OverwriteType.Role
-                                  ? permission.id === guild.roles.everyone.id
-                                    ? guild.roles.everyone
-                                    : roleMention(permission.id)
-                                  : userMention(permission.id)
-                              }\n${
-                                permission.allow.toArray().length
-                                  ? `Allowed: ${permission.allow
-                                      .toArray()
-                                      .map((allowedPermission) =>
-                                        inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            allowedPermission,
-                                          ),
-                                        ),
-                                      )
-                                      .join(', ')}\n`
-                                  : ''
-                              }${
-                                permission.deny.toArray().length
-                                  ? `Denied: ${permission.deny
-                                      .toArray()
-                                      .map((deniedPermission) =>
-                                        inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            deniedPermission,
-                                          ),
-                                        ),
-                                      )
-                                      .join(', ')}`
-                                  : ''
-                              }`,
-                          )
-                          .join('\n\n')
+                    permissionOverwrites.size
+                      ? permissionOverwritesList
                       : italic('None')
                   }`,
                 },
@@ -869,12 +782,14 @@ module.exports = {
             }
 
             case ChannelType.GuildCategory: {
+              const childChannels = channel.children.cache;
+
               embed.spliceFields(
                 3,
                 0,
                 {
                   name: '🔢 Position',
-                  value: `${applyOrdinal(channel.position + 1)}${
+                  value: `${ordinal(channel.position + 1)}${
                     channel.type !== ChannelType.GuildCategory && channel.parent
                       ? ` in ${channel.parent}`
                       : ''
@@ -883,10 +798,8 @@ module.exports = {
                 },
                 {
                   name: '#️⃣ Channels',
-                  value: channel.children.cache.size
-                    ? channel.children.cache
-                        .map((child) => `${child}`)
-                        .join(', ')
+                  value: childChannels.size
+                    ? childChannels.map((child) => `${child}`).join(', ')
                     : italic('None'),
                 },
               );
@@ -897,45 +810,8 @@ module.exports = {
                     ? `Synced with ${channel.parent}`
                     : ''
                 }\n${
-                  channel.permissionOverwrites.cache.size
-                    ? channel.permissionOverwrites.cache
-                        .map(
-                          (permission) =>
-                            `${bold('•')} ${
-                              permission.type === OverwriteType.Role
-                                ? permission.id === guild.roles.everyone.id
-                                  ? guild.roles.everyone
-                                  : roleMention(permission.id)
-                                : userMention(permission.id)
-                            }\n${
-                              permission.allow.toArray().length
-                                ? `Allowed: ${permission.allow
-                                    .toArray()
-                                    .map((allowedPermission) =>
-                                      inlineCode(
-                                        applySpacesBetweenPascalCase(
-                                          allowedPermission,
-                                        ),
-                                      ),
-                                    )
-                                    .join(', ')}\n`
-                                : ''
-                            }${
-                              permission.deny.toArray().length
-                                ? `Denied: ${permission.deny
-                                    .toArray()
-                                    .map((deniedPermission) =>
-                                      inlineCode(
-                                        applySpacesBetweenPascalCase(
-                                          deniedPermission,
-                                        ),
-                                      ),
-                                    )
-                                    .join(', ')}`
-                                : ''
-                            }`,
-                        )
-                        .join('\n\n')
+                  permissionOverwrites.size
+                    ? permissionOverwritesList
                     : italic('None')
                 }`,
               });
@@ -967,27 +843,26 @@ module.exports = {
                 0,
                 {
                   name: '👥 Member Count in Thread',
-                  value: pluralize('member', channel.members.cache.size, true),
+                  value: `${memberCount.toLocaleString()} ${pluralize(
+                    'member',
+                    memberCount,
+                  )}`,
                   inline: true,
                 },
                 {
                   name: '💬 Message Count',
-                  value: pluralize(
+                  value: `${messageCount.toLocaleString()} ${pluralize(
                     'message',
-                    channel.messages.cache.size,
-                    true,
-                  ),
+                    messageCount,
+                  )}`,
                   inline: true,
                 },
                 {
                   name: '📌 Pinned Message Count',
-                  value: pluralize(
+                  value: `${pinnedMessageCount.toLocaleString()} ${pluralize(
                     'pinned message',
-                    await channel.messages
-                      .fetchPinned()
-                      .then((pinned) => pinned.size),
-                    true,
-                  ),
+                    pinnedMessageCount,
+                  )}`,
                   inline: true,
                 },
                 {
@@ -1033,7 +908,7 @@ module.exports = {
                 0,
                 {
                   name: '🔢 Position',
-                  value: `${applyOrdinal(channel.position + 1)}${
+                  value: `${ordinal(channel.position + 1)}${
                     channel.type !== ChannelType.GuildCategory && channel.parent
                       ? ` in ${channel.parent}`
                       : ''
@@ -1042,7 +917,7 @@ module.exports = {
                 },
                 {
                   name: '👥 Member Count in Stage',
-                  value: memberCountVoiceBasedChannel,
+                  value: memberCount,
                   inline: true,
                 },
                 {
@@ -1067,45 +942,8 @@ module.exports = {
                       ? `Synced with ${channel.parent}`
                       : ''
                   }\n${
-                    channel.permissionOverwrites.cache.size
-                      ? channel.permissionOverwrites.cache
-                          .map(
-                            (permission) =>
-                              `${bold('•')} ${
-                                permission.type === OverwriteType.Role
-                                  ? permission.id === guild.roles.everyone.id
-                                    ? guild.roles.everyone
-                                    : roleMention(permission.id)
-                                  : userMention(permission.id)
-                              }\n${
-                                permission.allow.toArray().length
-                                  ? `Allowed: ${permission.allow
-                                      .toArray()
-                                      .map((allowedPermission) =>
-                                        inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            allowedPermission,
-                                          ),
-                                        ),
-                                      )
-                                      .join(', ')}\n`
-                                  : ''
-                              }${
-                                permission.deny.toArray().length
-                                  ? `Denied: ${permission.deny
-                                      .toArray()
-                                      .map((deniedPermission) =>
-                                        inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            deniedPermission,
-                                          ),
-                                        ),
-                                      )
-                                      .join(', ')}`
-                                  : ''
-                              }`,
-                          )
-                          .join('\n\n')
+                    permissionOverwrites.size
+                      ? permissionOverwritesList
                       : italic('None')
                   }`,
                 },
@@ -1118,6 +956,7 @@ module.exports = {
               const moderatorOnlyTags = channel.availableTags.filter(
                 (tag) => tag.moderated,
               );
+
               const allMembertags = channel.availableTags.filter(
                 (tag) => !tag.moderated,
               );
@@ -1132,7 +971,7 @@ module.exports = {
                 0,
                 {
                   name: '🔢 Position',
-                  value: `${applyOrdinal(channel.position + 1)}${
+                  value: `${ordinal(channel.position + 1)}${
                     channel.type !== ChannelType.GuildCategory && channel.parent
                       ? ` in ${channel.parent}`
                       : ''
@@ -1205,28 +1044,7 @@ module.exports = {
                 },
                 {
                   name: '💭 Threads',
-                  value: `👁️‍🗨️ ${
-                    channel.threads.cache.filter(
-                      (thread) => thread.type === ChannelType.PublicThread,
-                    ).size
-                  } Public | 🔒 ${
-                    channel.threads.cache.filter(
-                      (thread) => thread.type === ChannelType.PrivateThread,
-                    ).size
-                  } Private | 📣 ${
-                    channel.threads.cache.filter(
-                      (thread) =>
-                        thread.type === ChannelType.AnnouncementThread,
-                    ).size
-                  } Announcement${
-                    channel.defaultAutoArchiveDuration
-                      ? `\nInactivity duration: ${inlineCode(
-                          applyThreadAutoArchiveDuration(
-                            channel.defaultAutoArchiveDuration,
-                          ),
-                        )}`
-                      : ''
-                  }\nSlowmode: ${inlineCode(
+                  value: `${threadList}\nSlowmode: ${inlineCode(
                     `${
                       channel.defaultThreadRateLimitPerUser > 0
                         ? `${channel.defaultThreadRateLimitPerUser} seconds`
@@ -1241,45 +1059,8 @@ module.exports = {
                       ? `Synced with ${channel.parent}`
                       : ''
                   }\n${
-                    channel.permissionOverwrites.cache.size
-                      ? channel.permissionOverwrites.cache
-                          .map(
-                            (permission) =>
-                              `${bold('•')} ${
-                                permission.type === OverwriteType.Role
-                                  ? permission.id === guild.roles.everyone.id
-                                    ? guild.roles.everyone
-                                    : roleMention(permission.id)
-                                  : userMention(permission.id)
-                              }\n${
-                                permission.allow.toArray().length
-                                  ? `Allowed: ${permission.allow
-                                      .toArray()
-                                      .map((allowedPermission) =>
-                                        inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            allowedPermission,
-                                          ),
-                                        ),
-                                      )
-                                      .join(', ')}\n`
-                                  : ''
-                              }${
-                                permission.deny.toArray().length
-                                  ? `Denied: ${permission.deny
-                                      .toArray()
-                                      .map((deniedPermission) =>
-                                        inlineCode(
-                                          applySpacesBetweenPascalCase(
-                                            deniedPermission,
-                                          ),
-                                        ),
-                                      )
-                                      .join(', ')}`
-                                  : ''
-                              }`,
-                          )
-                          .join('\n\n')
+                    permissionOverwrites.size
+                      ? permissionOverwritesList
                       : italic('None')
                   }`,
                 },
@@ -1317,15 +1098,26 @@ module.exports = {
                 }),
               });
               pagination.setAuthor({
-                name: `#️⃣ ${guild} Channel Lists (${channels.size})`,
+                name: `#️⃣ ${guild} Channel Lists (${channels.size.toLocaleString()})`,
               });
 
               if (guild.icon) {
                 pagination.setAuthor({
-                  name: `${guild} Channel Lists (${channels.size})`,
+                  name: `${guild} Channel Lists (${channels.size.toLocaleString()})`,
                   iconURL: guild.iconURL({ dynamic: true }),
                 });
               }
+
+              pagination.buttons = {
+                ...pagination.buttons,
+                extra: new ButtonBuilder()
+                  .setCustomId('jump')
+                  .setEmoji('↕️')
+                  .setDisabled(false)
+                  .setStyle(ButtonStyle.Secondary),
+              };
+
+              paginations.set(pagination.interaction.id, pagination);
 
               pagination.setDescriptions(descriptions);
 
