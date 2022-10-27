@@ -319,8 +319,8 @@ module.exports = {
     // IF the member is streaming using "Screen Share"
     if (!oldState.streaming && newState.streaming) {
       const VoiceStreamLogger = new WebhookClient({
-        id: process.env.MEMBER_VOICE_DEAFEN_WEBHOOK_ID,
-        token: process.env.MEMBER_VOICE_DEAFEN_WEBHOOK_TOKEN,
+        id: process.env.MEMBER_VOICE_STREAM_WEBHOOK_ID,
+        token: process.env.MEMBER_VOICE_STREAM_WEBHOOK_TOKEN,
       });
 
       embed.setAuthor({

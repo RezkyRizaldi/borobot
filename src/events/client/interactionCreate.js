@@ -15,23 +15,22 @@ module.exports = {
       guild,
     } = interaction;
 
+    if (
+      channel.id === guild.publicUpdatesChannelId ||
+      channel.id === guild.rulesChannelId ||
+      channel.id === guild.widgetChannelId ||
+      channel.parent.id === process.env.DASHBOARD_CATEGORY_CHANNEL_ID
+    ) {
+      return interaction.deferReply({ ephemeral: true }).then(
+        async () =>
+          await interaction.editReply({
+            content: `You don't have appropiate permissions to use slash command in ${channel}`,
+          }),
+      );
+    }
+
     return {
       [InteractionType.ApplicationCommand]: async () => {
-        if (
-          channel.id === guild.publicUpdatesChannelId ||
-          channel.id === guild.rulesChannelId ||
-          channel.id === guild.systemChannelId ||
-          channel.id === guild.widgetChannelId ||
-          channel.parent.id === process.env.DASHBOARD_CATEGORY_CHANNEL_ID
-        ) {
-          return interaction.deferReply({ ephemeral: true }).then(
-            async () =>
-              await interaction.editReply({
-                content: `You don't have appropiate permissions to use slash command in ${channel}`,
-              }),
-          );
-        }
-
         const command = commands.get(interaction.commandName);
 
         if (!command) {

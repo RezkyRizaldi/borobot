@@ -7,79 +7,9 @@ const {
 } = require('discord.js');
 const { SearchResultType } = require('distube');
 
-const newSupportedLanguages = {
-  ak: 'Twi',
-  as: 'Assamese',
-  ay: 'Aymara',
-  bho: 'Bhojpuri',
-  bm: 'Bambara',
-  ckb: 'Kurdish (Sorani)',
-  doi: 'Dogri',
-  dv: 'Dhivehi',
-  ee: 'Ewe',
-  gn: 'Guarani',
-  gom: 'Konkani',
-  ilo: 'Ilocano',
-  kri: 'Krio',
-  lg: 'Luganda',
-  ln: 'Lingala',
-  lus: 'Mizo',
-  mai: 'Maithili',
-  'mni-Mtei': 'Meiteilon (Manipuri)',
-  nso: 'Sepedi',
-  om: 'Oromo',
-  or: 'Odia (Oriya)',
-  qu: 'Quechua',
-  rw: 'Kinyarwanda',
-  sa: 'Sanskrit',
-  ti: 'Tigrinya',
-  tk: 'Turkmen',
-  ts: 'Tsonga',
-  tt: 'Tatar',
-  ug: 'Uyghur',
-};
-
-const threadChannels = [
-  {
-    name: '📣 Announcement Thread',
-    value: ChannelType.AnnouncementThread,
-  },
-  {
-    name: '👁️‍🗨️ Public Thread',
-    value: ChannelType.PublicThread,
-  },
-  {
-    name: '🔒 Private Thread',
-    value: ChannelType.PrivateThread,
-  },
-];
-
-const guildChannels = [
-  {
-    name: '#️⃣ Text',
-    value: ChannelType.GuildText,
-  },
-  {
-    name: '🔊 Voice',
-    value: ChannelType.GuildVoice,
-  },
-  {
-    name: '📁 Category',
-    value: ChannelType.GuildCategory,
-  },
-  {
-    name: '📣 Announcement',
-    value: ChannelType.GuildAnnouncement,
-  },
-  {
-    name: '🎤 Stage',
-    value: ChannelType.GuildStageVoice,
-  },
-  {
-    name: '🗯️ Forum',
-    value: ChannelType.GuildForum,
-  },
-];
+const { guildChannels, threadChannels } = require('./channels');
+const extraMcData = require('./extraMcData');
+const newSupportedLanguages = require('./newSupportedLanguages');
 
 module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
@@ -746,4 +676,6 @@ module.exports = {
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   channelType: [...guildChannels, ...threadChannels],
+
+  extraMcData,
 };

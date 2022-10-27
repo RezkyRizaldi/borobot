@@ -1130,9 +1130,7 @@ module.exports = {
                     .then(async ({ data }) => {
                       const responses = data.map(
                         (item, index) =>
-                          `${bold(`${index + 1}.`)} ${capitalCase(
-                            item.replace(/-/g, ' '),
-                          )}`,
+                          `${bold(`${index + 1}.`)} ${capitalCase(item)}`,
                       );
 
                       const pagination = new Pagination(interaction, {
@@ -1573,9 +1571,7 @@ module.exports = {
                     .then(async ({ data }) => {
                       const responses = data.map(
                         (item, index) =>
-                          `${bold(`${index + 1}.`)} ${capitalCase(
-                            item.replace(/-/g, ' '),
-                          )}`,
+                          `${bold(`${index + 1}.`)} ${capitalCase(item)}`,
                       );
 
                       const pagination = new Pagination(interaction, {
@@ -1759,11 +1755,13 @@ module.exports = {
               embed.setDescription(block.description);
               embed.setThumbnail(
                 getWikiaURL({
-                  fileName: `${block.displayName}${
-                    block.state ? `_(${block.state})` : ''
-                  }${block.version ? `_${block.version}` : ''}`,
+                  fileName: `${block.altName ?? block.displayName}${
+                    block.positions?.length
+                      ? block.positions.map((pos) => ` (${pos})`).join('')
+                      : ''
+                  }${block.version ? ` ${block.version}` : ''}`,
                   path: 'minecraft_gamepedia',
-                  type: mcData.version.type,
+                  animated: block.animated ?? false,
                 }),
               );
               embed.setAuthor({
