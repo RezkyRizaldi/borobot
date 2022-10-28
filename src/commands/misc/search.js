@@ -34,6 +34,7 @@ const {
   searchSortingChoices,
 } = require('../../constants');
 const {
+  applyKeywordColor,
   getFormattedBlockName,
   getWikiaURL,
   getFormattedParam,
@@ -335,17 +336,17 @@ module.exports = {
                   .setName('name')
                   .setDescription('🔠 The Minecraft block name search query.'),
               ),
+          )
+          .addSubcommand((subcommand) =>
+            subcommand
+              .setName('biome')
+              .setDescription('🌄 Search Minecraft biome information.')
+              .addStringOption((option) =>
+                option
+                  .setName('name')
+                  .setDescription('🔠 The Minecraft biome name search query.'),
+              ),
           ),
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('biome')
-      //     .setDescription('🌄 Search Minecraft biome information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft biome name search query.'),
-      //     ),
-      // )
       // .addSubcommand((subcommand) =>
       //   subcommand
       //     .setName('effect')
@@ -1548,7 +1549,7 @@ module.exports = {
                 console.error(err);
 
                 if (err.response?.status === 404) {
-                  await interaction.deferReply({ ephemeral: true }).then(
+                  return interaction.deferReply({ ephemeral: true }).then(
                     async () =>
                       await interaction.editReply({
                         content: `No character found with name ${inlineCode(
@@ -1749,8 +1750,17 @@ module.exports = {
               /** @type {import('minecraft-data').Block} */
               const block = {
                 ...mcData.blocksByName[getFormattedBlockName(snakeCase(name))],
-                ...extraMcData[getFormattedBlockName(snakeCase(name))],
+                ...extraMcData.block[getFormattedBlockName(snakeCase(name))],
               };
+
+              if (!Object.keys(block).length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No block found with name ${inlineCode(name)}.`,
+                    }),
+                );
+              }
 
               embed.setDescription(block.description);
               embed.setThumbnail(
@@ -1811,19 +1821,142 @@ module.exports = {
                   value: block.flammable ? 'Yes' : 'No',
                   inline: true,
                 },
+                {
+                  name: '🆕 Renewable',
+                  value: block.renewable ? 'Yes' : 'No',
+                  inline: true,
+                },
               ]);
 
-              if (block.renewable) {
-                embed.addFields([
-                  {
-                    name: '🆕 Renewable',
-                    value: block.renewable ? 'Yes' : 'No',
-                    inline: true,
-                  },
-                ]);
+              return interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            }
+
+            case 'biome': {
+              const name = options.getString('name');
+
+              if (!name) {
+                return interaction.deferReply().then(async () => {
+                  const responses = mcData.biomesArray.map(
+                    (item, index) =>
+                      `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: `Minecraft ${
+                      mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
+                    } Edition v${
+                      mcData.version.minecraftVersion
+                    } Biome Lists (${mcData.biomesArray.length})`,
+                    iconURL:
+                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
               }
 
-              await interaction
+              /** @type {import('minecraft-data').Biome} */
+              const biome = {
+                ...mcData.biomesByName[snakeCase(name)],
+                ...extraMcData.biome[snakeCase(name)],
+              };
+
+              if (!Object.keys(biome).length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No biome found with name ${inlineCode(name)}.`,
+                    }),
+                );
+              }
+
+              embed.setDescription(biome.description);
+              embed.setThumbnail(
+                getWikiaURL({
+                  fileName: `${biome.altName ?? biome.displayName}${
+                    biome.positions?.length
+                      ? biome.positions.map((pos) => ` (${pos})`).join('')
+                      : ''
+                  }${biome.version ? ` ${biome.version}` : ''}`,
+                  path: 'minecraft_gamepedia',
+                  animated: biome.animated ?? false,
+                }),
+              );
+              embed.setAuthor({
+                name: `🌄 ${biome.displayName}`,
+              });
+              embed.setFields([
+                {
+                  name: '🌡️ Temperature',
+                  value: `${biome.temperature}°`,
+                  inline: true,
+                },
+                {
+                  name: '🕳️ Dimension',
+                  value: capitalCase(biome.dimension),
+                  inline: true,
+                },
+                {
+                  name: '🌧️ Rainfall',
+                  value: `${biome.rainfall}`,
+                  inline: true,
+                },
+                {
+                  name: '🧱 Structures',
+                  value: biome.structures
+                    ? biome.structures
+                        .map((structure) => capitalCase(structure))
+                        .join(', ')
+                    : italic('None'),
+                },
+                {
+                  name: '🟫 Blocks',
+                  value: biome.blocks
+                    ? biome.blocks.map((block) => capitalCase(block)).join(', ')
+                    : italic('None'),
+                },
+                {
+                  name: '🎨 Colors',
+                  value: biome.colors
+                    ? Object.entries(biome.colors)
+                        .map(
+                          ([key, value]) =>
+                            `${capitalCase(key)}: ${applyKeywordColor(value)}`,
+                        )
+                        .join('\n')
+                    : italic('Unknown'),
+                },
+              ]);
+
+              return interaction
                 .deferReply()
                 .then(
                   async () => await interaction.editReply({ embeds: [embed] }),

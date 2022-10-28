@@ -2,6 +2,7 @@ const applyActivity = require('./applyActivity');
 const applyDefaultMessageNotifications = require('./applyDefaultMessageNotifications');
 const applyExplicitContentFilter = require('./applyExplicitContentFilter');
 const applyHexColor = require('./applyHexColor');
+const applyKeywordColor = require('./applyKeywordColor');
 const applyMessageType = require('./applyMessageType');
 const applyMFALevel = require('./applyMFALevel');
 const applyNSFWLevel = require('./applyNSFWLevel');
@@ -35,6 +36,7 @@ module.exports = {
   applyDefaultMessageNotifications,
   applyExplicitContentFilter,
   applyHexColor,
+  applyKeywordColor,
   applyMessageType,
   applyMFALevel,
   applyNSFWLevel,
