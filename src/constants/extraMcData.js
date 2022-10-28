@@ -8569,4 +8569,161 @@ module.exports = {
       particle: '#292721',
     },
   },
+  enchantment: {
+    protection: {
+      description:
+        'Protection is an enchantment applied to armor that adds bonus damage reduction.',
+    },
+    fire_protection: {
+      description:
+        'Fire Protection is an armor enchantment that reduces damage taken from sources of fire.',
+    },
+    feather_falling: {
+      description:
+        'Feather Falling is an enchantment unique to boots that reduces fall damage the user takes. It does not affect falling speed.',
+    },
+    blast_protection: {
+      description:
+        'Blast Protection is an armor enchantment that reduces damage taken from explosions and fireworks.',
+    },
+    projectile_protection: {
+      description:
+        'Projectile Protection is an armor enchantment that reduces damage taken from projectiles.',
+    },
+    respiration: {
+      description:
+        'Respiration is a helmet enchantment for extending breathing time underwater. It can be applied to other armor pieces using commands.',
+    },
+    aqua_affinity: {
+      description:
+        'Aqua Affinity is a helmet enchantment that increases underwater mining speed.',
+    },
+    thorns: {
+      description:
+        'Thorns is an armor enchantment that causes attackers to be damaged when they deal damage to the wearer.',
+    },
+    depth_strider: {
+      description:
+        'Depth Strider is a boot enchantment that increases underwater movement speed.',
+    },
+    frost_walker: {
+      description:
+        'Frost Walker is an enchantment to boots that creates frosted ice blocks when walking over water, and causes the wearer to be immune to damage from certain blocks such as campfires and magma blocks when stepped on.',
+    },
+    binding_curse: {
+      description:
+        'Curse of Binding is an enchantment that prevents removal of a cursed item from its armor slot.',
+    },
+    soul_speed: {
+      description:
+        'Soul Speed is an enchantment that can be applied on boots and allows the player to walk more quickly on soul sand or soul soil.',
+    },
+    swift_sneak: {
+      description:
+        'Swift Sneak is a non-renewable enchantment that can be applied to leggings and allows the player to walk more quickly while sneaking.',
+    },
+    sharpness: {
+      description:
+        'Sharpness is an enchantment applied to a sword or axe that increases melee damage.',
+    },
+    smite: {
+      description:
+        'Smite is an enchantment applied to a sword or axe, increasing the damage dealt to undead mobs.',
+    },
+    bane_of_arthropods: {
+      description:
+        'Bane of Arthropods is a weapon enchantment that increases damage to arthropod mobs (spiders, cave spiders, bees, silverfish, and endermites).',
+    },
+    knockback: {
+      description:
+        "Knockback is an enchantment to a sword that increases the sword's knockback.",
+    },
+    fire_aspect: {
+      description:
+        'Fire Aspect is a sword enchantment that sets the target on fire.',
+    },
+    looting: {
+      description:
+        'Looting is an enchantment for swords that can cause mobs to drop more items and increase the chances of rare drops. The additional drops do not affect experience.',
+    },
+    sweeping: {
+      description:
+        'Sweeping Edge is a sword enchantment that increases sweep attack damage.',
+    },
+    efficiency: {
+      description:
+        "Efficiency is an enchantment that increases the player's mining speed.",
+    },
+    silk_touch: {
+      description:
+        'Silk Touch is a tool enchantment that causes certain blocks to drop themselves as items instead of their usual drops when mined.',
+    },
+    unbreaking: {
+      description:
+        "Unbreaking is an enchantment that gives a chance for an item to avoid durability reduction when it is used, effectively increasing the item's durability.",
+    },
+    fortune: {
+      description:
+        'Fortune is an enchantment applied to mining and digging tools that increases the number and/or chances of specific item drops. It does not increase experience drops.',
+    },
+    power: {
+      description: 'Power is a bow enchantment which increases arrow damage.',
+    },
+    punch: {
+      description:
+        "Punch is an enchantment for a bow that increases an arrow's knockback, much like the Knockback enchantment for melee weapons. This does not increase the damage of the bow.",
+    },
+    flame: {
+      description:
+        'Flame is an enchantment that causes bows to shoot flaming arrows.',
+    },
+    infinity: {
+      description:
+        'Infinity is an enchantment to bows that prevents regular arrows from being consumed when shot. One arrow is needed to use a bow enchanted with Infinity.',
+    },
+    luck_of_the_sea: {
+      description:
+        'Luck of the Sea is an enchantment to a fishing rod that increases luck while fishing.',
+    },
+    lure: {
+      description:
+        'Lure is a fishing rod enchantment that decreases the wait time for a bite on the hook.',
+    },
+    loyalty: {
+      description:
+        'Loyalty is an enchantment applying to a trident, causing it to return to the owner once thrown. If the player dies while the trident is returning, the trident then drops in item form and is susceptible to despawning.',
+    },
+    impaling: {
+      description:
+        'Impaling is an enchantment for a trident, causing the trident to deal extra damage on each hit against aquatic mobs (JE only), or extra damage to mobs in water (BE only).',
+    },
+    riptide: {
+      description:
+        'Riptide is an enchantment exclusive to tridents, which hurls the user in the direction the user is facing, but only when they are wet.',
+    },
+    channeling: {
+      description:
+        'Channeling is a trident enchantment that produces lightning.',
+    },
+    multishot: {
+      description:
+        'Multishot is an enchantment for crossbows that allow them to shoot three arrows or firework rockets at the cost of one.',
+    },
+    quick_charge: {
+      description:
+        'Quick Charge is an enchantment for quickly reloading a crossbow.',
+    },
+    piercing: {
+      description:
+        'Piercing is an enchantment applied to a crossbow that causes arrows to pierce through entities.',
+    },
+    mending: {
+      description:
+        'Mending is an enchantment that restores durability of an item using experience.',
+    },
+    vanishing_curse: {
+      description:
+        'Curse of Vanishing is an enchantment that causes the item to disappear on death.',
+    },
+  },
 };

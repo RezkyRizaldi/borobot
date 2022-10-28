@@ -1,7 +1,7 @@
 /**
  *
  * @param {String} name
- * @returns {String} The formatted block name.
+ * @returns {String} The formatted Minecraft name.
  */
 module.exports = (name) =>
   name.includes('lazuli') && !name.endsWith('lazuli')
@@ -88,4 +88,10 @@ module.exports = (name) =>
     ? 'potted_azalea_bush'
     : name === 'potted_flowering_azalea'
     ? 'potted_flowering_azalea_bush'
+    : name === 'curse_of_binding'
+    ? 'binding_curse'
+    : name === 'sweeping_edge'
+    ? 'sweeping'
+    : name === 'curse_of_vanishing'
+    ? 'vanishing_curse'
     : name;

@@ -63,6 +63,7 @@
     "pagination.djs": "^4.0.5",
     "pluralize": "^8.0.0",
     "qrcode": "^1.5.1",
+    "roman-numerals-convert": "^1.0.5",
     "string-progressbar": "^1.0.4",
     "tesseract.js": "^3.0.3",
     "truncate": "^3.0.0",

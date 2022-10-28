@@ -17,7 +17,7 @@ const applyThreadAutoArchiveDuration = require('./applyThreadAutoArchiveDuration
 const applyTier = require('./applyTier');
 const applyVerificationLevel = require('./applyVerificationLevel');
 const applyVideoQualityMode = require('./applyVideoQualityMode');
-const getFormattedBlockName = require('./getFormattedBlockName');
+const getFormattedMinecraftName = require('./getFormattedMinecraftName');
 const getFormattedParam = require('./getFormattedParam');
 const getImageReadLocale = require('./getImageReadLocale');
 const getLanguage = require('./getLanguage');
@@ -51,7 +51,7 @@ module.exports = {
   applyTier,
   applyVerificationLevel,
   applyVideoQualityMode,
-  getFormattedBlockName,
+  getFormattedMinecraftName,
   getFormattedParam,
   getImageReadLocale,
   getLanguage,

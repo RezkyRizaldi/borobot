@@ -23,6 +23,7 @@ const moment = require('moment');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
+const { stringify } = require('roman-numerals-convert');
 const truncate = require('truncate');
 
 const {
@@ -40,7 +41,7 @@ const {
 } = require('../../constants');
 const {
   applyKeywordColor,
-  getFormattedBlockName,
+  getFormattedMinecraftName,
   getWikiaURL,
   getFormattedParam,
   isAlphabeticLetter,
@@ -320,18 +321,6 @@ module.exports = {
         subcommandGroup
           .setName('minecraft')
           .setDescription('ℹ️ Search a Minecraft information.')
-          // .addSubcommand((subcommand) =>
-          //   subcommand
-          //     .setName('attribute')
-          //     .setDescription('📊 Search Minecraft attribute information.')
-          //     .addStringOption((option) =>
-          //       option
-          //         .setName('name')
-          //         .setDescription(
-          //           '🔠 The Minecraft attribute name search query.',
-          //         ),
-          //     ),
-          // )
           .addSubcommand((subcommand) =>
             subcommand
               .setName('block')
@@ -361,20 +350,20 @@ module.exports = {
                   .setName('name')
                   .setDescription('🔠 The Minecraft effect name search query.'),
               ),
+          )
+          .addSubcommand((subcommand) =>
+            subcommand
+              .setName('enchantment')
+              .setDescription('🪧 Search Minecraft enchantment information.')
+              .addStringOption((option) =>
+                option
+                  .setName('name')
+                  .setDescription(
+                    '🔠 The Minecraft enchantment name search query.',
+                  ),
+              ),
           ),
       // TODO: WIP
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('enchantment')
-      //     .setDescription('🪧 Search Minecraft enchantment information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription(
-      //           '🔠 The Minecraft enchantment name search query.',
-      //         ),
-      //     ),
-      // )
       // .addSubcommand((subcommand) =>
       //   subcommand
       //     .setName('entity')
@@ -1754,8 +1743,12 @@ module.exports = {
 
               /** @type {import('minecraft-data').Block} */
               const block = {
-                ...mcData.blocksByName[getFormattedBlockName(snakeCase(name))],
-                ...extraMcData.block[getFormattedBlockName(snakeCase(name))],
+                ...mcData.blocksByName[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
+                ...extraMcData.block[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
               };
 
               if (!Object.keys(block).length) {
@@ -2054,6 +2047,129 @@ module.exports = {
                   name: '🔣 Type',
                   value: effect.type === 'good' ? 'Positive' : 'Negative',
                   inline: true,
+                },
+              ]);
+
+              return interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            }
+
+            case 'enchantment': {
+              const name = options.getString('name');
+
+              if (!name) {
+                return interaction.deferReply().then(async () => {
+                  const responses = mcData.enchantmentsArray.map(
+                    (item, index) =>
+                      `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: `Minecraft ${
+                      mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
+                    } Edition v${
+                      mcData.version.minecraftVersion
+                    } Enchantment Lists (${mcData.enchantmentsArray.length})`,
+                    iconURL:
+                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
+              }
+
+              /** @type {import('minecraft-data').Enchantment} */
+              const enchantment = {
+                ...mcData.enchantmentsByName[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
+                ...extraMcData.enchantment[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
+              };
+
+              if (!Object.keys(enchantment).length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No enchantment found with name ${inlineCode(
+                        name,
+                      )}.`,
+                    }),
+                );
+              }
+
+              console.log(enchantment);
+
+              embed.setDescription(enchantment.description);
+              embed.setAuthor({
+                name: `🪧 ${enchantment.displayName}`,
+              });
+              embed.setFields([
+                {
+                  name: '✨ Maximum Level',
+                  value: stringify(enchantment.maxLevel),
+                  inline: true,
+                },
+                {
+                  name: '🏴‍☠️ Treasure Only',
+                  value: enchantment.treasureOnly ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '🤬 Curse',
+                  value: enchantment.curse ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '🔍 Discoverable',
+                  value: enchantment.discoverable ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '↔️ Tradeable',
+                  value: enchantment.tradeable ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '⚖️ Weight',
+                  value: `${enchantment.weight}`,
+                  inline: true,
+                },
+                {
+                  name: '🚫 Incompatible With',
+                  value: enchantment.exclude.length
+                    ? enchantment.exclude
+                        .map((exc) => capitalCase(exc))
+                        .join(', ')
+                    : italic('None'),
                 },
               ]);
 
