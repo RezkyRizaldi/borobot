@@ -8368,4 +8368,205 @@ module.exports = {
       },
     },
   },
+  effect: {
+    Speed: {
+      version: 'JE3_BE2',
+      description:
+        "Speed is a status effect that increases an entity's walking speed by 20% multiplied by the effect level. It expands a player's field of view (FOV) accordingly. Negative levels decrease speed.",
+      particle: '#7CAFC6',
+    },
+    Slowness: {
+      version: 'JE3_BE2',
+      description:
+        "Slowness is an effect that decreases walking speed. Slowness decreases walking speed by 15% x level and contracts the player's field of view accordingly. Negative levels of Slowness increase walking speed. However, sprinting and jumping is barely affected.",
+      particle: '#5A6C81',
+    },
+    Haste: {
+      version: 'JE3',
+      description:
+        'Haste is a status effect that increases attack speed by 10% per level and increases mining speed by 20% per level. Negative levels decrease mining and attack speed, similar to Mining Fatigue.',
+      particle: '#D9C043',
+    },
+    MiningFatigue: {
+      version: 'JE3_BE2',
+      description:
+        'Mining Fatigue is an effect that reduces mining and attack speed, opposite to Haste. The effect decreases attack speed by 10% x level, equivalent to the attack speed cooldown attribute (JE only) decreasing by 0.2 x level. For the in-game default level III, attack speed decreases by 30% (attack speed cooldown attribute decreases by 0.6). The mining speed is reduced to 0.30^level of the normal mining speed. For the in-game default level III, the speed is reduced to 0.33 (0.027x) of normal speed, taking 37 times longer than usual to break a block with the proper tool for that block.',
+      particle: '#4A4217',
+    },
+    Strength: {
+      version: 'JE3_BE2',
+      description:
+        'Strength is an effect which increases attack power. Increases melee damage by 3❤️💔 x level in Java Edition. Negative levels decrease melee damage, with attacks being ignored entirely if damage would be 0 or lower.',
+      particle: '#932423',
+    },
+    InstantHealth: {
+      version: 'JE1',
+      description:
+        'Instant Health is an instant status effect that increases health for living mobs and damages the undead. Instantly heals 2❤️ x 2 level. In the upcoming Combat Tests, it heals 3❤️💔 x 2 level. Undead mobs (including the wither) are damaged as if with Instant Damage, instead. When applied using a lingering potion, the entity is healed every second. Levels 30-32 (amplifiers 29-31) provide no healing. Levels outside the range 1-32 (corresponding to amplifiers 0-31) are used modulo 32, making level 33 the same as level 1, etc.',
+      particle: '#F82423',
+    },
+    InstantDamage: {
+      version: 'JE1',
+      description:
+        'Instant Damage is an instant status effect that decreases health for players and living mobs and heals the undead. Instant Damage inflicts magic damage of 3❤️💔 x 2 level. Undead mobs (including the wither) are healed as if with Instant Health instead. Death is reported as "<player> was killed by magic". When applied using a lingering potion, damage is inflicted every second. As this is magic damage, it can be decreased only via Resistance and Protection (JE only).',
+      particle: '#430A09',
+    },
+    JumpBoost: {
+      version: 'JE2_BE2',
+      description:
+        'Jump Boost is a status effect that temporarily increases the jump height of the player.',
+      particle: '#22FF4C',
+    },
+    Nausea: {
+      version: 'JE3_BE2',
+      description:
+        "Nausea is an effect that warps and wobbles the player's vision similar to a nether portal. The effect does not change its power as its potency changes. It can be obtained only from eating a pufferfish. Drinking milk removes the effect. In Bedrock and Education editions, it can also be cured with tonic.",
+      particle: '#551D4A',
+    },
+    Regeneration: {
+      version: 'JE3_BE2',
+      description:
+        "Regeneration is a status effect that restores a player's (or mob's) health over time.",
+      particle: '#CD5CAB',
+    },
+    Resistance: {
+      version: 'JE2_BE2',
+      description:
+        'Resistance is a status effect that reduces incoming damage. Resistance reduces incoming damage by 20% x level from all sources except for starvation, the void, `/kill`, and explosions with extreme power values (negative values (128 to 255 (mod 256) or -128 to -1 (mod 256)) stored in an NBT, see entity format) such as creepers and ghast fireballs.',
+      particle: '#99453A',
+    },
+    FireResistance: {
+      version: 'JE2_BE2',
+      description:
+        'Fire Resistance is a status effect that grants the affected player/mob complete immunity to all sources of fire damage. Fire Resistance grants immunity to damage from fire, blaze fireballs, fire charges, magma blocks, and lava. Negates any bonus fire damage from bows enchanted with Flame and swords enchanted with Fire Aspect, but the attacks themselves are unaffected.',
+      particle: '#E49A3A',
+    },
+    WaterBreathing: {
+      version: 'JE2_BE2',
+      description:
+        'Water breathing is a status effect that prevents or delays drowning, and allows waterlogged beds (BE only) to be used. It also prevents or delays squid, glow squid, salmon, cod, pufferfish, tropical fish, and tadpoles from taking suffocation damage from being on land (BE only).',
+      particle: '#2E5299',
+    },
+    Invisibility: {
+      version: 'JE2_BE2',
+      description:
+        'Invisibility is a status effect that turns entities invisible. It has one potency level (active), but its duration can be extended.',
+      particle: '#7F8392',
+    },
+    Blindness: {
+      version: 'JE2_BE2',
+      description:
+        "Blindness is a status effect that impairs the player's vision. It can be cast by illusioners (JE only) or by consuming suspicious stew.",
+      particle: '#1F1F23',
+    },
+    NightVision: {
+      version: 'JE2_BE2',
+      description:
+        'Night Vision is a status effect that enhances the player\'s ability to see in darkness and underwater. Night vision greatly increases the brightness, so the player can easily see in a light level of 0. However, it is not as bright as a light level of 15 (e.g. with the "Moody" brightness setting, it is similar to block light level 12-13 and no sky light in the overworld within the "Bright" brightness setting), and as such the player can distinguish between light levels.',
+      particle: '#1F1FA1',
+    },
+    Hunger: {
+      altName: 'Hotbar with xp',
+      description:
+        "Hunger is a player-specific feature of Minecraft that regulates player's certain abilities (health regeneration and the ability to sprint) the value of which is managed by the player's activity.",
+    },
+    Weakness: {
+      version: 'JE3_BE2',
+      description:
+        'Weakness is a status effect that decreases attack power. Melee damage inflicted by the affected entity is reduced by 4❤️❤️ x level in Java Edition. Negative levels increase melee damage dealt.',
+      particle: '#484D48',
+    },
+    Poison: {
+      version: 'JE3_BE2',
+      description:
+        "Poison inflicts damage over time, reducing the player's health to 1 (💔), but cannot kill. It can be received from various mobs and items.",
+      particle: '#4E9331',
+    },
+    Wither: {
+      version: 'JE2_BE2',
+      positions: ['effect'],
+      description:
+        'Wither is a status effect that inflicts damage over time. The player\'s hearts turn black (🖤 on Survival mode or 🖤 on Hardcore mode (JE only)), making it more difficult, but still possible, for the player to see their health. Death is reported as "<player> withered away". Amplifiers outside the range 0-31 (corresponding to levels 1-32) use modulo 32.',
+      particle: '#352A27',
+    },
+    HealthBoost: {
+      version: 'JE3_BE3',
+      description:
+        "Health Boost is an unused status effect that increases a player's (or mob's) maximum health. Adds 4❤️❤️ maximum health per level. Unlike Absorption, the added hearts are empty at first, but can be healed through the usual methods (such as natural regeneration and the Regeneration and Instant Health effects).",
+      particle: '#F87D23',
+    },
+    Absorption: {
+      version: 'JE3_BE3',
+      description:
+        'Absorption is a status effect that pads the health bar with extra hearts. Absorption adds 4💛💛 additional health points per level to the player, displayed as yellow hearts above the normal health bar. If the player takes damage while under this effect, the absorption health points are depleted first, followed by the standard health points. Absorption health cannot be replenished by natural regeneration or other effects, and vanishes when the effect ends. Negative absorption levels do not appear to have an immediate effect when applied, but give 4💛💛 additional health points per level to the player when the status effect ends.',
+      particle: '#2552A5',
+    },
+    Saturation: {
+      version: 'JE1',
+      description:
+        'Saturation is an instant status effect that reduces the need for eating. It also prevents death by hunger if the player has no food. The Saturation effect instantly replenishes 1 (🍗) x level and 2 x level points of saturation.',
+      particle: '#F82421',
+    },
+    Glowing: {
+      version: 'JE2',
+      description:
+        "Glowing is a status effect that shows entity positions through blocks. The Glowing effect causes entities to glow with an outline that can be seen through blocks and entities. This outline is white by default, but can be set to display other colors if the entity is part of a team. The outline displays around any holes in a mob's texture or model, though only when that part of the model can be seen all the way through. If multiple entities with glowing are near each other, the outlines merge to prevent overlapping.",
+      particle: '#94A061',
+    },
+    Levitation: {
+      version: 'JE2_BE2',
+      description:
+        'Levitation is a status effect that causes entities to levitate. Entities shot by shulkers get levitated. Levitation causes the affected entity to float upward at a rate of 0.9 x level blocks per second. This does not affect swimming or flying. Negative levels cause the entity to float downward, overriding the usual falling due to gravity; level 0 (amplifier 255) makes falling, jumping and ascending stairs impossible. When damaged by a projectile or anything, this makes the player go higher in the air on level 255.',
+      particle: '#CEFFFF',
+    },
+    Luck: {
+      version: 'JE3',
+      description:
+        'Luck is a status effect that makes it more likely to receive better loot from certain loot tables, contrary to Bad Luck. Adds 1 x level to attribute `generic.luck`, making loot table entries with a high `quality` score more likely, and entries with negative `quality` less likely. It also increases the chances of `bonus_rolls` occurring. Currently, only fishing uses `quality`. The new weight of each entry is `floor(base_weight + quality * generic.luck)`. Negative levels decrease luck.',
+      particle: '#339900',
+    },
+    BadLuck: {
+      version: 'JE3',
+      description:
+        'Bad Luck, also known as Unluck, is a status effect that decreases the chance of the player getting high-quality loot, contrary to Luck. Bad Luck subtracts the effect level from the attribute `generic.luck`, making loot table entries with a high `quality` score less likely, and entries with negative `quality` more likely. It also makes the chance of `bonus_rolls` occurring less likely. Fishing is the only mechanism that uses `quality`. The new weight of each entry is `floor(base_weight + quality x generic.luck)`. Negative levels increase luck, similar to status effect Luck.',
+      particle: '#C0A44D',
+    },
+    SlowFalling: {
+      version: 'JE1_BE1',
+      description:
+        'Slow Falling is a status effect that causes the affected mob to fall slower and take no fall damage, but does not prevent ender pearl damage.',
+      particle: '#FFEFD1',
+    },
+    ConduitPower: {
+      version: 'JE1_BE1',
+      description:
+        'Conduit Power is an area-of-effect status effect given by conduits that grants bonuses comparable to a combination of Water Breathing, Night Vision (only underwater), and Haste (only underwater). Players under the effect of Conduit Power receive all of the benefits of Water Breathing, Night Vision, and Haste. This means that their breath meter does not decrease, it gets filled up even underwater (BE only), they can sleep in a waterlogged bed (BE only), they are able to see underwater, and their underwater mining speed increases.',
+      particle: '#1DC2D1',
+    },
+    DolphinsGrace: {
+      altName: "Dolphin's Grace",
+      version: 'JE1',
+      description:
+        "Dolphin's Grace is a status effect that increases the player's swimming speed when a dolphin is nearby. Dolphin's Grace significantly decreases the amount of \"friction\" from moving through water. This causes the player to swim significantly faster and lose speed at a slower rate, but also makes changing directions slower. Dolphin's Grace on its own allows you to travel 9.8 m/s underwater without Depth Strider, making it faster than a boat. Combining it with Depth Strider, players are able to travel at much higher speeds, adding 8.983 m/s per level. Potentially higher speeds are possible by adding soul soil underwater and using Soul Speed-enchanted boots, along with Speed II.",
+      particle: '#88A3BE',
+    },
+    BadOmen: {
+      version: 'JE2_BE2',
+      description:
+        "Bad Omen is a status effect that causes a raid to appear when an afflicted player enters a village. This does not apply to any other mob with the effect if the mob is in a village. Bad Omen's potency determines the chance for illagers to be equipped with enchanted weapons when the player triggers a raid by entering a certain radius around a bed that a villager has claimed. If the raid results in player victory, the Hero of the Village's potency equals the Bad Omen's potency (capped at level 5). Bad Omen levels past the first also give a single extra raid wave, given the difficulty level. For example, with Bad Omen II-V in Easy difficulty has four waves instead of three, Normal difficulty has six waves instead of five, and Hard difficulty has eight waves instead of seven (JE only).",
+      particle: '#0B6138',
+    },
+    HeroOfTheVillage: {
+      version: 'JE1_BE2',
+      description:
+        "Hero of the Village is a status effect granted to the player upon defeating a raid. Players receive gifts (JE only) and discounts from villager trades while under the effect, which lasts 40 minutes. It does not affect the wandering trader's trades.",
+      particle: '#44FF44',
+    },
+    Darkness: {
+      version: 'JE1_BE1',
+      description:
+        "Darkness is a status effect that causes the player's vision to temporarily deteriorate. The effect is caused by the activation of a sculk shrieker, or by being within detection range of a warden. Darkness, when applied, dims the player's vision. A dark vignette appears around the player, which initially makes faraway objects hard to see. The vignette then steadily closes in around the player, diminishing the player's eyesight. When the effect wears off, the vignette retreats and the player's vision reverts to normal. Unlike Blindness, Darkness does not leave a circle of unaffected vision centered on the player; moreover, luminous objects such as fire can still be seen even when viewed from far away by a player with the effect applied.",
+      particle: '#292721',
+    },
+  },
 };

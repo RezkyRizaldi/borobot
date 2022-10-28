@@ -1,5 +1,10 @@
 const axios = require('axios');
-const { capitalCase, paramCase, snakeCase } = require('change-case');
+const {
+  capitalCase,
+  paramCase,
+  pascalCase,
+  snakeCase,
+} = require('change-case');
 const {
   bold,
   ButtonBuilder,
@@ -346,17 +351,17 @@ module.exports = {
                   .setName('name')
                   .setDescription('🔠 The Minecraft biome name search query.'),
               ),
+          )
+          .addSubcommand((subcommand) =>
+            subcommand
+              .setName('effect')
+              .setDescription('💫 Search Minecraft effect information.')
+              .addStringOption((option) =>
+                option
+                  .setName('name')
+                  .setDescription('🔠 The Minecraft effect name search query.'),
+              ),
           ),
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('effect')
-      //     .setDescription('💫 Search Minecraft effect information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft effect name search query.'),
-      //     ),
-      // )
       // TODO: WIP
       // .addSubcommand((subcommand) =>
       //   subcommand
@@ -1902,12 +1907,9 @@ module.exports = {
               embed.setThumbnail(
                 getWikiaURL({
                   fileName: `${biome.altName ?? biome.displayName}${
-                    biome.positions?.length
-                      ? biome.positions.map((pos) => ` (${pos})`).join('')
-                      : ''
-                  }${biome.version ? ` ${biome.version}` : ''}`,
+                    biome.version ? ` ${biome.version}` : ''
+                  }`,
                   path: 'minecraft_gamepedia',
-                  animated: biome.animated ?? false,
                 }),
               );
               embed.setAuthor({
@@ -1953,6 +1955,105 @@ module.exports = {
                         )
                         .join('\n')
                     : italic('Unknown'),
+                },
+              ]);
+
+              return interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            }
+
+            case 'effect': {
+              const name = options.getString('name');
+
+              if (!name) {
+                return interaction.deferReply().then(async () => {
+                  const responses = mcData.effectsArray.map(
+                    (item, index) =>
+                      `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: `Minecraft ${
+                      mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
+                    } Edition v${
+                      mcData.version.minecraftVersion
+                    } Effect Lists (${mcData.effectsArray.length})`,
+                    iconURL:
+                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
+              }
+
+              /** @type {import('minecraft-data').Effect} */
+              const effect = {
+                ...mcData.effectsByName[pascalCase(name)],
+                ...extraMcData.effect[pascalCase(name)],
+              };
+
+              if (!Object.keys(effect).length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No effect found with name ${inlineCode(name)}.`,
+                    }),
+                );
+              }
+
+              embed.setDescription(effect.description);
+              embed.setThumbnail(
+                getWikiaURL({
+                  fileName: `${effect.altName ?? effect.displayName}${
+                    effect.positions?.length
+                      ? effect.positions.map((pos) => ` (${pos})`).join('')
+                      : ''
+                  }${effect.version ? ` ${effect.version}` : ''}`,
+                  path: 'minecraft_gamepedia',
+                }),
+              );
+              embed.setAuthor({
+                name: `💫 ${effect.displayName}`,
+              });
+              embed.setFields([
+                {
+                  name: '✨ Particle',
+                  value: effect.particle
+                    ? applyKeywordColor(effect.particle)
+                    : italic('None'),
+                  inline: true,
+                },
+                {
+                  name: '🔣 Type',
+                  value: effect.type === 'good' ? 'Positive' : 'Negative',
+                  inline: true,
                 },
               ]);
 
