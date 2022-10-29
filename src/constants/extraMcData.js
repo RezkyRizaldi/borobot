@@ -534,7 +534,7 @@ module.exports = {
       luminant: false,
     },
     stripped_jungle_wood: {
-      version: 'JE4 BE2',
+      version: 'JE1 BE1',
       positions: ['UD'],
       description:
         'Stripped wood or stripped hyphae is a variant obtained when any axe is used on wood or hyphae respectively.',
@@ -543,7 +543,7 @@ module.exports = {
       luminant: false,
     },
     stripped_acacia_wood: {
-      version: 'JE4 BE2',
+      version: 'JE1 BE1',
       positions: ['UD'],
       description:
         'Stripped wood or stripped hyphae is a variant obtained when any axe is used on wood or hyphae respectively.',
@@ -552,7 +552,7 @@ module.exports = {
       luminant: false,
     },
     stripped_dark_oak_wood: {
-      version: 'JE5 BE2',
+      version: 'JE1 BE1',
       positions: ['UD'],
       description:
         'Stripped wood or stripped hyphae is a variant obtained when any axe is used on wood or hyphae respectively.',
@@ -7908,7 +7908,6 @@ module.exports = {
       },
     },
     beach: {
-      version: '',
       description:
         'The standard beach-type biome variant, Beaches are composed of mostly sand, with some gravel, dirt, and clay patches under the water, similarly to rivers. Like the sand in deserts, sandstone generates underneath it, preventing it from falling into caves below. Beach terrain is usually a smooth descent into the water, though it can vary in steepness and width. Turtles can spawn here, as can buried treasure, shipwrecks and rarely underwater ruins.',
       structures: ['buried treasure', 'shipwrecks'],
@@ -8370,13 +8369,13 @@ module.exports = {
   },
   effect: {
     Speed: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         "Speed is a status effect that increases an entity's walking speed by 20% multiplied by the effect level. It expands a player's field of view (FOV) accordingly. Negative levels decrease speed.",
       particle: '#7CAFC6',
     },
     Slowness: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         "Slowness is an effect that decreases walking speed. Slowness decreases walking speed by 15% x level and contracts the player's field of view accordingly. Negative levels of Slowness increase walking speed. However, sprinting and jumping is barely affected.",
       particle: '#5A6C81',
@@ -8388,13 +8387,13 @@ module.exports = {
       particle: '#D9C043',
     },
     MiningFatigue: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'Mining Fatigue is an effect that reduces mining and attack speed, opposite to Haste. The effect decreases attack speed by 10% x level, equivalent to the attack speed cooldown attribute (JE only) decreasing by 0.2 x level. For the in-game default level III, attack speed decreases by 30% (attack speed cooldown attribute decreases by 0.6). The mining speed is reduced to 0.30^level of the normal mining speed. For the in-game default level III, the speed is reduced to 0.33 (0.027x) of normal speed, taking 37 times longer than usual to break a block with the proper tool for that block.',
       particle: '#4A4217',
     },
     Strength: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'Strength is an effect which increases attack power. Increases melee damage by 3❤️💔 x level in Java Edition. Negative levels decrease melee damage, with attacks being ignored entirely if damage would be 0 or lower.',
       particle: '#932423',
@@ -8412,55 +8411,55 @@ module.exports = {
       particle: '#430A09',
     },
     JumpBoost: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Jump Boost is a status effect that temporarily increases the jump height of the player.',
       particle: '#22FF4C',
     },
     Nausea: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         "Nausea is an effect that warps and wobbles the player's vision similar to a nether portal. The effect does not change its power as its potency changes. It can be obtained only from eating a pufferfish. Drinking milk removes the effect. In Bedrock and Education editions, it can also be cured with tonic.",
       particle: '#551D4A',
     },
     Regeneration: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         "Regeneration is a status effect that restores a player's (or mob's) health over time.",
       particle: '#CD5CAB',
     },
     Resistance: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Resistance is a status effect that reduces incoming damage. Resistance reduces incoming damage by 20% x level from all sources except for starvation, the void, `/kill`, and explosions with extreme power values (negative values (128 to 255 (mod 256) or -128 to -1 (mod 256)) stored in an NBT, see entity format) such as creepers and ghast fireballs.',
       particle: '#99453A',
     },
     FireResistance: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Fire Resistance is a status effect that grants the affected player/mob complete immunity to all sources of fire damage. Fire Resistance grants immunity to damage from fire, blaze fireballs, fire charges, magma blocks, and lava. Negates any bonus fire damage from bows enchanted with Flame and swords enchanted with Fire Aspect, but the attacks themselves are unaffected.',
       particle: '#E49A3A',
     },
     WaterBreathing: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Water breathing is a status effect that prevents or delays drowning, and allows waterlogged beds (BE only) to be used. It also prevents or delays squid, glow squid, salmon, cod, pufferfish, tropical fish, and tadpoles from taking suffocation damage from being on land (BE only).',
       particle: '#2E5299',
     },
     Invisibility: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Invisibility is a status effect that turns entities invisible. It has one potency level (active), but its duration can be extended.',
       particle: '#7F8392',
     },
     Blindness: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         "Blindness is a status effect that impairs the player's vision. It can be cast by illusioners (JE only) or by consuming suspicious stew.",
       particle: '#1F1F23',
     },
     NightVision: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Night Vision is a status effect that enhances the player\'s ability to see in darkness and underwater. Night vision greatly increases the brightness, so the player can easily see in a light level of 0. However, it is not as bright as a light level of 15 (e.g. with the "Moody" brightness setting, it is similar to block light level 12-13 and no sky light in the overworld within the "Bright" brightness setting), and as such the player can distinguish between light levels.',
       particle: '#1F1FA1',
@@ -8471,32 +8470,32 @@ module.exports = {
         "Hunger is a player-specific feature of Minecraft that regulates player's certain abilities (health regeneration and the ability to sprint) the value of which is managed by the player's activity.",
     },
     Weakness: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'Weakness is a status effect that decreases attack power. Melee damage inflicted by the affected entity is reduced by 4❤️❤️ x level in Java Edition. Negative levels increase melee damage dealt.',
       particle: '#484D48',
     },
     Poison: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         "Poison inflicts damage over time, reducing the player's health to 1 (💔), but cannot kill. It can be received from various mobs and items.",
       particle: '#4E9331',
     },
     Wither: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       positions: ['effect'],
       description:
         'Wither is a status effect that inflicts damage over time. The player\'s hearts turn black (🖤 on Survival mode or 🖤 on Hardcore mode (JE only)), making it more difficult, but still possible, for the player to see their health. Death is reported as "<player> withered away". Amplifiers outside the range 0-31 (corresponding to levels 1-32) use modulo 32.',
       particle: '#352A27',
     },
     HealthBoost: {
-      version: 'JE3_BE3',
+      version: 'JE3 BE3',
       description:
         "Health Boost is an unused status effect that increases a player's (or mob's) maximum health. Adds 4❤️❤️ maximum health per level. Unlike Absorption, the added hearts are empty at first, but can be healed through the usual methods (such as natural regeneration and the Regeneration and Instant Health effects).",
       particle: '#F87D23',
     },
     Absorption: {
-      version: 'JE3_BE3',
+      version: 'JE3 BE3',
       description:
         'Absorption is a status effect that pads the health bar with extra hearts. Absorption adds 4💛💛 additional health points per level to the player, displayed as yellow hearts above the normal health bar. If the player takes damage while under this effect, the absorption health points are depleted first, followed by the standard health points. Absorption health cannot be replenished by natural regeneration or other effects, and vanishes when the effect ends. Negative absorption levels do not appear to have an immediate effect when applied, but give 4💛💛 additional health points per level to the player when the status effect ends.',
       particle: '#2552A5',
@@ -8514,7 +8513,7 @@ module.exports = {
       particle: '#94A061',
     },
     Levitation: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Levitation is a status effect that causes entities to levitate. Entities shot by shulkers get levitated. Levitation causes the affected entity to float upward at a rate of 0.9 x level blocks per second. This does not affect swimming or flying. Negative levels cause the entity to float downward, overriding the usual falling due to gravity; level 0 (amplifier 255) makes falling, jumping and ascending stairs impossible. When damaged by a projectile or anything, this makes the player go higher in the air on level 255.',
       particle: '#CEFFFF',
@@ -8532,13 +8531,13 @@ module.exports = {
       particle: '#C0A44D',
     },
     SlowFalling: {
-      version: 'JE1_BE1',
+      version: 'JE1 BE1',
       description:
         'Slow Falling is a status effect that causes the affected mob to fall slower and take no fall damage, but does not prevent ender pearl damage.',
       particle: '#FFEFD1',
     },
     ConduitPower: {
-      version: 'JE1_BE1',
+      version: 'JE1 BE1',
       description:
         'Conduit Power is an area-of-effect status effect given by conduits that grants bonuses comparable to a combination of Water Breathing, Night Vision (only underwater), and Haste (only underwater). Players under the effect of Conduit Power receive all of the benefits of Water Breathing, Night Vision, and Haste. This means that their breath meter does not decrease, it gets filled up even underwater (BE only), they can sleep in a waterlogged bed (BE only), they are able to see underwater, and their underwater mining speed increases.',
       particle: '#1DC2D1',
@@ -8551,19 +8550,19 @@ module.exports = {
       particle: '#88A3BE',
     },
     BadOmen: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         "Bad Omen is a status effect that causes a raid to appear when an afflicted player enters a village. This does not apply to any other mob with the effect if the mob is in a village. Bad Omen's potency determines the chance for illagers to be equipped with enchanted weapons when the player triggers a raid by entering a certain radius around a bed that a villager has claimed. If the raid results in player victory, the Hero of the Village's potency equals the Bad Omen's potency (capped at level 5). Bad Omen levels past the first also give a single extra raid wave, given the difficulty level. For example, with Bad Omen II-V in Easy difficulty has four waves instead of three, Normal difficulty has six waves instead of five, and Hard difficulty has eight waves instead of seven (JE only).",
       particle: '#0B6138',
     },
     HeroOfTheVillage: {
-      version: 'JE1_BE2',
+      version: 'JE1 BE2',
       description:
         "Hero of the Village is a status effect granted to the player upon defeating a raid. Players receive gifts (JE only) and discounts from villager trades while under the effect, which lasts 40 minutes. It does not affect the wandering trader's trades.",
       particle: '#44FF44',
     },
     Darkness: {
-      version: 'JE1_BE1',
+      version: 'JE1 BE1',
       description:
         "Darkness is a status effect that causes the player's vision to temporarily deteriorate. The effect is caused by the activation of a sculk shrieker, or by being within detection range of a warden. Darkness, when applied, dims the player's vision. A dark vignette appears around the player, which initially makes faraway objects hard to see. The vignette then steadily closes in around the player, diminishing the player's eyesight. When the effect wears off, the vignette retreats and the player's vision reverts to normal. Unlike Blindness, Darkness does not leave a circle of unaffected vision centered on the player; moreover, luminous objects such as fire can still be seen even when viewed from far away by a player with the effect applied.",
       particle: '#292721',
@@ -8728,7 +8727,7 @@ module.exports = {
   },
   entity: {
     allay: {
-      version: 'JE1_BE1',
+      version: 'JE1 BE1',
       description:
         'The allay (/əˈleɪ/ uh-ʟᴀʏ) is a small flying wisp-like passive mob. It collects and delivers items for any player that gives it something, or any note block it hears repeatedly playing.',
       animated: true,
@@ -8750,7 +8749,7 @@ module.exports = {
       stackSize: 16,
     },
     arrow: {
-      version: 'JE2_BE1',
+      version: 'JE2 BE1',
       description:
         'An arrow serves as ammunition for bows, crossbows, and dispensers. Arrows can be modified to imbue status effects on players and mobs.',
       renewable: true,
@@ -8801,7 +8800,7 @@ module.exports = {
     },
     boat: {
       altName: 'Oak Boat',
-      version: 'JE4_BE2',
+      version: 'JE4 BE2',
       description:
         'A boat is both an item and a vehicle entity used primarily for fast transport of players and passenger mobs over bodies of water.',
       renewable: true,
@@ -8810,7 +8809,7 @@ module.exports = {
     },
     chest_boat: {
       altName: 'Oak Boat with Chest',
-      version: 'JE2_BE1',
+      version: 'JE2 BE1',
       description:
         'A boat with chest is a type of boat that can be used for fast transport of players, mobs, and items over bodies of water.',
       renewable: true,
@@ -8826,18 +8825,17 @@ module.exports = {
       usableItems: ['raw cod', 'raw salmon', 'lead', 'dye'],
     },
     cave_spider: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Cave spiders are small venomous variants of the spider. They are exclusively spawned by spawners found in mineshafts.',
       hp: 12,
       spawns: ['mineshafts'],
     },
     chicken: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'A chicken is a passive mob found in grass biomes and the main source of chicken, feathers and eggs.',
       hp: 4,
-      spawns: [],
       usableItems: [
         'Solid surfaced blocks with a minimum of two block spaces above them',
         'A 1/8 chance from a thrown egg',
@@ -8859,7 +8857,7 @@ module.exports = {
       usableItems: ['water bucket'],
     },
     cow: {
-      version: 'JE5_BE2',
+      version: 'JE5 BE2',
       description:
         'A cow is a passive mob found in most grassy biomes and a source of leather, beef and milk.',
       hp: 10,
@@ -8870,7 +8868,7 @@ module.exports = {
       usableItems: ['bucket', 'wheat', 'lead'],
     },
     creeper: {
-      version: 'JE2_BE1',
+      version: 'JE2 BE1',
       description:
         "A creeper is a common hostile mob that silently approaches players and explodes. Due to their distinctive appearance and a high potential for killing unwary players as well as damaging the environment and players' constructions, creepers have become one of the icons of Minecraft, both among players and non-players.",
       hp: 20,
@@ -9000,7 +8998,7 @@ module.exports = {
         "Experience (EXP or XP for short) can be obtained by gathering experience orbs from mining, defeating mobs, breeding, trading, fishing, completing advancements (JE only) and using grindstones and furnaces. Experience gained during a player's life affects the player's score on the death screen. While having no direct effect on the player character, it can be used to enhance their equipment through enchanting, or by using an anvil to repair, rename, or combine enchantments on equipment. Experience also recovers durability on items with Mending that are being worn or are in-hand.",
     },
     eye_of_ender: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'An eye of ender is a craftable item used to locate strongholds and activate the end portals within them.',
       renewable: true,
@@ -9009,12 +9007,12 @@ module.exports = {
     },
     falling_block: {
       altName: 'Sand',
-      version: 'JE5_BE3',
+      version: 'JE5 BE3',
       description:
         'A falling block is the entity form of a block that appears when a gravity-affected block loses its support.',
     },
     firework_rocket: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'A firework rocket is an item (and entity) used for creating decorative explosions, boosting when flying with elytra, and loading into a crossbow as ammunition.',
       renewable: true,
@@ -9036,7 +9034,7 @@ module.exports = {
     },
     frog: {
       altName: 'Temperate Frog',
-      version: 'JE1_BE1',
+      version: 'JE1 BE1',
       description:
         'A frog is a passive mob found in swamps. Frogs eat small slimes and magma cubes. A frog can produce one of three kinds of froglights from eating magma cubes, depending on the type of frog.',
       animated: true,
@@ -9045,7 +9043,7 @@ module.exports = {
       usableItems: ['slimeball', 'lead'],
     },
     ghast: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Ghasts are large white floating ghost-like hostile mobs that live in the Nether and shoot explosive fireballs at the player.',
       animated: true,
@@ -9054,7 +9052,7 @@ module.exports = {
     },
     giant: {
       altName: 'Zombie',
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'Giants are unused, over-sized mobs that look like zombies. They previously spawned naturally in Indev.',
       hp: 100,
@@ -9064,7 +9062,7 @@ module.exports = {
       ],
     },
     glow_item_frame: {
-      version: 'JE1_BE3',
+      version: 'JE1 BE3',
       description:
         'A glow item frame keeps itself and the item inside it illuminated, even in the dark.',
       renewable: true,
@@ -9083,7 +9081,7 @@ module.exports = {
       usableItems: ['lead'],
     },
     goat: {
-      version: 'JE1_BE1',
+      version: 'JE1 BE1',
       description:
         'A goat is a neutral mob found in certain mountainous biomes. Goats can jump especially high and ram mobs. They are a source of goat horns and milk.',
       hp: 10,
@@ -9132,7 +9130,7 @@ module.exports = {
       ],
     },
     husk: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'A husk is a variant of a zombie that spawns in deserts. Unlike zombies, husks do not burn in sunlight.',
       hp: 20,
@@ -9145,7 +9143,7 @@ module.exports = {
       spawns: ['Using `/summon`', 'Using datapacks'],
     },
     iron_golem: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'An iron golem is a large, powerful neutral utility mob that defends players and villagers. It is one of the few mobs that can be built then spawned in the game.',
       hp: 100,
@@ -9158,7 +9156,7 @@ module.exports = {
         "An item is an object that exists only within the player's inventory and hands, or displayed in item frames or armor stands.",
     },
     item_frame: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'An item frame is an entity (JE only) or block entity (BE only) that displays the item or block that is inside it.',
       renewable: true,
@@ -9167,7 +9165,7 @@ module.exports = {
     },
     fireball: {
       altName: 'Fire Charge',
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         "A fireball is an explosive projectile expelled from a ghast's mouth as its method of attack.",
     },
@@ -9214,7 +9212,7 @@ module.exports = {
         'Markers are entities intended for use in data packs and map-making. They can only be created with the `/summon` command.',
     },
     minecart: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'A minecart is a train-like vehicle entity that runs on rails.',
       hp: 6,
@@ -9223,7 +9221,7 @@ module.exports = {
       stackSize: 0,
     },
     chest_minecart: {
-      version: 'JE4_BE2',
+      version: 'JE4 BE2',
       description:
         'A minecart with chest is a minecart with a chest inside it.',
       hp: 6,
@@ -9250,7 +9248,7 @@ module.exports = {
       stackSize: 0,
     },
     hopper_minecart: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description: 'A minecart with hopper is a hopper inside a minecart.',
       hp: 6,
       renewable: true,
@@ -9264,7 +9262,7 @@ module.exports = {
       hp: 6,
     },
     tnt_minecart: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description: 'A minecart with TNT is a block of TNT inside a minecart.',
       hp: 6,
       renewable: true,
@@ -9310,7 +9308,7 @@ module.exports = {
       stackSize: 64,
     },
     panda: {
-      version: 'JE1_BE1',
+      version: 'JE1 BE1',
       description:
         "A panda is a rare neutral mob that resides in jungles. Certain aspects of a panda's behavior and appearance vary depending on its personality.",
       hp: 20,
@@ -9343,7 +9341,7 @@ module.exports = {
       ],
     },
     pig: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'A pig is a common passive mob found in most grass biomes. Pigs are a source of porkchops and can be equipped with a saddle to be driven.',
       hp: 10,
@@ -9394,7 +9392,7 @@ module.exports = {
     },
     tnt: {
       altName: 'TNT',
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'TNT is an explosive block that can be primed to generate an explosion.',
       renewable: true,
@@ -9412,7 +9410,7 @@ module.exports = {
     },
     rabbit: {
       altName: 'Brown Rabbit',
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         "A rabbit is an uncommon passive mob and is a source of rabbit's foot, rabbit hide and raw rabbit.",
       hp: 3,
@@ -9455,7 +9453,7 @@ module.exports = {
     },
     sheep: {
       altName: 'White Sheep',
-      version: 'JE3_BE6',
+      version: 'JE3 BE6',
       description:
         'Sheep are common passive mobs that supply wool and mutton and are found in many of the grassy biomes.',
       hp: 8,
@@ -9473,7 +9471,7 @@ module.exports = {
         'A shulker bullet is a guided projectile that is shot from shulkers, and they follow the targeted entity along the X, Y, or Z axis and leave trails of white particles. A shulker bullet that hits a mob or player deals damage and affects them with Levitation for ten seconds.',
     },
     silverfish: {
-      version: 'JE1_BE1',
+      version: 'JE1 BE1',
       description:
         'Silverfish are small hostile mobs found hiding in stone-like blocks in mountains, strongholds, igloo basements and woodland mansions.',
       animated: true,
@@ -9481,7 +9479,7 @@ module.exports = {
       spawns: ['After mining infested blocks or from spawners in strongholds'],
     },
     skeleton: {
-      version: 'JE6_BE4',
+      version: 'JE6 BE4',
       description:
         'A skeleton is a common undead hostile mob equipped with a bow.',
       hp: 20,
@@ -9499,7 +9497,7 @@ module.exports = {
       usableItems: ['saddle', 'lead'],
     },
     slime: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'Slimes are bouncy, cube-shaped hostile mobs that spawn deep underground in particular chunks, or at night in swamp biomes.',
       hp: 16,
@@ -9510,7 +9508,7 @@ module.exports = {
     },
     small_fireball: {
       altName: 'Fire Charge',
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'A small fireball is a projectile produced by ranged attack of blazes, and by fire charges when shot from dispensers.',
     },
@@ -9522,7 +9520,7 @@ module.exports = {
       usableItems: ['lead', 'shears'],
     },
     snowball: {
-      version: 'JE3_BE3',
+      version: 'JE3 BE3',
       description: 'Snowballs are throwable combat items.',
       renewable: true,
       flammable: false,
@@ -9537,7 +9535,7 @@ module.exports = {
       stackSize: 64,
     },
     spider: {
-      version: 'JE4_BE3',
+      version: 'JE4 BE3',
       description:
         'Spiders are common neutral mobs that have the unique ability to climb walls.',
       hp: 64,
@@ -9556,14 +9554,14 @@ module.exports = {
       usableItems: ['lead'],
     },
     stray: {
-      version: 'JE2_BE4',
+      version: 'JE2 BE4',
       description:
         'Strays are variants of skeletons that spawn only in frozen, ice, or snowy biomes.',
       hp: 20,
       spawns: ['frozen river', 'snowy plains', 'ice spikes'],
     },
     strider: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Striders are passive mobs native to the Nether. They can walk/stride on lava and be saddled by the player. A warped fungus on a stick is needed to control a strider, similar to how a pig is controlled by a carrot on a stick.',
       animated: true,
@@ -9595,7 +9593,7 @@ module.exports = {
     },
     egg: {
       altName: 'Egg',
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'An egg is an item that can be used to craft food items, or as a throwable entity to spawn chicks.',
       renewable: true,
@@ -9604,7 +9602,7 @@ module.exports = {
     },
     ender_pearl: {
       altName: 'Ender Pearl',
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'An ender pearl is an item dropped by Enderman used to teleport and to make an eye of ender.',
       renewable: true,
@@ -9720,7 +9718,7 @@ module.exports = {
       ],
     },
     wither: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'The wither is a player-constructed undead hostile boss mob that floats and shoots explosive skulls at players and mobs. It is the only source of nether stars, which are used to craft beacons.',
       hp: 300,
@@ -9742,7 +9740,7 @@ module.exports = {
       stackSize: 64,
     },
     wolf: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'A wolf is a neutral mob that can be tamed and used to assist in combat with most hostile mobs.',
       hp: 20,
@@ -9764,7 +9762,7 @@ module.exports = {
       usableItems: ['lead'],
     },
     zombie: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'Zombies are common undead hostile mobs that deal melee damage and attack in groups.',
       hp: 20,
@@ -9824,233 +9822,233 @@ module.exports = {
   },
   food: {
     apple: {
-      version: 'JE3_BE3',
+      version: 'JE3 BE3',
       description: 'Apples are food items that can be eaten by the player.',
       renewable: true,
     },
     mushroom_stew: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description: 'Mushroom stew is a food item.',
       renewable: true,
     },
     bread: {
-      version: 'JE3_BE3',
+      version: 'JE3 BE3',
       description: 'Bread is a food item that can be eaten by the player.',
       renewable: true,
     },
     porkchop: {
-      version: 'JE3_BE3',
+      version: 'JE3 BE3',
       description:
         'A raw porkchop is a food item that can be eaten by the player or cooked to make a cooked porkchop.',
       renewable: true,
     },
     cooked_porkchop: {
-      version: 'JE4_BE3',
+      version: 'JE4 BE3',
       description:
         'Cooked porkchop is a food item that can be eaten by the player.',
       renewable: true,
     },
     golden_apple: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'The golden apple is a special food item that bestows beneficial effects when consumed.',
       renewable: true,
     },
     enchanted_golden_apple: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'An enchanted golden apple (in Java Edition) or enchanted apple (in Bedrock Edition) is a rare and uncraftable variant of the golden apple that has stronger effects.',
       animated: true,
       renewable: false,
     },
     cod: {
-      version: 'JE4_BE2',
+      version: 'JE4 BE2',
       description:
         'Raw cod is a food item that can be found when fishing. It restores 2 hunger and can be cooked to become cooked cod.',
       renewable: true,
     },
     salmon: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description: 'Raw salmon is a food item.',
       renewable: true,
     },
     tropical_fish: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description: 'Tropical fish is a food item that cannot be cooked.',
       renewable: true,
     },
     pufferfish: {
-      version: 'JE5_BE2',
+      version: 'JE5 BE2',
       positions: ['item'],
       description:
         'A pufferfish is a poisonous food item that is used to brew water breathing potions.',
       renewable: true,
     },
     cooked_cod: {
-      version: 'JE4_BE3',
+      version: 'JE4 BE3',
       description: 'Cooked cod is a food item obtained by cooking raw cod.',
       renewable: true,
     },
     cooked_salmon: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Cooked salmon is a food item obtained by cooking raw salmon. It is a nutritious and easily obtainable early-game food source.',
       renewable: true,
     },
     cookie: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Cookies are food items that can be obtained in large quantities, but do not restore hunger or saturation significantly.',
       renewable: true,
     },
     melon_slice: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'A melon slice is a food item that can be eaten by the player.',
       renewable: true,
     },
     dried_kelp: {
-      version: 'JE1_BE2',
+      version: 'JE1 BE2',
       description:
         'Dried kelp is a food item that can be quickly eaten by the player. It can also be crafted into dried kelp blocks.',
       renewable: true,
     },
     beef: {
-      version: 'JE4_BE3',
+      version: 'JE4 BE3',
       description:
         'Raw beef is a food item that can be eaten by the player or cooked in a furnace, smoker, or campfire to make steak.',
       renewable: true,
     },
     cooked_beef: {
       altName: 'Steak',
-      version: 'JE4_BE3',
+      version: 'JE4 BE3',
       description:
         'Steak (in Java Edition) or cooked beef (in Bedrock Edition) is a food item obtained from cows, mooshrooms, or from cooking raw beef.',
       renewable: true,
     },
     chicken: {
-      version: 'JE3_BE3',
+      version: 'JE3 BE3',
       description:
         'Raw chicken is a food item that can be eaten by the player. It can be cooked in a furnace, smoker, or a campfire to make cooked chicken.',
       renewable: true,
     },
     cooked_chicken: {
-      version: 'JE3_BE3',
+      version: 'JE3 BE3',
       description:
         'Cooked chicken is a food item that can be eaten by the player.',
       renewable: true,
     },
     rotten_flesh: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'Rotten flesh is a food item that can be eaten by the player, at the high risk of inflicting Hunger.',
       renewable: true,
     },
     spider_eye: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description: 'A spider eye is a poisonous food and brewing item.',
       renewable: true,
     },
     carrot: {
-      version: 'JE2_BE1',
+      version: 'JE2 BE1',
       description: 'A carrot is a food item that can be eaten by the player.',
       renewable: true,
     },
     potato: {
-      version: 'JE1_BE1',
+      version: 'JE1 BE1',
       description:
         'A potato is a food item that can be planted, consumed raw, or cooked in a furnace or a campfire to make baked potatoes.',
       renewable: true,
     },
     baked_potato: {
-      version: 'JE4_BE2',
+      version: 'JE4 BE2',
       description:
         'A baked potato is a food item that can be eaten by the player.',
       renewable: true,
     },
     poisonous_potato: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'A poisonous potato is a type of potato that can poison the player.',
       renewable: true,
     },
     golden_carrot: {
-      version: 'JE4_BE2',
+      version: 'JE4 BE2',
       description:
         'A golden carrot is a valuable food item and brewing ingredient. It provides the second most saturation in the game, behind suspicious stew crafted with either a dandelion or blue orchid.',
       renewable: true,
     },
     pumpkin_pie: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Pumpkin pie is a food item that can be eaten by the player.',
       renewable: true,
     },
     rabbit: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'Raw rabbit is a food item that can be eaten by the player, or cooked in a furnace or a campfire to make cooked rabbit.',
       renewable: true,
     },
     cooked_rabbit: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'Cooked rabbit is a food item that can be eaten by the player.',
       renewable: true,
     },
     rabbit_stew: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'Rabbit stew is a food item that can be eaten by the player.',
       renewable: true,
     },
     mutton: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description: 'Raw mutton is a food item dropped by sheep when killed.',
       renewable: true,
     },
     cooked_mutton: {
-      version: 'JE3_BE2',
+      version: 'JE3 BE2',
       description:
         'Cooked mutton is a food item obtained from cooking raw mutton.',
       renewable: true,
     },
     chorus_fruit: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description:
         'Chorus fruit is a food item native to the End that can be eaten, or cooked into popped chorus fruit. It can be eaten even when the hunger bar is full, and eating it may teleport the player up to 8 blocks in any direction.',
       renewable: true,
     },
     beetroot: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description: 'A beetroot is a food and dye ingredient.',
       renewable: true,
     },
     beetroot_soup: {
-      version: 'JE2_BE2',
+      version: 'JE2 BE2',
       description: 'Beetroot soup is an unstackable food item.',
       renewable: true,
     },
     suspicious_stew: {
-      version: 'JE1_BE1',
+      version: 'JE1 BE1',
       description:
         'Suspicious stew is a food item that can give the player a status effect that depends on the flower used to craft it.',
       renewable: true,
     },
     sweet_berries: {
-      version: 'JE1_BE1',
+      version: 'JE1 BE1',
       description:
         'Sweet berries are a food item that are collected from sweet berry bushes.',
       renewable: true,
     },
     glow_berries: {
-      version: 'JE1_BE1',
+      version: 'JE1 BE1',
       description:
         'Glow berries are a food item that is collected from cave vines and can be used to plant them.',
       renewable: true,
     },
     honey_bottle: {
-      version: 'JE1_BE2',
+      version: 'JE1 BE2',
       description:
         'A honey bottle is a consumable drink item obtainable by using a glass bottle on a beehive. Honey bottles can also be used to craft honey blocks and sugar.',
       renewable: true,

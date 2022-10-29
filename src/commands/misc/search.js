@@ -316,126 +316,72 @@ module.exports = {
             .addChoices(...mdnLocales),
         ),
     )
-    .addSubcommandGroup(
-      (subcommandGroup) =>
-        subcommandGroup
-          .setName('minecraft')
-          .setDescription('ℹ️ Search a Minecraft information.')
-          .addSubcommand((subcommand) =>
-            subcommand
-              .setName('block')
-              .setDescription('🟫 Search Minecraft block information.')
-              .addStringOption((option) =>
-                option
-                  .setName('name')
-                  .setDescription('🔠 The Minecraft block name search query.'),
-              ),
-          )
-          .addSubcommand((subcommand) =>
-            subcommand
-              .setName('biome')
-              .setDescription('🌄 Search Minecraft biome information.')
-              .addStringOption((option) =>
-                option
-                  .setName('name')
-                  .setDescription('🔠 The Minecraft biome name search query.'),
-              ),
-          )
-          .addSubcommand((subcommand) =>
-            subcommand
-              .setName('effect')
-              .setDescription('💫 Search Minecraft effect information.')
-              .addStringOption((option) =>
-                option
-                  .setName('name')
-                  .setDescription('🔠 The Minecraft effect name search query.'),
-              ),
-          )
-          .addSubcommand((subcommand) =>
-            subcommand
-              .setName('enchantment')
-              .setDescription('🪧 Search Minecraft enchantment information.')
-              .addStringOption((option) =>
-                option
-                  .setName('name')
-                  .setDescription(
-                    '🔠 The Minecraft enchantment name search query.',
-                  ),
-              ),
-          )
-          .addSubcommand((subcommand) =>
-            subcommand
-              .setName('entity')
-              .setDescription('🔣 Search Minecraft entity information.')
-              .addStringOption((option) =>
-                option
-                  .setName('name')
-                  .setDescription('🔣 The Minecraft entity name search query.'),
-              ),
-          )
-          .addSubcommand((subcommand) =>
-            subcommand
-              .setName('food')
-              .setDescription('🍎 Search Minecraft food information.')
-              .addStringOption((option) =>
-                option
-                  .setName('name')
-                  .setDescription('🔠 The Minecraft food name search query.'),
-              ),
-          ),
-      // TODO: WIP
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('instrument')
-      //     .setDescription('🎹 Search Minecraft instrument information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription(
-      //           '🔠 The Minecraft instrument name search query.',
-      //         ),
-      //     ),
-      // )
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('item')
-      //     .setDescription('🎒 Search Minecraft item information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft item name search query.'),
-      //     ),
-      // )
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('material')
-      //     .setDescription('⛏️ Search Minecraft material information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft material name search query.'),
-      //     ),
-      // )
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('particle')
-      //     .setDescription('✨ Search Minecraft particle information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft particle name search query.'),
-      //     ),
-      // )
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('recipe')
-      //     .setDescription('🍴 Search Minecraft recipe information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft recipe name search query.'),
-      //     ),
-      // ),
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('minecraft')
+        .setDescription('ℹ️ Search a Minecraft information.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('block')
+            .setDescription('🟫 Search Minecraft block information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔠 The Minecraft block name search query.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('biome')
+            .setDescription('🌄 Search Minecraft biome information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔠 The Minecraft biome name search query.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('effect')
+            .setDescription('💫 Search Minecraft effect information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔠 The Minecraft effect name search query.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('enchantment')
+            .setDescription('🪧 Search Minecraft enchantment information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription(
+                  '🔠 The Minecraft enchantment name search query.',
+                ),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('entity')
+            .setDescription('🔣 Search Minecraft entity information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔣 The Minecraft entity name search query.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('food')
+            .setDescription('🍎 Search Minecraft food information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔠 The Minecraft food name search query.'),
+            ),
+        ),
     ),
   type: 'Chat Input',
 
@@ -2266,7 +2212,7 @@ module.exports = {
                     },
                     {
                       name: '🐣 Spawn',
-                      value: entity.spawns?.length
+                      value: entity.spawns
                         ? entity.spawns
                             .map((spawn) =>
                               !/^[A-Z|\d+]/.test(spawn)
@@ -2278,7 +2224,7 @@ module.exports = {
                     },
                     {
                       name: '⛏️ Usable Item',
-                      value: entity.usableItems?.length
+                      value: entity.usableItems
                         ? entity.usableItems
                             .map((item) =>
                               capitalCase(item).replace(
@@ -2423,7 +2369,7 @@ module.exports = {
                 }),
               );
               embed.setAuthor({
-                name: `🔣 ${food.displayName}`,
+                name: `🍎 ${food.displayName}`,
               });
               embed.addFields([
                 {
