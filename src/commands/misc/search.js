@@ -1628,8 +1628,11 @@ module.exports = {
 
       case 'minecraft':
         {
-          const mcData = minecraftData('1.19');
           const name = options.getString('name');
+
+          const mcData = minecraftData('1.19');
+          const minecraftLogo =
+            'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png';
 
           switch (options.getSubcommand()) {
             case 'block': {
@@ -1666,8 +1669,7 @@ module.exports = {
                     } Edition v${
                       mcData.version.minecraftVersion
                     } Block Lists (${filteredMcData.length})`,
-                    iconURL:
-                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                    iconURL: minecraftLogo,
                   });
                   pagination.setDescriptions(responses);
 
@@ -1804,8 +1806,7 @@ module.exports = {
                     } Edition v${
                       mcData.version.minecraftVersion
                     } Biome Lists (${mcData.biomesArray.length})`,
-                    iconURL:
-                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                    iconURL: minecraftLogo,
                   });
                   pagination.setDescriptions(responses);
 
@@ -1927,8 +1928,7 @@ module.exports = {
                     } Edition v${
                       mcData.version.minecraftVersion
                     } Effect Lists (${mcData.effectsArray.length})`,
-                    iconURL:
-                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                    iconURL: minecraftLogo,
                   });
                   pagination.setDescriptions(responses);
 
@@ -2024,8 +2024,7 @@ module.exports = {
                     } Edition v${
                       mcData.version.minecraftVersion
                     } Enchantment Lists (${mcData.enchantmentsArray.length})`,
-                    iconURL:
-                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                    iconURL: minecraftLogo,
                   });
                   pagination.setDescriptions(responses);
 
@@ -2143,8 +2142,7 @@ module.exports = {
                     } Edition v${
                       mcData.version.minecraftVersion
                     } Entity Lists (${mcData.entitiesArray.length})`,
-                    iconURL:
-                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                    iconURL: minecraftLogo,
                   });
                   pagination.setDescriptions(responses);
 
@@ -2319,8 +2317,7 @@ module.exports = {
                     } Edition v${mcData.version.minecraftVersion} Food Lists (${
                       mcData.foodsArray.length
                     })`,
-                    iconURL:
-                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                    iconURL: minecraftLogo,
                   });
                   pagination.setDescriptions(responses);
 
