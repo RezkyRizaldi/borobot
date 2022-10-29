@@ -2,6 +2,7 @@ const applyActivity = require('./applyActivity');
 const applyDefaultMessageNotifications = require('./applyDefaultMessageNotifications');
 const applyExplicitContentFilter = require('./applyExplicitContentFilter');
 const applyHexColor = require('./applyHexColor');
+const applyKeywordColor = require('./applyKeywordColor');
 const applyMessageType = require('./applyMessageType');
 const applyMFALevel = require('./applyMFALevel');
 const applyNSFWLevel = require('./applyNSFWLevel');
@@ -16,7 +17,7 @@ const applyThreadAutoArchiveDuration = require('./applyThreadAutoArchiveDuration
 const applyTier = require('./applyTier');
 const applyVerificationLevel = require('./applyVerificationLevel');
 const applyVideoQualityMode = require('./applyVideoQualityMode');
-const getFormattedBlockName = require('./getFormattedBlockName');
+const getFormattedMinecraftName = require('./getFormattedMinecraftName');
 const getFormattedParam = require('./getFormattedParam');
 const getImageReadLocale = require('./getImageReadLocale');
 const getLanguage = require('./getLanguage');
@@ -35,6 +36,7 @@ module.exports = {
   applyDefaultMessageNotifications,
   applyExplicitContentFilter,
   applyHexColor,
+  applyKeywordColor,
   applyMessageType,
   applyMFALevel,
   applyNSFWLevel,
@@ -49,7 +51,7 @@ module.exports = {
   applyTier,
   applyVerificationLevel,
   applyVideoQualityMode,
-  getFormattedBlockName,
+  getFormattedMinecraftName,
   getFormattedParam,
   getImageReadLocale,
   getLanguage,

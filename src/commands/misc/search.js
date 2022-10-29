@@ -1,5 +1,10 @@
 const axios = require('axios');
-const { capitalCase, paramCase, snakeCase } = require('change-case');
+const {
+  capitalCase,
+  paramCase,
+  pascalCase,
+  snakeCase,
+} = require('change-case');
 const {
   bold,
   ButtonBuilder,
@@ -18,6 +23,7 @@ const moment = require('moment');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
+const { stringify } = require('roman-numerals-convert');
 const truncate = require('truncate');
 
 const {
@@ -34,7 +40,8 @@ const {
   searchSortingChoices,
 } = require('../../constants');
 const {
-  getFormattedBlockName,
+  applyKeywordColor,
+  getFormattedMinecraftName,
   getWikiaURL,
   getFormattedParam,
   isAlphabeticLetter,
@@ -309,138 +316,72 @@ module.exports = {
             .addChoices(...mdnLocales),
         ),
     )
-    .addSubcommandGroup(
-      (subcommandGroup) =>
-        subcommandGroup
-          .setName('minecraft')
-          .setDescription('ℹ️ Search a Minecraft information.')
-          // .addSubcommand((subcommand) =>
-          //   subcommand
-          //     .setName('attribute')
-          //     .setDescription('📊 Search Minecraft attribute information.')
-          //     .addStringOption((option) =>
-          //       option
-          //         .setName('name')
-          //         .setDescription(
-          //           '🔠 The Minecraft attribute name search query.',
-          //         ),
-          //     ),
-          // )
-          .addSubcommand((subcommand) =>
-            subcommand
-              .setName('block')
-              .setDescription('🟫 Search Minecraft block information.')
-              .addStringOption((option) =>
-                option
-                  .setName('name')
-                  .setDescription('🔠 The Minecraft block name search query.'),
-              ),
-          ),
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('biome')
-      //     .setDescription('🌄 Search Minecraft biome information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft biome name search query.'),
-      //     ),
-      // )
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('effect')
-      //     .setDescription('💫 Search Minecraft effect information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft effect name search query.'),
-      //     ),
-      // )
-      // TODO: WIP
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('enchantment')
-      //     .setDescription('🪧 Search Minecraft enchantment information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription(
-      //           '🔠 The Minecraft enchantment name search query.',
-      //         ),
-      //     ),
-      // )
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('entity')
-      //     .setDescription('🔣 Search Minecraft entity information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft entity name search query.'),
-      //     ),
-      // )
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('food')
-      //     .setDescription('🍎 Search Minecraft food information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft food name search query.'),
-      //     ),
-      // )
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('instrument')
-      //     .setDescription('🎹 Search Minecraft instrument information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription(
-      //           '🔠 The Minecraft instrument name search query.',
-      //         ),
-      //     ),
-      // )
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('item')
-      //     .setDescription('🎒 Search Minecraft item information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft item name search query.'),
-      //     ),
-      // )
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('material')
-      //     .setDescription('⛏️ Search Minecraft material information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft material name search query.'),
-      //     ),
-      // )
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('particle')
-      //     .setDescription('✨ Search Minecraft particle information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft particle name search query.'),
-      //     ),
-      // )
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('recipe')
-      //     .setDescription('🍴 Search Minecraft recipe information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft recipe name search query.'),
-      //     ),
-      // ),
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('minecraft')
+        .setDescription('ℹ️ Search a Minecraft information.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('block')
+            .setDescription('🟫 Search Minecraft block information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔠 The Minecraft block name search query.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('biome')
+            .setDescription('🌄 Search Minecraft biome information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔠 The Minecraft biome name search query.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('effect')
+            .setDescription('💫 Search Minecraft effect information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔠 The Minecraft effect name search query.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('enchantment')
+            .setDescription('🪧 Search Minecraft enchantment information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription(
+                  '🔠 The Minecraft enchantment name search query.',
+                ),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('entity')
+            .setDescription('🔣 Search Minecraft entity information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔣 The Minecraft entity name search query.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('food')
+            .setDescription('🍎 Search Minecraft food information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔠 The Minecraft food name search query.'),
+            ),
+        ),
     ),
   type: 'Chat Input',
 
@@ -1548,7 +1489,7 @@ module.exports = {
                 console.error(err);
 
                 if (err.response?.status === 404) {
-                  await interaction.deferReply({ ephemeral: true }).then(
+                  return interaction.deferReply({ ephemeral: true }).then(
                     async () =>
                       await interaction.editReply({
                         content: `No character found with name ${inlineCode(
@@ -1687,12 +1628,14 @@ module.exports = {
 
       case 'minecraft':
         {
+          const name = options.getString('name');
+
           const mcData = minecraftData('1.19');
+          const minecraftLogo =
+            'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png';
 
           switch (options.getSubcommand()) {
             case 'block': {
-              const name = options.getString('name');
-
               if (!name) {
                 return interaction.deferReply().then(async () => {
                   const filteredMcData = mcData.blocksArray.filter(
@@ -1726,8 +1669,7 @@ module.exports = {
                     } Edition v${
                       mcData.version.minecraftVersion
                     } Block Lists (${filteredMcData.length})`,
-                    iconURL:
-                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                    iconURL: minecraftLogo,
                   });
                   pagination.setDescriptions(responses);
 
@@ -1748,9 +1690,22 @@ module.exports = {
 
               /** @type {import('minecraft-data').Block} */
               const block = {
-                ...mcData.blocksByName[getFormattedBlockName(snakeCase(name))],
-                ...extraMcData[getFormattedBlockName(snakeCase(name))],
+                ...mcData.blocksByName[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
+                ...extraMcData.block[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
               };
+
+              if (!Object.keys(block).length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No block found with name ${inlineCode(name)}.`,
+                    }),
+                );
+              }
 
               embed.setDescription(block.description);
               embed.setThumbnail(
@@ -1811,19 +1766,627 @@ module.exports = {
                   value: block.flammable ? 'Yes' : 'No',
                   inline: true,
                 },
+                {
+                  name: '🆕 Renewable',
+                  value: block.renewable ? 'Yes' : 'No',
+                  inline: true,
+                },
               ]);
 
-              if (block.renewable) {
-                embed.addFields([
-                  {
-                    name: '🆕 Renewable',
-                    value: block.renewable ? 'Yes' : 'No',
-                    inline: true,
-                  },
-                ]);
+              return interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            }
+
+            case 'biome': {
+              if (!name) {
+                return interaction.deferReply().then(async () => {
+                  const responses = mcData.biomesArray.map(
+                    (item, index) =>
+                      `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: `Minecraft ${
+                      mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
+                    } Edition v${
+                      mcData.version.minecraftVersion
+                    } Biome Lists (${mcData.biomesArray.length})`,
+                    iconURL: minecraftLogo,
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
               }
 
-              await interaction
+              /** @type {import('minecraft-data').Biome} */
+              const biome = {
+                ...mcData.biomesByName[snakeCase(name)],
+                ...extraMcData.biome[snakeCase(name)],
+              };
+
+              if (!Object.keys(biome).length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No biome found with name ${inlineCode(name)}.`,
+                    }),
+                );
+              }
+
+              embed.setDescription(biome.description);
+              embed.setThumbnail(
+                getWikiaURL({
+                  fileName: `${biome.altName ?? biome.displayName}${
+                    biome.version ? ` ${biome.version}` : ''
+                  }`,
+                  path: 'minecraft_gamepedia',
+                }),
+              );
+              embed.setAuthor({
+                name: `🌄 ${biome.displayName}`,
+              });
+              embed.setFields([
+                {
+                  name: '🌡️ Temperature',
+                  value: `${biome.temperature}°`,
+                  inline: true,
+                },
+                {
+                  name: '🕳️ Dimension',
+                  value: capitalCase(biome.dimension),
+                  inline: true,
+                },
+                {
+                  name: '🌧️ Rainfall',
+                  value: `${biome.rainfall}`,
+                  inline: true,
+                },
+                {
+                  name: '🧱 Structures',
+                  value: biome.structures
+                    ? biome.structures
+                        .map((structure) => capitalCase(structure))
+                        .join(', ')
+                    : italic('None'),
+                },
+                {
+                  name: '🟫 Blocks',
+                  value: biome.blocks
+                    ? biome.blocks.map((block) => capitalCase(block)).join(', ')
+                    : italic('None'),
+                },
+                {
+                  name: '🎨 Colors',
+                  value: biome.colors
+                    ? Object.entries(biome.colors)
+                        .map(
+                          ([key, value]) =>
+                            `${capitalCase(key)}: ${applyKeywordColor(value)}`,
+                        )
+                        .join('\n')
+                    : italic('Unknown'),
+                },
+              ]);
+
+              return interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            }
+
+            case 'effect': {
+              if (!name) {
+                return interaction.deferReply().then(async () => {
+                  const responses = mcData.effectsArray.map(
+                    (item, index) =>
+                      `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: `Minecraft ${
+                      mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
+                    } Edition v${
+                      mcData.version.minecraftVersion
+                    } Effect Lists (${mcData.effectsArray.length})`,
+                    iconURL: minecraftLogo,
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
+              }
+
+              /** @type {import('minecraft-data').Effect} */
+              const effect = {
+                ...mcData.effectsByName[pascalCase(name)],
+                ...extraMcData.effect[pascalCase(name)],
+              };
+
+              if (!Object.keys(effect).length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No effect found with name ${inlineCode(name)}.`,
+                    }),
+                );
+              }
+
+              embed.setDescription(effect.description);
+              embed.setThumbnail(
+                getWikiaURL({
+                  fileName: `${effect.altName ?? effect.displayName}${
+                    effect.positions?.length
+                      ? effect.positions.map((pos) => ` (${pos})`).join('')
+                      : ''
+                  }${effect.version ? ` ${effect.version}` : ''}`,
+                  path: 'minecraft_gamepedia',
+                }),
+              );
+              embed.setAuthor({
+                name: `💫 ${effect.displayName}`,
+              });
+              embed.setFields([
+                {
+                  name: '✨ Particle',
+                  value: effect.particle
+                    ? applyKeywordColor(effect.particle)
+                    : italic('None'),
+                  inline: true,
+                },
+                {
+                  name: '🔣 Type',
+                  value: effect.type === 'good' ? 'Positive' : 'Negative',
+                  inline: true,
+                },
+              ]);
+
+              return interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            }
+
+            case 'enchantment': {
+              if (!name) {
+                return interaction.deferReply().then(async () => {
+                  const responses = mcData.enchantmentsArray.map(
+                    (item, index) =>
+                      `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: `Minecraft ${
+                      mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
+                    } Edition v${
+                      mcData.version.minecraftVersion
+                    } Enchantment Lists (${mcData.enchantmentsArray.length})`,
+                    iconURL: minecraftLogo,
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
+              }
+
+              /** @type {import('minecraft-data').Enchantment} */
+              const enchantment = {
+                ...mcData.enchantmentsByName[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
+                ...extraMcData.enchantment[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
+              };
+
+              if (!Object.keys(enchantment).length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No enchantment found with name ${inlineCode(
+                        name,
+                      )}.`,
+                    }),
+                );
+              }
+
+              embed.setDescription(enchantment.description);
+              embed.setAuthor({
+                name: `🪧 ${enchantment.displayName}`,
+              });
+              embed.setFields([
+                {
+                  name: '✨ Maximum Level',
+                  value: stringify(enchantment.maxLevel),
+                  inline: true,
+                },
+                {
+                  name: '🏴‍☠️ Treasure Only',
+                  value: enchantment.treasureOnly ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '🤬 Curse',
+                  value: enchantment.curse ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '🔍 Discoverable',
+                  value: enchantment.discoverable ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '↔️ Tradeable',
+                  value: enchantment.tradeable ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '⚖️ Weight',
+                  value: `${enchantment.weight}`,
+                  inline: true,
+                },
+                {
+                  name: '🚫 Incompatible With',
+                  value: enchantment.exclude.length
+                    ? enchantment.exclude
+                        .map((exc) => capitalCase(exc))
+                        .join(', ')
+                    : italic('None'),
+                },
+              ]);
+
+              return interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            }
+
+            case 'entity': {
+              if (!name) {
+                return interaction.deferReply().then(async () => {
+                  const responses = mcData.entitiesArray.map(
+                    (item, index) =>
+                      `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: `Minecraft ${
+                      mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
+                    } Edition v${
+                      mcData.version.minecraftVersion
+                    } Entity Lists (${mcData.entitiesArray.length})`,
+                    iconURL: minecraftLogo,
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
+              }
+
+              /** @type {import('minecraft-data').Entity} */
+              const entity = {
+                ...mcData.entitiesByName[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
+                ...extraMcData.entity[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
+              };
+
+              if (!Object.keys(entity).length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No entity found with name ${inlineCode(name)}.`,
+                    }),
+                );
+              }
+
+              embed.setDescription(entity.description);
+              embed.setThumbnail(
+                getWikiaURL({
+                  fileName: `${entity.altName ?? entity.displayName}${
+                    entity.positions?.length
+                      ? entity.positions.map((pos) => ` (${pos})`).join('')
+                      : ''
+                  }${entity.version ? ` ${entity.version}` : ''}`,
+                  path: 'minecraft_gamepedia',
+                  animated: entity.animated ?? false,
+                }),
+              );
+              embed.setAuthor({
+                name: `🔣 ${entity.displayName}`,
+              });
+
+              switch (entity.type) {
+                case 'mob':
+                case 'ambient':
+                case 'animal':
+                case 'hostile':
+                case 'water_creature':
+                  embed.setFields([
+                    {
+                      name: '❤️ Health Points',
+                      value: `${entity.hp} (❤️x${entity.hp / 2})`,
+                      inline: true,
+                    },
+                    {
+                      name: '🐣 Spawn',
+                      value: entity.spawns
+                        ? entity.spawns
+                            .map((spawn) =>
+                              !/^[A-Z|\d+]/.test(spawn)
+                                ? capitalCase(spawn)
+                                : spawn,
+                            )
+                            .join(', ')
+                        : italic('Unknown'),
+                    },
+                    {
+                      name: '⛏️ Usable Item',
+                      value: entity.usableItems
+                        ? entity.usableItems
+                            .map((item) =>
+                              capitalCase(item).replace(
+                                /\b(a|the|an|and|or|but|in|on|of|it)\b/gi,
+                                (word) => word.toLowerCase(),
+                              ),
+                            )
+                            .join(', ')
+                        : italic('None'),
+                    },
+                  ]);
+                  break;
+
+                case 'living':
+                case 'projectile':
+                case 'other':
+                  if (entity.hp) {
+                    embed.addFields([
+                      {
+                        name: '❤️ Health Points',
+                        value: `${entity.hp} (❤️x${entity.hp / 2})`,
+                        inline: true,
+                      },
+                    ]);
+                  }
+
+                  if (entity.stackSize) {
+                    embed.addFields([
+                      {
+                        name: '📦 Stackable',
+                        value:
+                          entity.stackSize > 0
+                            ? `Yes (${entity.stackSize})`
+                            : 'No',
+                        inline: true,
+                      },
+                    ]);
+                  }
+
+                  if (typeof entity.flammable !== 'undefined') {
+                    embed.addFields([
+                      {
+                        name: '🔥 Flammable',
+                        value: entity.flammable ? 'Yes' : 'No',
+                        inline: true,
+                      },
+                    ]);
+                  }
+
+                  if (typeof entity.renewable !== 'undefined') {
+                    embed.addFields([
+                      {
+                        name: '🆕 Renewable',
+                        value: entity.renewable ? 'Yes' : 'No',
+                        inline: true,
+                      },
+                    ]);
+                  }
+                  break;
+              }
+
+              return interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            }
+
+            case 'food': {
+              if (!name) {
+                return interaction.deferReply().then(async () => {
+                  const responses = mcData.foodsArray.map(
+                    (item, index) =>
+                      `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: `Minecraft ${
+                      mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
+                    } Edition v${mcData.version.minecraftVersion} Food Lists (${
+                      mcData.foodsArray.length
+                    })`,
+                    iconURL: minecraftLogo,
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
+              }
+
+              /** @type {import('minecraft-data').Food} */
+              const food = {
+                ...mcData.foodsByName[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
+                ...extraMcData.food[getFormattedMinecraftName(snakeCase(name))],
+              };
+
+              if (!Object.keys(food).length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No food found with name ${inlineCode(name)}.`,
+                    }),
+                );
+              }
+
+              embed.setDescription(food.description);
+              embed.setThumbnail(
+                getWikiaURL({
+                  fileName: `${food.altName ?? food.displayName}${
+                    food.positions?.length
+                      ? food.positions.map((pos) => ` (${pos})`).join('')
+                      : ''
+                  }${food.version ? ` ${food.version}` : ''}`,
+                  path: 'minecraft_gamepedia',
+                  animated: food.animated ?? false,
+                }),
+              );
+              embed.setAuthor({
+                name: `🍎 ${food.displayName}`,
+              });
+              embed.addFields([
+                {
+                  name: '📦 Stackable',
+                  value: food.stackSize > 0 ? `Yes (${food.stackSize})` : 'No',
+                  inline: true,
+                },
+                {
+                  name: '🆕 Renewable',
+                  value: food.renewable ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '❤️‍🩹 Restores',
+                  value: `${food.foodPoints} (🍗x${food.foodPoints / 2})`,
+                  inline: true,
+                },
+              ]);
+
+              return interaction
                 .deferReply()
                 .then(
                   async () => await interaction.editReply({ embeds: [embed] }),
