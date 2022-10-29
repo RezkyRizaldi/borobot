@@ -9822,4 +9822,238 @@ module.exports = {
         'Fishing bobbers have entity data associated with them that contain various properties of the entity. They also appear to despawn after a while.',
     },
   },
+  food: {
+    apple: {
+      version: 'JE3_BE3',
+      description: 'Apples are food items that can be eaten by the player.',
+      renewable: true,
+    },
+    mushroom_stew: {
+      version: 'JE2_BE2',
+      description: 'Mushroom stew is a food item.',
+      renewable: true,
+    },
+    bread: {
+      version: 'JE3_BE3',
+      description: 'Bread is a food item that can be eaten by the player.',
+      renewable: true,
+    },
+    porkchop: {
+      version: 'JE3_BE3',
+      description:
+        'A raw porkchop is a food item that can be eaten by the player or cooked to make a cooked porkchop.',
+      renewable: true,
+    },
+    cooked_porkchop: {
+      version: 'JE4_BE3',
+      description:
+        'Cooked porkchop is a food item that can be eaten by the player.',
+      renewable: true,
+    },
+    golden_apple: {
+      version: 'JE2_BE2',
+      description:
+        'The golden apple is a special food item that bestows beneficial effects when consumed.',
+      renewable: true,
+    },
+    enchanted_golden_apple: {
+      version: 'JE2_BE2',
+      description:
+        'An enchanted golden apple (in Java Edition) or enchanted apple (in Bedrock Edition) is a rare and uncraftable variant of the golden apple that has stronger effects.',
+      animated: true,
+      renewable: false,
+    },
+    cod: {
+      version: 'JE4_BE2',
+      description:
+        'Raw cod is a food item that can be found when fishing. It restores 2 hunger and can be cooked to become cooked cod.',
+      renewable: true,
+    },
+    salmon: {
+      version: 'JE2_BE2',
+      description: 'Raw salmon is a food item.',
+      renewable: true,
+    },
+    tropical_fish: {
+      version: 'JE2_BE2',
+      description: 'Tropical fish is a food item that cannot be cooked.',
+      renewable: true,
+    },
+    pufferfish: {
+      version: 'JE5_BE2',
+      positions: ['item'],
+      description:
+        'A pufferfish is a poisonous food item that is used to brew water breathing potions.',
+      renewable: true,
+    },
+    cooked_cod: {
+      version: 'JE4_BE3',
+      description: 'Cooked cod is a food item obtained by cooking raw cod.',
+      renewable: true,
+    },
+    cooked_salmon: {
+      version: 'JE2_BE2',
+      description:
+        'Cooked salmon is a food item obtained by cooking raw salmon. It is a nutritious and easily obtainable early-game food source.',
+      renewable: true,
+    },
+    cookie: {
+      version: 'JE2_BE2',
+      description:
+        'Cookies are food items that can be obtained in large quantities, but do not restore hunger or saturation significantly.',
+      renewable: true,
+    },
+    melon_slice: {
+      version: 'JE2_BE2',
+      description:
+        'A melon slice is a food item that can be eaten by the player.',
+      renewable: true,
+    },
+    dried_kelp: {
+      version: 'JE1_BE2',
+      description:
+        'Dried kelp is a food item that can be quickly eaten by the player. It can also be crafted into dried kelp blocks.',
+      renewable: true,
+    },
+    beef: {
+      version: 'JE4_BE3',
+      description:
+        'Raw beef is a food item that can be eaten by the player or cooked in a furnace, smoker, or campfire to make steak.',
+      renewable: true,
+    },
+    cooked_beef: {
+      altName: 'Steak',
+      version: 'JE4_BE3',
+      description:
+        'Steak (in Java Edition) or cooked beef (in Bedrock Edition) is a food item obtained from cows, mooshrooms, or from cooking raw beef.',
+      renewable: true,
+    },
+    chicken: {
+      version: 'JE3_BE3',
+      description:
+        'Raw chicken is a food item that can be eaten by the player. It can be cooked in a furnace, smoker, or a campfire to make cooked chicken.',
+      renewable: true,
+    },
+    cooked_chicken: {
+      version: 'JE3_BE3',
+      description:
+        'Cooked chicken is a food item that can be eaten by the player.',
+      renewable: true,
+    },
+    rotten_flesh: {
+      version: 'JE3_BE2',
+      description:
+        'Rotten flesh is a food item that can be eaten by the player, at the high risk of inflicting Hunger.',
+      renewable: true,
+    },
+    spider_eye: {
+      version: 'JE2_BE2',
+      description: 'A spider eye is a poisonous food and brewing item.',
+      renewable: true,
+    },
+    carrot: {
+      version: 'JE2_BE1',
+      description: 'A carrot is a food item that can be eaten by the player.',
+      renewable: true,
+    },
+    potato: {
+      version: 'JE1_BE1',
+      description:
+        'A potato is a food item that can be planted, consumed raw, or cooked in a furnace or a campfire to make baked potatoes.',
+      renewable: true,
+    },
+    baked_potato: {
+      version: 'JE4_BE2',
+      description:
+        'A baked potato is a food item that can be eaten by the player.',
+      renewable: true,
+    },
+    poisonous_potato: {
+      version: 'JE3_BE2',
+      description:
+        'A poisonous potato is a type of potato that can poison the player.',
+      renewable: true,
+    },
+    golden_carrot: {
+      version: 'JE4_BE2',
+      description:
+        'A golden carrot is a valuable food item and brewing ingredient. It provides the second most saturation in the game, behind suspicious stew crafted with either a dandelion or blue orchid.',
+      renewable: true,
+    },
+    pumpkin_pie: {
+      version: 'JE2_BE2',
+      description:
+        'Pumpkin pie is a food item that can be eaten by the player.',
+      renewable: true,
+    },
+    rabbit: {
+      version: 'JE3_BE2',
+      description:
+        'Raw rabbit is a food item that can be eaten by the player, or cooked in a furnace or a campfire to make cooked rabbit.',
+      renewable: true,
+    },
+    cooked_rabbit: {
+      version: 'JE3_BE2',
+      description:
+        'Cooked rabbit is a food item that can be eaten by the player.',
+      renewable: true,
+    },
+    rabbit_stew: {
+      version: 'JE3_BE2',
+      description:
+        'Rabbit stew is a food item that can be eaten by the player.',
+      renewable: true,
+    },
+    mutton: {
+      version: 'JE3_BE2',
+      description: 'Raw mutton is a food item dropped by sheep when killed.',
+      renewable: true,
+    },
+    cooked_mutton: {
+      version: 'JE3_BE2',
+      description:
+        'Cooked mutton is a food item obtained from cooking raw mutton.',
+      renewable: true,
+    },
+    chorus_fruit: {
+      version: 'JE2_BE2',
+      description:
+        'Chorus fruit is a food item native to the End that can be eaten, or cooked into popped chorus fruit. It can be eaten even when the hunger bar is full, and eating it may teleport the player up to 8 blocks in any direction.',
+      renewable: true,
+    },
+    beetroot: {
+      version: 'JE2_BE2',
+      description: 'A beetroot is a food and dye ingredient.',
+      renewable: true,
+    },
+    beetroot_soup: {
+      version: 'JE2_BE2',
+      description: 'Beetroot soup is an unstackable food item.',
+      renewable: true,
+    },
+    suspicious_stew: {
+      version: 'JE1_BE1',
+      description:
+        'Suspicious stew is a food item that can give the player a status effect that depends on the flower used to craft it.',
+      renewable: true,
+    },
+    sweet_berries: {
+      version: 'JE1_BE1',
+      description:
+        'Sweet berries are a food item that are collected from sweet berry bushes.',
+      renewable: true,
+    },
+    glow_berries: {
+      version: 'JE1_BE1',
+      description:
+        'Glow berries are a food item that is collected from cave vines and can be used to plant them.',
+      renewable: true,
+    },
+    honey_bottle: {
+      version: 'JE1_BE2',
+      description:
+        'A honey bottle is a consumable drink item obtainable by using a glass bottle on a beehive. Honey bottles can also be used to craft honey blocks and sugar.',
+      renewable: true,
+    },
+  },
 };

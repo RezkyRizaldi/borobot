@@ -372,18 +372,18 @@ module.exports = {
                   .setName('name')
                   .setDescription('🔣 The Minecraft entity name search query.'),
               ),
+          )
+          .addSubcommand((subcommand) =>
+            subcommand
+              .setName('food')
+              .setDescription('🍎 Search Minecraft food information.')
+              .addStringOption((option) =>
+                option
+                  .setName('name')
+                  .setDescription('🔠 The Minecraft food name search query.'),
+              ),
           ),
       // TODO: WIP
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('food')
-      //     .setDescription('🍎 Search Minecraft food information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft food name search query.'),
-      //     ),
-      // )
       // .addSubcommand((subcommand) =>
       //   subcommand
       //     .setName('instrument')
@@ -2339,6 +2339,109 @@ module.exports = {
                   }
                   break;
               }
+
+              return interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            }
+
+            case 'food': {
+              if (!name) {
+                return interaction.deferReply().then(async () => {
+                  const responses = mcData.foodsArray.map(
+                    (item, index) =>
+                      `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: `Minecraft ${
+                      mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
+                    } Edition v${mcData.version.minecraftVersion} Food Lists (${
+                      mcData.foodsArray.length
+                    })`,
+                    iconURL:
+                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
+              }
+
+              /** @type {import('minecraft-data').Food} */
+              const food = {
+                ...mcData.foodsByName[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
+                ...extraMcData.food[getFormattedMinecraftName(snakeCase(name))],
+              };
+
+              if (!Object.keys(food).length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No food found with name ${inlineCode(name)}.`,
+                    }),
+                );
+              }
+
+              embed.setDescription(food.description);
+              embed.setThumbnail(
+                getWikiaURL({
+                  fileName: `${food.altName ?? food.displayName}${
+                    food.positions?.length
+                      ? food.positions.map((pos) => ` (${pos})`).join('')
+                      : ''
+                  }${food.version ? ` ${food.version}` : ''}`,
+                  path: 'minecraft_gamepedia',
+                  animated: food.animated ?? false,
+                }),
+              );
+              embed.setAuthor({
+                name: `🔣 ${food.displayName}`,
+              });
+              embed.addFields([
+                {
+                  name: '📦 Stackable',
+                  value: food.stackSize > 0 ? `Yes (${food.stackSize})` : 'No',
+                  inline: true,
+                },
+                {
+                  name: '🆕 Renewable',
+                  value: food.renewable ? 'Yes' : 'No',
+                  inline: true,
+                },
+                {
+                  name: '❤️‍🩹 Restores',
+                  value: `${food.foodPoints} (🍗x${food.foodPoints / 2})`,
+                  inline: true,
+                },
+              ]);
 
               return interaction
                 .deferReply()
