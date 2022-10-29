@@ -8726,4 +8726,1100 @@ module.exports = {
         'Curse of Vanishing is an enchantment that causes the item to disappear on death.',
     },
   },
+  entity: {
+    allay: {
+      version: 'JE1_BE1',
+      description:
+        'The allay (/əˈleɪ/ uh-ʟᴀʏ) is a small flying wisp-like passive mob. It collects and delivers items for any player that gives it something, or any note block it hears repeatedly playing.',
+      animated: true,
+      hp: 20,
+      spawns: ['pillager outpost', 'woodland mansion'],
+      usableItems: ['amethyst shard', 'lead', 'name tag'],
+    },
+    area_effect_cloud: {
+      description:
+        'The cloud that is created when: lingering potions are thrown; creepers with potion effects explode; dragon fireballs hit the ground, is an entity, which has entity data that defines the properties of the entity.',
+    },
+    armor_stand: {
+      version: 'JE3',
+      description:
+        'Armor stands are entities that are able to hold and display wearable items.',
+      hp: 20,
+      renewable: true,
+      flammable: true,
+      stackSize: 16,
+    },
+    arrow: {
+      version: 'JE2_BE1',
+      description:
+        'An arrow serves as ammunition for bows, crossbows, and dispensers. Arrows can be modified to imbue status effects on players and mobs.',
+      renewable: true,
+      flammable: false,
+      stackSize: 64,
+    },
+    axolotl: {
+      altName: 'Lucy Axolotl',
+      version: 'JE2',
+      description:
+        'An axolotl is a passive aquatic mob endemic to the lush caves biome that hunts most other aquatic mobs.',
+      hp: 14,
+      spawns: ['lush caves'],
+      usableItems: ['bucket of tropical fish', 'lead', 'water bucket'],
+    },
+    bat: {
+      description:
+        'A bat is a flying ambient passive mob that spawns in dark areas underground.',
+      animated: true,
+      hp: 6,
+      spawns: [
+        'Below layer 63',
+        'Light level of 3 or less in neighboring blocks',
+        'light level of 6 or less in neighboring blocks (October 20 - November 3)',
+      ],
+    },
+    bee: {
+      altName: 'Bee types',
+      description:
+        'Bees are flying neutral mobs that live in bee nests and beehives. If provoked, bees attack in a swarm to "sting" the player and inflict poison.',
+      animated: true,
+      hp: 10,
+      spawns: ['bee nests'],
+      usableItems: [
+        'flower',
+        'mangrove propagule',
+        'flowering azalea',
+        'flowering azalea leaves',
+        'lead',
+      ],
+    },
+    blaze: {
+      description:
+        'Blazes are floating hostile mobs found in nether fortresses, and are the only source of blaze rods.',
+      animated: true,
+      hp: 20,
+      spawns: ['nether fortress'],
+    },
+    boat: {
+      altName: 'Oak Boat',
+      version: 'JE4_BE2',
+      description:
+        'A boat is both an item and a vehicle entity used primarily for fast transport of players and passenger mobs over bodies of water.',
+      renewable: true,
+      flammable: true,
+      stackSize: 0,
+    },
+    chest_boat: {
+      altName: 'Oak Boat with Chest',
+      version: 'JE2_BE1',
+      description:
+        'A boat with chest is a type of boat that can be used for fast transport of players, mobs, and items over bodies of water.',
+      renewable: true,
+      flammable: true,
+      stackSize: 0,
+    },
+    cat: {
+      altName: 'Tabby Cat',
+      description:
+        'A cat is a passive mob found in villages and swamp huts. They can be tamed and used to repel creepers and phantoms.',
+      hp: 10,
+      spawns: ['villages', 'swamp huts'],
+      usableItems: ['raw cod', 'raw salmon', 'lead', 'dye'],
+    },
+    cave_spider: {
+      version: 'JE2_BE2',
+      description:
+        'Cave spiders are small venomous variants of the spider. They are exclusively spawned by spawners found in mineshafts.',
+      hp: 12,
+      spawns: ['mineshafts'],
+    },
+    chicken: {
+      version: 'JE2_BE2',
+      description:
+        'A chicken is a passive mob found in grass biomes and the main source of chicken, feathers and eggs.',
+      hp: 4,
+      spawns: [],
+      usableItems: [
+        'Solid surfaced blocks with a minimum of two block spaces above them',
+        'A 1/8 chance from a thrown egg',
+        'Any 2 block high space in any light level in the Nether.',
+      ],
+    },
+    cod: {
+      description: 'Cod are common passive aquatic mobs found in oceans.',
+      animated: true,
+      hp: 3,
+      spawns: [
+        'cold ocean',
+        'deep cold ocean',
+        'lukewarm ocean',
+        'deep lukewarm ocean',
+        'ocean',
+        'deep ocean',
+      ],
+      usableItems: ['water bucket'],
+    },
+    cow: {
+      version: 'JE5_BE2',
+      description:
+        'A cow is a passive mob found in most grassy biomes and a source of leather, beef and milk.',
+      hp: 10,
+      spawns: [
+        'Grass blocks with at least two blocks of space above them',
+        'After shearing a mooshroom',
+      ],
+      usableItems: ['bucket', 'wheat', 'lead'],
+    },
+    creeper: {
+      version: 'JE2_BE1',
+      description:
+        "A creeper is a common hostile mob that silently approaches players and explodes. Due to their distinctive appearance and a high potential for killing unwary players as well as damaging the environment and players' constructions, creepers have become one of the icons of Minecraft, both among players and non-players.",
+      hp: 20,
+      spawns: ['Light level of 0'],
+      usableItems: ['flint and steel'],
+    },
+    dolphin: {
+      description:
+        'Dolphins are neutral mobs that live in non-frozen oceans, which grant a speed boost to players that swim near them.',
+      animated: true,
+      hp: 10,
+      spawns: [
+        'lukewarm ocean',
+        'deep lukewarm ocean',
+        'ocean',
+        'deep ocean',
+        'warm ocean',
+      ],
+      usableItems: ['lead', 'raw cod', 'raw salmon'],
+    },
+    donkey: {
+      description:
+        'Donkeys are variants of horses that, when tamed, can be ridden and equipped with chests.',
+      hp: 30,
+      spawns: [
+        'meadow',
+        'plains',
+        'sunflower plains',
+        'savanna',
+        'savanna plateau',
+        'windswept savanna',
+      ],
+      usableItems: [
+        'lead',
+        'saddle',
+        'chest',
+        'sugar',
+        'wheat',
+        'apple',
+        'golden carrot',
+        'golden apple',
+        'hay bale',
+      ],
+    },
+    dragon_fireball: {
+      version: 'JE2',
+      description:
+        "Dragon fireballs are special fireballs that the ender dragon fires while strafing. They cannot be deflected unlike ghast fireballs, and they do no impact damage. Instead, they deposit purple effect clouds across the ground that damages players the same way a lingering Potion of Harming does. This means that the ender dragon's fireballs deal magic damage, which ignores any damage reduction that comes from the player's armor. However its damage does get reduced by armor enchanted with the Protection enchantment. The purple effect cloud's hitbox slowly grows larger in diameter until it disappears.",
+    },
+    drowned: {
+      description:
+        'Drowned are common underwater zombie variants that spawn in oceans and rivers, or when zombies drown. They are the only source of tridents, and the only renewable source of copper.',
+      hp: 20,
+      spawns: [
+        'When a zombie drowns',
+        'river',
+        'frozen river',
+        'cold ocean',
+        'deep cold ocean',
+        'frozen ocean',
+        'deep frozen ocean',
+        'lukewarm ocean',
+        'deep lukewarm ocean',
+        'ocean',
+        'deep ocean',
+        'warm ocean',
+        'dripstone caves',
+      ],
+    },
+    elder_guardian: {
+      description:
+        'An elder guardian is a stronger and larger variant of the guardian, and it can inflict Mining Fatigue. It is the largest aquatic mob in Minecraft, as well as the strongest. Three of them spawn inside an ocean monument; one in the penthouse room and one in each wing.',
+      animated: true,
+      hp: 80,
+    },
+    end_crystal: {
+      version: 'JE2',
+      description:
+        'An end crystal is both an item and an entity found in the End.',
+      animated: true,
+      renewable: true,
+      flammable: false,
+      stackSize: 64,
+    },
+    ender_dragon: {
+      description:
+        'The ender dragon is a gigantic flying hostile boss mob found when first entering the End. She is the largest naturally spawning mob in the game and is widely acknowledged as the final boss of Minecraft.',
+      animated: true,
+      hp: 200,
+      spawns: ['the end'],
+    },
+    enderman: {
+      description:
+        'An enderman is a neutral mob found in all three dimensions. Endermen can teleport and pick up blocks.',
+      hp: 40,
+      spawns: [
+        'overworld',
+        'the end',
+        'Light level of 0',
+        'Light level of 11 or less (The Nether)',
+        'nether wastes',
+        'soul sand valley',
+        'warped forest',
+      ],
+    },
+    endermite: {
+      description:
+        'An endermite is the smallest hostile mob. An endermite may spawn when a player throws an ender pearl. Endermen are hostile toward endermites.',
+      animated: true,
+      hp: 8,
+      spawns: ['5% chance when an ender pearl lands'],
+    },
+    evoker: {
+      version: 'JE2',
+      description:
+        'An evoker is a spell-casting illager found in woodland mansions and raids, and is the only source of the totem of undying.',
+      hp: 24,
+      spawns: ['woodland mansions', 'raids'],
+    },
+    evoker_fangs: {
+      description:
+        'Evoker fangs are the entities that evokers use to attack the player with their fang attack.',
+    },
+    experience_orb: {
+      altName: 'Experience Orb Value 2477-32767',
+      description:
+        "Experience (EXP or XP for short) can be obtained by gathering experience orbs from mining, defeating mobs, breeding, trading, fishing, completing advancements (JE only) and using grindstones and furnaces. Experience gained during a player's life affects the player's score on the death screen. While having no direct effect on the player character, it can be used to enhance their equipment through enchanting, or by using an anvil to repair, rename, or combine enchantments on equipment. Experience also recovers durability on items with Mending that are being worn or are in-hand.",
+    },
+    eye_of_ender: {
+      version: 'JE2_BE2',
+      description:
+        'An eye of ender is a craftable item used to locate strongholds and activate the end portals within them.',
+      renewable: true,
+      flammable: false,
+      stackSize: 64,
+    },
+    falling_block: {
+      altName: 'Sand',
+      version: 'JE5_BE3',
+      description:
+        'A falling block is the entity form of a block that appears when a gravity-affected block loses its support.',
+    },
+    firework_rocket: {
+      version: 'JE2_BE2',
+      description:
+        'A firework rocket is an item (and entity) used for creating decorative explosions, boosting when flying with elytra, and loading into a crossbow as ammunition.',
+      renewable: true,
+      flammable: false,
+      stackSize: 64,
+    },
+    fox: {
+      description:
+        'Foxes are nocturnal passive mobs that spawn commonly in taiga, old growth taiga, and snowy taiga biomes. A fox can carry a single item in its mouth, but prefers food over other items.',
+      hp: 10,
+      spawns: [
+        'grove',
+        'snowy taiga',
+        'old growth pine taiga',
+        'old growth spruce taiga',
+        'taiga',
+      ],
+      usableItems: ['glow berries', 'lead', 'sweet berries'],
+    },
+    frog: {
+      altName: 'Temperate Frog',
+      version: 'JE1_BE1',
+      description:
+        'A frog is a passive mob found in swamps. Frogs eat small slimes and magma cubes. A frog can produce one of three kinds of froglights from eating magma cubes, depending on the type of frog.',
+      animated: true,
+      hp: 10,
+      spawns: ['swamp', 'mangrove swamp'],
+      usableItems: ['slimeball', 'lead'],
+    },
+    ghast: {
+      version: 'JE2_BE2',
+      description:
+        'Ghasts are large white floating ghost-like hostile mobs that live in the Nether and shoot explosive fireballs at the player.',
+      animated: true,
+      hp: 10,
+      spawns: ['nether wastes', 'soul sand valley', 'basalt deltas'],
+    },
+    giant: {
+      altName: 'Zombie',
+      version: 'JE3_BE2',
+      description:
+        'Giants are unused, over-sized mobs that look like zombies. They previously spawned naturally in Indev.',
+      hp: 100,
+      spawns: [
+        'Light level of 11 or above and light level of 8 or below simultaneously',
+        'Conditions cannot be met in vanilla',
+      ],
+    },
+    glow_item_frame: {
+      version: 'JE1_BE3',
+      description:
+        'A glow item frame keeps itself and the item inside it illuminated, even in the dark.',
+      renewable: true,
+      flammable: false,
+      stackSize: 64,
+    },
+    glow_squid: {
+      version: 'JE1',
+      description:
+        'The glow squid is an aquatic passive mob found in dark underwater areas, typically in ocean depths, ravines and underground lakes. The glow squid is a variety of squid. It has an aqua luminescent texture. They were ported to vanilla Minecraft from Minecraft Earth.',
+      animated: true,
+      hp: 10,
+      spawns: [
+        'Schools of 2 to 4 glow squid spawn in water in complete darkness in the Overworld anywhere below layer 30',
+      ],
+      usableItems: ['lead'],
+    },
+    goat: {
+      version: 'JE1_BE1',
+      description:
+        'A goat is a neutral mob found in certain mountainous biomes. Goats can jump especially high and ram mobs. They are a source of goat horns and milk.',
+      hp: 10,
+      spawns: ['frozen peaks', 'jagged peaks', 'snowy slopes'],
+      usableItems: ['bucket', 'wheat', 'lead'],
+    },
+    guardian: {
+      description:
+        'Guardians are pufferfish-like hostile mobs that spawn in and around ocean monuments.',
+      animated: true,
+      hp: 30,
+      spawns: ['ocean monument'],
+    },
+    hoglin: {
+      version: 'JE3',
+      description:
+        'A hoglin is a breedable hostile mob found in the Nether, and a source of porkchops and leather.',
+      hp: 40,
+      spawns: ['crimson forest', 'bastion remnant'],
+      usableItems: ['crimson fungus', 'lead'],
+    },
+    horse: {
+      altName: 'Black Horse',
+      description:
+        'Horses are passive mobs that can be ridden when tamed and saddled.',
+      hp: 30,
+      spawns: [
+        'plains',
+        'sunflower plains',
+        'savanna',
+        'savanna plateau',
+        'windswept savanna',
+        'villages',
+      ],
+      usableItems: [
+        'saddle',
+        'lead',
+        'horse armor',
+        'sugar',
+        'wheat',
+        'apple',
+        'golden carrot',
+        'golden apple',
+        'enchanted golden apple',
+        'hay bale',
+      ],
+    },
+    husk: {
+      version: 'JE2_BE2',
+      description:
+        'A husk is a variant of a zombie that spawns in deserts. Unlike zombies, husks do not burn in sunlight.',
+      hp: 20,
+      spawns: ['desert'],
+    },
+    illusioner: {
+      description:
+        'An illusioner is an unused illager that casts spells and is armed with a bow. The spell is used on itself for defense or on a player while it is attacking.',
+      hp: 32,
+      spawns: ['Using `/summon`', 'Using datapacks'],
+    },
+    iron_golem: {
+      version: 'JE2_BE2',
+      description:
+        'An iron golem is a large, powerful neutral utility mob that defends players and villagers. It is one of the few mobs that can be built then spawned in the game.',
+      hp: 100,
+      spawns: ['Near a Pillager Outpost', 'villages', 'Built by the player'],
+      usableItems: ['iron ingot', 'lead'],
+    },
+    item: {
+      altName: 'Search Items',
+      description:
+        "An item is an object that exists only within the player's inventory and hands, or displayed in item frames or armor stands.",
+    },
+    item_frame: {
+      version: 'JE2_BE2',
+      description:
+        'An item frame is an entity (JE only) or block entity (BE only) that displays the item or block that is inside it.',
+      renewable: true,
+      flammable: false,
+      stackSize: 64,
+    },
+    fireball: {
+      altName: 'Fire Charge',
+      version: 'JE2_BE2',
+      description:
+        "A fireball is an explosive projectile expelled from a ghast's mouth as its method of attack.",
+    },
+    leash_knot: {
+      altName: 'Knot',
+      description:
+        'Leash knot is an entity created when the player right-clicks the fence while having a mob leashed.',
+    },
+    lightning_bolt: {
+      altName: 'Lightning fire',
+      description:
+        "Lightning is a lethal element to thunderstorms. Lightning momentarily increases the sky light's brightness to slightly greater than full daylight.",
+    },
+    llama: {
+      altName: 'Creamy Llama',
+      description:
+        'A llama is a neutral mob found in windswept hills, savanna plateau, and savanna (BE only) biomes. It can be tamed and used to transport large shipments of items.',
+      hp: 30,
+      spawns: [
+        'windswept hills',
+        'windswept forest',
+        'windswept gravelly hills',
+        'savanna plateau',
+      ],
+      usableItems: ['chest', 'carpet', 'lead', 'wheat', 'hay bale'],
+    },
+    llama_spit: {
+      description:
+        "Llamas are neutral, but if a player or mob attacks one, it spits at the attacker once to deal 1💔 damage. Sometimes their spit can miss their target and hit another llama, starting a fight within a group of llamas. Additionally, a wandering trader's llamas spit at mobs or players who attack the wandering trader.",
+    },
+    magma_cube: {
+      description:
+        'A magma cube is a hostile mob found in the Nether. A magma cube behaves similarly to a slime, but jumps higher and deals a higher amount of damage with its attacks.',
+      hp: 16,
+      spawns: [
+        'nether wastes',
+        'basalt deltas',
+        'nether fortress',
+        'bastion remnant',
+      ],
+    },
+    marker: {
+      description:
+        'Markers are entities intended for use in data packs and map-making. They can only be created with the `/summon` command.',
+    },
+    minecart: {
+      version: 'JE3_BE2',
+      description:
+        'A minecart is a train-like vehicle entity that runs on rails.',
+      hp: 6,
+      renewable: true,
+      flammable: false,
+      stackSize: 0,
+    },
+    chest_minecart: {
+      version: 'JE4_BE2',
+      description:
+        'A minecart with chest is a minecart with a chest inside it.',
+      hp: 6,
+      renewable: true,
+      flammable: false,
+      stackSize: 0,
+    },
+    command_block_minecart: {
+      description:
+        'A minecart with command block is an impulse (JE only) or repeating (BE & EE only) command block inside a minecart.',
+      animated: true,
+      hp: 6,
+      renewable: false,
+      flammable: false,
+      stackSize: 0,
+    },
+    furnace_minecart: {
+      version: 'JE3',
+      description:
+        'A minecart with furnace is a self-propelling minecart with a furnace inside. They can be used to move other minecarts.',
+      hp: 6,
+      renewable: true,
+      flammable: false,
+      stackSize: 0,
+    },
+    hopper_minecart: {
+      version: 'JE2_BE2',
+      description: 'A minecart with hopper is a hopper inside a minecart.',
+      hp: 6,
+      renewable: true,
+      flammable: false,
+      stackSize: 0,
+    },
+    spawner_minecart: {
+      version: 'JE2',
+      description:
+        'Minecarts with spawners are a combination of both minecarts and spawners.',
+      hp: 6,
+    },
+    tnt_minecart: {
+      version: 'JE2_BE2',
+      description: 'A minecart with TNT is a block of TNT inside a minecart.',
+      hp: 6,
+      renewable: true,
+      flammable: false,
+      stackSize: 0,
+    },
+    mule: {
+      description:
+        'Mules are infertile offspring of horses and donkeys that, when tamed, can be ridden and equipped with chests.',
+      hp: 30,
+      spawns: ['When a horse and donkey breed'],
+      usableItems: [
+        'saddle',
+        'chest',
+        'sugar',
+        'wheat',
+        'apple',
+        'golden carrot',
+        'golden apple',
+        'hay bale',
+      ],
+    },
+    mooshroom: {
+      altName: 'Red Mooshroom',
+      version: 'JE4',
+      description:
+        'Mooshrooms are mushroom-covered variants of cows exclusive to the rare mushroom fields biome.',
+      hp: 10,
+      spawns: ['mushroom fields'],
+      usableItems: ['bucket', 'bowl', 'shears', 'wheat', 'flower', 'lead'],
+    },
+    ocelot: {
+      description: 'Ocelots are rare passive mobs found in jungles.',
+      hp: 10,
+      spawns: ['jungle', 'bamboo jungle'],
+      usableItems: ['raw cod', 'lead'],
+    },
+    painting: {
+      altName: 'Alban',
+      description: 'Paintings are decorative entities that hang on walls.',
+      renewable: true,
+      flammable: false,
+      stackSize: 64,
+    },
+    panda: {
+      version: 'JE1_BE1',
+      description:
+        "A panda is a rare neutral mob that resides in jungles. Certain aspects of a panda's behavior and appearance vary depending on its personality.",
+      hp: 20,
+      spawns: ['jungle', 'bambpp jungle'],
+      usableItems: ['bamboo', 'cake'],
+    },
+    parrot: {
+      altName: 'Red Parrot',
+      description:
+        "Parrots are rare tameable mobs found in jungles. Parrots can imitate sounds of nearby hostile mobs and can perch on the player's shoulders.",
+      hp: 6,
+      spawns: ['jungle', 'bamboo jungle'],
+      usableItems: [
+        'wheat seeds',
+        'beetroot seeds',
+        'melon seeds',
+        'pumpkin seeds',
+        'cookie',
+        'lead',
+      ],
+    },
+    phantom: {
+      version: 'JE2',
+      description:
+        'Phantoms are flying undead hostile mobs that spawn when the player has not slept or died for three or more in-game days.',
+      animated: true,
+      hp: 20,
+      spawns: [
+        'In the Overworld at nighttime or during thunderstorms, when player has not entered a bed for 3+ ingame days',
+      ],
+    },
+    pig: {
+      version: 'JE3_BE2',
+      description:
+        'A pig is a common passive mob found in most grass biomes. Pigs are a source of porkchops and can be equipped with a saddle to be driven.',
+      hp: 10,
+      spawns: [
+        'Grass with at least two block space above in most',
+        'overworld biomes',
+      ],
+      usableItems: [
+        'saddle',
+        'carrot on a stick',
+        'carrot',
+        'potato',
+        'beetroot',
+        'lead',
+      ],
+    },
+    piglin: {
+      description:
+        'A piglin is a neutral mob found in the Nether. They become hostile unless the player is equipped with at least one piece of golden armor. Players can use gold ingots to barter with them for various items.',
+      hp: 16,
+      spawns: ['nether wastes', 'crimson forest', 'bastion remnant'],
+      usableItems: ['gold ingot'],
+    },
+    piglin_brute: {
+      description:
+        'A piglin brute is a hostile and stronger variant of piglins that appears in all types of bastion remnants. They always attack the player. They do not barter, they do not retreat, and they cannot be distracted by gold.',
+      hp: 50,
+      spawns: ['bastion remnant'],
+      usableItems: ['golden axe'],
+    },
+    pillager: {
+      version: 'JE3',
+      description:
+        'A pillager is an illager hostile mob armed with a crossbow.',
+      hp: 24,
+      spawns: ['patrols', 'pillager outposts', 'raids'],
+    },
+    polar_bear: {
+      description: 'Polar bears are neutral mobs that live in icy biomes.',
+      hp: 30,
+      spawns: [
+        'snowy plains',
+        'ice spikes',
+        'frozen ocean',
+        'deep frozen ocean',
+      ],
+      usableItems: ['lead'],
+    },
+    tnt: {
+      altName: 'TNT',
+      version: 'JE3_BE2',
+      description:
+        'TNT is an explosive block that can be primed to generate an explosion.',
+      renewable: true,
+      flammable: true,
+      stackSize: 64,
+    },
+    pufferfish: {
+      altName: 'Pufferfish large',
+      description:
+        'Pufferfish are passive mobs found in oceans. They defend themselves by dealing damage and inflicting poison to nearby players (if not in Peaceful difficulty (JE only)) and certain mobs.',
+      animated: true,
+      hp: 3,
+      spawns: ['lukewatm ocean', 'deep lukewarm ocean', 'warm ocean'],
+      usableItems: ['water bucket'],
+    },
+    rabbit: {
+      altName: 'Brown Rabbit',
+      version: 'JE2_BE2',
+      description:
+        "A rabbit is an uncommon passive mob and is a source of rabbit's foot, rabbit hide and raw rabbit.",
+      hp: 3,
+      spawns: [
+        'snowy plains',
+        'ice spikes',
+        'snowy slopes',
+        'grove',
+        'snowy taiga',
+        'old growth pine taiga',
+        'old growth spruce taiga',
+        'taiga',
+        'flower forest',
+        'meadow',
+        'desert',
+      ],
+      usableItems: ['dandelion', 'carrot', 'golden carrot', 'lead'],
+    },
+    ravager: {
+      version: 'JE1',
+      description:
+        'Ravagers are large hostile mobs that spawn in raids and attack players, villagers (excluding baby villagers), wandering traders, and iron golems.',
+      hp: 100,
+      spawns: ['raids'],
+    },
+    salmon: {
+      description:
+        'Salmon are common passive aquatic mobs found in oceans and rivers. They are a reliable and nutritious source of early-game food when cooked.',
+      animated: true,
+      hp: 3,
+      spawns: [
+        'river',
+        'frozen river',
+        'cold ocean',
+        'deep cold ocean',
+        'frozen ocean',
+        'deep frozen ocean',
+      ],
+      usableItems: ['water bucket'],
+    },
+    sheep: {
+      altName: 'White Sheep',
+      version: 'JE3_BE6',
+      description:
+        'Sheep are common passive mobs that supply wool and mutton and are found in many of the grassy biomes.',
+      hp: 8,
+      spawns: ['Grass blocks with at least two block spaces above them'],
+      usableItems: ['lead', 'shears', 'wheat', 'dye'],
+    },
+    shulker: {
+      description:
+        "Shulkers are box-shaped hostile mobs found in end cities. They hide in their shell to blend in with surrounding purpur blocks and guard the city's various treasures. They are the only source of shulker shells, which are used to craft shulker boxes.",
+      hp: 30,
+      spawns: ['end city'],
+    },
+    shulker_bullet: {
+      description:
+        'A shulker bullet is a guided projectile that is shot from shulkers, and they follow the targeted entity along the X, Y, or Z axis and leave trails of white particles. A shulker bullet that hits a mob or player deals damage and affects them with Levitation for ten seconds.',
+    },
+    silverfish: {
+      version: 'JE1_BE1',
+      description:
+        'Silverfish are small hostile mobs found hiding in stone-like blocks in mountains, strongholds, igloo basements and woodland mansions.',
+      animated: true,
+      hp: 8,
+      spawns: ['After mining infested blocks or from spawners in strongholds'],
+    },
+    skeleton: {
+      version: 'JE6_BE4',
+      description:
+        'A skeleton is a common undead hostile mob equipped with a bow.',
+      hp: 20,
+      spawns: [
+        'Light level of 0 in Overworld',
+        'nether fortress',
+        'soul sand valley',
+      ],
+    },
+    skeleton_horse: {
+      description:
+        'A skeleton horse is an undead variant of the horse. It sometimes spawns when lightning strikes.',
+      hp: 15,
+      spawns: ['skeleton traps'],
+      usableItems: ['saddle', 'lead'],
+    },
+    slime: {
+      version: 'JE3_BE2',
+      description:
+        'Slimes are bouncy, cube-shaped hostile mobs that spawn deep underground in particular chunks, or at night in swamp biomes.',
+      hp: 16,
+      spawns: [
+        'Slimes spawn in the Overworld in specific "slime chunks" below layer 40, regardless of light levels.',
+        'In swamps and mangrove swamps, slimes may spawn at night between the heights of 51 and 69 (inclusive) when the provided light level is 7 or less.',
+      ],
+    },
+    small_fireball: {
+      altName: 'Fire Charge',
+      version: 'JE2_BE2',
+      description:
+        'A small fireball is a projectile produced by ranged attack of blazes, and by fire charges when shot from dispensers.',
+    },
+    snow_golem: {
+      description:
+        'A snow golem is a player-constructed passive mob[1] which is affected by temperature and whose utilities include defense against monsters and, in some biomes, snow farming.',
+      hp: 4,
+      spawns: ['When created by the player or an enderman'],
+      usableItems: ['lead', 'shears'],
+    },
+    snowball: {
+      version: 'JE3_BE3',
+      description: 'Snowballs are throwable combat items.',
+      renewable: true,
+      flammable: false,
+      stackSize: 16,
+    },
+    spectral_arrow: {
+      version: 'JE3',
+      description:
+        "A spectral arrow confers the Glowing status effect for 10 seconds. The Glowing effect creates an outline of the target, which is visible through blocks, and colored based on the target's team (white by default). Even if a bow is enchanted with Infinity, spectral arrows are still consumed. Spectral arrows can be acquired through bartering or crafted by combining 4 glowstone dust with one arrow, yielding 2 spectral arrows.",
+      renewable: true,
+      flammable: false,
+      stackSize: 64,
+    },
+    spider: {
+      version: 'JE4_BE3',
+      description:
+        'Spiders are common neutral mobs that have the unique ability to climb walls.',
+      hp: 64,
+      spawns: [
+        'Light level of 0, 3x1x3 space on solid blocks (spawns only on top of the central block). The block above the spawning space may be occupied by non-full blocks (slabs, etc.).',
+      ],
+    },
+    squid: {
+      description:
+        'A squid is a common passive aquatic mob that spawns in rivers and oceans.',
+      animated: true,
+      hp: 10,
+      spawns: [
+        '2 to 4 squid can spawn in water from Y-level 50 to 63 (inclusive), as long as the biome is a river or ocean variant.',
+      ],
+      usableItems: ['lead'],
+    },
+    stray: {
+      version: 'JE2_BE4',
+      description:
+        'Strays are variants of skeletons that spawn only in frozen, ice, or snowy biomes.',
+      hp: 20,
+      spawns: ['frozen river', 'snowy plains', 'ice spikes'],
+    },
+    strider: {
+      version: 'JE2_BE2',
+      description:
+        'Striders are passive mobs native to the Nether. They can walk/stride on lava and be saddled by the player. A warped fungus on a stick is needed to control a strider, similar to how a pig is controlled by a carrot on a stick.',
+      animated: true,
+      hp: 20,
+      spawns: [
+        'lava sea',
+        'delta',
+        'nether wastes',
+        'crimson forest',
+        'warped forest',
+        'soul sand valley',
+        'basalt deltas',
+      ],
+      usableItems: [
+        'warped fungus',
+        'saddle',
+        'lead',
+        'warped fungus on a stick',
+      ],
+    },
+    tadpole: {
+      altName: 'Tadpole swimming',
+      description:
+        'A tadpole is the larval form of the frog. They mature into one of the three frog variants, depending on the biome in which they mature.',
+      animated: true,
+      hp: 6,
+      spawns: ['frogspawn'],
+      usableItems: ['water bucket', 'slimeball'],
+    },
+    egg: {
+      altName: 'Egg',
+      version: 'JE2_BE2',
+      description:
+        'An egg is an item that can be used to craft food items, or as a throwable entity to spawn chicks.',
+      renewable: true,
+      flammable: false,
+      stackSize: 16,
+    },
+    ender_pearl: {
+      altName: 'Ender Pearl',
+      version: 'JE3_BE2',
+      description:
+        'An ender pearl is an item dropped by Enderman used to teleport and to make an eye of ender.',
+      renewable: true,
+      flammable: false,
+      stackSize: 16,
+    },
+    experience_bottle: {
+      altName: "Bottle o' Enchanting",
+      description:
+        "A bottle o' enchanting is a bottle that releases experience orbs when thrown.",
+      animated: true,
+      renewable: true,
+      flammable: false,
+      stackSize: 64,
+    },
+    potion: {
+      altName: 'Potion of Regeneration',
+      description:
+        'Potions are bottled substances. They are created by Brewing and when drunk give the player an effect for a limited time.',
+      animated: true,
+      renewable: true,
+      flammable: false,
+      stackSize: 0,
+    },
+    trident: {
+      description:
+        'A trident is a weapon used in both melee and ranged combat and is a rare drop from drowned.',
+      renewable: true,
+      flammable: false,
+      stackSize: 0,
+    },
+    trader_llama: {
+      altName: 'Creamy Trader Llama',
+      description:
+        'A trader llama is a special variant that follows wandering traders.',
+      hp: 30,
+      spawns: [
+        'windswept hills',
+        'windswept forest',
+        'windswept gravelly hills',
+        'savanna plateau',
+      ],
+      usableItems: ['chest', 'carpet', 'lead', 'wheat', 'hay bale'],
+    },
+    tropical_fish: {
+      altName: 'Blue Dory',
+      description:
+        'Tropical Fish are common passive mobs found in oceans, mangrove swamps and lush caves. There are 2,700 naturally occurring variants. Using commands, up to 3,584 visually distinct variants can be spawned.',
+      hp: 3,
+      spawns: [
+        'mangrove swamp',
+        'lukewarm ocean',
+        'deep lukewarm ocean',
+        'warm ocean',
+        'lush caves',
+      ],
+      usableItems: ['water bucket'],
+    },
+    turtle: {
+      description:
+        'A turtle (in Java Edition), also known as a sea turtle (in Bedrock Edition), is a common passive mob found in beach biomes. They are the only source of scutes, which drop from baby turtles when they mature into adults.',
+      hp: 30,
+      spawns: ['beach'],
+      usableItems: ['seagrass'],
+    },
+    vex: {
+      description:
+        "The vex is a small flying wisp-like hostile mob. It wields a sword, can phase through walls, and is only summoned as one of the evoker's attacks.",
+      animated: true,
+      hp: 14,
+      spawns: ['Summoned by evokers'],
+    },
+    villager: {
+      altName: 'Plains Villager Base',
+      description:
+        'Villagers are passive mobs that inhabit villages, work at their professions, breed, and interact with each other. Their outfit varies according to their occupation and biome. A player can trade with them using emeralds as currency.',
+      hp: 20,
+      spawns: ['village', 'igloo basement', 'When a zombie villager is cured'],
+    },
+    vindicator: {
+      version: 'JE3',
+      description:
+        'A vindicator is an illager equipped with an iron axe. Vindicators appear in woodland mansions and participate in raids. They are the strongest of the illagers.',
+      hp: 24,
+      spawns: ['woodland mansions', 'raids level 2'],
+    },
+    wandering_trader: {
+      description:
+        'The wandering trader is a passive mob that randomly spawns near the player. It can trade, making natural items more available, less dangerous to obtain, and in some cases, renewable.',
+      hp: 20,
+      spawns: [
+        'The wandering trader appears randomly in the Overworld with 2 leashed trader llamas.',
+      ],
+    },
+    warden: {
+      description:
+        'The warden is a hostile mob summoned by sculk shriekers in deep dark biomes. It has the highest health and deals the highest melee damage of all mobs. It can also fire ranged sonic boom attacks that bypass blocks and almost all damage-reducing items, including enchanted armor. The warden is completely blind and relies on vibrations and its sense of smell to detect players and mobs to attack.',
+      animated: true,
+      hp: 500,
+      spawns: [
+        'When a player activates naturally generated sculk shriekers four times or more',
+      ],
+    },
+    witch: {
+      description:
+        'A witch is a hostile mob that uses harmful splash potions as ranged weapons and positive potions on itself.',
+      hp: 26,
+      spawns: [
+        'Light level of 0',
+        'When lightning strikes near a villager',
+        'swamp huts',
+        'raids',
+      ],
+    },
+    wither: {
+      version: 'JE2_BE2',
+      description:
+        'The wither is a player-constructed undead hostile boss mob that floats and shoots explosive skulls at players and mobs. It is the only source of nether stars, which are used to craft beacons.',
+      hp: 300,
+      spawns: ['Built by player with 11 second spawn delay'],
+    },
+    wither_skeleton: {
+      description:
+        'Wither skeletons are tall black variants of skeletons equipped with stone swords that inflict the poison-like Wither effect. They are found exclusively in nether fortresses and are the only source of wither skeleton skulls.',
+      hp: 20,
+      spawns: ['nether fortress'],
+    },
+    wither_skull: {
+      altName: 'Wither Skeleton Skull',
+      positions: ['8'],
+      description:
+        "A head is a decorative block. There are six types of heads: player (only Steve's head), zombie, skeleton, wither skeleton, creeper, and dragon.",
+      renewable: true,
+      flammable: false,
+      stackSize: 64,
+    },
+    wolf: {
+      version: 'JE2_BE2',
+      description:
+        'A wolf is a neutral mob that can be tamed and used to assist in combat with most hostile mobs.',
+      hp: 20,
+      spawns: [
+        'grove',
+        'snowy taiga',
+        'old growth pine taiga',
+        'old growth spruce taiga',
+        'taiga',
+        'forest',
+      ],
+      usableItems: ['bone', 'meat', 'dye', 'lead'],
+    },
+    zoglin: {
+      description:
+        'Zoglins are undead hostile mobs created when a hoglin enters the Overworld or End.',
+      hp: 40,
+      spawns: ['When a Hoglin is in the Overworld or The End for 15 seconds'],
+      usableItems: ['lead'],
+    },
+    zombie: {
+      version: 'JE3_BE2',
+      description:
+        'Zombies are common undead hostile mobs that deal melee damage and attack in groups.',
+      hp: 20,
+      spawns: ['Light level of 0', 'When a husk drowns'],
+    },
+    zombie_horse: {
+      altName: 'Zombie Horse Revision 3',
+      description: 'A zombie horse is an unused variant of the regular horse.',
+      hp: 15,
+      spawns: [
+        'May be created by the `/summon` command or with their spawn egg',
+        'When using a spawn egg, 20% spawn as foals',
+      ],
+      usableItems: ['saddle', 'lead'],
+    },
+    zombie_villager: {
+      altName: 'Plains Zombie Villager Base',
+      description:
+        'A zombie villager is a variant of the zombie that can be cured into a normal villager using a golden apple while it is under the effect of Weakness.',
+      hp: 20,
+      spawns: [
+        'When a group in the normal spawn cycle spawns zombies, there is a 5% chance to instead spawn a single zombie villager',
+        'If any type of zombie kills a villager, there is a chance for the villager to transform into a zombie villager',
+      ],
+      usableItems: ['golden apple'],
+    },
+    zombified_piglin: {
+      version: 'JE9',
+      description:
+        'A zombified piglin is a neutral undead variant of piglin and piglin brute that inhabits the Nether. A zombified piglin becomes hostile when it or another nearby zombified piglin is attacked.',
+      hp: 20,
+      spawns: [
+        'nether wastes',
+        'crimson forest',
+        'nether fortress',
+        'When lightning strikes within 4 blocks of a pig in the Overworld',
+        'Near a Nether Portal in the Overworld',
+        'When a piglin or piglin brute is in the Overworld or in The End for 15 seconds',
+      ],
+    },
+    player: {
+      altName: 'Steve',
+      version: 'JE6',
+      positions: ['classic'],
+      description:
+        'The player is the main character who can be controlled in Minecraft. The two main default player skins are known as Steve and Alex, with all unchanged skins being split between the two default skins.',
+      hp: 20,
+      spawns: [
+        'Player spawn point (can be changed by sleeping in a bed, using a respawn anchor or with commands)',
+      ],
+    },
+    fishing_bobber: {
+      version: 'JE1',
+      description:
+        'Fishing bobbers have entity data associated with them that contain various properties of the entity. They also appear to despawn after a while.',
+    },
+  },
 };

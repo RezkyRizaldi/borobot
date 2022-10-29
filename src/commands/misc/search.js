@@ -362,18 +362,18 @@ module.exports = {
                     '🔠 The Minecraft enchantment name search query.',
                   ),
               ),
+          )
+          .addSubcommand((subcommand) =>
+            subcommand
+              .setName('entity')
+              .setDescription('🔣 Search Minecraft entity information.')
+              .addStringOption((option) =>
+                option
+                  .setName('name')
+                  .setDescription('🔣 The Minecraft entity name search query.'),
+              ),
           ),
       // TODO: WIP
-      // .addSubcommand((subcommand) =>
-      //   subcommand
-      //     .setName('entity')
-      //     .setDescription('🔣 Search Minecraft entity information.')
-      //     .addStringOption((option) =>
-      //       option
-      //         .setName('name')
-      //         .setDescription('🔠 The Minecraft entity name search query.'),
-      //     ),
-      // )
       // .addSubcommand((subcommand) =>
       //   subcommand
       //     .setName('food')
@@ -1683,11 +1683,10 @@ module.exports = {
       case 'minecraft':
         {
           const mcData = minecraftData('1.19');
+          const name = options.getString('name');
 
           switch (options.getSubcommand()) {
             case 'block': {
-              const name = options.getString('name');
-
               if (!name) {
                 return interaction.deferReply().then(async () => {
                   const filteredMcData = mcData.blocksArray.filter(
@@ -1834,8 +1833,6 @@ module.exports = {
             }
 
             case 'biome': {
-              const name = options.getString('name');
-
               if (!name) {
                 return interaction.deferReply().then(async () => {
                   const responses = mcData.biomesArray.map(
@@ -1959,8 +1956,6 @@ module.exports = {
             }
 
             case 'effect': {
-              const name = options.getString('name');
-
               if (!name) {
                 return interaction.deferReply().then(async () => {
                   const responses = mcData.effectsArray.map(
@@ -2058,8 +2053,6 @@ module.exports = {
             }
 
             case 'enchantment': {
-              const name = options.getString('name');
-
               if (!name) {
                 return interaction.deferReply().then(async () => {
                   const responses = mcData.enchantmentsArray.map(
@@ -2126,8 +2119,6 @@ module.exports = {
                 );
               }
 
-              console.log(enchantment);
-
               embed.setDescription(enchantment.description);
               embed.setAuthor({
                 name: `🪧 ${enchantment.displayName}`,
@@ -2172,6 +2163,182 @@ module.exports = {
                     : italic('None'),
                 },
               ]);
+
+              return interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            }
+
+            case 'entity': {
+              if (!name) {
+                return interaction.deferReply().then(async () => {
+                  const responses = mcData.entitiesArray.map(
+                    (item, index) =>
+                      `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: `Minecraft ${
+                      mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
+                    } Edition v${
+                      mcData.version.minecraftVersion
+                    } Entity Lists (${mcData.entitiesArray.length})`,
+                    iconURL:
+                      'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png',
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
+              }
+
+              /** @type {import('minecraft-data').Entity} */
+              const entity = {
+                ...mcData.entitiesByName[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
+                ...extraMcData.entity[
+                  getFormattedMinecraftName(snakeCase(name))
+                ],
+              };
+
+              if (!Object.keys(entity).length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No entity found with name ${inlineCode(name)}.`,
+                    }),
+                );
+              }
+
+              embed.setDescription(entity.description);
+              embed.setThumbnail(
+                getWikiaURL({
+                  fileName: `${entity.altName ?? entity.displayName}${
+                    entity.positions?.length
+                      ? entity.positions.map((pos) => ` (${pos})`).join('')
+                      : ''
+                  }${entity.version ? ` ${entity.version}` : ''}`,
+                  path: 'minecraft_gamepedia',
+                  animated: entity.animated ?? false,
+                }),
+              );
+              embed.setAuthor({
+                name: `🔣 ${entity.displayName}`,
+              });
+
+              switch (entity.type) {
+                case 'mob':
+                case 'ambient':
+                case 'animal':
+                case 'hostile':
+                case 'water_creature':
+                  embed.setFields([
+                    {
+                      name: '❤️ Health Points',
+                      value: `${entity.hp} (❤️x${entity.hp / 2})`,
+                      inline: true,
+                    },
+                    {
+                      name: '🐣 Spawn',
+                      value: entity.spawns?.length
+                        ? entity.spawns
+                            .map((spawn) =>
+                              !/^[A-Z|\d+]/.test(spawn)
+                                ? capitalCase(spawn)
+                                : spawn,
+                            )
+                            .join(', ')
+                        : italic('Unknown'),
+                    },
+                    {
+                      name: '⛏️ Usable Item',
+                      value: entity.usableItems?.length
+                        ? entity.usableItems
+                            .map((item) =>
+                              capitalCase(item).replace(
+                                /\b(a|the|an|and|or|but|in|on|of|it)\b/gi,
+                                (word) => word.toLowerCase(),
+                              ),
+                            )
+                            .join(', ')
+                        : italic('None'),
+                    },
+                  ]);
+                  break;
+
+                case 'living':
+                case 'projectile':
+                case 'other':
+                  if (entity.hp) {
+                    embed.addFields([
+                      {
+                        name: '❤️ Health Points',
+                        value: `${entity.hp} (❤️x${entity.hp / 2})`,
+                        inline: true,
+                      },
+                    ]);
+                  }
+
+                  if (entity.stackSize) {
+                    embed.addFields([
+                      {
+                        name: '📦 Stackable',
+                        value:
+                          entity.stackSize > 0
+                            ? `Yes (${entity.stackSize})`
+                            : 'No',
+                        inline: true,
+                      },
+                    ]);
+                  }
+
+                  if (typeof entity.flammable !== 'undefined') {
+                    embed.addFields([
+                      {
+                        name: '🔥 Flammable',
+                        value: entity.flammable ? 'Yes' : 'No',
+                        inline: true,
+                      },
+                    ]);
+                  }
+
+                  if (typeof entity.renewable !== 'undefined') {
+                    embed.addFields([
+                      {
+                        name: '🆕 Renewable',
+                        value: entity.renewable ? 'Yes' : 'No',
+                        inline: true,
+                      },
+                    ]);
+                  }
+                  break;
+              }
 
               return interaction
                 .deferReply()
