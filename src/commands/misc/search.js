@@ -25,6 +25,7 @@ const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
 const { stringify } = require('roman-numerals-convert');
 const truncate = require('truncate');
+const weather = require('weather-js');
 
 const {
   animeCharacterSearchOrderChoices,
@@ -131,10 +132,6 @@ module.exports = {
             ),
         ),
     )
-    // ! Missiong Authorization
-    // .addSubcommand((subcommand) =>
-    //   subcommand.setName('bot').setDescription('🤖 Search bot from Top.gg.'),
-    // )
     .addSubcommand((subcommand) =>
       subcommand
         .setName('definition')
@@ -381,6 +378,17 @@ module.exports = {
                 .setName('name')
                 .setDescription('🔠 The Minecraft food name search query.'),
             ),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('weather')
+        .setDescription('🌦️ Search weather information from provided location.')
+        .addStringOption((option) =>
+          option
+            .setName('location')
+            .setDescription('📍 The location search query.')
+            .setRequired(true),
         ),
     ),
   type: 'Chat Input',
@@ -2831,123 +2839,81 @@ module.exports = {
           });
       }
 
-      // ! Missiong Authorization
-      // case 'bot':
-      //   return interaction.deferReply().then(
-      //     async () =>
-      //       await axios
-      //         .get('https://top.gg/api/bots')
-      //         .then(async ({ data: { results } }) => {
-      //           /** @type {import('discord.js').EmbedBuilder[]} */
-      //           const embeds = results.map((item, index, array) =>
-      //             new EmbedBuilder()
-      //               .setColor(guild.members.me.displayHexColor)
-      //               .setTimestamp(Date.now())
-      //               .setFooter({
-      //                 text: `${client.user.username} | Page ${index + 1} of ${
-      //                   array.length
-      //                 }`,
-      //                 iconURL: client.user.displayAvatarURL({
-      //                   dynamic: true,
-      //                 }),
-      //               })
-      //               .setThumbnail(
-      //                 `https://images.discordapp.net/avatars/${item.clientId}/${item.avatar}.png`,
-      //               )
-      //               .setDescription(item.shortdesc)
-      //               .setAuthor({
-      //                 name: '🤖 Bot Search Results',
-      //               })
-      //               .setFields([
-      //                 {
-      //                   name: '🔤 Name',
-      //                   value: userMention(item.clientId),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🔗 Invite URL',
-      //                   value: hyperlink('Invite me!', item.invite),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🌐 Top.gg Profile',
-      //                   value: hyperlink(
-      //                     'Profile',
-      //                     `https://top.gg/bot/${item.id}`,
-      //                   ),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🌐 Website',
-      //                   value: item.website ?? italic('None'),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🌐 GitHub',
-      //                   value: item.github ?? italic('None'),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '📆 Created At',
-      //                   value: item.date,
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🔤 Created By',
-      //                   value: item.owners.length
-      //                     ? item.owners.map((owner, i) =>
-      //                         hyperlink(
-      //                           `Owner ${i + 1}`,
-      //                           `https://top.gg/user/${owner}`,
-      //                         ),
-      //                       )
-      //                     : italic('Unknown'),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🔤 Username',
-      //                   value: `${item.username}#${item.discriminator}`,
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '❗ Prefix',
-      //                   value: item.prefix ?? italic('Unknown'),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🏰 Server Count',
-      //                   value: item.server_count,
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🛠️ Tools',
-      //                   value: item.lib ?? italic('Unknown'),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🏷️ Tags',
-      //                   value: item.tags.length
-      //                     ? item.tags
-      //                         .map((tag) =>
-      //                           hyperlink(
-      //                             tag,
-      //                             `https://top.gg/tag/${paramCase(tag)}`,
-      //                           ),
-      //                         )
-      //                         .join(', ')
-      //                     : italic('Unknown'),
-      //                   inline: true,
-      //                 },
-      //               ]),
-      //           );
+      case 'weather': {
+        const locationTarget = options.getString('location');
 
-      //           const pagination = new Pagination(interaction);
+        return weather.find(
+          { search: locationTarget, degreeType: 'C' },
+          async (err, result) => {
+            if (err) {
+              return interaction
+                .deferReply({ ephemeral: true })
+                .then(async () => interaction.editReply({ content: err }));
+            }
 
-      //           pagination.setEmbeds(embeds);
+            if (!result.length) {
+              return interaction
+                .deferReply({ ephemeral: true })
+                .then(async () =>
+                  interaction.editReply({
+                    content: `No information found in ${inlineCode(
+                      locationTarget,
+                    )}.`,
+                  }),
+                );
+            }
 
-      //           await pagination.render();
-      //         }),
-      //   );
+            const [{ location, current, forecast }] = result;
+
+            embed.setThumbnail(current.imageUrl);
+            embed.setAuthor({
+              name: `🌦️ ${location.name} Weather Information`,
+            });
+            embed.setFields([
+              {
+                name: '🌡️ Temperature',
+                value: `${current.temperature}°${location.degreetype}`,
+                inline: true,
+              },
+              {
+                name: '💧 Humidity',
+                value: `${current.humidity}%`,
+                inline: true,
+              },
+              {
+                name: '💨 Wind',
+                value: current.winddisplay,
+                inline: true,
+              },
+              {
+                name: '📊 Status',
+                value: `${current.day} ${current.observationtime.slice(
+                  0,
+                  current.observationtime.length - 3,
+                )} (${current.skytext})`,
+                inline: true,
+              },
+              {
+                name: '📈 Forecast',
+                value: forecast
+                  .map(
+                    (item) =>
+                      `${bold(item.day)}\nStatus: ${item.skytextday}\nRange: ${
+                        item.low
+                      }°${location.degreetype} - ${item.high}${
+                        location.degreetype
+                      }\nPrecipitation: ${item.precip}%`,
+                  )
+                  .join('\n\n'),
+              },
+            ]);
+
+            await interaction
+              .deferReply()
+              .then(async () => interaction.editReply({ embeds: [embed] }));
+          },
+        );
+      }
     }
   },
 };
