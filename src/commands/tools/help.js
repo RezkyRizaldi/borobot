@@ -110,7 +110,7 @@ module.exports = {
     );
 
     const pagination = new Pagination(interaction, {
-      limit: 2,
+      limit: 1,
     });
 
     pagination.setColor(guild.members.me.displayHexColor);
@@ -210,6 +210,7 @@ module.exports = {
             `${bold('Subcommand Group Subcommand Options')}\n${subcommandGroups
               .flatMap((option) =>
                 option.options
+                  .filter((opt) => opt.options !== undefined)
                   .map(
                     (opt) =>
                       `${bold('•')} ${chatInputApplicationCommandMention(
@@ -217,7 +218,7 @@ module.exports = {
                         option.name,
                         opt.name,
                         cmd.id,
-                      )}\n${option.options
+                      )}\n${opt.options
                         .map(
                           (o) =>
                             `${inlineCode(
@@ -228,7 +229,7 @@ module.exports = {
                   )
                   .join('\n\n'),
               )
-              .join('\n\n')}`,
+              .join('\n\n')}`.slice(0, 4090),
           );
         }
       }
