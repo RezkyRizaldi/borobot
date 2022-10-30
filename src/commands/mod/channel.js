@@ -30,7 +30,6 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('channel')
     .setDescription('#️⃣ Channel command.')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
     .addSubcommand((subcommand) =>
       subcommand
         .setName('create')
@@ -220,7 +219,8 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, guild, options } = interaction;
+    /** @type {{ client: import('discord.js').Client, guild: import('discord.js').Guild|null, member: import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { client, guild, member, options } = interaction;
 
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
@@ -240,9 +240,19 @@ module.exports = {
     const channel = options.getChannel('channel');
     const reason = options.getString('reason') ?? 'No reason';
 
+    const missingPermissions = !member.permissions.has(
+      PermissionFlagsBits.ManageChannels,
+    );
+
     switch (options.getSubcommandGroup()) {
       case 'modify':
         return interaction.deferReply({ ephemeral: true }).then(async () => {
+          if (missingPermissions || !channel.manageable) {
+            return interaction.editReply({
+              content: `You don't have appropiate permissions to modify ${channel} channel.`,
+            });
+          }
+
           switch (options.getSubcommand()) {
             case 'category':
               if (channel.type === parent.type) {
@@ -343,75 +353,73 @@ module.exports = {
     }
 
     switch (options.getSubcommand()) {
-      case 'create': {
-        const mutedRole = guild.roles.cache.find(
-          (role) => role.name.toLowerCase() === 'muted',
-        );
+      case 'create':
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
+          if (missingPermissions) {
+            return interaction.editReply({
+              content:
+                "You don't have appropiate permissions to create a channel.",
+            });
+          }
 
-        return guild.channels
-          .create({
-            name,
-            type,
-            parent: type === ChannelType.GuildCategory ? null : parent,
-            topic,
-            reason,
-          })
-          .then(async (ch) => {
-            if (!ch.parent) {
-              await ch.permissionOverwrites.create(
-                mutedRole,
-                {
-                  SendMessages: false,
-                  AddReactions: false,
-                  CreatePublicThreads: false,
-                  CreatePrivateThreads: false,
-                  SendMessagesInThreads: false,
-                  Speak: false,
-                },
-                {
-                  type: OverwriteType.Role,
-                  reason: 'servermute command setup.',
-                },
-              );
+          const mutedRole = guild.roles.cache.find(
+            (role) => role.name.toLowerCase() === 'muted',
+          );
 
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: `${ch} created successfully.`,
-                  }),
-              );
-            }
+          await guild.channels
+            .create({
+              name,
+              type,
+              parent: type === ChannelType.GuildCategory ? null : parent,
+              topic,
+              reason,
+            })
+            .then(async (ch) => {
+              if (!ch.parent) {
+                await ch.permissionOverwrites.create(
+                  mutedRole,
+                  {
+                    SendMessages: false,
+                    AddReactions: false,
+                    CreatePublicThreads: false,
+                    CreatePrivateThreads: false,
+                    SendMessagesInThreads: false,
+                    Speak: false,
+                  },
+                  {
+                    type: OverwriteType.Role,
+                    reason: 'servermute command setup.',
+                  },
+                );
 
-            await ch.lockPermissions();
-
-            await interaction.deferReply({ ephemeral: true }).then(
-              async () =>
-                await interaction.editReply({
+                return interaction.editReply({
                   content: `${ch} created successfully.`,
-                }),
-            );
-          });
-      }
+                });
+              }
+
+              await ch.lockPermissions();
+
+              await interaction.editReply({
+                content: `${ch} created successfully.`,
+              });
+            });
+        });
 
       case 'delete':
-        if (!channel.deletable) {
-          return interaction.deferReply({ ephemeral: true }).then(
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
+          if (missingPermissions || !channel.deletable) {
+            return interaction.editReply({
+              content: `You don't have appropiate permissions to delete ${channel} channel.`,
+            });
+          }
+
+          await channel.delete(reason).then(
             async () =>
               await interaction.editReply({
-                content: `You don't have appropiate permissions to delete the ${channel} channel.`,
+                content: 'Channel deleted successfully.',
               }),
           );
-        }
-
-        return channel.delete(reason).then(
-          async () =>
-            await interaction.deferReply({ ephemeral: true }).then(
-              async () =>
-                await interaction.editReply({
-                  content: 'Channel deleted successfully.',
-                }),
-            ),
-        );
+        });
 
       case 'info':
         return interaction.deferReply().then(async () => {
@@ -475,11 +483,11 @@ module.exports = {
 
           const activeThreads = await channel.threads
             .fetchActive()
-            .then((threads) => threads);
+            .then((fectedThreads) => fectedThreads.threads);
 
           const archivedThreads = await channel.threads
             .fetchArchived()
-            .then((threads) => threads);
+            .then((fetchedThreads) => fetchedThreads.threads);
 
           const publicThreads = channel.threads.cache.filter(
             (thread) => thread.type === ChannelType.PublicThread,

@@ -1,6 +1,6 @@
 {
   "name": "borobot",
-  "version": "1.23.0",
+  "version": "1.24.0",
   "description": "A simple Discord Bot build with discord.js v14",
   "displayName": "Borobot",
   "bugs": {
@@ -67,6 +67,7 @@
     "string-progressbar": "^1.0.4",
     "tesseract.js": "^3.0.3",
     "truncate": "^3.0.0",
+    "weather-js": "^2.0.0",
     "yt-search": "^2.10.3",
     "ytdl-core": "^4.11.2"
   },

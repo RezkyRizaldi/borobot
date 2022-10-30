@@ -25,6 +25,7 @@ const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
 const { stringify } = require('roman-numerals-convert');
 const truncate = require('truncate');
+const weather = require('weather-js');
 
 const {
   animeCharacterSearchOrderChoices,
@@ -131,10 +132,33 @@ module.exports = {
             ),
         ),
     )
-    // ! Missiong Authorization
-    // .addSubcommand((subcommand) =>
-    //   subcommand.setName('bot').setDescription('🤖 Search bot from Top.gg.'),
-    // )
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('covid')
+        .setDescription('🦠 Search covid-19 information.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('country')
+            .setDescription(
+              '🌏 Search covid-19 information from provided country.',
+            )
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔤 The country name search query.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('latest')
+            .setDescription('📆 Search covid-19 latest information from.'),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('list')
+            .setDescription('🌐 View available countries.'),
+        ),
+    )
     .addSubcommand((subcommand) =>
       subcommand
         .setName('definition')
@@ -381,6 +405,17 @@ module.exports = {
                 .setName('name')
                 .setDescription('🔠 The Minecraft food name search query.'),
             ),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('weather')
+        .setDescription('🌦️ Search weather information from provided location.')
+        .addStringOption((option) =>
+          option
+            .setName('location')
+            .setDescription('📍 The location search query.')
+            .setRequired(true),
         ),
     ),
   type: 'Chat Input',
@@ -2395,6 +2430,492 @@ module.exports = {
           }
         }
         break;
+
+      case 'covid':
+        {
+          const baseURL = 'https://covid19.mathdro.id/api';
+
+          switch (options.getSubcommand()) {
+            case 'latest':
+              return axios
+                .get(
+                  `${baseURL}/daily/${moment(Date.now())
+                    .subtract(2, 'd')
+                    .format('M-DD-YYYY')}`,
+                )
+                .then(
+                  async ({ data }) =>
+                    await interaction.deferReply().then(async () => {
+                      /** @type {import('discord.js').EmbedBuilder[]} */
+                      const embeds = data.map((item, index, array) =>
+                        new EmbedBuilder()
+                          .setColor(guild.members.me.displayHexColor)
+                          .setTimestamp(Date.now())
+                          .setFooter({
+                            text: `${client.user.username} | Page ${
+                              index + 1
+                            } of ${array.length}`,
+                            iconURL: client.user.displayAvatarURL({
+                              dynamic: true,
+                            }),
+                          })
+                          .setThumbnail(`${baseURL}/og`)
+                          .setAuthor({
+                            name: '🦠 Covid-19 Latest Cases',
+                          })
+                          .setFields([
+                            {
+                              name: '🌏 Country',
+                              value: item.countryRegion,
+                              inline: true,
+                            },
+                            {
+                              name: '🗾 Province/State',
+                              value:
+                                !item.provinceState ||
+                                item.provinceState === 'Unknown'
+                                  ? italic('Unknown')
+                                  : item.provinceState,
+                              inline: true,
+                            },
+                            {
+                              name: '📆 Last Updated',
+                              value: time(
+                                new Date(item.lastUpdate),
+                                TimestampStyles.RelativeTime,
+                              ),
+                              inline: true,
+                            },
+                            {
+                              name: '✅ Confirmed',
+                              value: `${item.confirmed.toLocaleString()} ${pluralize(
+                                'case',
+                                item.confirmed,
+                              )}${
+                                item.cases28Days
+                                  ? ` (${item.cases28Days.toLocaleString()} ${pluralize(
+                                      'case',
+                                      item.cases28Days,
+                                    )}/month)`
+                                  : ''
+                              }`,
+                              inline: true,
+                            },
+                            {
+                              name: '☠️ Deaths',
+                              value: `${item.deaths.toLocaleString()} ${pluralize(
+                                'death',
+                                item.deaths,
+                              )}${
+                                item.deaths28Days
+                                  ? ` (${item.deaths28Days.toLocaleString()} ${pluralize(
+                                      'death',
+                                      item.deaths28Days,
+                                    )}/month)`
+                                  : ''
+                              }`,
+                              inline: true,
+                            },
+                            {
+                              name: '⚖️ Case Fatality Ratio',
+                              value: Number(item.caseFatalityRatio).toFixed(2),
+                              inline: true,
+                            },
+                          ]),
+                      );
+
+                      const pagination = new Pagination(interaction);
+
+                      pagination.setEmbeds(embeds);
+
+                      pagination.buttons = {
+                        ...pagination.buttons,
+                        extra: new ButtonBuilder()
+                          .setCustomId('jump')
+                          .setEmoji('↕️')
+                          .setDisabled(false)
+                          .setStyle(ButtonStyle.Secondary),
+                      };
+
+                      paginations.set(pagination.interaction.id, pagination);
+
+                      await pagination.render();
+                    }),
+                );
+
+            case 'list':
+              return axios
+                .get(`${baseURL}/countries`)
+                .then(async ({ data: { countries } }) => {
+                  await interaction.deferReply().then(async () => {
+                    const responses = countries.map(
+                      ({ name }, index) => `${bold(`${index + 1}.`)} ${name}`,
+                    );
+
+                    const pagination = new Pagination(interaction, {
+                      limit: 10,
+                    });
+
+                    pagination.setColor(guild.members.me.displayHexColor);
+                    pagination.setTimestamp(Date.now());
+                    pagination.setFooter({
+                      text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                      iconURL: client.user.displayAvatarURL({
+                        dynamic: true,
+                      }),
+                    });
+                    pagination.setAuthor({
+                      name: '🌏 Covid-19 Country Lists',
+                    });
+                    pagination.setDescriptions(responses);
+
+                    pagination.buttons = {
+                      ...pagination.buttons,
+                      extra: new ButtonBuilder()
+                        .setCustomId('jump')
+                        .setEmoji('↕️')
+                        .setDisabled(false)
+                        .setStyle(ButtonStyle.Secondary),
+                    };
+
+                    paginations.set(pagination.interaction.id, pagination);
+
+                    await pagination.render();
+                  });
+                });
+
+            case 'country': {
+              const name = options.getString('name');
+
+              if (!name) {
+                return axios.get(`${baseURL}/confirmed`).then(
+                  async ({ data }) =>
+                    await interaction.deferReply().then(async () => {
+                      /** @type {import('discord.js').EmbedBuilder[]} */
+                      const embeds = data.map((item, index, array) =>
+                        new EmbedBuilder()
+                          .setColor(guild.members.me.displayHexColor)
+                          .setTimestamp(Date.now())
+                          .setFooter({
+                            text: `${client.user.username} | Page ${
+                              index + 1
+                            } of ${array.length}`,
+                            iconURL: client.user.displayAvatarURL({
+                              dynamic: true,
+                            }),
+                          })
+                          .setThumbnail(
+                            `${baseURL}/countries/${encodeURIComponent(
+                              item.countryRegion,
+                            )}/og`,
+                          )
+                          .setAuthor({
+                            name: '🦠 Covid-19 Confirmed Cases',
+                          })
+                          .setFields([
+                            {
+                              name: '🌏 Country',
+                              value: item.countryRegion,
+                              inline: true,
+                            },
+                            {
+                              name: '🗾 Province/State',
+                              value:
+                                !item.provinceState ||
+                                item.provinceState === 'Unknown'
+                                  ? italic('Unknown')
+                                  : item.provinceState,
+                              inline: true,
+                            },
+                            {
+                              name: '📆 Last Updated',
+                              value: time(
+                                new Date(item.lastUpdate),
+                                TimestampStyles.RelativeTime,
+                              ),
+                              inline: true,
+                            },
+                            {
+                              name: '✅ Confirmed',
+                              value: `${item.confirmed.toLocaleString()} ${pluralize(
+                                'case',
+                                item.confirmed,
+                              )}${
+                                item.cases28Days
+                                  ? ` (${item.cases28Days.toLocaleString()} ${pluralize(
+                                      'case',
+                                      item.cases28Days,
+                                    )}/month)`
+                                  : ''
+                              }`,
+                              inline: true,
+                            },
+                            {
+                              name: '☠️ Deaths',
+                              value: `${item.deaths.toLocaleString()} ${pluralize(
+                                'death',
+                                item.deaths,
+                              )}${
+                                item.deaths28Days
+                                  ? ` (${item.deaths28Days.toLocaleString()} ${pluralize(
+                                      'death',
+                                      item.deaths28Days,
+                                    )}/month)`
+                                  : ''
+                              }`,
+                              inline: true,
+                            },
+                            {
+                              name: '📋 Incident Rate',
+                              value: `${Math.floor(
+                                item.incidentRate,
+                              ).toLocaleString()} ${pluralize(
+                                'case',
+                                item.incidentRate,
+                              )}/day`,
+                              inline: true,
+                            },
+                          ]),
+                      );
+
+                      const pagination = new Pagination(interaction);
+
+                      pagination.setEmbeds(embeds);
+
+                      pagination.buttons = {
+                        ...pagination.buttons,
+                        extra: new ButtonBuilder()
+                          .setCustomId('jump')
+                          .setEmoji('↕️')
+                          .setDisabled(false)
+                          .setStyle(ButtonStyle.Secondary),
+                      };
+
+                      paginations.set(pagination.interaction.id, pagination);
+
+                      await pagination.render();
+                    }),
+                );
+              }
+
+              const country = await axios
+                .get(`${baseURL}/countries`)
+                .then(
+                  async ({ data: { countries } }) =>
+                    countries.find(
+                      (item) => item.name.toLowerCase() === name.toLowerCase(),
+                    ).name,
+                );
+
+              return axios
+                .get(`${baseURL}/countries/${country}/confirmed`)
+                .then(async ({ data }) => {
+                  if (!data.length) {
+                    return interaction.deferReply({ ephemeral: true }).then(
+                      async () =>
+                        await interaction.editReply({
+                          content: `No information found in ${inlineCode(
+                            name,
+                          )}.`,
+                        }),
+                    );
+                  }
+
+                  if (data.length === 1) {
+                    return interaction.deferReply().then(async () => {
+                      await wait(4000);
+
+                      embed.setThumbnail(
+                        `${baseURL}/countries/${data[0].countryRegion}/og`,
+                      );
+                      embed.setAuthor({
+                        name: `🦠 Covid-19 Confirmed Cases in ${data[0].countryRegion}`,
+                      });
+                      embed.setFields([
+                        {
+                          name: '🗾 Province/State',
+                          value:
+                            !data[0].provinceState ||
+                            data[0].provinceState === 'Unknown'
+                              ? italic('Unknown')
+                              : data[0].provinceState,
+                          inline: true,
+                        },
+                        {
+                          name: '📆 Last Updated',
+                          value: time(
+                            new Date(data[0].lastUpdate),
+                            TimestampStyles.RelativeTime,
+                          ),
+                          inline: true,
+                        },
+                        {
+                          name: '✅ Confirmed',
+                          value: `${data[0].confirmed.toLocaleString()} ${pluralize(
+                            'case',
+                            data[0].confirmed,
+                          )}${
+                            data[0].cases28Days
+                              ? ` (${data[0].cases28Days.toLocaleString()} ${pluralize(
+                                  'case',
+                                  data[0].cases28Days,
+                                )}/month)`
+                              : ''
+                          }`,
+                          inline: true,
+                        },
+                        {
+                          name: '🔴 Active',
+                          value: `${data[0].active.toLocaleString()} ${pluralize(
+                            'case',
+                            data[0].active,
+                          )}`,
+                          inline: true,
+                        },
+                        {
+                          name: '☠️ Deaths',
+                          value: `${data[0].deaths.toLocaleString()} ${pluralize(
+                            'death',
+                            data[0].deaths,
+                          )}${
+                            data[0].deaths28Days
+                              ? ` (${data[0].deaths28Days.toLocaleString()} ${pluralize(
+                                  'death',
+                                  data[0].deaths28Days,
+                                )}/month)`
+                              : ''
+                          }`,
+                          inline: true,
+                        },
+                        {
+                          name: '📋 Incident Rate',
+                          value: `${Math.floor(
+                            data[0].incidentRate,
+                          ).toLocaleString()} ${pluralize(
+                            'case',
+                            data[0].incidentRate,
+                          )}/day`,
+                          inline: true,
+                        },
+                      ]);
+
+                      await interaction.editReply({ embeds: [embed] });
+                    });
+                  }
+
+                  await interaction.deferReply().then(async () => {
+                    await wait(4000);
+
+                    /** @type {import('discord.js').EmbedBuilder[]} */
+                    const embeds = data.map((item, index, array) =>
+                      new EmbedBuilder()
+                        .setColor(guild.members.me.displayHexColor)
+                        .setTimestamp(Date.now())
+                        .setFooter({
+                          text: `${client.user.username} | Page ${
+                            index + 1
+                          } of ${array.length}`,
+                          iconURL: client.user.displayAvatarURL({
+                            dynamic: true,
+                          }),
+                        })
+                        .setThumbnail(
+                          `${baseURL}/countries/${item.countryRegion}/og`,
+                        )
+                        .setAuthor({
+                          name: `🦠 Covid-19 Confirmed Cases in ${item.countryRegion}`,
+                        })
+                        .setFields([
+                          {
+                            name: '🗾 Province/State',
+                            value:
+                              !item.provinceState ||
+                              item.provinceState === 'Unknown'
+                                ? italic('Unknown')
+                                : item.provinceState,
+                            inline: true,
+                          },
+                          {
+                            name: '📆 Last Updated',
+                            value: time(
+                              new Date(item.lastUpdate),
+                              TimestampStyles.RelativeTime,
+                            ),
+                            inline: true,
+                          },
+                          {
+                            name: '✅ Confirmed',
+                            value: `${item.confirmed.toLocaleString()} ${pluralize(
+                              'case',
+                              item.confirmed,
+                            )}${
+                              item.cases28Days
+                                ? ` (${item.cases28Days.toLocaleString()} ${pluralize(
+                                    'case',
+                                    item.cases28Days,
+                                  )}/month)`
+                                : ''
+                            }`,
+                            inline: true,
+                          },
+                          {
+                            name: '🔴 Active',
+                            value: `${item.active.toLocaleString()} ${pluralize(
+                              'case',
+                              item.active,
+                            )}`,
+                            inline: true,
+                          },
+                          {
+                            name: '☠️ Deaths',
+                            value: `${item.deaths.toLocaleString()} ${pluralize(
+                              'death',
+                              item.deaths,
+                            )}${
+                              item.deaths28Days
+                                ? ` (${item.deaths28Days.toLocaleString()} ${pluralize(
+                                    'death',
+                                    item.deaths28Days,
+                                  )}/month)`
+                                : ''
+                            }`,
+                            inline: true,
+                          },
+                          {
+                            name: '📋 Incident Rate',
+                            value: `${Math.floor(
+                              item.incidentRate,
+                            ).toLocaleString()} ${pluralize(
+                              'case',
+                              item.incidentRate,
+                            )}/day`,
+                            inline: true,
+                          },
+                        ]),
+                    );
+
+                    const pagination = new Pagination(interaction);
+
+                    pagination.setEmbeds(embeds);
+
+                    pagination.buttons = {
+                      ...pagination.buttons,
+                      extra: new ButtonBuilder()
+                        .setCustomId('jump')
+                        .setEmoji('↕️')
+                        .setDisabled(false)
+                        .setStyle(ButtonStyle.Secondary),
+                    };
+
+                    paginations.set(pagination.interaction.id, pagination);
+
+                    await pagination.render();
+                  });
+                });
+            }
+          }
+        }
+        break;
     }
 
     switch (options.getSubcommand()) {
@@ -2831,123 +3352,81 @@ module.exports = {
           });
       }
 
-      // ! Missiong Authorization
-      // case 'bot':
-      //   return interaction.deferReply().then(
-      //     async () =>
-      //       await axios
-      //         .get('https://top.gg/api/bots')
-      //         .then(async ({ data: { results } }) => {
-      //           /** @type {import('discord.js').EmbedBuilder[]} */
-      //           const embeds = results.map((item, index, array) =>
-      //             new EmbedBuilder()
-      //               .setColor(guild.members.me.displayHexColor)
-      //               .setTimestamp(Date.now())
-      //               .setFooter({
-      //                 text: `${client.user.username} | Page ${index + 1} of ${
-      //                   array.length
-      //                 }`,
-      //                 iconURL: client.user.displayAvatarURL({
-      //                   dynamic: true,
-      //                 }),
-      //               })
-      //               .setThumbnail(
-      //                 `https://images.discordapp.net/avatars/${item.clientId}/${item.avatar}.png`,
-      //               )
-      //               .setDescription(item.shortdesc)
-      //               .setAuthor({
-      //                 name: '🤖 Bot Search Results',
-      //               })
-      //               .setFields([
-      //                 {
-      //                   name: '🔤 Name',
-      //                   value: userMention(item.clientId),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🔗 Invite URL',
-      //                   value: hyperlink('Invite me!', item.invite),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🌐 Top.gg Profile',
-      //                   value: hyperlink(
-      //                     'Profile',
-      //                     `https://top.gg/bot/${item.id}`,
-      //                   ),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🌐 Website',
-      //                   value: item.website ?? italic('None'),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🌐 GitHub',
-      //                   value: item.github ?? italic('None'),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '📆 Created At',
-      //                   value: item.date,
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🔤 Created By',
-      //                   value: item.owners.length
-      //                     ? item.owners.map((owner, i) =>
-      //                         hyperlink(
-      //                           `Owner ${i + 1}`,
-      //                           `https://top.gg/user/${owner}`,
-      //                         ),
-      //                       )
-      //                     : italic('Unknown'),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🔤 Username',
-      //                   value: `${item.username}#${item.discriminator}`,
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '❗ Prefix',
-      //                   value: item.prefix ?? italic('Unknown'),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🏰 Server Count',
-      //                   value: item.server_count,
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🛠️ Tools',
-      //                   value: item.lib ?? italic('Unknown'),
-      //                   inline: true,
-      //                 },
-      //                 {
-      //                   name: '🏷️ Tags',
-      //                   value: item.tags.length
-      //                     ? item.tags
-      //                         .map((tag) =>
-      //                           hyperlink(
-      //                             tag,
-      //                             `https://top.gg/tag/${paramCase(tag)}`,
-      //                           ),
-      //                         )
-      //                         .join(', ')
-      //                     : italic('Unknown'),
-      //                   inline: true,
-      //                 },
-      //               ]),
-      //           );
+      case 'weather': {
+        const locationTarget = options.getString('location');
 
-      //           const pagination = new Pagination(interaction);
+        return weather.find(
+          { search: locationTarget, degreeType: 'C' },
+          async (err, result) => {
+            if (err) {
+              return interaction
+                .deferReply({ ephemeral: true })
+                .then(async () => interaction.editReply({ content: err }));
+            }
 
-      //           pagination.setEmbeds(embeds);
+            if (!result.length) {
+              return interaction
+                .deferReply({ ephemeral: true })
+                .then(async () =>
+                  interaction.editReply({
+                    content: `No information found in ${inlineCode(
+                      locationTarget,
+                    )}.`,
+                  }),
+                );
+            }
 
-      //           await pagination.render();
-      //         }),
-      //   );
+            const [{ location, current, forecast }] = result;
+
+            embed.setThumbnail(current.imageUrl);
+            embed.setAuthor({
+              name: `🌦️ ${location.name} Weather Information`,
+            });
+            embed.setFields([
+              {
+                name: '🌡️ Temperature',
+                value: `${current.temperature}°${location.degreetype}`,
+                inline: true,
+              },
+              {
+                name: '💧 Humidity',
+                value: `${current.humidity}%`,
+                inline: true,
+              },
+              {
+                name: '💨 Wind',
+                value: current.winddisplay,
+                inline: true,
+              },
+              {
+                name: '📊 Status',
+                value: `${current.day} ${current.observationtime.slice(
+                  0,
+                  current.observationtime.length - 3,
+                )} (${current.skytext})`,
+                inline: true,
+              },
+              {
+                name: '📈 Forecast',
+                value: forecast
+                  .map(
+                    (item) =>
+                      `${bold(item.day)}\nStatus: ${item.skytextday}\nRange: ${
+                        item.low
+                      }°${location.degreetype} - ${item.high}${
+                        location.degreetype
+                      }\nPrecipitation: ${item.precip}%`,
+                  )
+                  .join('\n\n'),
+              },
+            ]);
+
+            await interaction
+              .deferReply()
+              .then(async () => interaction.editReply({ embeds: [embed] }));
+          },
+        );
+      }
     }
   },
 };
