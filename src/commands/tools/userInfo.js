@@ -7,6 +7,7 @@ const {
   italic,
   time,
   TimestampStyles,
+  ActivityType,
 } = require('discord.js');
 
 const { applyActivity, applyPresence } = require('../../utils');
@@ -45,8 +46,22 @@ module.exports = {
             member.presence?.activities
               .map(
                 (activity) =>
-                  `${applyActivity(activity.type)} ${bold(activity.name)} ${
-                    activity.details ?? ''
+                  `${bold('•')} ${applyActivity(activity.type)} ${bold(
+                    activity.name,
+                  )} ${
+                    activity.type === ActivityType.Listening
+                      ? activity.details
+                        ? `playing ${bold(activity.details)}`
+                        : ''
+                      : activity.details ?? ''
+                  }${
+                    activity.type === ActivityType.Listening && activity.state
+                      ? ` by ${bold(activity.state)}`
+                      : ''
+                  }${
+                    activity.type === ActivityType.Listening && activity.assets
+                      ? ` on ${bold(activity.assets.largeText)}`
+                      : ''
                   } ${
                     activity.timestamps
                       ? `at ${time(
@@ -141,6 +156,8 @@ module.exports = {
               },
             ]);
           }
+
+          console.log(member.presence?.activities);
 
           embed.addFields([
             {
