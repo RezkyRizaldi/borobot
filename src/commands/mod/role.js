@@ -28,7 +28,6 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('role')
     .setDescription('🛠️ Role command.')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
     .addSubcommand((subcommand) =>
       subcommand
         .setName('add')
@@ -372,7 +371,13 @@ module.exports = {
     switch (options.getSubcommandGroup()) {
       case 'modify':
         return interaction.deferReply({ ephemeral: true }).then(async () => {
-          if (!role.editable) {
+          if (
+            !interaction.member.permissions.has(
+              PermissionFlagsBits.ManageRoles,
+            ) ||
+            !role.editable ||
+            role.position > guild.members.me.roles.highest.position
+          ) {
             return interaction.editReply({
               content: `You don't have appropiate permissions to modify the ${role} role.`,
             });
@@ -717,34 +722,45 @@ module.exports = {
           .filter((perm) => !!perm)
           .map((perm) => BigInt(perm));
 
-        return interaction.deferReply({ ephemeral: true }).then(
-          async () =>
-            await guild.roles
-              .create({
-                name,
-                color: convertedColor,
-                hoist: hoist ?? false,
-                mentionable: mentionable ?? false,
-                reason,
-                position: targetRolePosition
-                  ? targetRolePosition.position + 1
-                  : 1,
-                permissions: permissionArray.length
-                  ? [...new Set(permissionArray)]
-                  : PermissionsBitField.Default,
-              })
-              .then(
-                async (r) =>
-                  await interaction.editReply({
-                    content: `${r} role created successfully.`,
-                  }),
-              ),
-        );
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
+          if (
+            !interaction.member.permissions.has(PermissionFlagsBits.ManageRoles)
+          ) {
+            return interaction.editReply({
+              content:
+                "You don't have appropiate permissions to create a role.",
+            });
+          }
+
+          await guild.roles
+            .create({
+              name,
+              color: convertedColor,
+              hoist: hoist ?? false,
+              mentionable: mentionable ?? false,
+              reason,
+              position: targetRolePosition
+                ? targetRolePosition.position + 1
+                : 1,
+              permissions: permissionArray.length
+                ? [...new Set(permissionArray)]
+                : PermissionsBitField.Default,
+            })
+            .then(
+              async (r) =>
+                await interaction.editReply({
+                  content: `${r} role created successfully.`,
+                }),
+            );
+        });
       }
 
       case 'delete':
         return interaction.deferReply({ ephemeral: true }).then(async () => {
           if (
+            !interaction.member.permissions.has(
+              PermissionFlagsBits.ManageRoles,
+            ) ||
             role.managed ||
             role.position > guild.members.me.roles.highest.position
           ) {
@@ -763,7 +779,14 @@ module.exports = {
 
       case 'add':
         return interaction.deferReply({ ephemeral: true }).then(async () => {
-          if (!member.manageable) {
+          if (
+            !interaction.member.permissions.has(
+              PermissionFlagsBits.ModerateMembers,
+            ) ||
+            role.managed ||
+            role.position > guild.members.me.roles.highest.position ||
+            !member.manageable
+          ) {
             return interaction.editReply({
               content: `You don't have appropiate permissions to add ${role} role to ${member}.`,
             });
@@ -785,7 +808,14 @@ module.exports = {
 
       case 'remove':
         return interaction.deferReply({ ephemeral: true }).then(async () => {
-          if (!member.manageable) {
+          if (
+            !interaction.member.permissions.has(
+              PermissionFlagsBits.ModerateMembers,
+            ) ||
+            role.managed ||
+            role.position > guild.members.me.roles.highest.position ||
+            !member.manageable
+          ) {
             return interaction.editReply({
               content: `You don't have appropiate permissions to remove ${role} role from ${member}.`,
             });
