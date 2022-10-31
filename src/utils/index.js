@@ -30,6 +30,7 @@ const groupMessageByType = require('./groupMessageByType');
 const isAlphabeticLetter = require('./isAlphabeticLetter');
 const isValidURL = require('./isValidURL');
 const serverMute = require('./serverMute');
+const transformCase = require('./transformCase');
 
 module.exports = {
   applyActivity,
@@ -64,4 +65,5 @@ module.exports = {
   isAlphabeticLetter,
   isValidURL,
   serverMute,
+  transformCase,
 };

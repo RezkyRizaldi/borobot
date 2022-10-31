@@ -10,6 +10,7 @@ const { SearchResultType } = require('distube');
 const { guildChannels, threadChannels } = require('./channels');
 const extraMcData = require('./extraMcData');
 const newSupportedLanguages = require('./newSupportedLanguages');
+const vtuberAffiliations = require('./vtuberAffiliations');
 
 module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
@@ -679,17 +680,7 @@ module.exports = {
 
   extraMcData,
 
-  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
-  vtuberAffiliationChoices: [
-    {
-      name: 'Hololive',
-      value: 'Hololive',
-    },
-    {
-      name: 'Nijisanji',
-      value: 'Nijisanji',
-    },
-  ],
+  vtuberAffiliations,
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   vtuberSortingChoices: [
@@ -714,8 +705,8 @@ module.exports = {
       value: 'video_count',
     },
     {
-      name: '🔢 Subcriber Count',
-      value: 'subcriber_count',
+      name: '🔢 Subscriber Count',
+      value: 'subscriber_count',
     },
     {
       name: '🔢 Clip Count',

@@ -1,7 +1,6 @@
 const axios = require('axios');
 const {
   capitalCase,
-  noCase,
   paramCase,
   pascalCase,
   snakeCase,
@@ -21,6 +20,7 @@ const {
 const {
   ExtraData,
   HolodexApiClient,
+  SortOrder,
   VideoSearchType,
   VideoStatus,
 } = require('holodex.js');
@@ -36,7 +36,7 @@ const {
   extraMcData,
   githubRepoSortingTypeChoices,
   searchSortingChoices,
-  vtuberAffiliationChoices,
+  vtuberAffiliations,
   vtuberSortingChoices,
   vtuberVideoTypeChoices,
 } = require('../../constants');
@@ -45,6 +45,7 @@ const {
   getFormattedMinecraftName,
   getWikiaURL,
   getFormattedParam,
+  transformCase,
 } = require('../../utils');
 
 module.exports = {
@@ -252,9 +253,7 @@ module.exports = {
             .addStringOption((option) =>
               option
                 .setName('affiliation')
-                .setDescription('🔤 The Virtual Youtuber affiliation name.')
-                .addChoices(...vtuberAffiliationChoices)
-                .setRequired(true),
+                .setDescription('🔤 The Virtual Youtuber affiliation name.'),
             )
             .addStringOption((option) =>
               option
@@ -2441,15 +2440,78 @@ module.exports = {
               const affiliation = options.getString('affiliation');
               const sort = options.getString('sort');
 
+              const affiliations = Object.values(vtuberAffiliations);
+
+              if (!affiliation) {
+                return interaction.deferReply().then(async () => {
+                  const responses = affiliations.map(
+                    (item, index) => `${bold(`${index + 1}.`)} ${item}`,
+                  );
+
+                  const pagination = new Pagination(interaction, {
+                    limit: 10,
+                  });
+
+                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setTimestamp(Date.now());
+                  pagination.setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({
+                      dynamic: true,
+                    }),
+                  });
+                  pagination.setAuthor({
+                    name: '🏢 VTuber Affiliation Lists',
+                  });
+                  pagination.setDescriptions(responses);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
+              }
+
+              const org = affiliations.find(
+                (aff) => aff.toLowerCase() === affiliation.toLowerCase(),
+              );
+
+              if (!org) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No affiliation found with name ${inlineCode(
+                        affiliation,
+                      )} or maybe the data isn't available yet.`,
+                    }),
+                );
+              }
+
               return holodex
                 .getChannels({
-                  org: affiliation,
+                  org,
                   limit: 50,
                   sort: sort ?? 'org',
+                  order:
+                    sort === 'subscriber_count' ||
+                    sort === 'video_count' ||
+                    sort === 'clip_count'
+                      ? SortOrder.Descending
+                      : SortOrder.Ascending,
                 })
                 .then(
                   async (channels) =>
                     await interaction.deferReply().then(async () => {
+                      console.log(channels);
+
                       /** @type {import('discord.js').EmbedBuilder[]} */
                       const embeds = channels.map(({ raw }, index, array) =>
                         new EmbedBuilder()
@@ -2465,7 +2527,11 @@ module.exports = {
                           })
                           .setThumbnail(raw.photo)
                           .setAuthor({
-                            name: `🧑‍💻 ${raw.org}'s YouTube Channel Lists`,
+                            name: `🧑‍💻 ${
+                              raw.org.includes('Independents')
+                                ? `${raw.org.slice(0, -1)} Vtubers`
+                                : raw.org
+                            }'s YouTube Channel Lists`,
                           })
                           .setFields([
                             {
@@ -2475,15 +2541,15 @@ module.exports = {
                             },
                             {
                               name: '🔤 Channel Name',
-                              value: hyperlink(
+                              value: `${hyperlink(
                                 raw.name,
                                 `https://youtube.com/channel/${raw.id}`,
-                              ),
+                              )}${raw.inactive ? ' (Inactive)' : ''}`,
                               inline: true,
                             },
                             {
                               name: '👥 Group',
-                              value: raw.group,
+                              value: raw.group || italic('None'),
                               inline: true,
                             },
                             {
@@ -2495,7 +2561,7 @@ module.exports = {
                               inline: true,
                             },
                             {
-                              name: '🔢 Video Count',
+                              name: '🔢 VOD Count',
                               value: `${Number(
                                 raw.video_count,
                               ).toLocaleString()} ${pluralize(
@@ -2525,10 +2591,10 @@ module.exports = {
                               inline: true,
                             },
                             {
-                              name: '🗣️ Top Topics',
+                              name: '🗣️ Top Topic',
                               value: raw.top_topics
                                 ? raw.top_topics
-                                    .map((topic) => italic(noCase(topic)))
+                                    .map((topic) => transformCase(topic))
                                     .join(', ')
                                 : italic('None'),
                               inline: true,
@@ -2654,7 +2720,7 @@ module.exports = {
                       name: '🗣️ Top Topics',
                       value: channel.top_topics
                         ? channel.top_topics
-                            .map((topic) => italic(noCase(topic)))
+                            .map((topic) => transformCase(topic))
                             .join(', ')
                         : italic('None'),
                       inline: true,
