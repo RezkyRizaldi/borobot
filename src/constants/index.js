@@ -678,4 +678,60 @@ module.exports = {
   channelType: [...guildChannels, ...threadChannels],
 
   extraMcData,
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  vtuberAffiliationChoices: [
+    {
+      name: 'Hololive',
+      value: 'Hololive',
+    },
+    {
+      name: 'Nijisanji',
+      value: 'Nijisanji',
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  vtuberSortingChoices: [
+    {
+      name: '🆔 ID',
+      value: 'id',
+    },
+    {
+      name: '🔤 Name',
+      value: 'english_name',
+    },
+    {
+      name: '🔤 Channel Name',
+      value: 'name',
+    },
+    {
+      name: '👥 Group',
+      value: 'group',
+    },
+    {
+      name: '🔢 Video Count',
+      value: 'video_count',
+    },
+    {
+      name: '🔢 Subcriber Count',
+      value: 'subcriber_count',
+    },
+    {
+      name: '🔢 Clip Count',
+      value: 'clip_count',
+    },
+  ],
+
+  /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+  vtuberVideoTypeChoices: [
+    {
+      name: '🎬 VOD',
+      value: 'vod',
+    },
+    {
+      name: '🎥 Live',
+      value: 'live',
+    },
+  ],
 };
