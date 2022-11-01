@@ -37,6 +37,27 @@ module.exports = (str) => {
     case str === 'monhun':
       return 'Monster Hunter';
 
+    case str === 'portal':
+      return 'Portal 2';
+
+    case str === 'touhou':
+      return 'Touhou Project';
+
+    case str === 'umamusume':
+      return 'Umamusume: Pretty Derby';
+
+    case str === 'tarkov':
+      return 'Escape from Tarkov';
+
+    case str === 'the_cycle_frontier':
+      return 'The Cycle: Frontier';
+
+    case str === 'princess_connect':
+      return 'Princess Connect! Re:Dive';
+
+    case str === 'it takes two':
+      return 'It Takes Two';
+
     case str === 'sekiro':
       return 'Sekiro: Shadows Die Twice';
 
