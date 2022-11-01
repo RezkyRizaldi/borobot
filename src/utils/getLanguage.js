@@ -1,7 +1,7 @@
 /**
  *
  * @param {String} locale
- * @param {import('@vitalets/google-translate-api').languages} languages
+ * @param {String} languages
  * @returns {String} Enum value of translation languages.
  */
 module.exports = (languages, locale) =>

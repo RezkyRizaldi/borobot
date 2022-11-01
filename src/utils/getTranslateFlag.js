@@ -1,4 +1,4 @@
-const { languages } = require('@vitalets/google-translate-api');
+const { languages } = require('../constants');
 
 /**
  *

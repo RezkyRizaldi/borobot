@@ -1,4 +1,3 @@
-const { languages } = require('@vitalets/google-translate-api');
 const {
   ChannelType,
   Events,
@@ -9,7 +8,7 @@ const { SearchResultType } = require('distube');
 
 const { guildChannels, threadChannels } = require('./channels');
 const extraMcData = require('./extraMcData');
-const newSupportedLanguages = require('./newSupportedLanguages');
+const languages = require('./languages');
 const vtuberAffiliations = require('./vtuberAffiliations');
 
 module.exports = {
@@ -202,7 +201,7 @@ module.exports = {
   ],
 
   /** @type {{[x: string]: string}} */
-  extendedLocales: { ...languages, ...newSupportedLanguages },
+  languages,
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   serverMuteChoices: [
