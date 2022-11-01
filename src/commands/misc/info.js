@@ -131,11 +131,11 @@ module.exports = {
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('github')
-        .setDescription('ℹ️ Search a GitHub information.')
+        .setDescription('👤 Get information about GitHub account.')
         .addSubcommand((subcommand) =>
           subcommand
             .setName('repositories')
-            .setDescription('🗄️ Search GitHub repositories information.')
+            .setDescription('🗄️ Get GitHub user repositories information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -165,7 +165,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('user')
-            .setDescription('👤 Search GitHub user account information.')
+            .setDescription('👤 Get GitHub user account information.')
             .addStringOption((option) =>
               option
                 .setName('username')
@@ -177,11 +177,11 @@ module.exports = {
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('minecraft')
-        .setDescription('ℹ️ Search a Minecraft information.')
+        .setDescription('🟫 Get information about Minecraft.')
         .addSubcommand((subcommand) =>
           subcommand
             .setName('block')
-            .setDescription('🟫 Search Minecraft block information.')
+            .setDescription('🟫 Get Minecraft block information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -191,7 +191,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('biome')
-            .setDescription('🌄 Search Minecraft biome information.')
+            .setDescription('🌄 Get Minecraft biome information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -201,7 +201,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('effect')
-            .setDescription('💫 Search Minecraft effect information.')
+            .setDescription('💫 Get Minecraft effect information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -211,7 +211,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('enchantment')
-            .setDescription('🪧 Search Minecraft enchantment information.')
+            .setDescription('🪧 Get Minecraft enchantment information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -223,7 +223,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('entity')
-            .setDescription('🔣 Search Minecraft entity information.')
+            .setDescription('🔣 Get Minecraft entity information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -233,7 +233,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('food')
-            .setDescription('🍎 Search Minecraft food information.')
+            .setDescription('🍎 Get Minecraft food information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -1420,8 +1420,10 @@ module.exports = {
                 async ({ data }) =>
                   await interaction.deferReply().then(async () => {
                     embed.setAuthor({
-                      name: `👤 @${data.login}'s GitHub ${data.type} Account Info`,
+                      name: `${data.login}'s GitHub ${data.type} Account Info`,
                       url: data.html_url,
+                      iconURL:
+                        'https://cdn-icons-png.flaticon.com/512/25/25231.png',
                     });
 
                     if (data.bio) {
@@ -1569,7 +1571,9 @@ module.exports = {
                       })
                       .setThumbnail(item.owner.avatar_url)
                       .setAuthor({
-                        name: '🗄️ GitHub Repository Search Results',
+                        name: 'GitHub Repository Search Results',
+                        iconURL:
+                          'https://cdn-icons-png.flaticon.com/512/25/25231.png',
                       })
                       .setFields([
                         {
@@ -2455,13 +2459,12 @@ module.exports = {
           const holodex = new HolodexApiClient({
             apiKey: process.env.HOLODEX_API_KEY,
           });
+          const affiliations = Object.values(vtuberAffiliations);
 
           switch (options.getSubcommand()) {
             case 'affiliation': {
               const affiliation = options.getString('affiliation');
               const sort = options.getString('sort');
-
-              const affiliations = Object.values(vtuberAffiliations);
 
               if (!affiliation) {
                 return interaction.deferReply().then(async () => {
@@ -2502,7 +2505,7 @@ module.exports = {
               }
 
               const org = affiliations.find(
-                (aff) => aff.toLowerCase() === affiliation.toLowerCase(),
+                (aff) => aff.name.toLowerCase() === affiliation.toLowerCase(),
               );
 
               if (!org) {
@@ -2518,7 +2521,7 @@ module.exports = {
 
               return holodex
                 .getChannels({
-                  org,
+                  org: org.name,
                   limit: 50,
                   sort: sort ?? 'org',
                   order:
@@ -2528,121 +2531,132 @@ module.exports = {
                       ? SortOrder.Descending
                       : SortOrder.Ascending,
                 })
-                .then(
-                  async (channels) =>
-                    await interaction.deferReply().then(async () => {
-                      /** @type {import('discord.js').EmbedBuilder[]} */
-                      const embeds = channels.map((item, index, array) => {
-                        const channel = item.toRaw();
+                .then(async (channels) => {
+                  if (!channels.length) {
+                    return interaction.deferReply({ ephemeral: true }).then(
+                      async () =>
+                        await interaction.editReply({
+                          content: `No affiliation found with name ${inlineCode(
+                            affiliation,
+                          )} or maybe the data isn't available yet.`,
+                        }),
+                    );
+                  }
 
-                        return new EmbedBuilder()
-                          .setColor(guild.members.me.displayHexColor)
-                          .setTimestamp(Date.now())
-                          .setFooter({
-                            text: `${client.user.username} | Page ${
-                              index + 1
-                            } of ${array.length}`,
-                            iconURL: client.user.displayAvatarURL({
-                              dynamic: true,
-                            }),
-                          })
-                          .setThumbnail(channel.photo)
-                          .setAuthor({
-                            name: `🧑‍💻 ${
-                              channel.org.includes('Independents')
-                                ? `${channel.org.slice(0, -1)} Vtubers`
-                                : channel.org
-                            }'s YouTube Channel Lists`,
-                          })
-                          .setFields([
-                            {
-                              name: '🔤 Name',
-                              value: channel.english_name || channel.name,
-                              inline: true,
-                            },
-                            {
-                              name: '🔤 Channel Name',
-                              value: `${hyperlink(
-                                channel.name,
-                                `https://youtube.com/channel/${channel.id}`,
-                              )}${channel.inactive ? ' (Inactive)' : ''}`,
-                              inline: true,
-                            },
-                            {
-                              name: '👥 Group',
-                              value: channel.group || italic('None'),
-                              inline: true,
-                            },
-                            {
-                              name: '🌐 Twitter',
-                              value: channel.twitter
-                                ? hyperlink(
-                                    `@${channel.twitter}`,
-                                    `https://twitter.com/${channel.twitter}`,
-                                  )
-                                : italic('None'),
-                              inline: true,
-                            },
-                            {
-                              name: '🔢 VOD Count',
-                              value: `${Number(
-                                channel.video_count,
-                              ).toLocaleString()} ${pluralize(
-                                'video',
-                                channel.video_count,
-                              )}`,
-                              inline: true,
-                            },
-                            {
-                              name: '🔢 Subscriber Count',
-                              value: `${Number(
-                                channel.subscriber_count,
-                              ).toLocaleString()} ${pluralize(
-                                'subscriber',
-                                channel.subscriber_count,
-                              )}`,
-                              inline: true,
-                            },
-                            {
-                              name: '🔢 Clip Count',
-                              value: channel.clip_count
-                                ? `${channel.clip_count.toLocaleString()} ${pluralize(
-                                    'video',
-                                    channel.clip_count,
-                                  )}`
-                                : italic('Unknown'),
-                              inline: true,
-                            },
-                            {
-                              name: '🗣️ Top Topic',
-                              value: channel.top_topics
-                                ? channel.top_topics
-                                    .map((topic) => transformCase(topic))
-                                    .join(', ')
-                                : italic('None'),
-                              inline: true,
-                            },
-                          ]);
-                      });
+                  await interaction.deferReply().then(async () => {
+                    /** @type {import('discord.js').EmbedBuilder[]} */
+                    const embeds = channels.map((item, index, array) => {
+                      const channel = item.toRaw();
 
-                      const pagination = new Pagination(interaction);
+                      return new EmbedBuilder()
+                        .setColor(guild.members.me.displayHexColor)
+                        .setTimestamp(Date.now())
+                        .setFooter({
+                          text: `${client.user.username} | Page ${
+                            index + 1
+                          } of ${array.length}`,
+                          iconURL: client.user.displayAvatarURL({
+                            dynamic: true,
+                          }),
+                        })
+                        .setThumbnail(channel.photo)
+                        .setAuthor({
+                          name: `${
+                            channel.org.includes('Independents')
+                              ? `🧑‍💻 ${channel.org.slice(0, -1)} Vtubers`
+                              : channel.org
+                          }'s YouTube Channel Lists`,
+                          iconURL: org?.logoURL,
+                        })
+                        .setFields([
+                          {
+                            name: '🔤 Name',
+                            value: channel.english_name || channel.name,
+                            inline: true,
+                          },
+                          {
+                            name: '🔤 Channel Name',
+                            value: `${hyperlink(
+                              channel.name,
+                              `https://youtube.com/channel/${channel.id}`,
+                            )}${channel.inactive ? ' (Inactive)' : ''}`,
+                            inline: true,
+                          },
+                          {
+                            name: '👥 Group',
+                            value: channel.group || italic('None'),
+                            inline: true,
+                          },
+                          {
+                            name: '🌐 Twitter',
+                            value: channel.twitter
+                              ? hyperlink(
+                                  `@${channel.twitter}`,
+                                  `https://twitter.com/${channel.twitter}`,
+                                )
+                              : italic('None'),
+                            inline: true,
+                          },
+                          {
+                            name: '🔢 VOD Count',
+                            value: `${Number(
+                              channel.video_count,
+                            ).toLocaleString()} ${pluralize(
+                              'video',
+                              channel.video_count,
+                            )}`,
+                            inline: true,
+                          },
+                          {
+                            name: '🔢 Subscriber Count',
+                            value: `${Number(
+                              channel.subscriber_count,
+                            ).toLocaleString()} ${pluralize(
+                              'subscriber',
+                              channel.subscriber_count,
+                            )}`,
+                            inline: true,
+                          },
+                          {
+                            name: '🔢 Clip Count',
+                            value: channel.clip_count
+                              ? `${channel.clip_count.toLocaleString()} ${pluralize(
+                                  'video',
+                                  channel.clip_count,
+                                )}`
+                              : italic('Unknown'),
+                            inline: true,
+                          },
+                          {
+                            name: '🗣️ Top Topic',
+                            value: channel.top_topics
+                              ? channel.top_topics
+                                  .map((topic) => transformCase(topic))
+                                  .join(', ')
+                              : italic('None'),
+                            inline: true,
+                          },
+                        ]);
+                    });
 
-                      pagination.setEmbeds(embeds);
+                    const pagination = new Pagination(interaction);
 
-                      pagination.buttons = {
-                        ...pagination.buttons,
-                        extra: new ButtonBuilder()
-                          .setCustomId('jump')
-                          .setEmoji('↕️')
-                          .setDisabled(false)
-                          .setStyle(ButtonStyle.Secondary),
-                      };
+                    pagination.setEmbeds(embeds);
 
-                      paginations.set(pagination.interaction.id, pagination);
+                    pagination.buttons = {
+                      ...pagination.buttons,
+                      extra: new ButtonBuilder()
+                        .setCustomId('jump')
+                        .setEmoji('↕️')
+                        .setDisabled(false)
+                        .setStyle(ButtonStyle.Secondary),
+                    };
 
-                      await pagination.render();
-                    }),
-                );
+                    paginations.set(pagination.interaction.id, pagination);
+
+                    await pagination.render();
+                  });
+                });
             }
 
             case 'channel': {
@@ -2660,9 +2674,15 @@ module.exports = {
                   );
                   embed.setThumbnail(channel.photo);
                   embed.setAuthor({
-                    name: `🧑‍💻 ${
+                    name: `${
+                      channel.org.includes('Independents') ? '🧑‍💻 ' : ''
+                    }${
                       channel.english_name || channel.name
                     }'s YouTube Channel Information`,
+                    iconURL: affiliations.find(
+                      (aff) =>
+                        aff.name.toLowerCase() === channel.org.toLowerCase(),
+                    )?.logoURL,
                   });
                   embed.setFields([
                     {
@@ -3017,9 +3037,14 @@ module.exports = {
                           )
                           .setThumbnail(video.channel.photo)
                           .setAuthor({
-                            name: `🎬 ${
+                            name: `${
                               video.channel.english_name || video.channel.name
                             }'s YouTube Video Lists`,
+                            iconURL: affiliations.find(
+                              (aff) =>
+                                aff.name.toLowerCase() ===
+                                video.channel.org.toLowerCase(),
+                            )?.logoURL,
                           })
                           .setFields([
                             {
@@ -3132,9 +3157,14 @@ module.exports = {
                         })
                         .setThumbnail(video.channel.photo)
                         .setAuthor({
-                          name: `🎥 ${
+                          name: `${
                             video.channel.english_name || video.channel.name
                           }'s YouTube Live Lists`,
+                          iconURL: affiliations.find(
+                            (aff) =>
+                              aff.name.toLowerCase() ===
+                              video.channel.org.toLowerCase(),
+                          )?.logoURL,
                         })
                         .setFields([
                           {
