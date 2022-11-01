@@ -18,6 +18,7 @@ const {
   TimestampStyles,
 } = require('discord.js');
 const {
+  ChannelType,
   ExtraData,
   HolodexApiClient,
   SortOrder,
@@ -273,6 +274,26 @@ module.exports = {
                 .setName('id')
                 .setDescription("🆔 The Virtual Youtuber's YouTube channel ID.")
                 .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('clipper')
+            .setDescription(
+              "🏢 Get the Virtual YouTuber Clipper's YouTube channel information by channel ID.",
+            )
+            .addStringOption((option) =>
+              option
+                .setName('id')
+                .setDescription(
+                  "🆔 The Virtual Youtuber's YouTube channel ID.",
+                ),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('sort')
+                .setDescription('🔣 The information sorting option.')
+                .addChoices(...vtuberSortingChoices),
             ),
         )
         .addSubcommand((subcommand) =>
@@ -2510,11 +2531,11 @@ module.exports = {
                 .then(
                   async (channels) =>
                     await interaction.deferReply().then(async () => {
-                      console.log(channels);
-
                       /** @type {import('discord.js').EmbedBuilder[]} */
-                      const embeds = channels.map(({ raw }, index, array) =>
-                        new EmbedBuilder()
+                      const embeds = channels.map((item, index, array) => {
+                        const channel = item.toRaw();
+
+                        return new EmbedBuilder()
                           .setColor(guild.members.me.displayHexColor)
                           .setTimestamp(Date.now())
                           .setFooter({
@@ -2525,82 +2546,84 @@ module.exports = {
                               dynamic: true,
                             }),
                           })
-                          .setThumbnail(raw.photo)
+                          .setThumbnail(channel.photo)
                           .setAuthor({
                             name: `🧑‍💻 ${
-                              raw.org.includes('Independents')
-                                ? `${raw.org.slice(0, -1)} Vtubers`
-                                : raw.org
+                              channel.org.includes('Independents')
+                                ? `${channel.org.slice(0, -1)} Vtubers`
+                                : channel.org
                             }'s YouTube Channel Lists`,
                           })
                           .setFields([
                             {
                               name: '🔤 Name',
-                              value: raw.english_name || raw.name,
+                              value: channel.english_name || channel.name,
                               inline: true,
                             },
                             {
                               name: '🔤 Channel Name',
                               value: `${hyperlink(
-                                raw.name,
-                                `https://youtube.com/channel/${raw.id}`,
-                              )}${raw.inactive ? ' (Inactive)' : ''}`,
+                                channel.name,
+                                `https://youtube.com/channel/${channel.id}`,
+                              )}${channel.inactive ? ' (Inactive)' : ''}`,
                               inline: true,
                             },
                             {
                               name: '👥 Group',
-                              value: raw.group || italic('None'),
+                              value: channel.group || italic('None'),
                               inline: true,
                             },
                             {
                               name: '🌐 Twitter',
-                              value: hyperlink(
-                                `@${raw.twitter}`,
-                                `https://twitter.com/${raw.twitter}`,
-                              ),
+                              value: channel.twitter
+                                ? hyperlink(
+                                    `@${channel.twitter}`,
+                                    `https://twitter.com/${channel.twitter}`,
+                                  )
+                                : italic('None'),
                               inline: true,
                             },
                             {
                               name: '🔢 VOD Count',
                               value: `${Number(
-                                raw.video_count,
+                                channel.video_count,
                               ).toLocaleString()} ${pluralize(
                                 'video',
-                                raw.video_count,
+                                channel.video_count,
                               )}`,
                               inline: true,
                             },
                             {
                               name: '🔢 Subscriber Count',
                               value: `${Number(
-                                raw.subscriber_count,
+                                channel.subscriber_count,
                               ).toLocaleString()} ${pluralize(
                                 'subscriber',
-                                raw.subscriber_count,
+                                channel.subscriber_count,
                               )}`,
                               inline: true,
                             },
                             {
                               name: '🔢 Clip Count',
-                              value: raw.clip_count
-                                ? `${raw.clip_count.toLocaleString()} ${pluralize(
+                              value: channel.clip_count
+                                ? `${channel.clip_count.toLocaleString()} ${pluralize(
                                     'video',
-                                    raw.clip_count,
+                                    channel.clip_count,
                                   )}`
                                 : italic('Unknown'),
                               inline: true,
                             },
                             {
                               name: '🗣️ Top Topic',
-                              value: raw.top_topics
-                                ? raw.top_topics
+                              value: channel.top_topics
+                                ? channel.top_topics
                                     .map((topic) => transformCase(topic))
                                     .join(', ')
                                 : italic('None'),
                               inline: true,
                             },
-                          ]),
-                      );
+                          ]);
+                      });
 
                       const pagination = new Pagination(interaction);
 
@@ -2638,16 +2661,16 @@ module.exports = {
                   embed.setThumbnail(channel.photo);
                   embed.setAuthor({
                     name: `🧑‍💻 ${
-                      channel.english_name ?? channel.name
+                      channel.english_name || channel.name
                     }'s YouTube Channel Information`,
                   });
                   embed.setFields([
                     {
                       name: '🔤 Channel Name',
-                      value: hyperlink(
+                      value: `${hyperlink(
                         channel.name,
                         `https://youtube.com/channel/${channel.id}`,
-                      ),
+                      )}${channel.inactive ? ' (Inactive)' : ''}`,
                       inline: true,
                     },
                     {
@@ -2670,10 +2693,12 @@ module.exports = {
                     },
                     {
                       name: '🌐 Twitter',
-                      value: hyperlink(
-                        `@${channel.twitter}`,
-                        `https://twitter.com/${channel.twitter}`,
-                      ),
+                      value: channel.twitter
+                        ? hyperlink(
+                            `@${channel.twitter}`,
+                            `https://twitter.com/${channel.twitter}`,
+                          )
+                        : italic('Unknown'),
                       inline: true,
                     },
                     {
@@ -2687,7 +2712,7 @@ module.exports = {
                       inline: true,
                     },
                     {
-                      name: '🔢 Video Count',
+                      name: '🔢 VOD Count',
                       value: `${Number(
                         channel.video_count,
                       ).toLocaleString()} ${pluralize(
@@ -2743,7 +2768,204 @@ module.exports = {
                         await interaction.editReply({
                           content: `No channel found with ID ${inlineCode(
                             id,
-                          )}.`,
+                          )} or maybe the data isn't available yet.`,
+                        }),
+                    );
+                  }
+                });
+            }
+
+            case 'clipper': {
+              const channelID = options.getString('id');
+              const sort = options.getString('sort');
+
+              if (!channelID) {
+                return holodex
+                  .getChannels({
+                    limit: 50,
+                    sort: sort ?? 'org',
+                    order:
+                      sort === 'subscriber_count' ||
+                      sort === 'video_count' ||
+                      sort === 'clip_count'
+                        ? SortOrder.Descending
+                        : SortOrder.Ascending,
+                    type: ChannelType.Subber,
+                  })
+                  .then(
+                    async (channels) =>
+                      await interaction.deferReply().then(async () => {
+                        /** @type {import('discord.js').EmbedBuilder[]} */
+                        const embeds = channels.map((item, index, array) => {
+                          const channel = item.toRaw();
+
+                          return new EmbedBuilder()
+                            .setColor(guild.members.me.displayHexColor)
+                            .setTimestamp(Date.now())
+                            .setFooter({
+                              text: `${client.user.username} | Page ${
+                                index + 1
+                              } of ${array.length}`,
+                              iconURL: client.user.displayAvatarURL({
+                                dynamic: true,
+                              }),
+                            })
+                            .setThumbnail(channel.photo)
+                            .setAuthor({
+                              name: "✂️ VTuber Clipper's YouTube Channel Lists",
+                            })
+                            .setFields([
+                              {
+                                name: '🔤 Channel Name',
+                                value: `${hyperlink(
+                                  channel.name,
+                                  `https://youtube.com/channel/${channel.id}`,
+                                )}${channel.inactive ? ' (Inactive)' : ''}`,
+                                inline: true,
+                              },
+                              {
+                                name: '🌐 Twitter',
+                                value: channel.twitter
+                                  ? hyperlink(
+                                      `@${channel.twitter}`,
+                                      `https://twitter.com/${channel.twitter}`,
+                                    )
+                                  : italic('None'),
+                                inline: true,
+                              },
+                              {
+                                name: '🔢 VOD Count',
+                                value: `${Number(
+                                  channel.video_count,
+                                ).toLocaleString()} ${pluralize(
+                                  'video',
+                                  channel.video_count,
+                                )}`,
+                                inline: true,
+                              },
+                              {
+                                name: '🔢 Subscriber Count',
+                                value: `${Number(
+                                  channel.subscriber_count,
+                                ).toLocaleString()} ${pluralize(
+                                  'subscriber',
+                                  channel.subscriber_count,
+                                )}`,
+                                inline: true,
+                              },
+                            ]);
+                        });
+
+                        const pagination = new Pagination(interaction);
+
+                        pagination.setEmbeds(embeds);
+
+                        pagination.buttons = {
+                          ...pagination.buttons,
+                          extra: new ButtonBuilder()
+                            .setCustomId('jump')
+                            .setEmoji('↕️')
+                            .setDisabled(false)
+                            .setStyle(ButtonStyle.Secondary),
+                        };
+
+                        paginations.set(pagination.interaction.id, pagination);
+
+                        await pagination.render();
+                      }),
+                  );
+              }
+
+              return holodex
+                .getChannel(channelID)
+                .then(async (item) => {
+                  const channel = item.toRaw();
+
+                  embed.setDescription(
+                    channel.description.length > 4096
+                      ? `${channel.description.slice(0, 4096 - 3)}...`
+                      : channel.description,
+                  );
+                  embed.setThumbnail(channel.photo);
+                  embed.setAuthor({
+                    name: `✂️ ${channel.name}'s YouTube Channel Information`,
+                  });
+                  embed.setFields([
+                    {
+                      name: '🔤 Channel Name',
+                      value: `${hyperlink(
+                        channel.name,
+                        `https://youtube.com/channel/${channel.id}`,
+                      )}${channel.inactive ? ' (Inactive)' : ''}`,
+                      inline: true,
+                    },
+                    {
+                      name: '📆 Channel Created At',
+                      value: time(
+                        new Date(channel.published_at),
+                        TimestampStyles.RelativeTime,
+                      ),
+                      inline: true,
+                    },
+                    {
+                      name: '🌐 Twitter',
+                      value: channel.twitter
+                        ? hyperlink(
+                            `@${channel.twitter}`,
+                            `https://twitter.com/${channel.twitter}`,
+                          )
+                        : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '🔢 View Count',
+                      value: `${Number(
+                        channel.view_count,
+                      ).toLocaleString()} ${pluralize(
+                        'view',
+                        channel.view_count,
+                      )}`,
+                      inline: true,
+                    },
+                    {
+                      name: '🔢 VOD Count',
+                      value: `${Number(
+                        channel.video_count,
+                      ).toLocaleString()} ${pluralize(
+                        'video',
+                        channel.video_count,
+                      )}`,
+                      inline: true,
+                    },
+                    {
+                      name: '🔢 Subscriber Count',
+                      value: `${Number(
+                        channel.subscriber_count,
+                      ).toLocaleString()} ${pluralize(
+                        'subscriber',
+                        channel.subscriber_count,
+                      )}`,
+                      inline: true,
+                    },
+                  ]);
+
+                  await interaction
+                    .deferReply()
+                    .then(
+                      async () =>
+                        await interaction.editReply({ embeds: [embed] }),
+                    );
+                })
+                .catch(async (err) => {
+                  console.error(err);
+
+                  if (err.response?.status === 404) {
+                    await interaction.deferReply({ ephemeral: true }).then(
+                      async () =>
+                        await interaction.editReply({
+                          content: `No channel found with ID ${inlineCode(
+                            channelID,
+                          )} or maybe the data isn't available yet.`,
                         }),
                     );
                   }
@@ -2795,8 +3017,8 @@ module.exports = {
                           )
                           .setThumbnail(video.channel.photo)
                           .setAuthor({
-                            name: `🧑‍💻 ${
-                              video.channel.english_name ?? video.channel.name
+                            name: `🎬 ${
+                              video.channel.english_name || video.channel.name
                             }'s YouTube Video Lists`,
                           })
                           .setFields([
@@ -2910,8 +3132,8 @@ module.exports = {
                         })
                         .setThumbnail(video.channel.photo)
                         .setAuthor({
-                          name: `🧑‍💻 ${
-                            video.channel.english_name ?? video.channel.name
+                          name: `🎥 ${
+                            video.channel.english_name || video.channel.name
                           }'s YouTube Live Lists`,
                         })
                         .setFields([
