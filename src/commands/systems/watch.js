@@ -74,7 +74,9 @@ module.exports = {
               .createTogetherCode(channel.id, 'youtube')
               .then(async ({ code }) => {
                 embed.setAuthor({
-                  name: '🔗 YouTube Watch Invite Code',
+                  name: 'YouTube Watch Invite Code',
+                  iconURL:
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/YouTube_icon_%282013-2017%29.png/320px-YouTube_icon_%282013-2017%29.png',
                 });
                 embed.setDescription(
                   `Grab your invite code ${pluralize(
@@ -134,7 +136,9 @@ module.exports = {
                     });
 
                     embed.setAuthor({
-                      name: '🎥 Streaming Link Search Result',
+                      name: 'Streaming Link Search Result',
+                      iconURL:
+                        'https://scontent.fbdo2-1.fna.fbcdn.net/v/t39.30808-6/308994881_400760315578206_4414282396441157085_n.png?_nc_cat=106&ccb=1-7&_nc_sid=09cbfe&_nc_ohc=_p-Hc3a6PawAX8t2JcU&tn=JJUd3RRVJzK-p8kF&_nc_ht=scontent.fbdo2-1.fna&oh=00_AfDiZaQ8Xq4ebAPWsN5t779v1_O5IKFMSQujVQtMIOWdZA&oe=6365BEC5',
                     });
                     embed.setDescription(
                       hyperlink(

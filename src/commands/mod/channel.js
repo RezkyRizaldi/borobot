@@ -525,7 +525,7 @@ module.exports = {
             (thread) => thread.type === ChannelType.AnnouncementThread,
           );
 
-          const threadList = `👁️‍🗨️ ${publicThreads.size.toLocaleString()} Public ${
+          const threadList = `👁️ ${publicThreads.size.toLocaleString()} Public ${
             activeThreads.size || archivedThreads.size
               ? `(${
                   activePublicThreads.size.toLocaleString()
