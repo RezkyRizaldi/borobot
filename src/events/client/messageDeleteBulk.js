@@ -10,12 +10,12 @@ const {
   WebhookClient,
 } = require('discord.js');
 const pluralize = require('pluralize');
-const truncate = require('truncate');
 
 const {
   applyMessageType,
   groupMessageByAuthor,
   groupMessageByType,
+  truncate,
 } = require('../../utils');
 
 module.exports = {
@@ -139,7 +139,7 @@ module.exports = {
       name: 'Messages Deleted',
       iconURL: messages.first().author.displayAvatarURL({ dynamic: true }),
     });
-    embed.setDescription(truncate(response, 4096 - 3));
+    embed.setDescription(truncate(response, 4096));
 
     await MessageLogger.send({ embeds: [embed] }).catch(console.error);
   },

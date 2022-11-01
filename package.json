@@ -67,7 +67,6 @@
     "roman-numerals-convert": "^1.0.5",
     "string-progressbar": "^1.0.4",
     "tesseract.js": "^3.0.3",
-    "truncate": "^3.0.0",
     "weather-js": "^2.0.0",
     "yt-search": "^2.10.3",
     "ytdl-core": "^4.11.2"

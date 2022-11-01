@@ -8,9 +8,8 @@ const {
   TimestampStyles,
   WebhookClient,
 } = require('discord.js');
-const truncate = require('truncate');
 
-const { applyMessageType } = require('../../utils');
+const { applyMessageType, truncate } = require('../../utils');
 
 module.exports = {
   name: Events.MessageUpdate,
@@ -160,11 +159,11 @@ module.exports = {
     embed.setFields(
       {
         name: '🕒 Before',
-        value: truncate(applyMessageType(oldMessage), 1024 - 3),
+        value: truncate(applyMessageType(oldMessage), 1024),
       },
       {
         name: '🕒 After',
-        value: truncate(applyMessageType(newMessage, true), 1024 - 3),
+        value: truncate(applyMessageType(newMessage, true), 1024),
       },
     );
 

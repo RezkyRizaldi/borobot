@@ -47,6 +47,7 @@ const {
   getWikiaURL,
   getFormattedParam,
   transformCase,
+  truncate,
 } = require('../../utils');
 
 module.exports = {
@@ -2667,11 +2668,7 @@ module.exports = {
                 .then(async (item) => {
                   const channel = item.toRaw();
 
-                  embed.setDescription(
-                    channel.description.length > 4096
-                      ? `${channel.description.slice(0, 4096 - 3)}...`
-                      : channel.description,
-                  );
+                  embed.setDescription(truncate(channel.description, 4096));
                   embed.setThumbnail(channel.photo);
                   embed.setAuthor({
                     name: `${
@@ -2901,11 +2898,7 @@ module.exports = {
                 .then(async (item) => {
                   const channel = item.toRaw();
 
-                  embed.setDescription(
-                    channel.description.length > 4096
-                      ? `${channel.description.slice(0, 4096 - 3)}...`
-                      : channel.description,
-                  );
+                  embed.setDescription(truncate(channel.description, 4096));
                   embed.setThumbnail(channel.photo);
                   embed.setAuthor({
                     name: `✂️ ${channel.name}'s YouTube Channel Information`,
@@ -3030,11 +3023,7 @@ module.exports = {
                               dynamic: true,
                             }),
                           })
-                          .setDescription(
-                            video.description.length > 4096
-                              ? `${video.description.slice(0, 4096 - 3)}...`
-                              : video.description,
-                          )
+                          .setDescription(truncate(video.description, 4096))
                           .setThumbnail(video.channel.photo)
                           .setAuthor({
                             name: `${

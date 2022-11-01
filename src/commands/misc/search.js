@@ -15,7 +15,6 @@ const Scraper = require('images-scraper').default;
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
-const truncate = require('truncate');
 
 const {
   animeCharacterSearchOrderChoices,
@@ -28,7 +27,7 @@ const {
   mdnLocales,
   searchSortingChoices,
 } = require('../../constants');
-const { isAlphabeticLetter } = require('../../utils');
+const { isAlphabeticLetter, truncate } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -434,9 +433,9 @@ module.exports = {
                                     '[Written by MAL Rewrite]',
                                     '',
                                   ),
-                                  1024 - 3,
+                                  1024,
                                 )
-                              : truncate(item.synopsis, 1024 - 3)
+                              : truncate(item.synopsis, 1024)
                             : italic('No available'),
                         },
                         {
@@ -565,10 +564,7 @@ module.exports = {
 
                     if (item.about) {
                       newEmbed.setDescription(
-                        truncate(
-                          item.about.replace(/\n\n\n/g, '\n\n'),
-                          4096 - 3,
-                        ),
+                        truncate(item.about.replace(/\n\n\n/g, '\n\n'), 4096),
                       );
                     }
 
@@ -811,9 +807,9 @@ module.exports = {
                                 '[Written by MAL Rewrite]',
                                 '',
                               ),
-                              1024 - 3,
+                              1024,
                             )
-                          : truncate(item.synopsis, 1024 - 3)
+                          : truncate(item.synopsis, 1024)
                         : italic('No available'),
                     },
                   ]);
@@ -947,7 +943,7 @@ module.exports = {
               },
               {
                 name: '🔤 Example',
-                value: truncate(example, 1024 - 3),
+                value: truncate(example, 1024),
               },
               {
                 name: '⭐ Rating',
