@@ -1,5 +1,6 @@
 const { capitalCase } = require('change-case');
 const {
+  ActivityType,
   ApplicationCommandType,
   bold,
   ContextMenuCommandBuilder,
@@ -7,7 +8,6 @@ const {
   italic,
   time,
   TimestampStyles,
-  ActivityType,
 } = require('discord.js');
 
 const { applyActivity, applyPresence } = require('../../utils');
@@ -48,23 +48,33 @@ module.exports = {
                 (activity) =>
                   `${bold('•')} ${applyActivity(activity.type)} ${bold(
                     activity.name,
-                  )} ${
+                  )}${
                     activity.type === ActivityType.Listening
                       ? activity.details
-                        ? `playing ${bold(activity.details)}`
+                        ? ` playing ${bold(activity.details)}`
                         : ''
-                      : activity.details ?? ''
+                      : activity.details
+                      ? ` ${activity.details}`
+                      : ''
                   }${
-                    activity.type === ActivityType.Listening && activity.state
-                      ? ` by ${bold(activity.state)}`
+                    activity.type === ActivityType.Listening
+                      ? activity.state
+                        ? ` by ${bold(activity.state)}`
+                        : ` at ${bold(activity.state)}`
+                      : activity.state
+                      ? ` ${activity.state}`
                       : ''
                   }${
                     activity.type === ActivityType.Listening && activity.assets
                       ? ` on ${bold(activity.assets.largeText)}`
                       : ''
-                  } ${
+                  }${
+                    activity.type === ActivityType.Streaming && activity.url
+                      ? ` on ${activity.url}`
+                      : ''
+                  }${
                     activity.timestamps
-                      ? `at ${time(
+                      ? ` at ${time(
                           activity.timestamps.start,
                           TimestampStyles.RelativeTime,
                         )}`
@@ -156,8 +166,6 @@ module.exports = {
               },
             ]);
           }
-
-          console.log(member.presence?.activities);
 
           embed.addFields([
             {
