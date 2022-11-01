@@ -15,7 +15,6 @@ const Scraper = require('images-scraper').default;
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
-const truncate = require('truncate');
 
 const {
   animeCharacterSearchOrderChoices,
@@ -28,7 +27,7 @@ const {
   mdnLocales,
   searchSortingChoices,
 } = require('../../constants');
-const { isAlphabeticLetter } = require('../../utils');
+const { isAlphabeticLetter, truncate } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -283,16 +282,18 @@ module.exports = {
               query.append('sort', sort);
             }
 
-            if (!isAlphabeticLetter(letter)) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: 'You have to specify an alphabetic character.',
-                  }),
-              );
-            }
+            if (letter) {
+              if (!isAlphabeticLetter(letter)) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: 'You have to specify an alphabetic character.',
+                    }),
+                );
+              }
 
-            query.append('letter', letter.charAt(0));
+              query.append('letter', letter.charAt(0));
+            }
 
             return axios
               .get(`https://api.jikan.moe/v4/anime?${query}`)
@@ -312,8 +313,8 @@ module.exports = {
 
                 await interaction.deferReply().then(async () => {
                   /** @type {import('discord.js').EmbedBuilder[]} */
-                  const embeds = data.map((item, index, array) => {
-                    const newEmbed = new EmbedBuilder()
+                  const embeds = data.map((item, index, array) =>
+                    new EmbedBuilder()
                       .setColor(guild.members.me.displayHexColor)
                       .setTimestamp(Date.now())
                       .setFooter({
@@ -325,8 +326,13 @@ module.exports = {
                         }),
                       })
                       .setAuthor({
-                        name: '🖥️ Anime Search Results',
+                        name: 'Anime Search Results',
+                        iconURL:
+                          'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
                       })
+                      .setThumbnail(
+                        item.images.jpg.image_url ?? item.images.webp.image_url,
+                      )
                       .setFields([
                         {
                           name: '🔤 Title',
@@ -428,31 +434,25 @@ module.exports = {
                         {
                           name: '💫 Synopsis',
                           value: item.synopsis
-                            ? item.synopsis.includes('[Written by MAL Rewrite]')
+                            ? item.synopsis?.includes(
+                                '[Written by MAL Rewrite]',
+                              )
                               ? truncate(
                                   item.synopsis.replace(
                                     '[Written by MAL Rewrite]',
                                     '',
                                   ),
-                                  1024 - 3,
+                                  1024,
                                 )
-                              : truncate(item.synopsis, 1024 - 3)
+                              : truncate(item.synopsis, 1024)
                             : italic('No available'),
                         },
                         {
                           name: '🎞️ Trailer',
                           value: item.trailer.url ?? italic('No available'),
                         },
-                      ]);
-
-                    if (item.images) {
-                      newEmbed.setThumbnail(
-                        item.images.jpg.image_url ?? item.images.webp.image_url,
-                      );
-                    }
-
-                    return newEmbed;
-                  });
+                      ]),
+                  );
 
                   const pagination = new Pagination(interaction);
 
@@ -522,8 +522,8 @@ module.exports = {
                 }
 
                 await interaction.deferReply().then(async () => {
-                  const embeds = data.map((item, index, array) => {
-                    const newEmbed = new EmbedBuilder()
+                  const embeds = data.map((item, index, array) =>
+                    new EmbedBuilder()
                       .setColor(guild.members.me.displayHexColor)
                       .setTimestamp(Date.now())
                       .setFooter({
@@ -534,9 +534,17 @@ module.exports = {
                           dynamic: true,
                         }),
                       })
+                      .setDescription(
+                        truncate(item.about?.replace(/\n\n\n/g, '\n\n'), 4096),
+                      )
                       .setAuthor({
-                        name: '🖥️ Anime Character Search Results',
+                        name: 'Anime Character Search Results',
+                        iconURL:
+                          'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
                       })
+                      .setThumbnail(
+                        item.images.jpg.image_url ?? item.images.webp.image_url,
+                      )
                       .setFields([
                         {
                           name: '🔤 Name',
@@ -561,25 +569,8 @@ module.exports = {
                           )}`,
                           inline: true,
                         },
-                      ]);
-
-                    if (item.about) {
-                      newEmbed.setDescription(
-                        truncate(
-                          item.about.replace(/\n\n\n/g, '\n\n'),
-                          4096 - 3,
-                        ),
-                      );
-                    }
-
-                    if (item.images) {
-                      newEmbed.setThumbnail(
-                        item.images.jpg.image_url ?? item.images.webp.image_url,
-                      );
-                    }
-
-                    return newEmbed;
-                  });
+                      ]),
+                  );
 
                   const pagination = new Pagination(interaction);
 
@@ -686,8 +677,8 @@ module.exports = {
 
             await interaction.deferReply().then(async () => {
               /** @type {import('discord.js').EmbedBuilder[]} */
-              const embeds = data.map((item, index, array) => {
-                const newEmbed = new EmbedBuilder()
+              const embeds = data.map((item, index, array) =>
+                new EmbedBuilder()
                   .setColor(guild.members.me.displayHexColor)
                   .setTimestamp(Date.now())
                   .setFooter({
@@ -698,8 +689,13 @@ module.exports = {
                       dynamic: true,
                     }),
                   })
+                  .setThumbnail(
+                    item.images.jpg.image_url ?? item.images.webp.image_url,
+                  )
                   .setAuthor({
-                    name: '🖥️ Manga Search Results',
+                    name: 'Manga Search Results',
+                    iconURL:
+                      'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
                   })
                   .setFields([
                     {
@@ -805,27 +801,19 @@ module.exports = {
                     {
                       name: '💫 Synopsis',
                       value: item.synopsis
-                        ? item.synopsis.includes('[Written by MAL Rewrite]')
+                        ? item.synopsis?.includes('[Written by MAL Rewrite]')
                           ? truncate(
                               item.synopsis.replace(
                                 '[Written by MAL Rewrite]',
                                 '',
                               ),
-                              1024 - 3,
+                              1024,
                             )
-                          : truncate(item.synopsis, 1024 - 3)
+                          : truncate(item.synopsis, 1024)
                         : italic('No available'),
                     },
-                  ]);
-
-                if (item.images) {
-                  newEmbed.setThumbnail(
-                    item.images.jpg.image_url ?? item.images.webp.image_url,
-                  );
-                }
-
-                return newEmbed;
-              });
+                  ]),
+              );
 
               const pagination = new Pagination(interaction);
 
@@ -878,7 +866,9 @@ module.exports = {
                 }),
               });
               pagination.setAuthor({
-                name: '🖼️ Image Search Results',
+                name: 'Image Search Results',
+                iconURL:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/480px-Google_%22G%22_Logo.svg.png',
               });
               pagination.setImages(results.map((result) => result.url));
 
@@ -934,8 +924,10 @@ module.exports = {
             )}`;
 
             embed.setAuthor({
-              name: `🔠 ${capitalCase(word)}`,
+              name: `${capitalCase(word)}`,
               url: permalink,
+              iconURL:
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Urban_Dictionary_logo.svg/320px-Urban_Dictionary_logo.svg.png',
             });
             embed.setFields([
               {
@@ -947,7 +939,7 @@ module.exports = {
               },
               {
                 name: '🔤 Example',
-                value: truncate(example, 1024 - 3),
+                value: truncate(example, 1024),
               },
               {
                 name: '⭐ Rating',
@@ -1003,7 +995,9 @@ module.exports = {
                   }));
 
                   embed.setAuthor({
-                    name: '📖 Documentation Search Results',
+                    name: 'Documentation Search Results',
+                    iconURL:
+                      'https://pbs.twimg.com/profile_images/1511434207079407618/AwzUxnVf_400x400.png',
                   });
                   embed.setFields(fields);
 

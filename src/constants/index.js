@@ -1,4 +1,3 @@
-const { languages } = require('@vitalets/google-translate-api');
 const {
   ChannelType,
   Events,
@@ -9,8 +8,12 @@ const { SearchResultType } = require('distube');
 
 const { guildChannels, threadChannels } = require('./channels');
 const extraMcData = require('./extraMcData');
-const newSupportedLanguages = require('./newSupportedLanguages');
-const vtuberAffiliations = require('./vtuberAffiliations');
+const languages = require('./languages');
+const {
+  vtuberAffiliations,
+  vtuberStreamSorting,
+  vtuberVideoSorting,
+} = require('./vtuberData');
 
 module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
@@ -202,7 +205,7 @@ module.exports = {
   ],
 
   /** @type {{[x: string]: string}} */
-  extendedLocales: { ...languages, ...newSupportedLanguages },
+  languages,
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   serverMuteChoices: [
@@ -579,7 +582,7 @@ module.exports = {
       value: Number(PermissionFlagsBits.ManageEmojisAndStickers),
     },
     {
-      name: '👁️‍🗨️ View Audit Log',
+      name: '👁️ View Audit Log',
       value: Number(PermissionFlagsBits.ViewAuditLog),
     },
     {
@@ -683,46 +686,8 @@ module.exports = {
   vtuberAffiliations,
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
-  vtuberSortingChoices: [
-    {
-      name: '🆔 ID',
-      value: 'id',
-    },
-    {
-      name: '🔤 Name',
-      value: 'english_name',
-    },
-    {
-      name: '🔤 Channel Name',
-      value: 'name',
-    },
-    {
-      name: '👥 Group',
-      value: 'group',
-    },
-    {
-      name: '🔢 Video Count',
-      value: 'video_count',
-    },
-    {
-      name: '🔢 Subscriber Count',
-      value: 'subscriber_count',
-    },
-    {
-      name: '🔢 Clip Count',
-      value: 'clip_count',
-    },
-  ],
+  vtuberVideoSortingChoices: vtuberVideoSorting,
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
-  vtuberVideoTypeChoices: [
-    {
-      name: '🎬 VOD',
-      value: 'vod',
-    },
-    {
-      name: '🎥 Live',
-      value: 'live',
-    },
-  ],
+  vtuberStreamSortingChoices: [...vtuberVideoSorting, ...vtuberStreamSorting],
 };

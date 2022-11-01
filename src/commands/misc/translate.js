@@ -1,4 +1,4 @@
-const translate = require('@vitalets/google-translate-api');
+const { translate } = require('@vitalets/google-translate-api');
 const {
   bold,
   ButtonBuilder,
@@ -9,7 +9,7 @@ const {
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 
-const { extendedLocales } = require('../../constants');
+const { languages } = require('../../constants');
 const { getLanguage, getTranslateFlag } = require('../../utils');
 
 module.exports = {
@@ -69,7 +69,7 @@ module.exports = {
     switch (options.getSubcommand()) {
       case 'list':
         return interaction.deferReply({ ephemeral: true }).then(async () => {
-          const locales = Object.entries(extendedLocales)
+          const locales = Object.entries(languages)
             .filter(
               ([key, value]) => typeof value !== 'function' && key !== 'auto',
             )
@@ -118,72 +118,32 @@ module.exports = {
         const from = options.getString('from');
         const to = options.getString('to');
 
-        const translateOptions = { to, autoCorrect: true };
+        const translateOptions = { to };
 
         if (from) Object.assign(translateOptions, { from });
 
-        return interaction.deferReply().then(
-          async () =>
-            await wait(4000).then(
-              async () =>
-                await translate(text, translateOptions).then(async (result) => {
-                  if (!result.from.text.didYouMean) {
-                    embed.setFields([
-                      {
-                        name: `From ${getLanguage(
-                          extendedLocales,
-                          result.from.language.iso,
-                        )}${from ? '' : ' - Detected'} ${getTranslateFlag(
-                          extendedLocales[result.from.language.iso],
-                        )}`,
-                        value: text,
-                      },
-                      {
-                        name: `To ${getLanguage(
-                          extendedLocales,
-                          to,
-                        )} ${getTranslateFlag(
-                          extendedLocales[to.toLowerCase()],
-                        )}`,
-                        value: result.text,
-                      },
-                    ]);
+        return interaction.deferReply().then(async () => {
+          await wait(4000);
 
-                    return interaction.editReply({ embeds: [embed] });
-                  }
+          await translate(text, translateOptions).then(async (result) => {
+            embed.setFields([
+              {
+                name: `From ${getLanguage(languages, result.raw.src)}${
+                  from ? '' : ' - Detected'
+                } ${getTranslateFlag(languages[result.raw.src])}`,
+                value: result.raw.sentences[0].orig,
+              },
+              {
+                name: `To ${getLanguage(languages, to)} ${getTranslateFlag(
+                  languages[to.toLowerCase()],
+                )}`,
+                value: result.text,
+              },
+            ]);
 
-                  await translate(
-                    result.from.text.value.replace(/\[([a-z]+)\]/gi, '$1'),
-                    {
-                      to,
-                    },
-                  ).then(async (res) => {
-                    embed.setFields([
-                      {
-                        name: `From ${getLanguage(
-                          extendedLocales,
-                          res.from.language.iso,
-                        )}${from ? '' : ' - Detected'} ${getTranslateFlag(
-                          extendedLocales[res.from.language.iso],
-                        )}`,
-                        value: text,
-                      },
-                      {
-                        name: `To ${getLanguage(
-                          extendedLocales,
-                          to,
-                        )} ${getTranslateFlag(
-                          extendedLocales[to.toLowerCase()],
-                        )}`,
-                        value: res.text,
-                      },
-                    ]);
-
-                    await interaction.editReply({ embeds: [embed] });
-                  });
-                }),
-            ),
-        );
+            await interaction.editReply({ embeds: [embed] });
+          });
+        });
       }
     }
   },

@@ -7,9 +7,8 @@ const {
   TimestampStyles,
   WebhookClient,
 } = require('discord.js');
-const truncate = require('truncate');
 
-const { applyMessageType } = require('../../utils');
+const { applyMessageType, truncate } = require('../../utils');
 
 module.exports = {
   name: Events.MessageDelete,
@@ -68,7 +67,7 @@ module.exports = {
       name: 'Message Deleted',
       iconURL: author.displayAvatarURL({ dynamic: true }),
     });
-    embed.setDescription(truncate(response, 4096 - 3));
+    embed.setDescription(truncate(response, 4096));
 
     await MessageLogger.send({ embeds: [embed] }).catch(console.error);
   },

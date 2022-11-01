@@ -31,6 +31,7 @@ const isAlphabeticLetter = require('./isAlphabeticLetter');
 const isValidURL = require('./isValidURL');
 const serverMute = require('./serverMute');
 const transformCase = require('./transformCase');
+const truncate = require('./truncate');
 
 module.exports = {
   applyActivity,
@@ -66,4 +67,5 @@ module.exports = {
   isValidURL,
   serverMute,
   transformCase,
+  truncate,
 };

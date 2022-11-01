@@ -18,6 +18,7 @@ const {
   TimestampStyles,
 } = require('discord.js');
 const {
+  ChannelType,
   ExtraData,
   HolodexApiClient,
   SortOrder,
@@ -37,8 +38,8 @@ const {
   githubRepoSortingTypeChoices,
   searchSortingChoices,
   vtuberAffiliations,
-  vtuberSortingChoices,
-  vtuberVideoTypeChoices,
+  vtuberStreamSortingChoices,
+  vtuberVideoSortingChoices,
 } = require('../../constants');
 const {
   applyKeywordColor,
@@ -46,6 +47,7 @@ const {
   getWikiaURL,
   getFormattedParam,
   transformCase,
+  truncate,
 } = require('../../utils');
 
 module.exports = {
@@ -130,11 +132,11 @@ module.exports = {
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('github')
-        .setDescription('ℹ️ Search a GitHub information.')
+        .setDescription('👤 Get information about GitHub account.')
         .addSubcommand((subcommand) =>
           subcommand
             .setName('repositories')
-            .setDescription('🗄️ Search GitHub repositories information.')
+            .setDescription('🗄️ Get GitHub user repositories information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -164,7 +166,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('user')
-            .setDescription('👤 Search GitHub user account information.')
+            .setDescription('👤 Get GitHub user account information.')
             .addStringOption((option) =>
               option
                 .setName('username')
@@ -176,11 +178,11 @@ module.exports = {
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('minecraft')
-        .setDescription('ℹ️ Search a Minecraft information.')
+        .setDescription('🟫 Get information about Minecraft.')
         .addSubcommand((subcommand) =>
           subcommand
             .setName('block')
-            .setDescription('🟫 Search Minecraft block information.')
+            .setDescription('🟫 Get Minecraft block information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -190,7 +192,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('biome')
-            .setDescription('🌄 Search Minecraft biome information.')
+            .setDescription('🌄 Get Minecraft biome information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -200,7 +202,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('effect')
-            .setDescription('💫 Search Minecraft effect information.')
+            .setDescription('💫 Get Minecraft effect information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -210,7 +212,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('enchantment')
-            .setDescription('🪧 Search Minecraft enchantment information.')
+            .setDescription('🪧 Get Minecraft enchantment information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -222,7 +224,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('entity')
-            .setDescription('🔣 Search Minecraft entity information.')
+            .setDescription('🔣 Get Minecraft entity information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -232,7 +234,7 @@ module.exports = {
         .addSubcommand((subcommand) =>
           subcommand
             .setName('food')
-            .setDescription('🍎 Search Minecraft food information.')
+            .setDescription('🍎 Get Minecraft food information.')
             .addStringOption((option) =>
               option
                 .setName('name')
@@ -259,14 +261,14 @@ module.exports = {
               option
                 .setName('sort')
                 .setDescription('🔣 The information sorting option.')
-                .addChoices(...vtuberSortingChoices),
+                .addChoices(...vtuberVideoSortingChoices),
             ),
         )
         .addSubcommand((subcommand) =>
           subcommand
             .setName('channel')
             .setDescription(
-              "🏢 Get the Virtual YouTuber's YouTube channel information by channel ID.",
+              "👤 Get the Virtual YouTuber's YouTube channel information by channel ID.",
             )
             .addStringOption((option) =>
               option
@@ -277,16 +279,49 @@ module.exports = {
         )
         .addSubcommand((subcommand) =>
           subcommand
-            .setName('video')
+            .setName('clipper')
             .setDescription(
-              "🏢 Get the Virtual YouTuber's YouTube channel information by channel ID.",
+              "✂️ Get the Virtual YouTuber Clipper's YouTube channel information.",
             )
             .addStringOption((option) =>
               option
-                .setName('type')
-                .setDescription('🔣 The video type.')
-                .addChoices(...vtuberVideoTypeChoices)
-                .setRequired(true),
+                .setName('id')
+                .setDescription(
+                  "🆔 The Virtual Youtuber's YouTube channel ID.",
+                ),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('sort')
+                .setDescription('🔣 The information sorting option.')
+                .addChoices(...vtuberVideoSortingChoices),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('live')
+            .setDescription(
+              "🎥 Get the Virtual YouTuber's YouTube stream information.",
+            )
+            .addStringOption((option) =>
+              option
+                .setName('id')
+                .setDescription(
+                  "🆔 The Virtual Youtuber's YouTube channel ID.",
+                ),
+            )
+            .addStringOption((option) =>
+              option
+                .setName('sort')
+                .setDescription('🔣 The information sorting option.')
+                .addChoices(...vtuberStreamSortingChoices),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('video')
+            .setDescription(
+              "🎬 Get the Virtual YouTuber's YouTube video information by channel ID.",
             )
             .addStringOption((option) =>
               option
@@ -1399,8 +1434,10 @@ module.exports = {
                 async ({ data }) =>
                   await interaction.deferReply().then(async () => {
                     embed.setAuthor({
-                      name: `👤 @${data.login}'s GitHub ${data.type} Account Info`,
+                      name: `${data.login}'s GitHub ${data.type} Account Info`,
                       url: data.html_url,
+                      iconURL:
+                        'https://cdn-icons-png.flaticon.com/512/25/25231.png',
                     });
 
                     if (data.bio) {
@@ -1548,7 +1585,9 @@ module.exports = {
                       })
                       .setThumbnail(item.owner.avatar_url)
                       .setAuthor({
-                        name: '🗄️ GitHub Repository Search Results',
+                        name: 'GitHub Repository Search Results',
+                        iconURL:
+                          'https://cdn-icons-png.flaticon.com/512/25/25231.png',
                       })
                       .setFields([
                         {
@@ -1600,7 +1639,7 @@ module.exports = {
                           value: `⭐ ${item.stargazers_count.toLocaleString()} ${pluralize(
                             'star',
                             item.stargazers_count,
-                          )} | 👁️‍🗨️ ${item.watchers_count.toLocaleString()} ${pluralize(
+                          )} | 👁️ ${item.watchers_count.toLocaleString()} ${pluralize(
                             'watcher',
                             item.watchers_count,
                           )} | 🕎 ${item.forks_count.toLocaleString()} ${pluralize(
@@ -2434,13 +2473,12 @@ module.exports = {
           const holodex = new HolodexApiClient({
             apiKey: process.env.HOLODEX_API_KEY,
           });
+          const affiliations = Object.values(vtuberAffiliations);
 
           switch (options.getSubcommand()) {
             case 'affiliation': {
               const affiliation = options.getString('affiliation');
               const sort = options.getString('sort');
-
-              const affiliations = Object.values(vtuberAffiliations);
 
               if (!affiliation) {
                 return interaction.deferReply().then(async () => {
@@ -2481,7 +2519,7 @@ module.exports = {
               }
 
               const org = affiliations.find(
-                (aff) => aff.toLowerCase() === affiliation.toLowerCase(),
+                (aff) => aff.name.toLowerCase() === affiliation.toLowerCase(),
               );
 
               if (!org) {
@@ -2497,7 +2535,7 @@ module.exports = {
 
               return holodex
                 .getChannels({
-                  org,
+                  org: org.name,
                   limit: 50,
                   sort: sort ?? 'org',
                   order:
@@ -2507,119 +2545,134 @@ module.exports = {
                       ? SortOrder.Descending
                       : SortOrder.Ascending,
                 })
-                .then(
-                  async (channels) =>
-                    await interaction.deferReply().then(async () => {
-                      console.log(channels);
+                .then(async (channels) => {
+                  if (!channels.length) {
+                    return interaction.deferReply({ ephemeral: true }).then(
+                      async () =>
+                        await interaction.editReply({
+                          content: `No affiliation found with name ${inlineCode(
+                            affiliation,
+                          )} or maybe the data isn't available yet.`,
+                        }),
+                    );
+                  }
 
-                      /** @type {import('discord.js').EmbedBuilder[]} */
-                      const embeds = channels.map(({ raw }, index, array) =>
-                        new EmbedBuilder()
-                          .setColor(guild.members.me.displayHexColor)
-                          .setTimestamp(Date.now())
-                          .setFooter({
-                            text: `${client.user.username} | Page ${
-                              index + 1
-                            } of ${array.length}`,
-                            iconURL: client.user.displayAvatarURL({
-                              dynamic: true,
-                            }),
-                          })
-                          .setThumbnail(raw.photo)
-                          .setAuthor({
-                            name: `🧑‍💻 ${
-                              raw.org.includes('Independents')
-                                ? `${raw.org.slice(0, -1)} Vtubers`
-                                : raw.org
-                            }'s YouTube Channel Lists`,
-                          })
-                          .setFields([
-                            {
-                              name: '🔤 Name',
-                              value: raw.english_name || raw.name,
-                              inline: true,
-                            },
-                            {
-                              name: '🔤 Channel Name',
-                              value: `${hyperlink(
-                                raw.name,
-                                `https://youtube.com/channel/${raw.id}`,
-                              )}${raw.inactive ? ' (Inactive)' : ''}`,
-                              inline: true,
-                            },
-                            {
-                              name: '👥 Group',
-                              value: raw.group || italic('None'),
-                              inline: true,
-                            },
-                            {
-                              name: '🌐 Twitter',
-                              value: hyperlink(
-                                `@${raw.twitter}`,
-                                `https://twitter.com/${raw.twitter}`,
-                              ),
-                              inline: true,
-                            },
-                            {
-                              name: '🔢 VOD Count',
-                              value: `${Number(
-                                raw.video_count,
-                              ).toLocaleString()} ${pluralize(
-                                'video',
-                                raw.video_count,
-                              )}`,
-                              inline: true,
-                            },
-                            {
-                              name: '🔢 Subscriber Count',
-                              value: `${Number(
-                                raw.subscriber_count,
-                              ).toLocaleString()} ${pluralize(
-                                'subscriber',
-                                raw.subscriber_count,
-                              )}`,
-                              inline: true,
-                            },
-                            {
-                              name: '🔢 Clip Count',
-                              value: raw.clip_count
-                                ? `${raw.clip_count.toLocaleString()} ${pluralize(
-                                    'video',
-                                    raw.clip_count,
-                                  )}`
-                                : italic('Unknown'),
-                              inline: true,
-                            },
-                            {
-                              name: '🗣️ Top Topic',
-                              value: raw.top_topics
-                                ? raw.top_topics
-                                    .map((topic) => transformCase(topic))
-                                    .join(', ')
-                                : italic('None'),
-                              inline: true,
-                            },
-                          ]),
-                      );
+                  await interaction.deferReply().then(async () => {
+                    /** @type {import('discord.js').EmbedBuilder[]} */
+                    const embeds = channels.map((item, index, array) => {
+                      const channel = item.toRaw();
 
-                      const pagination = new Pagination(interaction);
+                      return new EmbedBuilder()
+                        .setColor(guild.members.me.displayHexColor)
+                        .setTimestamp(Date.now())
+                        .setFooter({
+                          text: `${client.user.username} | Page ${
+                            index + 1
+                          } of ${array.length}`,
+                          iconURL: client.user.displayAvatarURL({
+                            dynamic: true,
+                          }),
+                        })
+                        .setThumbnail(channel.photo)
+                        .setAuthor({
+                          name: `${
+                            channel.org
+                              ? channel.org.includes('Independents')
+                                ? `🧑‍💻 ${channel.org.slice(0, -1)} Vtubers`
+                                : channel.org
+                              : ''
+                          }'s YouTube Channel Lists`,
+                          iconURL: org?.logoURL,
+                        })
+                        .setFields([
+                          {
+                            name: '🔤 Name',
+                            value: channel.english_name || channel.name,
+                            inline: true,
+                          },
+                          {
+                            name: '🔤 Channel Name',
+                            value: `${hyperlink(
+                              channel.name,
+                              `https://youtube.com/channel/${channel.id}`,
+                            )}${channel.inactive ? ' (Inactive)' : ''}`,
+                            inline: true,
+                          },
+                          {
+                            name: '👥 Group',
+                            value: channel.group || italic('None'),
+                            inline: true,
+                          },
+                          {
+                            name: '🌐 Twitter',
+                            value: channel.twitter
+                              ? hyperlink(
+                                  `@${channel.twitter}`,
+                                  `https://twitter.com/${channel.twitter}`,
+                                )
+                              : italic('None'),
+                            inline: true,
+                          },
+                          {
+                            name: '🔢 VOD Count',
+                            value: `${Number(
+                              channel.video_count,
+                            ).toLocaleString()} ${pluralize(
+                              'video',
+                              channel.video_count,
+                            )}`,
+                            inline: true,
+                          },
+                          {
+                            name: '🔢 Subscriber Count',
+                            value: `${Number(
+                              channel.subscriber_count,
+                            ).toLocaleString()} ${pluralize(
+                              'subscriber',
+                              channel.subscriber_count,
+                            )}`,
+                            inline: true,
+                          },
+                          {
+                            name: '🔢 Clip Count',
+                            value: channel.clip_count
+                              ? `${channel.clip_count.toLocaleString()} ${pluralize(
+                                  'video',
+                                  channel.clip_count,
+                                )}`
+                              : italic('Unknown'),
+                            inline: true,
+                          },
+                          {
+                            name: '🗣️ Top Topic',
+                            value: channel.top_topics
+                              ? channel.top_topics
+                                  .map((topic) => transformCase(topic))
+                                  .join(', ')
+                              : italic('None'),
+                            inline: true,
+                          },
+                        ]);
+                    });
 
-                      pagination.setEmbeds(embeds);
+                    const pagination = new Pagination(interaction);
 
-                      pagination.buttons = {
-                        ...pagination.buttons,
-                        extra: new ButtonBuilder()
-                          .setCustomId('jump')
-                          .setEmoji('↕️')
-                          .setDisabled(false)
-                          .setStyle(ButtonStyle.Secondary),
-                      };
+                    pagination.setEmbeds(embeds);
 
-                      paginations.set(pagination.interaction.id, pagination);
+                    pagination.buttons = {
+                      ...pagination.buttons,
+                      extra: new ButtonBuilder()
+                        .setCustomId('jump')
+                        .setEmoji('↕️')
+                        .setDisabled(false)
+                        .setStyle(ButtonStyle.Secondary),
+                    };
 
-                      await pagination.render();
-                    }),
-                );
+                    paginations.set(pagination.interaction.id, pagination);
+
+                    await pagination.render();
+                  });
+                });
             }
 
             case 'channel': {
@@ -2630,24 +2683,26 @@ module.exports = {
                 .then(async (item) => {
                   const channel = item.toRaw();
 
-                  embed.setDescription(
-                    channel.description.length > 4096
-                      ? `${channel.description.slice(0, 4096 - 3)}...`
-                      : channel.description,
-                  );
+                  embed.setDescription(truncate(channel.description, 4096));
                   embed.setThumbnail(channel.photo);
                   embed.setAuthor({
-                    name: `🧑‍💻 ${
-                      channel.english_name ?? channel.name
+                    name: `${
+                      channel.org?.includes('Independents') ? '🧑‍💻 ' : ''
+                    }${
+                      channel.english_name || channel.name
                     }'s YouTube Channel Information`,
+                    iconURL: affiliations.find(
+                      (aff) =>
+                        aff.name.toLowerCase() === channel.org?.toLowerCase(),
+                    )?.logoURL,
                   });
                   embed.setFields([
                     {
                       name: '🔤 Channel Name',
-                      value: hyperlink(
+                      value: `${hyperlink(
                         channel.name,
                         `https://youtube.com/channel/${channel.id}`,
-                      ),
+                      )}${channel.inactive ? ' (Inactive)' : ''}`,
                       inline: true,
                     },
                     {
@@ -2660,7 +2715,7 @@ module.exports = {
                     },
                     {
                       name: '🏢 Affiliation',
-                      value: channel.org,
+                      value: channel.org ?? italic('Unknown'),
                       inline: true,
                     },
                     {
@@ -2670,10 +2725,12 @@ module.exports = {
                     },
                     {
                       name: '🌐 Twitter',
-                      value: hyperlink(
-                        `@${channel.twitter}`,
-                        `https://twitter.com/${channel.twitter}`,
-                      ),
+                      value: channel.twitter
+                        ? hyperlink(
+                            `@${channel.twitter}`,
+                            `https://twitter.com/${channel.twitter}`,
+                          )
+                        : italic('Unknown'),
                       inline: true,
                     },
                     {
@@ -2687,7 +2744,7 @@ module.exports = {
                       inline: true,
                     },
                     {
-                      name: '🔢 Video Count',
+                      name: '🔢 VOD Count',
                       value: `${Number(
                         channel.video_count,
                       ).toLocaleString()} ${pluralize(
@@ -2743,22 +2800,225 @@ module.exports = {
                         await interaction.editReply({
                           content: `No channel found with ID ${inlineCode(
                             id,
-                          )}.`,
+                          )} or maybe the data isn't available yet.`,
                         }),
                     );
                   }
                 });
             }
 
-            case 'video': {
-              const type = options.getString('type');
+            case 'clipper': {
               const channelID = options.getString('id');
+              const sort = options.getString('sort');
 
-              if (type === 'vod') {
+              if (!channelID) {
                 return holodex
-                  .getVideosByChannelId(channelID, VideoSearchType.Videos, {
+                  .getChannels({
                     limit: 50,
-                    include: [ExtraData.Description, ExtraData.LiveInfo],
+                    sort: sort ?? 'org',
+                    order:
+                      sort === 'subscriber_count' ||
+                      sort === 'video_count' ||
+                      sort === 'clip_count'
+                        ? SortOrder.Descending
+                        : SortOrder.Ascending,
+                    type: ChannelType.Subber,
+                  })
+                  .then(
+                    async (channels) =>
+                      await interaction.deferReply().then(async () => {
+                        /** @type {import('discord.js').EmbedBuilder[]} */
+                        const embeds = channels.map((item, index, array) => {
+                          const channel = item.toRaw();
+
+                          return new EmbedBuilder()
+                            .setColor(guild.members.me.displayHexColor)
+                            .setTimestamp(Date.now())
+                            .setFooter({
+                              text: `${client.user.username} | Page ${
+                                index + 1
+                              } of ${array.length}`,
+                              iconURL: client.user.displayAvatarURL({
+                                dynamic: true,
+                              }),
+                            })
+                            .setThumbnail(channel.photo)
+                            .setAuthor({
+                              name: "✂️ VTuber Clipper's YouTube Channel Lists",
+                            })
+                            .setFields([
+                              {
+                                name: '🔤 Channel Name',
+                                value: `${hyperlink(
+                                  channel.name,
+                                  `https://youtube.com/channel/${channel.id}`,
+                                )}${channel.inactive ? ' (Inactive)' : ''}`,
+                                inline: true,
+                              },
+                              {
+                                name: '🌐 Twitter',
+                                value: channel.twitter
+                                  ? hyperlink(
+                                      `@${channel.twitter}`,
+                                      `https://twitter.com/${channel.twitter}`,
+                                    )
+                                  : italic('None'),
+                                inline: true,
+                              },
+                              {
+                                name: '🔢 VOD Count',
+                                value: `${Number(
+                                  channel.video_count,
+                                ).toLocaleString()} ${pluralize(
+                                  'video',
+                                  channel.video_count,
+                                )}`,
+                                inline: true,
+                              },
+                              {
+                                name: '🔢 Subscriber Count',
+                                value: `${Number(
+                                  channel.subscriber_count,
+                                ).toLocaleString()} ${pluralize(
+                                  'subscriber',
+                                  channel.subscriber_count,
+                                )}`,
+                                inline: true,
+                              },
+                            ]);
+                        });
+
+                        const pagination = new Pagination(interaction);
+
+                        pagination.setEmbeds(embeds);
+
+                        pagination.buttons = {
+                          ...pagination.buttons,
+                          extra: new ButtonBuilder()
+                            .setCustomId('jump')
+                            .setEmoji('↕️')
+                            .setDisabled(false)
+                            .setStyle(ButtonStyle.Secondary),
+                        };
+
+                        paginations.set(pagination.interaction.id, pagination);
+
+                        await pagination.render();
+                      }),
+                  );
+              }
+
+              return holodex
+                .getChannel(channelID)
+                .then(async (item) => {
+                  const channel = item.toRaw();
+
+                  embed.setDescription(truncate(channel.description, 4096));
+                  embed.setThumbnail(channel.photo);
+                  embed.setAuthor({
+                    name: `✂️ ${channel.name}'s YouTube Channel Information`,
+                  });
+                  embed.setFields([
+                    {
+                      name: '🔤 Channel Name',
+                      value: `${hyperlink(
+                        channel.name,
+                        `https://youtube.com/channel/${channel.id}`,
+                      )}${channel.inactive ? ' (Inactive)' : ''}`,
+                      inline: true,
+                    },
+                    {
+                      name: '📆 Channel Created At',
+                      value: time(
+                        new Date(channel.published_at),
+                        TimestampStyles.RelativeTime,
+                      ),
+                      inline: true,
+                    },
+                    {
+                      name: '🌐 Twitter',
+                      value: channel.twitter
+                        ? hyperlink(
+                            `@${channel.twitter}`,
+                            `https://twitter.com/${channel.twitter}`,
+                          )
+                        : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '🔢 View Count',
+                      value: `${Number(
+                        channel.view_count,
+                      ).toLocaleString()} ${pluralize(
+                        'view',
+                        channel.view_count,
+                      )}`,
+                      inline: true,
+                    },
+                    {
+                      name: '🔢 VOD Count',
+                      value: `${Number(
+                        channel.video_count,
+                      ).toLocaleString()} ${pluralize(
+                        'video',
+                        channel.video_count,
+                      )}`,
+                      inline: true,
+                    },
+                    {
+                      name: '🔢 Subscriber Count',
+                      value: `${Number(
+                        channel.subscriber_count,
+                      ).toLocaleString()} ${pluralize(
+                        'subscriber',
+                        channel.subscriber_count,
+                      )}`,
+                      inline: true,
+                    },
+                  ]);
+
+                  await interaction
+                    .deferReply()
+                    .then(
+                      async () =>
+                        await interaction.editReply({ embeds: [embed] }),
+                    );
+                })
+                .catch(async (err) => {
+                  console.error(err);
+
+                  if (err.response?.status === 404) {
+                    await interaction.deferReply({ ephemeral: true }).then(
+                      async () =>
+                        await interaction.editReply({
+                          content: `No channel found with ID ${inlineCode(
+                            channelID,
+                          )} or maybe the data isn't available yet.`,
+                        }),
+                    );
+                  }
+                });
+            }
+
+            case 'live': {
+              const channelID = options.getString('id');
+              const sort = options.getString('sort') ?? 'available_at';
+
+              if (!channelID) {
+                return holodex
+                  .getLiveVideos({
+                    limit: 50,
+                    include: [ExtraData.Description],
+                    sort,
+                    status: VideoStatus.Live,
+                    order:
+                      sort === 'live_viewers' ||
+                      sort === 'available_at' ||
+                      sort === 'subscriber_count' ||
+                      sort === 'video_count' ||
+                      sort === 'clip_count'
+                        ? SortOrder.Descending
+                        : SortOrder.Ascending,
                   })
                   .then(async (videos) => {
                     if (!videos.length) {
@@ -2777,7 +3037,7 @@ module.exports = {
                       const embeds = videos.map((item, index, array) => {
                         const video = item.toRaw();
 
-                        const newEmbed = new EmbedBuilder()
+                        return new EmbedBuilder()
                           .setColor(guild.members.me.displayHexColor)
                           .setTimestamp(Date.now())
                           .setFooter({
@@ -2788,16 +3048,21 @@ module.exports = {
                               dynamic: true,
                             }),
                           })
-                          .setDescription(
-                            video.description.length > 4096
-                              ? `${video.description.slice(0, 4096 - 3)}...`
-                              : video.description,
-                          )
+                          .setDescription(truncate(video.description, 4096))
                           .setThumbnail(video.channel.photo)
                           .setAuthor({
-                            name: `🧑‍💻 ${
-                              video.channel.english_name ?? video.channel.name
-                            }'s YouTube Video Lists`,
+                            name: `${
+                              video.channel.org?.includes('Independents')
+                                ? '🧑‍💻'
+                                : ''
+                            } ${
+                              video.channel.english_name || video.channel.name
+                            }'s YouTube Stream Lists`,
+                            iconURL: affiliations.find(
+                              (aff) =>
+                                aff.name.toLowerCase() ===
+                                video.channel.org?.toLowerCase(),
+                            )?.logoURL,
                           })
                           .setFields([
                             {
@@ -2806,25 +3071,6 @@ module.exports = {
                                 video.title,
                                 `https://youtube.com/watch?v=${video.id}`,
                               ),
-                              inline: true,
-                            },
-                            {
-                              name: '📊 Status',
-                              value: capitalCase(
-                                video.status === VideoStatus.Past
-                                  ? 'archived'
-                                  : video.status,
-                              ),
-                              inline: true,
-                            },
-                            {
-                              name: '⏳ Duration',
-                              value:
-                                video.status !== VideoStatus.Upcoming
-                                  ? moment
-                                      .duration(video.duration, 's')
-                                      .humanize()
-                                  : italic('Unknown'),
                               inline: true,
                             },
                             {
@@ -2843,19 +3089,24 @@ module.exports = {
                               ),
                               inline: true,
                             },
-                          ]);
-
-                        if (video.status === VideoStatus.Live) {
-                          newEmbed.addFields([
                             {
                               name: '🔢 Live Viewers Count',
                               value: `${video.live_viewers.toLocaleString()} watching now`,
                               inline: true,
                             },
+                            {
+                              name: '🗣️ Topic',
+                              value: video.topic_id
+                                ? transformCase(video.topic_id)
+                                : italic('Unknown'),
+                              inline: true,
+                            },
+                            {
+                              name: '🏢 Affiliation',
+                              value: video.channel.org ?? italic('Unknown'),
+                              inline: true,
+                            },
                           ]);
-                        }
-
-                        return newEmbed;
                       });
 
                       const pagination = new Pagination(interaction);
@@ -2892,6 +3143,191 @@ module.exports = {
                     );
                   }
 
+                  if (videos.length === 1) {
+                    const video = videos[0].toRaw();
+
+                    return interaction.deferReply().then(async () => {
+                      embed.setDescription(truncate(video.description, 4096));
+                      embed.setThumbnail(video.channel.photo);
+                      embed.setAuthor({
+                        name: `${
+                          video.channel.org?.includes('Independents')
+                            ? '🧑‍💻'
+                            : ''
+                        } ${
+                          video.channel.english_name || video.channel.name
+                        }'s YouTube Stream Information`,
+                        iconURL: affiliations.find(
+                          (aff) =>
+                            aff.name.toLowerCase() ===
+                            video.channel.org?.toLowerCase(),
+                        )?.logoURL,
+                      });
+                      embed.setFields([
+                        {
+                          name: '🔤 Title',
+                          value: hyperlink(
+                            video.title,
+                            `https://youtube.com/watch?v=${video.id}`,
+                          ),
+                          inline: true,
+                        },
+                        {
+                          name: '📆 Published At',
+                          value: time(
+                            new Date(video.published_at),
+                            TimestampStyles.RelativeTime,
+                          ),
+                          inline: true,
+                        },
+                        {
+                          name: '📆 Streamed At',
+                          value: time(
+                            new Date(video.available_at),
+                            TimestampStyles.RelativeTime,
+                          ),
+                          inline: true,
+                        },
+                        {
+                          name: '🔢 Live Viewers Count',
+                          value: `${video.live_viewers.toLocaleString()} watching now`,
+                          inline: true,
+                        },
+                        {
+                          name: '🗣️ Topic',
+                          value: video.topic_id
+                            ? transformCase(video.topic_id)
+                            : italic('Unknown'),
+                          inline: true,
+                        },
+                        {
+                          name: '🏢 Affiliation',
+                          value: video.channel.org ?? italic('Unknown'),
+                          inline: true,
+                        },
+                      ]);
+
+                      await interaction.editReply({ embeds: [embed] });
+                    });
+                  }
+
+                  await interaction.deferReply().then(async () => {
+                    /** @type {import('discord.js').EmbedBuilder[]} */
+                    const embeds = videos.map((item, index, array) => {
+                      const video = item.toRaw();
+
+                      return new EmbedBuilder()
+                        .setColor(guild.members.me.displayHexColor)
+                        .setTimestamp(Date.now())
+                        .setFooter({
+                          text: `${client.user.username} | Page ${
+                            index + 1
+                          } of ${array.length}`,
+                          iconURL: client.user.displayAvatarURL({
+                            dynamic: true,
+                          }),
+                        })
+                        .setDescription(truncate(video.description, 4096))
+                        .setThumbnail(video.channel.photo)
+                        .setAuthor({
+                          name: `${
+                            video.channel.org?.includes('Independents')
+                              ? '🧑‍💻'
+                              : ''
+                          } ${
+                            video.channel.english_name || video.channel.name
+                          }'s YouTube Stream Lists`,
+                          iconURL: affiliations.find(
+                            (aff) =>
+                              aff.name.toLowerCase() ===
+                              video.channel.org?.toLowerCase(),
+                          )?.logoURL,
+                        })
+                        .setFields([
+                          {
+                            name: '🔤 Title',
+                            value: hyperlink(
+                              video.title,
+                              `https://youtube.com/watch?v=${video.id}`,
+                            ),
+                            inline: true,
+                          },
+                          {
+                            name: '📆 Published At',
+                            value: time(
+                              new Date(video.published_at),
+                              TimestampStyles.RelativeTime,
+                            ),
+                            inline: true,
+                          },
+                          {
+                            name: '📆 Streamed At',
+                            value: time(
+                              new Date(video.available_at),
+                              TimestampStyles.RelativeTime,
+                            ),
+                            inline: true,
+                          },
+                          {
+                            name: '🔢 Live Viewers Count',
+                            value: `${video.live_viewers.toLocaleString()} watching now`,
+                            inline: true,
+                          },
+                          {
+                            name: '🗣️ Topic',
+                            value: video.topic_id
+                              ? transformCase(video.topic_id)
+                              : italic('Unknown'),
+                            inline: true,
+                          },
+                          {
+                            name: '🏢 Affiliation',
+                            value: video.channel.org ?? italic('Unknown'),
+                            inline: true,
+                          },
+                        ]);
+                    });
+
+                    const pagination = new Pagination(interaction);
+
+                    pagination.setEmbeds(embeds);
+
+                    pagination.buttons = {
+                      ...pagination.buttons,
+                      extra: new ButtonBuilder()
+                        .setCustomId('jump')
+                        .setEmoji('↕️')
+                        .setDisabled(false)
+                        .setStyle(ButtonStyle.Secondary),
+                    };
+
+                    paginations.set(pagination.interaction.id, pagination);
+
+                    await pagination.render();
+                  });
+                });
+            }
+
+            case 'video': {
+              const channelID = options.getString('id');
+
+              return holodex
+                .getVideosByChannelId(channelID, VideoSearchType.Videos, {
+                  limit: 50,
+                  include: [ExtraData.Description, ExtraData.LiveInfo],
+                })
+                .then(async (videos) => {
+                  if (!videos.length) {
+                    return interaction.deferReply({ ephemeral: true }).then(
+                      async () =>
+                        await interaction.editReply({
+                          content: `No channel found with ID ${inlineCode(
+                            channelID,
+                          )} or maybe the channel doesn't have any video.`,
+                        }),
+                    );
+                  }
+
                   await interaction.deferReply().then(async () => {
                     /** @type {import('discord.js').EmbedBuilder[]} */
                     const embeds = videos.map((item, index, array) => {
@@ -2908,11 +3344,21 @@ module.exports = {
                             dynamic: true,
                           }),
                         })
+                        .setDescription(truncate(video.description, 4096))
                         .setThumbnail(video.channel.photo)
                         .setAuthor({
-                          name: `🧑‍💻 ${
-                            video.channel.english_name ?? video.channel.name
-                          }'s YouTube Live Lists`,
+                          name: `${
+                            video.channel.org?.includes('Independents')
+                              ? '🧑‍💻'
+                              : ''
+                          } ${
+                            video.channel.english_name || video.channel.name
+                          }'s YouTube Video Lists`,
+                          iconURL: affiliations.find(
+                            (aff) =>
+                              aff.name.toLowerCase() ===
+                              video.channel.org?.toLowerCase(),
+                          )?.logoURL,
                         })
                         .setFields([
                           {
@@ -2925,7 +3371,21 @@ module.exports = {
                           },
                           {
                             name: '📊 Status',
-                            value: capitalCase(video.status),
+                            value: capitalCase(
+                              video.status === VideoStatus.Past
+                                ? 'archived'
+                                : video.status,
+                            ),
+                            inline: true,
+                          },
+                          {
+                            name: '⏳ Duration',
+                            value:
+                              video.status !== VideoStatus.Upcoming
+                                ? moment
+                                    .duration(video.duration, 's')
+                                    .humanize()
+                                : italic('Unknown'),
                             inline: true,
                           },
                           {

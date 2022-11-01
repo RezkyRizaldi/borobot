@@ -7,7 +7,7 @@ const threadChannels = [
     value: ChannelType.AnnouncementThread,
   },
   {
-    name: '👁️‍🗨️ Public Thread',
+    name: '👁️ Public Thread',
     value: ChannelType.PublicThread,
   },
   {
