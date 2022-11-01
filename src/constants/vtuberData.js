@@ -1,4 +1,4 @@
-module.exports = {
+const vtuberAffiliations = {
   hololive: {
     name: 'Hololive',
     logoURL:
@@ -282,4 +282,52 @@ module.exports = {
     logoURL:
       'https://static.wikia.nocookie.net/virtualyoutuber/images/4/4e/LOGO_YUME.jpg/revision/latest/scale-to-width-down/1000?cb=20210617153754&path-prefix=id',
   },
+};
+
+const vtuberVideoSorting = [
+  {
+    name: '🆔 ID',
+    value: 'id',
+  },
+  {
+    name: '🔤 Name',
+    value: 'english_name',
+  },
+  {
+    name: '🔤 Channel Name',
+    value: 'name',
+  },
+  {
+    name: '👥 Group',
+    value: 'group',
+  },
+  {
+    name: '🔢 Video Count',
+    value: 'video_count',
+  },
+  {
+    name: '🔢 Subscriber Count',
+    value: 'subscriber_count',
+  },
+  {
+    name: '🔢 Clip Count',
+    value: 'clip_count',
+  },
+];
+
+const vtuberStreamSorting = [
+  {
+    name: '👁️ Live Viewers',
+    value: 'live_viewers',
+  },
+  {
+    name: '🔤 Streamed At',
+    value: 'available_at',
+  },
+];
+
+module.exports = {
+  vtuberAffiliations,
+  vtuberStreamSorting,
+  vtuberVideoSorting,
 };

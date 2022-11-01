@@ -9,7 +9,11 @@ const { SearchResultType } = require('distube');
 const { guildChannels, threadChannels } = require('./channels');
 const extraMcData = require('./extraMcData');
 const languages = require('./languages');
-const vtuberAffiliations = require('./vtuberAffiliations');
+const {
+  vtuberAffiliations,
+  vtuberStreamSorting,
+  vtuberVideoSorting,
+} = require('./vtuberData');
 
 module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
@@ -578,7 +582,7 @@ module.exports = {
       value: Number(PermissionFlagsBits.ManageEmojisAndStickers),
     },
     {
-      name: '👁️‍🗨️ View Audit Log',
+      name: '👁️ View Audit Log',
       value: Number(PermissionFlagsBits.ViewAuditLog),
     },
     {
@@ -682,46 +686,8 @@ module.exports = {
   vtuberAffiliations,
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
-  vtuberSortingChoices: [
-    {
-      name: '🆔 ID',
-      value: 'id',
-    },
-    {
-      name: '🔤 Name',
-      value: 'english_name',
-    },
-    {
-      name: '🔤 Channel Name',
-      value: 'name',
-    },
-    {
-      name: '👥 Group',
-      value: 'group',
-    },
-    {
-      name: '🔢 Video Count',
-      value: 'video_count',
-    },
-    {
-      name: '🔢 Subscriber Count',
-      value: 'subscriber_count',
-    },
-    {
-      name: '🔢 Clip Count',
-      value: 'clip_count',
-    },
-  ],
+  vtuberVideoSortingChoices: vtuberVideoSorting,
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
-  vtuberVideoTypeChoices: [
-    {
-      name: '🎬 VOD',
-      value: 'vod',
-    },
-    {
-      name: '🎥 Live',
-      value: 'live',
-    },
-  ],
+  vtuberStreamSortingChoices: [...vtuberVideoSorting, ...vtuberStreamSorting],
 };
