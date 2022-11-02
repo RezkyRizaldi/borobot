@@ -164,6 +164,12 @@ module.exports = {
       await channel
         .bulkDelete(filteredMessages.size ? filteredMessages : amount, true)
         .then(async (msgs) => {
+          if (!msgs.size) {
+            return interaction.editReply({
+              content: 'No messages can be deleted.',
+            });
+          }
+
           const embed = new EmbedBuilder()
             .setColor(guild.members.me.displayHexColor)
             .setTimestamp(Date.now())
