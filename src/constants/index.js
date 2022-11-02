@@ -9,11 +9,13 @@ const { SearchResultType } = require('distube');
 const { guildChannels, threadChannels } = require('./channels');
 const extraMcData = require('./extraMcData');
 const languages = require('./languages');
+const math = require('./math');
 const {
   vtuberAffiliations,
   vtuberStreamSorting,
   vtuberVideoSorting,
 } = require('./vtuberData');
+const newsCountries = require('./newsCountries');
 
 module.exports = {
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
@@ -320,6 +322,10 @@ module.exports = {
     {
       name: '🖼️ Profile Picture',
       value: 'pfp',
+    },
+    {
+      name: '🖼️ Wallpaper',
+      value: 'wallpaper',
     },
   ],
 
@@ -690,4 +696,8 @@ module.exports = {
 
   /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
   vtuberStreamSortingChoices: [...vtuberVideoSorting, ...vtuberStreamSorting],
+
+  math,
+
+  newsCountries,
 };

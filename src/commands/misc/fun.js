@@ -1,6 +1,7 @@
 const AnimeImages = require('anime-images-api');
 const axios = require('axios');
 const { EmbedBuilder, italic, SlashCommandBuilder } = require('discord.js');
+const nekoClient = require('nekos.life');
 
 const { waifuChoices } = require('../../constants');
 
@@ -14,11 +15,22 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('cuddle')
-        .setDescription('😍 Send a cuddling gif.')
+        .setDescription('😍 Send a cuddling image/gif.')
         .addUserOption((option) =>
           option
             .setName('target')
             .setDescription('👤 The target member to cuddle.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('feed')
+        .setDescription('🧑‍🍼 Send a feeding image/gif.')
+        .addUserOption((option) =>
+          option
+            .setName('target')
+            .setDescription('👤 The target member to feed.')
             .setRequired(true),
         ),
     )
@@ -28,13 +40,18 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('hug')
-        .setDescription('🤗 Send a hugging gif.')
+        .setDescription('🤗 Send a hugging image/gif.')
         .addUserOption((option) =>
           option
             .setName('target')
             .setDescription('👤 The target member to hug.')
             .setRequired(true),
         ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('kemono')
+        .setDescription('😻 Send a kemono image/gif.'),
     )
     .addSubcommand((subcommand) =>
       subcommand
@@ -50,7 +67,7 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('kiss')
-        .setDescription('😘 Send a kissing gif.')
+        .setDescription('😘 Send a kissing image/gif.')
         .addUserOption((option) =>
           option
             .setName('target')
@@ -64,7 +81,7 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('pat')
-        .setDescription('🖐️ Send a patting gif.')
+        .setDescription('🖐️ Send a patting image/gif.')
         .addUserOption((option) =>
           option
             .setName('target')
@@ -86,7 +103,7 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('slap')
-        .setDescription('🤚 Send a slapping gif.')
+        .setDescription('🤚 Send a slapping image/gif.')
         .addUserOption((option) =>
           option
             .setName('target')
@@ -96,8 +113,30 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
+        .setName('smug')
+        .setDescription('😏 Send a smugging image/gif.')
+        .addUserOption((option) =>
+          option
+            .setName('target')
+            .setDescription('👤 The target member to smug.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('tickle')
+        .setDescription('👉 Send a tickle image/gif.')
+        .addUserOption((option) =>
+          option
+            .setName('target')
+            .setDescription('👤 The target member to tickle.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
         .setName('waifu')
-        .setDescription('👰‍♀️ Send a waifu image or gif.')
+        .setDescription('👰‍♀️ Send a waifu image/gif.')
         .addStringOption((option) =>
           option
             .setName('type')
@@ -128,6 +167,7 @@ module.exports = {
     const { channel, client, guild, member, options } = interaction;
 
     const images = new AnimeImages();
+    const neko = new nekoClient();
 
     const NSFWChannels = guild.channels.cache
       .filter((ch) => ch.nsfw)
@@ -146,40 +186,46 @@ module.exports = {
 
     switch (options.getSubcommand()) {
       case 'hug':
-        return interaction.deferReply().then(
-          async () =>
-            await images.sfw.hug().then(async ({ image }) => {
-              embed.setColor(target.displayHexColor);
-              embed.setImage(image);
-              embed.setDescription(`${member} has hugged ${target}!`);
+        return interaction.deferReply().then(async () => {
+          const { url } = await neko.hug();
+          const { image } = await images.sfw.hug();
+          const imgArr = [url, image];
+          const hug = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
-        );
+          embed.setColor(target.displayHexColor);
+          embed.setImage(hug);
+          embed.setDescription(`${member} has hugged ${target}!`);
+
+          await interaction.editReply({ embeds: [embed] });
+        });
 
       case 'kiss':
-        return interaction.deferReply().then(
-          async () =>
-            await images.sfw.kiss().then(async ({ image }) => {
-              embed.setColor(target.displayHexColor);
-              embed.setImage(image);
-              embed.setDescription(`${member} is kissing ${target}!`);
+        return interaction.deferReply().then(async () => {
+          const { url } = await neko.kiss();
+          const { image } = await images.sfw.kiss();
+          const imgArr = [url, image];
+          const kiss = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
-        );
+          embed.setColor(target.displayHexColor);
+          embed.setImage(kiss);
+          embed.setDescription(`${member} is kissing ${target}!`);
+
+          await interaction.editReply({ embeds: [embed] });
+        });
 
       case 'slap':
-        return interaction.deferReply().then(
-          async () =>
-            await images.sfw.slap().then(async ({ image }) => {
-              embed.setColor(target.displayHexColor);
-              embed.setImage(image);
-              embed.setDescription(`${member} has slapped ${target}!`);
+        return interaction.deferReply().then(async () => {
+          const { url } = await neko.slap();
+          const { image } = await images.sfw.slap();
+          const imgArr = [url, image];
+          const slap = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
-        );
+          embed.setColor(target.displayHexColor);
+          embed.setImage(slap);
+          embed.setDescription(`${member} has slapped ${target}!`);
+
+          await interaction.editReply({ embeds: [embed] });
+        });
 
       case 'punch':
         return interaction.deferReply().then(
@@ -206,16 +252,18 @@ module.exports = {
         );
 
       case 'pat':
-        return interaction.deferReply().then(
-          async () =>
-            await images.sfw.pat().then(async ({ image }) => {
-              embed.setColor(target.displayHexColor);
-              embed.setImage(image);
-              embed.setDescription(`${member} is giving a pat for ${target}!`);
+        return interaction.deferReply().then(async () => {
+          const { url } = await neko.pat();
+          const { image } = await images.sfw.pat();
+          const imgArr = [url, image];
+          const pat = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
-        );
+          embed.setColor(target.displayHexColor);
+          embed.setImage(pat);
+          embed.setDescription(`${member} is giving a pat for ${target}!`);
+
+          await interaction.editReply({ embeds: [embed] });
+        });
 
       case 'kill':
         return interaction.deferReply().then(
@@ -230,12 +278,66 @@ module.exports = {
         );
 
       case 'cuddle':
+        return interaction.deferReply().then(async () => {
+          const { url } = await neko.cuddle();
+          const { image } = await images.sfw.cuddle();
+          const imgArr = [url, image];
+          const cuddle = imgArr[Math.floor(Math.random() * imgArr.length)];
+
+          embed.setColor(target.displayHexColor);
+          embed.setImage(cuddle);
+          embed.setDescription(`${member} cuddles ${target}!`);
+
+          await interaction.editReply({ embeds: [embed] });
+        });
+
+      case 'tickle':
         return interaction.deferReply().then(
           async () =>
-            await images.sfw.cuddle().then(async ({ image }) => {
+            await neko.tickle().then(async ({ url }) => {
               embed.setColor(target.displayHexColor);
-              embed.setImage(image);
-              embed.setDescription(`${member} cuddles ${target}!`);
+              embed.setImage(url);
+              embed.setDescription(`${member} tickled ${target}!`);
+
+              await interaction.editReply({ embeds: [embed] });
+            }),
+        );
+
+      case 'feed':
+        return interaction.deferReply().then(
+          async () =>
+            await neko.feed().then(async ({ url }) => {
+              embed.setColor(target.displayHexColor);
+              embed.setImage(url);
+              embed.setDescription(`${member} feeding ${target}!`);
+
+              await interaction.editReply({ embeds: [embed] });
+            }),
+        );
+
+      case 'kemono': {
+        const endpoints = ['neko', 'nekoGif', 'foxGirl'];
+
+        return interaction.deferReply().then(
+          async () =>
+            await neko[
+              endpoints[Math.floor(Math.random() * endpoints.length)]
+            ]().then(async ({ url }) => {
+              embed.setColor(guild.members.me.displayHexColor);
+              embed.setImage(url);
+
+              await interaction.editReply({ embeds: [embed] });
+            }),
+        );
+      }
+
+      case 'smug':
+        return interaction.deferReply().then(
+          async () =>
+            await neko.smug().then(async ({ url }) => {
+              embed.setColor(target.displayHexColor);
+              embed.setImage(url);
+              embed.setDescription(`${member} smugged ${target}!`);
 
               await interaction.editReply({ embeds: [embed] });
             }),
@@ -243,9 +345,11 @@ module.exports = {
 
       case 'waifu':
         {
+          const type = options.getString('type');
+
           embed.setColor(member.displayHexColor);
 
-          switch (options.getString('type')) {
+          switch (type) {
             case 'image':
               return interaction.deferReply().then(
                 async () =>
@@ -265,16 +369,34 @@ module.exports = {
               );
 
             case 'pfp':
+              return interaction.deferReply().then(async () => {
+                const { url } = await neko.avatar();
+                const { image } = await images.sfw.waifu();
+                const imgArr = [url, image];
+                const pfp = imgArr[Math.floor(Math.random() * imgArr.length)];
+
+                embed.setAuthor({
+                  name: `${member.user.username} Got a Waifu`,
+                  iconURL: member.displayAvatarURL({
+                    dynamic: true,
+                  }),
+                });
+                embed.setImage(pfp);
+
+                await interaction.editReply({ embeds: [embed] });
+              });
+
+            case 'wallpaper':
               return interaction.deferReply().then(
                 async () =>
-                  await images.sfw.waifu().then(async ({ image }) => {
+                  await neko.wallpaper().then(async ({ url }) => {
                     embed.setAuthor({
                       name: `${member.user.username} Got a Waifu`,
                       iconURL: member.displayAvatarURL({
                         dynamic: true,
                       }),
                     });
-                    embed.setImage(image);
+                    embed.setImage(url);
 
                     await interaction.editReply({ embeds: [embed] });
                   }),
