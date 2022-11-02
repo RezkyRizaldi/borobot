@@ -45,9 +45,9 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
-    switch (options.getSubcommand()) {
-      case 'list':
-        return interaction.deferReply({ ephemeral: true }).then(async () => {
+    return interaction.deferReply().then(async () => {
+      switch (options.getSubcommand()) {
+        case 'list': {
           const locales = Object.values(languages);
 
           const responses = locales.map(
@@ -85,14 +85,13 @@ module.exports = {
 
           paginations.set(pagination.interaction.id, pagination);
 
-          await pagination.render();
-        });
+          return pagination.render();
+        }
 
-      case 'run': {
-        const file = options.getAttachment('file');
-        const worker = createWorker();
+        case 'run': {
+          const file = options.getAttachment('file');
+          const worker = createWorker();
 
-        return interaction.deferReply().then(async () => {
           await wait(4000);
 
           await worker.load();
@@ -143,9 +142,9 @@ module.exports = {
               await interaction.editReply({ embeds: [embed] });
             });
 
-          await worker.terminate();
-        });
+          return worker.terminate();
+        }
       }
-    }
+    });
   },
 };
