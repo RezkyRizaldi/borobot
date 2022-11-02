@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { capitalCase } = require('change-case');
 const {
+  bold,
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
@@ -12,6 +13,7 @@ const {
   TimestampStyles,
 } = require('discord.js');
 const Scraper = require('images-scraper').default;
+const NewsAPI = require('newsapi');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
@@ -26,6 +28,7 @@ const {
   mangaSearchTypeChoices,
   mdnLocales,
   searchSortingChoices,
+  newsCountries,
 } = require('../../constants');
 const { isAlphabeticLetter, truncate } = require('../../utils');
 
@@ -198,6 +201,29 @@ module.exports = {
             .setName('language')
             .setDescription("🔠 The documentation's preferred locale.")
             .addChoices(...mdnLocales),
+        ),
+    )
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('news')
+        .setDescription('📰 News command.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('country')
+            .setDescription(
+              '🌏 Search top headline news from provided country.',
+            )
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔤 The country name search query.')
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('list')
+            .setDescription('🌐 View available news countries.'),
         ),
     ),
   type: 'Chat Input',
@@ -593,6 +619,162 @@ module.exports = {
           }
         }
         break;
+
+      case 'news':
+        switch (options.getSubcommand()) {
+          case 'list': {
+            const countries = Object.values(newsCountries);
+
+            const responses = countries.map(
+              (country, index) => `${bold(`${index + 1}.`)} ${country}`,
+            );
+
+            const pagination = new Pagination(interaction, {
+              limit: 10,
+            });
+
+            pagination.setColor(guild.members.me.displayHexColor);
+            pagination.setTimestamp(Date.now());
+            pagination.setFooter({
+              text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+              iconURL: client.user.displayAvatarURL({
+                dynamic: true,
+              }),
+            });
+            pagination.setAuthor({
+              name: `🌐 News Country Lists (${countries.length.toLocaleString()})`,
+            });
+            pagination.setDescriptions(responses);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
+
+            return pagination.render();
+          }
+
+          case 'country': {
+            const name = options.getString('name');
+            const newsapi = new NewsAPI(process.env.NEWSAPI_API_KEY);
+            const country = Object.values(newsCountries).find(
+              (c) => c.toLowerCase() === name.toLowerCase(),
+            );
+
+            if (!country) {
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: `No country available with name ${inlineCode(
+                      name,
+                    )}.`,
+                  }),
+              );
+            }
+
+            return newsapi.v2
+              .topHeadlines({
+                country: Object.keys(newsCountries).find(
+                  (key) =>
+                    newsCountries[key].toLowerCase() === country.toLowerCase(),
+                ),
+              })
+              .then(async ({ articles }) => {
+                if (!articles.length) {
+                  return interaction.deferReply({ ephemeral: true }).then(
+                    async () =>
+                      await interaction.editReply({
+                        content: `No news found in ${inlineCode(country)}.`,
+                      }),
+                  );
+                }
+
+                await interaction.deferReply().then(async () => {
+                  /** @type {import('discord.js').EmbedBuilder[]} */
+                  const embeds = articles.map((article, index, array) =>
+                    new EmbedBuilder()
+                      .setColor(guild.members.me.displayHexColor)
+                      .setTimestamp(Date.now())
+                      .setFooter({
+                        text: `${client.user.username} | Page ${index + 1} of ${
+                          array.length
+                        }`,
+                        iconURL: client.user.displayAvatarURL({
+                          dynamic: true,
+                        }),
+                      })
+                      .setDescription(
+                        truncate(
+                          article.content
+                            ?.slice(0, article.content?.indexOf('[+'))
+                            ?.replace(/<ul>/gi, '')
+                            ?.replace(/<li>/gi, '')
+                            ?.replace(/<\/li>/gi, ''),
+                          4096,
+                        ),
+                      )
+                      .setThumbnail(article.urlToImage)
+                      .setAuthor({
+                        name: `📰 ${country} News Lists`,
+                      })
+                      .setFields([
+                        {
+                          name: '🔤 Headline',
+                          value: hyperlink(article.title, article.url),
+                          inline: true,
+                        },
+                        {
+                          name: '🔤 Subheadline',
+                          value: article.description ?? italic('None'),
+                          inline: true,
+                        },
+                        {
+                          name: '📆 Published At',
+                          value: time(
+                            new Date(article.publishedAt),
+                            TimestampStyles.RelativeTime,
+                          ),
+                          inline: true,
+                        },
+                        {
+                          name: '✒️ Author',
+                          value: article.author ?? italic('Unknown'),
+                          inline: true,
+                        },
+                        {
+                          name: '🔢 Source',
+                          value: article.source.name,
+                          inline: true,
+                        },
+                      ]),
+                  );
+
+                  const pagination = new Pagination(interaction);
+
+                  pagination.setEmbeds(embeds);
+
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
+
+                  paginations.set(pagination.interaction.id, pagination);
+
+                  await pagination.render();
+                });
+              });
+          }
+        }
     }
 
     switch (options.getSubcommand()) {

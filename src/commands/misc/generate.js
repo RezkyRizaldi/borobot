@@ -3,6 +3,13 @@ const {
   EmbedBuilder,
   SlashCommandBuilder,
 } = require('discord.js');
+const {
+  Blur,
+  Greyscale,
+  Invert,
+  Sepia,
+  Triggered,
+} = require('discord-image-generation');
 const fs = require('fs');
 const shortUrl = require('node-url-shortener');
 const QRCode = require('qrcode');
@@ -13,6 +20,78 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('generate')
     .setDescription('🏭 Generator command.')
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('filters')
+        .setDescription('🖼️ Generate a filter for an image.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('blur')
+            .setDescription('🖼️ Apply the blur filter to the image.')
+            .addAttachmentOption((option) =>
+              option
+                .setName('image')
+                .setDescription('🖼️ The image to be applied.')
+                .setRequired(true),
+            )
+            .addIntegerOption((option) =>
+              option
+                .setName('amount')
+                .setDescription('🔢 The amount of blurness.')
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('greyscale')
+            .setDescription('🖼️ Apply the greyscale filter to the image.')
+            .addAttachmentOption((option) =>
+              option
+                .setName('image')
+                .setDescription('🖼️ The image to be applied.')
+                .setRequired(true),
+            )
+            .addIntegerOption((option) =>
+              option
+                .setName('amount')
+                .setDescription('🔢 The amount of greyscale.')
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('invert')
+            .setDescription('🖼️ Apply the invert filter to the image.')
+            .addAttachmentOption((option) =>
+              option
+                .setName('image')
+                .setDescription('🖼️ The image to be applied.')
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('sepia')
+            .setDescription('🖼️ Apply the sepia filter to the image.')
+            .addAttachmentOption((option) =>
+              option
+                .setName('image')
+                .setDescription('🖼️ The image to be applied.')
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('triggered')
+            .setDescription('🖼️ Apply the triggered filter to the image.')
+            .addAttachmentOption((option) =>
+              option
+                .setName('image')
+                .setDescription('🖼️ The image to be applied.')
+                .setRequired(true),
+            ),
+        ),
+    )
     .addSubcommand((subcommand) =>
       subcommand
         .setName('shortenurl')
@@ -54,6 +133,119 @@ module.exports = {
           dynamic: true,
         }),
       });
+
+    switch (options.getSubcommandGroup()) {
+      case 'filters':
+        {
+          const image = options.getAttachment('image');
+          const amount = options.getInteger('amount');
+
+          embed.setAuthor({
+            name: '🖼️ Applied Filter Result',
+          });
+
+          switch (options.getSubcommand()) {
+            case 'blur':
+              return interaction.deferReply().then(
+                async () =>
+                  await new Blur()
+                    .getImage(image.url, amount)
+                    .then(async (buffer) => {
+                      const file = new AttachmentBuilder(buffer, {
+                        name: 'blur.png',
+                        description: 'Blurred image',
+                      });
+
+                      embed.setImage('attachment://blur.png');
+
+                      await interaction.editReply({
+                        embeds: [embed],
+                        files: [file],
+                      });
+                    }),
+              );
+
+            case 'greyscale':
+              return interaction.deferReply().then(
+                async () =>
+                  await new Greyscale()
+                    .getImage(image.url, amount)
+                    .then(async (buffer) => {
+                      const file = new AttachmentBuilder(buffer, {
+                        name: 'greyscale.png',
+                        description: 'Greyscaled image',
+                      });
+
+                      embed.setImage('attachment://greyscale.png');
+
+                      await interaction.editReply({
+                        embeds: [embed],
+                        files: [file],
+                      });
+                    }),
+              );
+
+            case 'invert':
+              return interaction.deferReply().then(
+                async () =>
+                  await new Invert()
+                    .getImage(image.url)
+                    .then(async (buffer) => {
+                      const file = new AttachmentBuilder(buffer, {
+                        name: 'invert.png',
+                        description: 'Inverted image',
+                      });
+
+                      embed.setImage('attachment://invert.png');
+
+                      await interaction.editReply({
+                        embeds: [embed],
+                        files: [file],
+                      });
+                    }),
+              );
+
+            case 'sepia':
+              return interaction.deferReply().then(
+                async () =>
+                  await new Sepia().getImage(image.url).then(async (buffer) => {
+                    const file = new AttachmentBuilder(buffer, {
+                      name: 'sepia.png',
+                      description: 'Sepia image',
+                    });
+
+                    embed.setImage('attachment://sepia.png');
+
+                    await interaction.editReply({
+                      embeds: [embed],
+                      files: [file],
+                    });
+                  }),
+              );
+
+            case 'triggered':
+              return interaction.deferReply().then(
+                async () =>
+                  await new Triggered()
+                    .getImage(image.url)
+                    .then(async (buffer) => {
+                      const file = new AttachmentBuilder(buffer, {
+                        name: 'triggered.gif',
+                        description: 'Triggered image',
+                      });
+
+                      embed.setImage('attachment://triggered.gif');
+
+                      await interaction.editReply({
+                        embeds: [embed],
+                        files: [file],
+                      });
+                    }),
+              );
+          }
+        }
+        break;
+    }
 
     switch (options.getSubcommand()) {
       case 'shortenurl': {
