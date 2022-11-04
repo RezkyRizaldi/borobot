@@ -316,9 +316,16 @@ module.exports = {
             )
             .addStringOption((option) =>
               option
+                .setName('affiliation')
+                .setDescription(
+                  "🔤 Get the Virtual Youtuber's information by affiliation name.",
+                ),
+            )
+            .addStringOption((option) =>
+              option
                 .setName('id')
                 .setDescription(
-                  "🆔 The Virtual Youtuber's YouTube channel ID.",
+                  "🆔 Get the Virtual Youtuber's information by YouTube channel ID.",
                 ),
             )
             .addStringOption((option) =>
@@ -3013,24 +3020,48 @@ module.exports = {
 
             case 'live': {
               const channelID = options.getString('id');
-              const sort = options.getString('sort') ?? 'available_at';
+              const affiliation = options.getString('affiliation');
+              const sort = options.getString('sort') ?? 'live_viewers';
+
+              const org = affiliations.find(
+                (aff) => aff.name.toLowerCase() === affiliation?.toLowerCase(),
+              );
+
+              if (affiliation && !org) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No affiliation found with name ${inlineCode(
+                        affiliation,
+                      )} or maybe the data isn't available yet.`,
+                    }),
+                );
+              }
+
+              const videosParam = {
+                limit: 50,
+                include: [ExtraData.Description],
+                status: VideoStatus.Live,
+                order:
+                  sort === 'live_viewers' ||
+                  sort === 'available_at' ||
+                  sort === 'subscriber_count' ||
+                  sort === 'video_count' ||
+                  sort === 'clip_count'
+                    ? SortOrder.Descending
+                    : SortOrder.Ascending,
+              };
 
               if (!channelID) {
+                affiliation && org
+                  ? Object.assign(videosParam, {
+                      sort: 'available_at',
+                      org: org.name,
+                    })
+                  : Object.assign(videosParam, { sort });
+
                 return holodex
-                  .getLiveVideos({
-                    limit: 50,
-                    include: [ExtraData.Description],
-                    sort,
-                    status: VideoStatus.Live,
-                    order:
-                      sort === 'live_viewers' ||
-                      sort === 'available_at' ||
-                      sort === 'subscriber_count' ||
-                      sort === 'video_count' ||
-                      sort === 'clip_count'
-                        ? SortOrder.Descending
-                        : SortOrder.Ascending,
-                  })
+                  .getLiveVideos(videosParam)
                   .then(async (videos) => {
                     if (!videos.length) {
                       return interaction.deferReply({ ephemeral: true }).then(
@@ -3038,7 +3069,7 @@ module.exports = {
                           await interaction.editReply({
                             content: `No channel found with ID ${inlineCode(
                               channelID,
-                            )} or maybe the channel doesn't have any video.`,
+                            )} or maybe the channel doesn't live right now.`,
                           }),
                       );
                     }
@@ -3143,7 +3174,11 @@ module.exports = {
               return holodex
                 .getLiveVideosByChannelId(channelID)
                 .then(async (videos) => {
-                  if (!videos.length) {
+                  const liveVideos = videos.filter(
+                    (video) => video.toRaw().status === VideoStatus.Live,
+                  );
+
+                  if (!liveVideos.length) {
                     return interaction.deferReply({ ephemeral: true }).then(
                       async () =>
                         await interaction.editReply({
@@ -3154,8 +3189,8 @@ module.exports = {
                     );
                   }
 
-                  if (videos.length === 1) {
-                    const video = videos[0].toRaw();
+                  if (liveVideos.length === 1) {
+                    const video = liveVideos[0].toRaw();
 
                     return interaction.deferReply().then(async () => {
                       embed.setDescription(truncate(video.description, 4096));
@@ -3224,7 +3259,7 @@ module.exports = {
 
                   await interaction.deferReply().then(async () => {
                     /** @type {import('discord.js').EmbedBuilder[]} */
-                    const embeds = videos.map((item, index, array) => {
+                    const embeds = liveVideos.map((item, index, array) => {
                       const video = item.toRaw();
 
                       return new EmbedBuilder()
