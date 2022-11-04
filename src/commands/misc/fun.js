@@ -79,6 +79,9 @@ module.exports = {
       subcommand.setName('lesbian').setDescription('🚫 Send a lesbian gif.'),
     )
     .addSubcommand((subcommand) =>
+      subcommand.setName('meme').setDescription('😂 Send a random today meme.'),
+    )
+    .addSubcommand((subcommand) =>
       subcommand
         .setName('pat')
         .setDescription('🖐️ Send a patting image/gif.')
@@ -342,6 +345,53 @@ module.exports = {
               await interaction.editReply({ embeds: [embed] });
             }),
         );
+
+      case 'meme': {
+        const subreddits = [
+          'memes',
+          'DeepFriedMemes',
+          'bonehurtingjuice',
+          'surrealmemes',
+          'dankmemes',
+          'meirl',
+          'me_irl',
+          'funny',
+          'jokes',
+          'comedy',
+          'notfunny',
+          'ComedyCemetery',
+          'comedyheaven',
+          'meme',
+        ];
+
+        return axios
+          .get(
+            `https://imgur.com/r/${
+              subreddits[Math.floor(Math.random() * subreddits.length)]
+            }/hot.json`,
+          )
+          .then(async ({ data: { data } }) => {
+            if (!data.length) {
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: "Can't found any memes. Please try again later.",
+                  }),
+              );
+            }
+
+            const meme = data[Math.floor(Math.random() * data.length)];
+
+            await interaction.deferReply().then(async () =>
+              interaction.editReply({
+                content: `https://imgur.com/${meme.hash}${meme.ext.replace(
+                  /\\?.*/,
+                  '',
+                )}`,
+              }),
+            );
+          });
+      }
 
       case 'waifu':
         {
