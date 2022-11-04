@@ -242,6 +242,17 @@ module.exports = {
             ),
         ),
     )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('npm')
+        .setDescription('📦 Get information about a NPM package.')
+        .addStringOption((option) =>
+          option
+            .setName('name')
+            .setDescription('🔤 The NPM package name.')
+            .setRequired(true),
+        ),
+    )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('vtuber')
@@ -3444,6 +3455,148 @@ module.exports = {
     }
 
     switch (options.getSubcommand()) {
+      case 'npm': {
+        const name = options.getString('name');
+
+        return axios
+          .get(`https://registry.npmjs.com/${name}`)
+          .then(
+            async ({ data }) =>
+              await interaction.deferReply().then(async () => {
+                let maintainers = data.maintainers.map(
+                  (maintainer) =>
+                    `${bold('•')} ${maintainer.name} (${maintainer.email})`,
+                );
+
+                if (maintainers.length > 10) {
+                  const rest = maintainers.length - 10;
+
+                  maintainers = maintainers.slice(0, 10);
+                  maintainers.push(italic(`...and ${rest} more.`));
+                }
+
+                const version = data.versions[data['dist-tags'].latest];
+
+                let dependencies =
+                  version.dependencies &&
+                  Object.entries(version.dependencies).map(
+                    ([key, value]) => `${bold('•')} ${key} (${value})`,
+                  );
+
+                if (dependencies && dependencies.length > 10) {
+                  const rest = dependencies.length - 10;
+
+                  dependencies = dependencies.slice(0, 10);
+                  dependencies.push(italic(`...and ${rest} more.`));
+                }
+
+                let versions = Object.entries(data['dist-tags']).map(
+                  ([key, value]) => `${bold('•')} ${key} (${value})`,
+                );
+
+                if (versions && version.length > 10) {
+                  const rest = versions.length - 10;
+
+                  versions = versions.slice(0, 10);
+                  versions.push(italic(`...and ${rest} more.`));
+                }
+
+                const cleanedURL = data.repository?.url.replace('git+', '');
+
+                embed.setAuthor({
+                  name: `${data.name}'s NPM Information`,
+                  url: data.homepage,
+                  iconURL:
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Npm-logo.svg/320px-Npm-logo.svg.png',
+                });
+                embed.setDescription(data.description);
+                embed.setFields([
+                  {
+                    name: '👑 Author',
+                    value: data.author
+                      ? hyperlink(
+                          `${data.author.name}${
+                            data.author.email ? ` (${data.author.email})` : ''
+                          }`,
+                          data.author.url,
+                        )
+                      : italic('Unknown'),
+                    inline: true,
+                  },
+                  {
+                    name: '📆 Created At',
+                    value: time(
+                      new Date(data.time.created),
+                      TimestampStyles.RelativeTime,
+                    ),
+                    inline: true,
+                  },
+                  {
+                    name: '📆 Updated At',
+                    value: time(
+                      new Date(data.time.modified),
+                      TimestampStyles.RelativeTime,
+                    ),
+                    inline: true,
+                  },
+                  {
+                    name: '🔠 Keyword',
+                    value: data.keywords
+                      ? data.keywords.join(', ')
+                      : italic('Unknown'),
+                    inline: true,
+                  },
+                  {
+                    name: '📜 License',
+                    value: data.license ?? italic('Unknown'),
+                    inline: true,
+                  },
+                  {
+                    name: '🗄️ Repository',
+                    value: cleanedURL
+                      ? cleanedURL.startsWith('git://')
+                        ? cleanedURL
+                            .replace('git://', 'https://')
+                            .replace('.git', '')
+                        : [...cleanedURL]
+                            .slice(0, cleanedURL.lastIndexOf('.'))
+                            .join('')
+                      : italic('Unknown'),
+                    inline: true,
+                  },
+                  {
+                    name: '🧑‍💻 Maintainer',
+                    value: maintainers.join('\n'),
+                  },
+                  {
+                    name: '🔖 Version',
+                    value: versions.join('\n'),
+                  },
+                  {
+                    name: '📦 Dependency',
+                    value: dependencies
+                      ? dependencies.join('\n')
+                      : italic('None'),
+                  },
+                ]);
+
+                await interaction.editReply({ embeds: [embed] });
+              }),
+          )
+          .catch(async (err) => {
+            console.error(err);
+
+            if (err.response.status === 404) {
+              return interaction.deferReply({ ephemeral: true }).then(
+                async () =>
+                  await interaction.editReply({
+                    content: `No package found with name ${inlineCode(name)}.`,
+                  }),
+              );
+            }
+          });
+      }
+
       case 'weather': {
         const locationTarget = options.getString('location');
 
