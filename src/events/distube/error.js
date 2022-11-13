@@ -10,9 +10,9 @@ module.exports = {
    * @param {Error} err
    */
   async execute(channel, err) {
-    if (!channel) {
-      console.error(err);
-    }
+    console.error(err);
+
+    if (!channel) return;
 
     const { client, guild } = channel;
 
