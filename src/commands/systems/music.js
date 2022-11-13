@@ -275,18 +275,14 @@ module.exports = {
 
     switch (options.getSubcommand()) {
       case 'play':
-        return interaction.deferReply({ ephemeral: true }).then(
-          async () =>
-            await distube
-              .play(voiceChannel, query, {
-                textChannel,
-                member,
-              })
-              .then(
-                async () =>
-                  await interaction.editReply({ content: 'Request received.' }),
-              ),
-        );
+        return interaction.deferReply({ ephemeral: true }).then(async () => {
+          distube.play(voiceChannel, query, {
+            textChannel,
+            member,
+          });
+
+          await interaction.editReply({ content: 'Request received.' });
+        });
 
       case 'playskip':
         return interaction.deferReply({ ephemeral: true }).then(
