@@ -13,7 +13,7 @@ module.exports = {
    * @param {import('distube').Song} song
    */
   async execute(queue, song) {
-    console.log(queue, song);
+    console.log(queue);
 
     const embed = new EmbedBuilder()
       .setColor(queue.clientMember.displayHexColor)
