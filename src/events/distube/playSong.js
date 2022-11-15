@@ -13,11 +13,10 @@ module.exports = {
    * @param {import('distube').Song} song
    */
   async execute(queue, song) {
-    console.log(queue);
-
     const embed = new EmbedBuilder()
       .setColor(queue.clientMember.displayHexColor)
       .setTimestamp(Date.now())
+      .setThumbnail(song.thumbnail || null)
       .setDescription(
         `Playing ${inlineCode(song.name)}\nRequested by ${
           song.user
@@ -39,10 +38,6 @@ module.exports = {
         text: queue.client.user.username,
         iconURL: queue.client.user.displayAvatarURL({ dynamic: true }),
       });
-
-    if (song.thumbnail !== undefined) {
-      embed.setThumbnail(song.thumbnail);
-    }
 
     await queue.textChannel
       .send({ embeds: [embed] })
