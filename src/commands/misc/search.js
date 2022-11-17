@@ -847,6 +847,15 @@ module.exports = {
             },
           );
 
+          if (!channel.nsfw) {
+            return interaction.deferReply({ ephemeral: true }).then(
+              async () =>
+                await interaction.editReply({
+                  content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+                }),
+            );
+          }
+
           switch (options.getSubcommand()) {
             case 'tag': {
               const tag = options.getString('tag', true);
@@ -885,6 +894,7 @@ module.exports = {
                       },
                     ]);
 
+                    /** @type {import('discord.js').EmbedBuilder[]} */
                     const imagesEmbed = result.image.map((url) =>
                       new EmbedBuilder()
                         .setColor(guild?.members.me?.displayHexColor ?? null)
