@@ -43,7 +43,7 @@ module.exports = {
       .then((audit) => audit.entries.first());
 
     const embed = new EmbedBuilder()
-      .setColor(oldguild.members.me?.displayHexColor ?? null)
+      .setColor(oldGuild.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
