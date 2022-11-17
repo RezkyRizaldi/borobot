@@ -36,7 +36,7 @@ module.exports = {
       .setAuthor({
         name: `👋 Welcome to ${guild}`,
       })
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(guild.members.me?.displayHexColor ?? null)
       .setFooter({
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),

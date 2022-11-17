@@ -39,7 +39,9 @@ module.exports = {
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
-    const channel = options.getChannel('channel');
+
+    /** @type {import('discord.js').BaseGuildVoiceChannel} */
+    const channel = options.getChannel('channel', true);
     const reason = options.getString('reason') ?? 'No reason';
     const { voice } = member;
 

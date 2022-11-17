@@ -32,7 +32,7 @@ module.exports = {
     });
 
     const embed = new EmbedBuilder()
-      .setColor(messages.first().guild.members.me.displayHexColor)
+      .setColor(messages.first().guild.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: messages.first().client.user.username,

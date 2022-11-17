@@ -79,9 +79,6 @@ module.exports = {
       subcommand.setName('lesbian').setDescription('🚫 Send a lesbian gif.'),
     )
     .addSubcommand((subcommand) =>
-      subcommand.setName('meme').setDescription('😂 Send a random today meme.'),
-    )
-    .addSubcommand((subcommand) =>
       subcommand
         .setName('pat')
         .setDescription('🖐️ Send a patting image/gif.')
@@ -166,18 +163,25 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ channel: import('discord.js').TextChannel, client: import('discord.js').Client, guild: import('discord.js').Guild|null, member: import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
     const { channel, client, guild, member, options } = interaction;
+
+    if (!guild) return;
 
     const images = new AnimeImages();
     const neko = new nekoClient();
 
-    const NSFWChannels = guild.channels.cache
-      .filter((ch) => ch.nsfw)
-      .map((ch) => ch)
-      .join(', ');
+    /** @type {{ channels: { cache: import('discord.js').Collection<String, import('discord.js').BaseGuildTextChannel> } */
+    const {
+      channels: { cache: baseGuildTextChannels },
+    } = guild;
 
-    /** @type {import('discord.js').GuildMember} */
+    const NSFWChannels = baseGuildTextChannels.filter((ch) => ch.nsfw);
+    const NSFWResponse = NSFWChannels.size
+      ? `\n${italic('eg.')} ${[...NSFWChannels.values()].join(', ')}`
+      : '';
+
+    /** @type {?import('discord.js').GuildMember} */
     const target = options.getMember('target');
 
     const embed = new EmbedBuilder().setTimestamp(Date.now()).setFooter({
@@ -187,10 +191,20 @@ module.exports = {
       }),
     });
 
+    if (!member || !target) {
+      return interaction.deferReply({ ephemeral: true }).then(async () =>
+        interaction.editReply({
+          content: "Member doesn't exist.",
+        }),
+      );
+    }
+
     switch (options.getSubcommand()) {
       case 'hug':
         return interaction.deferReply().then(async () => {
           const { url } = await neko.hug();
+
+          /** @type {{ image: String }} */
           const { image } = await images.sfw.hug();
           const imgArr = [url, image];
           const hug = imgArr[Math.floor(Math.random() * imgArr.length)];
@@ -205,6 +219,8 @@ module.exports = {
       case 'kiss':
         return interaction.deferReply().then(async () => {
           const { url } = await neko.kiss();
+
+          /** @type {{ image: String }} */
           const { image } = await images.sfw.kiss();
           const imgArr = [url, image];
           const kiss = imgArr[Math.floor(Math.random() * imgArr.length)];
@@ -219,6 +235,8 @@ module.exports = {
       case 'slap':
         return interaction.deferReply().then(async () => {
           const { url } = await neko.slap();
+
+          /** @type {{ image: String }} */
           const { image } = await images.sfw.slap();
           const imgArr = [url, image];
           const slap = imgArr[Math.floor(Math.random() * imgArr.length)];
@@ -233,30 +251,46 @@ module.exports = {
       case 'punch':
         return interaction.deferReply().then(
           async () =>
-            await images.sfw.punch().then(async ({ image }) => {
-              embed.setColor(target.displayHexColor);
-              embed.setImage(image);
-              embed.setDescription(`${member} has punched ${target}!`);
+            await images.sfw.punch().then(
+              /**
+               *
+               * @param {{ image: String }}
+               */
+              async ({ image }) => {
+                embed.setColor(target.displayHexColor);
+                embed.setImage(image);
+                embed.setDescription(`${member} has punched ${target}!`);
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
+                await interaction.editReply({ embeds: [embed] });
+              },
+            ),
         );
 
       case 'wink':
         return interaction.deferReply().then(
           async () =>
-            await images.sfw.wink().then(async ({ image }) => {
-              embed.setColor(target.displayHexColor);
-              embed.setImage(image);
-              embed.setDescription(`${member} is giving a wink for ${target}!`);
+            await images.sfw.wink().then(
+              /**
+               *
+               * @param {{ image: String }}
+               */
+              async ({ image }) => {
+                embed.setColor(target.displayHexColor);
+                embed.setImage(image);
+                embed.setDescription(
+                  `${member} is giving a wink for ${target}!`,
+                );
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
+                await interaction.editReply({ embeds: [embed] });
+              },
+            ),
         );
 
       case 'pat':
         return interaction.deferReply().then(async () => {
           const { url } = await neko.pat();
+
+          /** @type {{ image: String }} */
           const { image } = await images.sfw.pat();
           const imgArr = [url, image];
           const pat = imgArr[Math.floor(Math.random() * imgArr.length)];
@@ -271,18 +305,26 @@ module.exports = {
       case 'kill':
         return interaction.deferReply().then(
           async () =>
-            await images.sfw.kill().then(async ({ image }) => {
-              embed.setColor(target.displayHexColor);
-              embed.setImage(image);
-              embed.setDescription(`${target} has been killed by ${member}!`);
+            await images.sfw.kill().then(
+              /**
+               *
+               * @param {{ image: String }}
+               */
+              async ({ image }) => {
+                embed.setColor(target.displayHexColor);
+                embed.setImage(image);
+                embed.setDescription(`${target} has been killed by ${member}!`);
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
+                await interaction.editReply({ embeds: [embed] });
+              },
+            ),
         );
 
       case 'cuddle':
         return interaction.deferReply().then(async () => {
           const { url } = await neko.cuddle();
+
+          /** @type {{ image: String }} */
           const { image } = await images.sfw.cuddle();
           const imgArr = [url, image];
           const cuddle = imgArr[Math.floor(Math.random() * imgArr.length)];
@@ -325,12 +367,18 @@ module.exports = {
           async () =>
             await neko[
               endpoints[Math.floor(Math.random() * endpoints.length)]
-            ]().then(async ({ url }) => {
-              embed.setColor(guild.members.me.displayHexColor);
-              embed.setImage(url);
+            ]().then(
+              /**
+               *
+               * @param {{ url: String }}
+               */
+              async ({ url }) => {
+                embed.setColor(guild.members.me?.displayHexColor ?? null);
+                embed.setImage(url);
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
+                await interaction.editReply({ embeds: [embed] });
+              },
+            ),
         );
       }
 
@@ -346,56 +394,9 @@ module.exports = {
             }),
         );
 
-      case 'meme': {
-        const subreddits = [
-          'memes',
-          'DeepFriedMemes',
-          'bonehurtingjuice',
-          'surrealmemes',
-          'dankmemes',
-          'meirl',
-          'me_irl',
-          'funny',
-          'jokes',
-          'comedy',
-          'notfunny',
-          'ComedyCemetery',
-          'comedyheaven',
-          'meme',
-        ];
-
-        return axios
-          .get(
-            `https://imgur.com/r/${
-              subreddits[Math.floor(Math.random() * subreddits.length)]
-            }/hot.json`,
-          )
-          .then(async ({ data: { data } }) => {
-            if (!data.length) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: "Can't found any memes. Please try again later.",
-                  }),
-              );
-            }
-
-            const meme = data[Math.floor(Math.random() * data.length)];
-
-            await interaction.deferReply().then(async () =>
-              interaction.editReply({
-                content: `https://imgur.com/${meme.hash}${meme.ext.replace(
-                  /\\?.*/,
-                  '',
-                )}`,
-              }),
-            );
-          });
-      }
-
       case 'waifu':
         {
-          const type = options.getString('type');
+          const type = options.getString('type', true);
 
           embed.setColor(member.displayHexColor);
 
@@ -403,9 +404,12 @@ module.exports = {
             case 'image':
               return interaction.deferReply().then(
                 async () =>
-                  await axios
-                    .get('https://api.waifu.pics/sfw/waifu')
-                    .then(async ({ data: { url } }) => {
+                  await axios.get('https://api.waifu.pics/sfw/waifu').then(
+                    /**
+                     *
+                     * @param {{ data: { url: String } }}
+                     */
+                    async ({ data: { url } }) => {
                       embed.setAuthor({
                         name: `${member.user.username} Got a Waifu`,
                         iconURL: member.displayAvatarURL({
@@ -415,12 +419,15 @@ module.exports = {
                       embed.setImage(url);
 
                       await interaction.editReply({ embeds: [embed] });
-                    }),
+                    },
+                  ),
               );
 
             case 'pfp':
               return interaction.deferReply().then(async () => {
                 const { url } = await neko.avatar();
+
+                /** @type {{ image: String }} */
                 const { image } = await images.sfw.waifu();
                 const imgArr = [url, image];
                 const pfp = imgArr[Math.floor(Math.random() * imgArr.length)];
@@ -456,69 +463,105 @@ module.exports = {
         break;
 
       case 'hentai':
+        if (!channel) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Channel doesn't exist.",
+            }),
+          );
+        }
+
         if (!channel.nsfw) {
           return interaction.deferReply({ ephemeral: true }).then(
             async () =>
               await interaction.editReply({
-                content: `Please use this command in a NSFW Channel.\n${italic(
-                  'eg.',
-                )} ${NSFWChannels}`,
+                content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
               }),
           );
         }
 
         return interaction.deferReply().then(
           async () =>
-            await images.nsfw.hentai().then(async ({ image }) => {
-              embed.setColor(guild.members.me.displayHexColor);
-              embed.setImage(image);
+            await images.nsfw.hentai().then(
+              /**
+               *
+               * @param {{ image: String }}
+               */
+              async ({ image }) => {
+                embed.setColor(guild.members.me?.displayHexColor ?? null);
+                embed.setImage(image);
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
+                await interaction.editReply({ embeds: [embed] });
+              },
+            ),
         );
 
       case 'boobs':
+        if (!channel) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Channel doesn't exist.",
+            }),
+          );
+        }
+
         if (!channel.nsfw) {
           return interaction.deferReply({ ephemeral: true }).then(
             async () =>
               await interaction.editReply({
-                content: `Please use this command in a NSFW Channel.\n${italic(
-                  'eg.',
-                )} ${NSFWChannels}`,
+                content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
               }),
           );
         }
 
         return interaction.deferReply().then(
           async () =>
-            await images.nsfw.boobs().then(async ({ image }) => {
-              embed.setColor(guild.members.me.displayHexColor);
-              embed.setImage(image);
+            await images.nsfw.boobs().then(
+              /**
+               *
+               * @param {{ image: String }}
+               */
+              async ({ image }) => {
+                embed.setColor(guild.members.me?.displayHexColor ?? null);
+                embed.setImage(image);
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
+                await interaction.editReply({ embeds: [embed] });
+              },
+            ),
         );
 
       case 'lesbian':
+        if (!channel) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Channel doesn't exist.",
+            }),
+          );
+        }
+
         if (!channel.nsfw) {
           return interaction.deferReply({ ephemeral: true }).then(
             async () =>
               await interaction.editReply({
-                content: `Please use this command in a NSFW Channel.\n${italic(
-                  'eg.',
-                )} ${NSFWChannels}`,
+                content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
               }),
           );
         }
 
         return interaction.deferReply().then(
           async () =>
-            await images.nsfw.lesbian().then(async ({ image }) => {
-              embed.setColor(guild.members.me.displayHexColor);
-              embed.setImage(image);
+            await images.nsfw.lesbian().then(
+              /**
+               *
+               * @param {{ image: String }}
+               */
+              async ({ image }) => {
+                embed.setColor(guild.members.me?.displayHexColor ?? null);
+                embed.setImage(image);
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
+                await interaction.editReply({ embeds: [embed] });
+              },
+            ),
         );
     }
   },

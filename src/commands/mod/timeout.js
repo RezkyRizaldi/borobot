@@ -71,17 +71,19 @@ module.exports = {
   async execute(interaction) {
     const { client, guild, options, user } = interaction;
 
+    if (!guild) return;
+
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
-    /** @type {import('discord.js').GuildMember} */
-    const member = options.getMember('member');
     const reason = options.getString('reason') ?? 'No reason';
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
       switch (options.getSubcommand()) {
         case 'apply': {
-          const duration = options.getInteger('duration');
+          /** @type {import('discord.js').GuildMember} */
+          const member = options.getMember('member', true);
+          const duration = options.getInteger('duration', true);
 
           if (!member.moderatable) {
             return interaction.editReply({
@@ -130,7 +132,10 @@ module.exports = {
           });
         }
 
-        case 'cease':
+        case 'cease': {
+          /** @type {import('discord.js').GuildMember} */
+          const member = options.getMember('member', true);
+
           if (!member.moderatable) {
             return interaction.editReply({
               content: `You don't have appropiate permissions to removing the timeout from ${member}.`,
@@ -169,6 +174,7 @@ module.exports = {
                 });
               });
           });
+        }
 
         case 'list': {
           const timedoutMembers = guild.members.cache.filter((m) =>
@@ -193,7 +199,7 @@ module.exports = {
               limit: 10,
             });
 
-            pagination.setColor(guild.members.me.displayHexColor);
+            pagination.setColor(guild.members.me?.displayHexColor ?? null);
             pagination.setTimestamp(Date.now());
             pagination.setFooter({
               text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -221,7 +227,7 @@ module.exports = {
           }
 
           const embed = new EmbedBuilder()
-            .setColor(guild.members.me.displayHexColor)
+            .setColor(guild.members.me?.displayHexColor ?? null)
             .setTimestamp(Date.now())
             .setFooter({
               text: client.user.username,

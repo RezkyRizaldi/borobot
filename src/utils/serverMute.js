@@ -20,12 +20,14 @@ const { Pagination } = require('pagination.djs');
 module.exports = async (interaction, subcommand) => {
   const { client, guild, options, user } = interaction;
 
+  if (!guild) return;
+
   /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
   const { paginations } = client;
 
   /** @type {import('discord.js').GuildMember} */
   const member = options.getMember('member');
-  const channelType = options.getInteger('channel_type');
+  const channelType = options.getInteger('channel_type', true);
 
   if (subcommand !== 'list' && !member.manageable) {
     return interaction.editReply({
@@ -96,7 +98,7 @@ module.exports = async (interaction, subcommand) => {
 
     case 'list': {
       const embed = new EmbedBuilder()
-        .setColor(guild.members.me.displayHexColor)
+        .setColor(guild.members.me?.displayHexColor ?? null)
         .setTimestamp(Date.now())
         .setFooter({
           text: client.user.username,
@@ -105,8 +107,18 @@ module.exports = async (interaction, subcommand) => {
           }),
         });
 
-      const textMutedMembers = guild.members.cache.filter((m) =>
-        m.roles.cache.find((role) => role.name.toLowerCase() === 'muted'),
+      const mutedRole = member.roles.cache.find(
+        (role) => role.name.toLowerCase() === 'muted',
+      );
+
+      if (!mutedRole) {
+        return interaction.editReply({
+          content: `Can't find role with name ${inlineCode('muted')}.`,
+        });
+      }
+
+      const textMutedMembers = guild.members.cache.filter(
+        (m) => m.id === mutedRole.id,
       );
 
       const voiceMutedMembers = guild.members.cache.filter(
@@ -114,9 +126,7 @@ module.exports = async (interaction, subcommand) => {
       );
 
       const mutedMembers = guild.members.cache.filter(
-        (m) =>
-          m.roles.cache.find((role) => role.name.toLowerCase() === 'muted') &&
-          m.voice.serverMute,
+        (m) => m.id === mutedRole.id && m.voice.serverMute,
       );
 
       switch (channelType) {
@@ -139,7 +149,7 @@ module.exports = async (interaction, subcommand) => {
               limit: 10,
             });
 
-            pagination.setColor(guild.members.me.displayHexColor);
+            pagination.setColor(guild.members.me?.displayHexColor ?? null);
             pagination.setTimestamp(Date.now());
             pagination.setFooter({
               text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -193,7 +203,7 @@ module.exports = async (interaction, subcommand) => {
               limit: 10,
             });
 
-            pagination.setColor(guild.members.me.displayHexColor);
+            pagination.setColor(guild.members.me?.displayHexColor ?? null);
             pagination.setTimestamp(Date.now());
             pagination.setFooter({
               text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -247,7 +257,7 @@ module.exports = async (interaction, subcommand) => {
               limit: 1,
             });
 
-            pagination.setColor(guild.members.me.displayHexColor);
+            pagination.setColor(guild.members.me?.displayHexColor ?? null);
             pagination.setTimestamp(Date.now());
             pagination.setFooter({
               text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -294,6 +304,8 @@ module.exports = async (interaction, subcommand) => {
 const findOrCreateRole = async (interaction) => {
   const { guild } = interaction;
 
+  if (!guild) return;
+
   const memberRole = guild.roles.cache.find(
     (role) => role.id === process.env.MEMBER_ROLE_ID,
   );
@@ -301,6 +313,11 @@ const findOrCreateRole = async (interaction) => {
   const mutedRole = guild.roles.cache.find(
     (role) => role.name.toLowerCase() === 'muted',
   );
+
+  /** @type {{ channels: { cache: import('discord.js').Collection<String, import('discord.js').BaseGuildTextChannel> } */
+  const {
+    channels: { cache: baseGuildTextChannels },
+  } = guild;
 
   if (!mutedRole) {
     return guild.roles
@@ -314,7 +331,7 @@ const findOrCreateRole = async (interaction) => {
         permissions: [],
       })
       .then(async (role) => {
-        guild.channels.cache
+        baseGuildTextChannels
           .filter(
             (channel) =>
               channel.type !== ChannelType.GuildCategory &&
@@ -356,8 +373,13 @@ const findOrCreateRole = async (interaction) => {
                   reason: 'servermute command setup.',
                 },
               )
-              .then((ch) =>
-                ch.children.cache.map(async (c) => await c.lockPermissions()),
+              .then(
+                /**
+                 *
+                 * @param {import('discord.js').CategoryChannel} ch
+                 */
+                (ch) =>
+                  ch.children.cache.map(async (c) => await c.lockPermissions()),
               );
           });
 
@@ -365,7 +387,7 @@ const findOrCreateRole = async (interaction) => {
       });
   }
 
-  guild.channels.cache
+  baseGuildTextChannels
     .filter(
       (channel) =>
         channel.type !== ChannelType.GuildCategory &&
@@ -407,8 +429,12 @@ const findOrCreateRole = async (interaction) => {
             reason: 'servermute command setup.',
           },
         )
-        .then((ch) =>
-          ch.children.cache.map(async (c) => await c.lockPermissions()),
+        .then(
+          /**
+           *
+           * @param {import('discord.js').CategoryChannel} ch
+           */
+          (ch) => ch.children.cache.map(async (c) => await c.lockPermissions()),
         );
     });
 
@@ -430,9 +456,11 @@ const applyOrRemoveRole = async ({
 }) => {
   const { guild, options } = interaction;
 
+  if (!guild) return;
+
   /** @type {import('discord.js').GuildMember} */
   const member = options.getMember('member');
-  const duration = options.getInteger('duration');
+  const duration = options.getInteger('duration', true);
   const reason = options.getString('reason') ?? 'No reason';
   const { roles, voice } = member;
 
@@ -562,9 +590,11 @@ const createVoiceMute = async ({
 }) => {
   const { guild, options } = interaction;
 
+  if (!guild) return;
+
   /** @type {import('discord.js').GuildMember} */
   const member = options.getMember('member');
-  const duration = options.getInteger('duration');
+  const duration = options.getInteger('duration', true);
   const reason = options.getString('reason') ?? 'No reason';
   const { voice } = member;
 

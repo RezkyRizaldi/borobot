@@ -27,7 +27,8 @@ module.exports = {
         .addIntegerOption((option) =>
           option
             .setName('episode')
-            .setDescription('🔢 The anime episode search query.'),
+            .setDescription('🔢 The anime episode search query.')
+            .setMinValue(1),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -55,7 +56,7 @@ module.exports = {
     const { discordTogether } = client;
 
     const embed = new EmbedBuilder()
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(guild.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
@@ -66,7 +67,7 @@ module.exports = {
 
     switch (options.getSubcommand()) {
       case 'youtube': {
-        const channel = options.getChannel('channel');
+        const channel = options.getChannel('channel', true);
 
         return interaction.deferReply().then(
           async () =>
@@ -94,7 +95,7 @@ module.exports = {
       }
 
       case 'anime': {
-        const title = options.getString('title');
+        const title = options.getString('title', true);
         const episode = options.getInteger('episode') ?? 1;
 
         const Gogoanime = new AnimeScraper.Gogoanime();
@@ -102,58 +103,74 @@ module.exports = {
         return interaction.deferReply().then(async () => {
           await wait(4000);
 
-          await Gogoanime.search(title).then(async (results) => {
-            if (!results.length) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: `No result found for ${title}`,
-                  }),
-              );
-            }
-
-            await Gogoanime.fetchAnime(results[0].link).then(
-              async ({ episodeCount, name, slug }) => {
-                if (episode > episodeCount) {
-                  return interaction.editReply({
-                    content: `${name} only have ${episodeCount.toLocaleString()} ${pluralize(
-                      'episode',
-                      episodeCount,
-                    )}.`,
-                  });
-                }
-
-                await Gogoanime.getEpisodes(slug, episode).then(
-                  async ({ id, name: animeName }) => {
-                    const arr = animeName.split(' ');
-                    const formattedTitle = arr
-                      .slice(0, arr.indexOf('English'))
-                      .join('+');
-
-                    const query = new URLSearchParams({
-                      id,
-                      title: decodeURIComponent(formattedTitle),
-                    });
-
-                    embed.setAuthor({
-                      name: 'Streaming Link Search Result',
-                      iconURL:
-                        'https://scontent.fbdo2-1.fna.fbcdn.net/v/t39.30808-6/308994881_400760315578206_4414282396441157085_n.png?_nc_cat=106&ccb=1-7&_nc_sid=09cbfe&_nc_ohc=_p-Hc3a6PawAX8t2JcU&tn=JJUd3RRVJzK-p8kF&_nc_ht=scontent.fbdo2-1.fna&oh=00_AfDiZaQ8Xq4ebAPWsN5t779v1_O5IKFMSQujVQtMIOWdZA&oe=6365BEC5',
-                    });
-                    embed.setDescription(
-                      hyperlink(
-                        arr.slice(0, arr.indexOf('at')).join(' '),
-                        `https://gogohd.net/streaming.php?${query}`,
-                        'Click here to watch the stream.',
-                      ),
-                    );
-
-                    await interaction.editReply({ embeds: [embed] });
-                  },
+          await Gogoanime.search(title).then(
+            /**
+             *
+             * @param {import('../../constants/types').GogoAnimeSearch[]} results
+             */
+            async (results) => {
+              if (!results.length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No result found for ${title}`,
+                    }),
                 );
-              },
-            );
-          });
+              }
+
+              await Gogoanime.fetchAnime(results[0].link).then(
+                /**
+                 *
+                 * @param {import('../../constants/types').GogoAnimeFetch}
+                 */
+                async ({ episodeCount, name, slug }) => {
+                  if (episode > Number(episodeCount)) {
+                    return interaction.editReply({
+                      content: `${name} only have ${Number(
+                        episodeCount,
+                      ).toLocaleString()} ${pluralize(
+                        'episode',
+                        Number(episodeCount),
+                      )}.`,
+                    });
+                  }
+
+                  await Gogoanime.getEpisodes(slug, episode).then(
+                    /**
+                     *
+                     * @param {import('../../constants/types').GogoAnimeEpisode}
+                     */
+                    async ({ id, name: animeName }) => {
+                      const arr = animeName.split(' ');
+                      const formattedTitle = arr
+                        .slice(0, arr.indexOf('English'))
+                        .join('+');
+
+                      const query = new URLSearchParams({
+                        id,
+                        title: decodeURIComponent(formattedTitle),
+                      });
+
+                      embed.setAuthor({
+                        name: 'Streaming Link Search Result',
+                        iconURL:
+                          'https://play-lh.googleusercontent.com/MaGEiAEhNHAJXcXKzqTNgxqRmhuKB1rCUgb15UrN_mWUNRnLpO5T1qja64oRasO7mn0',
+                      });
+                      embed.setDescription(
+                        hyperlink(
+                          arr.slice(0, arr.indexOf('at')).join(' '),
+                          `https://gogohd.net/streaming.php?${query}`,
+                          'Click here to watch the stream.',
+                        ),
+                      );
+
+                      await interaction.editReply({ embeds: [embed] });
+                    },
+                  );
+                },
+              );
+            },
+          );
         });
       }
     }

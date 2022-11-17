@@ -57,14 +57,14 @@ module.exports = {
     const { options } = interaction;
 
     /** @type {import('discord.js').GuildMember} */
-    const member = options.getMember('member');
-    const nickname = options.getString('nickname');
+    const member = options.getMember('member', true);
+    const nickname = options.getString('nickname', true);
     const reason = options.getString('reason') ?? 'No reason';
 
     return interaction.deferReply({ ephemeral: true }).then(async () => {
       switch (options.getSubcommand()) {
         case 'set':
-          if (member.nickname === nickname) {
+          if (member.nickname && member.nickname === nickname) {
             return interaction.editReply({
               content: 'You have to specify different nickname.',
             });
@@ -78,7 +78,7 @@ module.exports = {
           );
 
         case 'reset':
-          if (member.nickname === null) {
+          if (!member.nickname) {
             return interaction.editReply({
               content: `${member} doesn't have any nickname.`,
             });

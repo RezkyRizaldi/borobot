@@ -21,10 +21,19 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const event = interaction.options.getString('event');
+    /** @type {{ client: import('discord.js').Client<true>, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { client, member, options } = interaction;
+
+    const event = options.getString('event', true);
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
-      interaction.client.emit(event, interaction.member);
+      if (!member) {
+        return interaction.editReply({
+          content: "Member doesn't exist.",
+        });
+      }
+
+      client.emit(event, member);
 
       await interaction.editReply({ content: `Emitted ${event} event.` });
     });

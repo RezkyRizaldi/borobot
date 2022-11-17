@@ -31,7 +31,7 @@ module.exports = {
 
     const message = new EmbedBuilder()
       .setDescription(`${user.tag} has been banned by ${banLog.executor}.`)
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(guild.members.me?.displayHexColor ?? null)
       .setAuthor({
         name: 'Member Banned',
         iconURL: client.user.displayAvatarURL({ dynamic: true }),

@@ -38,7 +38,8 @@ module.exports = {
               option
                 .setName('amount')
                 .setDescription('🔢 The amount of blurness.')
-                .setRequired(true),
+                .setMinValue(0)
+                .setMaxValue(100),
             ),
         )
         .addSubcommand((subcommand) =>
@@ -49,12 +50,6 @@ module.exports = {
               option
                 .setName('image')
                 .setDescription('🖼️ The image to be applied.')
-                .setRequired(true),
-            )
-            .addIntegerOption((option) =>
-              option
-                .setName('amount')
-                .setDescription('🔢 The amount of greyscale.')
                 .setRequired(true),
             ),
         )
@@ -125,7 +120,7 @@ module.exports = {
     const { client, guild, options } = interaction;
 
     const embed = new EmbedBuilder()
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(guild?.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
@@ -137,15 +132,16 @@ module.exports = {
     switch (options.getSubcommandGroup()) {
       case 'filters':
         {
-          const image = options.getAttachment('image');
-          const amount = options.getInteger('amount');
+          const image = options.getAttachment('image', true);
 
           embed.setAuthor({
             name: '🖼️ Applied Filter Result',
           });
 
           switch (options.getSubcommand()) {
-            case 'blur':
+            case 'blur': {
+              const amount = options.getInteger('amount') ?? undefined;
+
               return interaction.deferReply().then(
                 async () =>
                   await new Blur()
@@ -164,12 +160,13 @@ module.exports = {
                       });
                     }),
               );
+            }
 
             case 'greyscale':
               return interaction.deferReply().then(
                 async () =>
                   await new Greyscale()
-                    .getImage(image.url, amount)
+                    .getImage(image.url)
                     .then(async (buffer) => {
                       const file = new AttachmentBuilder(buffer, {
                         name: 'greyscale.png',
@@ -249,7 +246,7 @@ module.exports = {
 
     switch (options.getSubcommand()) {
       case 'shortenurl': {
-        const url = options.getString('url');
+        const url = options.getString('url', true);
 
         if (!isValidURL(url)) {
           return interaction.deferReply({ ephemeral: true }).then(
@@ -260,33 +257,43 @@ module.exports = {
           );
         }
 
-        return shortUrl.short(url, async (err, shortURL) => {
-          if (err) {
-            console.error(err);
+        return shortUrl.short(
+          url,
+          /**
+           *
+           * @param {any} err
+           * @param {String} shortURL
+           */
+          async (err, shortURL) => {
+            if (err) {
+              console.error(err);
 
-            return interaction
-              .deferReply({ ephemeral: true })
-              .then(async () => await interaction.editReply({ content: err }));
-          }
+              return interaction
+                .deferReply({ ephemeral: true })
+                .then(
+                  async () => await interaction.editReply({ content: err }),
+                );
+            }
 
-          embed.setAuthor({
-            name: '🔗 Shortened URL Result',
-          });
-          embed.setDescription(
-            `Here's your generated shorten URL: ${shortURL}.`,
-          );
+            embed.setAuthor({
+              name: '🔗 Shortened URL Result',
+            });
+            embed.setDescription(
+              `Here's your generated shorten URL: ${shortURL}.`,
+            );
 
-          await interaction.deferReply().then(
-            async () =>
-              await interaction.editReply({
-                embeds: [embed],
-              }),
-          );
-        });
+            await interaction.deferReply().then(
+              async () =>
+                await interaction.editReply({
+                  embeds: [embed],
+                }),
+            );
+          },
+        );
       }
 
       case 'qrcode': {
-        const content = options.getString('content');
+        const content = options.getString('content', true);
 
         return QRCode.toDataURL(content, { version: 10 })
           .then(async (url) => {

@@ -1,4 +1,5 @@
-module.exports = {
+/** @type {{ [name: String]: String }} */
+const newsCountries = {
   ae: 'Afghanistan',
   ar: 'Argentina',
   at: 'Austria',
@@ -54,3 +55,5 @@ module.exports = {
   ve: 'Venezuela',
   za: 'South Africa',
 };
+
+module.exports = { newsCountries };

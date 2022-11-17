@@ -25,6 +25,8 @@ module.exports = {
   async execute(interaction) {
     const { guild, targetId } = interaction;
 
+    if (!guild) return;
+
     await interaction.deferReply().then(
       async () =>
         await guild.members.fetch(targetId).then(async (member) => {

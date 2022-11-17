@@ -26,11 +26,13 @@ module.exports = {
   async execute(interaction) {
     const { client, guild, options } = interaction;
 
+    if (!guild) return;
+
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
     /** @type {import('discord.js').Role} */
-    const role = options.getRole('role');
+    const role = options.getRole('role', true);
 
     const membersWithRole = guild.members.cache.filter((member) =>
       member.roles.cache.has(role.id),
@@ -56,7 +58,7 @@ module.exports = {
           limit: 10,
         });
 
-        pagination.setColor(guild.members.me.displayHexColor);
+        pagination.setColor(guild.members.me?.displayHexColor ?? null);
         pagination.setTimestamp(Date.now());
         pagination.setFooter({
           text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -84,7 +86,7 @@ module.exports = {
       }
 
       const embed = new EmbedBuilder()
-        .setColor(guild.members.me.displayHexColor)
+        .setColor(guild.members.me?.displayHexColor ?? null)
         .setTimestamp(Date.now())
         .setFooter({
           text: client.user.username,

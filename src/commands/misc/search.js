@@ -26,7 +26,7 @@ const {
   mangaSearchOrderChoices,
   mangaSearchStatusChoices,
   mangaSearchTypeChoices,
-  mdnLocales,
+  mdnLocaleChoices,
   searchSortingChoices,
   newsCountries,
 } = require('../../constants');
@@ -66,7 +66,8 @@ module.exports = {
                 .setName('initial')
                 .setDescription(
                   "🔣 The anime character's initial search query.",
-                ),
+                )
+                .setMaxLength(1),
             ),
         )
         .addSubcommand((subcommand) =>
@@ -89,7 +90,9 @@ module.exports = {
             .addIntegerOption((option) =>
               option
                 .setName('score')
-                .setDescription('🔤 The anime score search query.'),
+                .setDescription('🔤 The anime score search query.')
+                .setMinValue(1)
+                .setMaxValue(10),
             )
             .addStringOption((option) =>
               option
@@ -112,7 +115,8 @@ module.exports = {
             .addStringOption((option) =>
               option
                 .setName('initial')
-                .setDescription('🔣 The anime initial search query.'),
+                .setDescription('🔣 The anime initial search query.')
+                .setMaxLength(1),
             ),
         ),
     )
@@ -158,7 +162,9 @@ module.exports = {
         .addIntegerOption((option) =>
           option
             .setName('score')
-            .setDescription('🔤 The manga score search query.'),
+            .setDescription('🔤 The manga score search query.')
+            .setMinValue(1)
+            .setMaxValue(10),
         )
         .addStringOption((option) =>
           option
@@ -181,7 +187,8 @@ module.exports = {
         .addStringOption((option) =>
           option
             .setName('initial')
-            .setDescription('🔣 The manga initial search query.'),
+            .setDescription('🔣 The manga initial search query.')
+            .setMaxLength(1),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -200,7 +207,7 @@ module.exports = {
           option
             .setName('language')
             .setDescription("🔠 The documentation's preferred locale.")
-            .addChoices(...mdnLocales),
+            .addChoices(...mdnLocaleChoices),
         ),
     )
     .addSubcommandGroup((subcommandGroup) =>
@@ -233,18 +240,26 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
+    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
     const { channel, client, guild, options } = interaction;
+
+    if (!guild) return;
 
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
-    const NSFWChannels = guild.channels.cache
-      .filter((ch) => ch.nsfw)
-      .map((ch) => ch)
-      .join(', ');
+    /** @type {{ channels: { cache: import('discord.js').Collection<String, import('discord.js').BaseGuildTextChannel> } */
+    const {
+      channels: { cache: baseGuildTextChannels },
+    } = guild;
+
+    const NSFWChannels = baseGuildTextChannels.filter((ch) => ch.nsfw);
+    const NSFWResponse = NSFWChannels.size
+      ? `\n${italic('eg.')} ${[...NSFWChannels.values()].join(', ')}`
+      : '';
 
     const embed = new EmbedBuilder()
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(guild.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
@@ -280,20 +295,10 @@ module.exports = {
             }
 
             if (score) {
-              if (score < 1 || score > 10) {
-                return interaction.deferReply({ ephemeral: true }).then(
-                  async () =>
-                    await interaction.editReply({
-                      content: 'You have to specify a number between 1 to 10.',
-                    }),
-                );
-              }
-
-              const formattedScore = Number(
-                score.toString().replace(/,/g, '.'),
-              ).toFixed(2);
-
-              query.append('score', formattedScore);
+              query.append(
+                'score',
+                Number(`${score}`.replace(/,/g, '.')).toFixed(1),
+              );
             }
 
             if (status) {
@@ -318,21 +323,22 @@ module.exports = {
                 );
               }
 
-              query.append('letter', letter.charAt(0));
+              query.append('letter', letter);
             }
 
-            return axios
-              .get(`https://api.jikan.moe/v4/anime?${query}`)
-              .then(async ({ data: { data } }) => {
+            return axios.get(`https://api.jikan.moe/v4/anime?${query}`).then(
+              /**
+               *
+               * @param {{ data: { data: import('../../constants/types').AnimeInfo[] } }}
+               */
+              async ({ data: { data } }) => {
                 if (!data.length) {
                   return interaction.deferReply({ ephemeral: true }).then(
                     async () =>
                       await interaction.editReply({
                         content: `No anime found with title ${inlineCode(
                           title,
-                        )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.\n${italic(
-                          'eg.',
-                        )} ${NSFWChannels}`,
+                        )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.${NSFWResponse}`,
                       }),
                   );
                 }
@@ -341,7 +347,7 @@ module.exports = {
                   /** @type {import('discord.js').EmbedBuilder[]} */
                   const embeds = data.map((item, index, array) =>
                     new EmbedBuilder()
-                      .setColor(guild.members.me.displayHexColor)
+                      .setColor(guild.members.me?.displayHexColor ?? null)
                       .setTimestamp(Date.now())
                       .setFooter({
                         text: `${client.user.username} | Page ${index + 1} of ${
@@ -391,18 +397,22 @@ module.exports = {
                             item.rank ||
                             item.favorites ||
                             item.rating
-                              ? `${
-                                  item.score
-                                    ? `⭐ ${
-                                        item.score
-                                      } (by ${item.scored_by.toLocaleString()} ${pluralize(
+                              ? `${item.score ? `⭐ ${item.score}` : ''}${
+                                  item.scored_by
+                                    ? ` (by ${item.scored_by.toLocaleString()} ${pluralize(
                                         'user',
                                         item.scored_by,
                                       )})`
                                     : ''
-                                } | 👥 ${item.members.toLocaleString()}${
-                                  item.rank ? ` | #️⃣ #${item.rank}` : ''
-                                } | ❤️ ${item.favorites} | 🔞 ${item.rating}`
+                                }${
+                                  item.members
+                                    ? ` | 👥 ${item.members.toLocaleString()}`
+                                    : ''
+                                }${item.rank ? ` | #️⃣ #${item.rank}` : ''}${
+                                  item.favorites
+                                    ? ` | ❤️ ${item.favorites}`
+                                    : ''
+                                }${item.rating ? ` | 🔞 ${item.rating}` : ''}`
                               : italic('None'),
                           inline: true,
                         },
@@ -460,9 +470,7 @@ module.exports = {
                         {
                           name: '💫 Synopsis',
                           value: item.synopsis
-                            ? item.synopsis?.includes(
-                                '[Written by MAL Rewrite]',
-                              )
+                            ? item.synopsis.includes('[Written by MAL Rewrite]')
                               ? truncate(
                                   item.synopsis.replace(
                                     '[Written by MAL Rewrite]',
@@ -497,7 +505,8 @@ module.exports = {
 
                   await pagination.render();
                 });
-              });
+              },
+            );
           }
 
           case 'character': {
@@ -521,7 +530,7 @@ module.exports = {
             }
 
             if (letter) {
-              if (!letter.charAt(0).match(/[a-z]/i)) {
+              if (!isAlphabeticLetter(letter)) {
                 return interaction.deferReply({ ephemeral: true }).then(
                   async () =>
                     await interaction.editReply({
@@ -530,92 +539,102 @@ module.exports = {
                 );
               }
 
-              query.append('letter', [...letter][0]);
+              query.append('letter', letter);
             }
 
             return axios
               .get(`https://api.jikan.moe/v4/characters?${query}`)
-              .then(async ({ data: { data } }) => {
-                if (!data.length) {
-                  return interaction.deferReply({ ephemeral: true }).then(
-                    async () =>
-                      await interaction.editReply({
-                        content: `No anime character found with name ${inlineCode(
-                          name,
-                        )}`,
-                      }),
-                  );
-                }
-
-                await interaction.deferReply().then(async () => {
-                  const embeds = data.map((item, index, array) =>
-                    new EmbedBuilder()
-                      .setColor(guild.members.me.displayHexColor)
-                      .setTimestamp(Date.now())
-                      .setFooter({
-                        text: `${client.user.username} | Page ${index + 1} of ${
-                          array.length
-                        }`,
-                        iconURL: client.user.displayAvatarURL({
-                          dynamic: true,
-                        }),
-                      })
-                      .setDescription(
-                        truncate(item.about?.replace(/\n\n\n/g, '\n\n'), 4096),
-                      )
-                      .setAuthor({
-                        name: 'Anime Character Search Results',
-                        iconURL:
-                          'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
-                      })
-                      .setThumbnail(
-                        item.images.jpg.image_url ?? item.images.webp.image_url,
-                      )
-                      .setFields([
-                        {
-                          name: '🔤 Name',
-                          value: hyperlink(
-                            `${item.name} (${item.name_kanji})`,
-                            item.url,
-                          ),
-                          inline: true,
-                        },
-                        {
-                          name: '🔤 Nickname',
-                          value: item.nicknames.length
-                            ? item.nicknames.join(', ')
-                            : italic('None'),
-                          inline: true,
-                        },
-                        {
-                          name: '❤️ Favorite',
-                          value: `${item.favorites.toLocaleString()} ${pluralize(
-                            'favorite',
-                            item.favorites,
+              .then(
+                /**
+                 *
+                 * @param {{ data: { data: import('../../constants/types').AnimeCharacter[] } }}
+                 */
+                async ({ data: { data } }) => {
+                  if (!data.length) {
+                    return interaction.deferReply({ ephemeral: true }).then(
+                      async () =>
+                        await interaction.editReply({
+                          content: `No anime character found with name ${inlineCode(
+                            name,
                           )}`,
-                          inline: true,
-                        },
-                      ]),
-                  );
+                        }),
+                    );
+                  }
 
-                  const pagination = new Pagination(interaction);
+                  await interaction.deferReply().then(async () => {
+                    const embeds = data.map((item, index, array) =>
+                      new EmbedBuilder()
+                        .setColor(guild.members.me?.displayHexColor ?? null)
+                        .setTimestamp(Date.now())
+                        .setFooter({
+                          text: `${client.user.username} | Page ${
+                            index + 1
+                          } of ${array.length}`,
+                          iconURL: client.user.displayAvatarURL({
+                            dynamic: true,
+                          }),
+                        })
+                        .setDescription(
+                          truncate(
+                            item.about?.replace(/\n\n\n/g, '\n\n'),
+                            4096,
+                          ),
+                        )
+                        .setAuthor({
+                          name: 'Anime Character Search Results',
+                          iconURL:
+                            'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
+                        })
+                        .setThumbnail(
+                          item.images.jpg.image_url ??
+                            item.images.webp.image_url,
+                        )
+                        .setFields([
+                          {
+                            name: '🔤 Name',
+                            value: hyperlink(
+                              `${item.name} (${item.name_kanji})`,
+                              item.url,
+                            ),
+                            inline: true,
+                          },
+                          {
+                            name: '🔤 Nickname',
+                            value: item.nicknames.length
+                              ? item.nicknames.join(', ')
+                              : italic('None'),
+                            inline: true,
+                          },
+                          {
+                            name: '❤️ Favorite',
+                            value: `${item.favorites.toLocaleString()} ${pluralize(
+                              'favorite',
+                              item.favorites,
+                            )}`,
+                            inline: true,
+                          },
+                        ]),
+                    );
 
-                  pagination.setEmbeds(embeds);
+                    const pagination = new Pagination(interaction);
 
-                  pagination.buttons = {
-                    ...pagination.buttons,
-                    extra: new ButtonBuilder()
-                      .setCustomId('jump')
-                      .setEmoji('↕️')
-                      .setDisabled(false)
-                      .setStyle(ButtonStyle.Secondary),
-                  };
+                    pagination.setEmbeds(embeds);
 
-                  paginations.set(pagination.interaction.id, pagination);
+                    pagination.buttons = {
+                      ...pagination.buttons,
+                      extra: new ButtonBuilder()
+                        .setCustomId('jump')
+                        .setEmoji('↕️')
+                        .setDisabled(false)
+                        .setStyle(ButtonStyle.Secondary),
+                    };
 
-                  await pagination.render();
-                });
-              });
+                    paginations.set(pagination.interaction.id, pagination);
+
+                    await pagination.render();
+                  });
+                },
+              );
           }
         }
         break;
@@ -633,7 +652,7 @@ module.exports = {
               limit: 10,
             });
 
-            pagination.setColor(guild.members.me.displayHexColor);
+            pagination.setColor(guild.members.me?.displayHexColor ?? null);
             pagination.setTimestamp(Date.now());
             pagination.setFooter({
               text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -661,7 +680,7 @@ module.exports = {
           }
 
           case 'country': {
-            const name = options.getString('name');
+            const name = options.getString('name', true);
             const newsapi = new NewsAPI(process.env.NEWSAPI_API_KEY);
             const country = Object.values(newsCountries).find(
               (c) => c.toLowerCase() === name.toLowerCase(),
@@ -685,94 +704,100 @@ module.exports = {
                     newsCountries[key].toLowerCase() === country.toLowerCase(),
                 ),
               })
-              .then(async ({ articles }) => {
-                if (!articles.length) {
-                  return interaction.deferReply({ ephemeral: true }).then(
-                    async () =>
-                      await interaction.editReply({
-                        content: `No news found in ${inlineCode(country)}.`,
-                      }),
-                  );
-                }
-
-                await interaction.deferReply().then(async () => {
-                  /** @type {import('discord.js').EmbedBuilder[]} */
-                  const embeds = articles.map((article, index, array) =>
-                    new EmbedBuilder()
-                      .setColor(guild.members.me.displayHexColor)
-                      .setTimestamp(Date.now())
-                      .setFooter({
-                        text: `${client.user.username} | Page ${index + 1} of ${
-                          array.length
-                        }`,
-                        iconURL: client.user.displayAvatarURL({
-                          dynamic: true,
+              .then(
+                /**
+                 *
+                 * @param {{ articles: import('../../constants/types').News[] }}
+                 */
+                async ({ articles }) => {
+                  if (!articles.length) {
+                    return interaction.deferReply({ ephemeral: true }).then(
+                      async () =>
+                        await interaction.editReply({
+                          content: `No news found in ${inlineCode(country)}.`,
                         }),
-                      })
-                      .setDescription(
-                        truncate(
-                          article.content
-                            ?.slice(0, article.content?.indexOf('[+'))
-                            ?.replace(/<ul>/gi, '')
-                            ?.replace(/<li>/gi, '')
-                            ?.replace(/<\/li>/gi, ''),
-                          4096,
-                        ),
-                      )
-                      .setThumbnail(article.urlToImage)
-                      .setAuthor({
-                        name: `📰 ${country} News Lists`,
-                      })
-                      .setFields([
-                        {
-                          name: '🔤 Headline',
-                          value: hyperlink(article.title, article.url),
-                          inline: true,
-                        },
-                        {
-                          name: '🔤 Subheadline',
-                          value: article.description ?? italic('None'),
-                          inline: true,
-                        },
-                        {
-                          name: '📆 Published At',
-                          value: time(
-                            new Date(article.publishedAt),
-                            TimestampStyles.RelativeTime,
+                    );
+                  }
+
+                  await interaction.deferReply().then(async () => {
+                    /** @type {import('discord.js').EmbedBuilder[]} */
+                    const embeds = articles.map((article, index, array) =>
+                      new EmbedBuilder()
+                        .setColor(guild.members.me?.displayHexColor ?? null)
+                        .setTimestamp(Date.now())
+                        .setFooter({
+                          text: `${client.user.username} | Page ${
+                            index + 1
+                          } of ${array.length}`,
+                          iconURL: client.user.displayAvatarURL({
+                            dynamic: true,
+                          }),
+                        })
+                        .setDescription(
+                          truncate(
+                            article.content
+                              ?.slice(0, article.content?.indexOf('[+'))
+                              ?.replace(/<ul>/gi, '')
+                              ?.replace(/<li>/gi, '')
+                              ?.replace(/<\/li>/gi, ''),
+                            4096,
                           ),
-                          inline: true,
-                        },
-                        {
-                          name: '✒️ Author',
-                          value: article.author ?? italic('Unknown'),
-                          inline: true,
-                        },
-                        {
-                          name: '🔢 Source',
-                          value: article.source.name,
-                          inline: true,
-                        },
-                      ]),
-                  );
+                        )
+                        .setThumbnail(article.urlToImage)
+                        .setAuthor({
+                          name: `📰 ${country} News Lists`,
+                        })
+                        .setFields([
+                          {
+                            name: '🔤 Headline',
+                            value: hyperlink(article.title, article.url),
+                            inline: true,
+                          },
+                          {
+                            name: '🔤 Subheadline',
+                            value: article.description ?? italic('None'),
+                            inline: true,
+                          },
+                          {
+                            name: '📆 Published At',
+                            value: time(
+                              new Date(article.publishedAt),
+                              TimestampStyles.RelativeTime,
+                            ),
+                            inline: true,
+                          },
+                          {
+                            name: '✒️ Author',
+                            value: article.author ?? italic('Unknown'),
+                            inline: true,
+                          },
+                          {
+                            name: '🔢 Source',
+                            value: article.source.name,
+                            inline: true,
+                          },
+                        ]),
+                    );
 
-                  const pagination = new Pagination(interaction);
+                    const pagination = new Pagination(interaction);
 
-                  pagination.setEmbeds(embeds);
+                    pagination.setEmbeds(embeds);
 
-                  pagination.buttons = {
-                    ...pagination.buttons,
-                    extra: new ButtonBuilder()
-                      .setCustomId('jump')
-                      .setEmoji('↕️')
-                      .setDisabled(false)
-                      .setStyle(ButtonStyle.Secondary),
-                  };
+                    pagination.buttons = {
+                      ...pagination.buttons,
+                      extra: new ButtonBuilder()
+                        .setCustomId('jump')
+                        .setEmoji('↕️')
+                        .setDisabled(false)
+                        .setStyle(ButtonStyle.Secondary),
+                    };
 
-                  paginations.set(pagination.interaction.id, pagination);
+                    paginations.set(pagination.interaction.id, pagination);
 
-                  await pagination.render();
-                });
-              });
+                    await pagination.render();
+                  });
+                },
+              );
           }
         }
     }
@@ -802,20 +827,10 @@ module.exports = {
         }
 
         if (score) {
-          if (score < 1 || score > 10) {
-            return interaction.deferReply({ ephemeral: true }).then(
-              async () =>
-                await interaction.editReply({
-                  content: 'You have to specify a number between 1 to 10.',
-                }),
-            );
-          }
-
-          const formattedScore = Number(
-            score.toString().replace(/,/g, '.'),
-          ).toFixed(2);
-
-          query.append('score', formattedScore);
+          query.append(
+            'score',
+            Number(`${score}`.replace(/,/g, '.')).toFixed(1),
+          );
         }
 
         if (status) {
@@ -830,29 +845,32 @@ module.exports = {
           query.append('sort', sort);
         }
 
-        if (letter && !isAlphabeticLetter(letter)) {
-          return interaction.deferReply({ ephemeral: true }).then(
-            async () =>
-              await interaction.editReply({
-                content: 'You have to specify an alphabetic character.',
-              }),
-          );
+        if (letter) {
+          if (!isAlphabeticLetter(letter)) {
+            return interaction.deferReply({ ephemeral: true }).then(
+              async () =>
+                await interaction.editReply({
+                  content: 'You have to specify an alphabetic character.',
+                }),
+            );
+          }
+
+          query.append('letter', letter);
         }
 
-        query.append('letter', letter.charAt(0));
-
-        return axios
-          .get(`https://api.jikan.moe/v4/manga?${query}`)
-          .then(async ({ data: { data } }) => {
+        return axios.get(`https://api.jikan.moe/v4/manga?${query}`).then(
+          /**
+           *
+           * @param {{ data: { data: import('../../constants/types').MangaInfo[] } }}
+           */
+          async ({ data: { data } }) => {
             if (!data.length) {
               return interaction.deferReply({ ephemeral: true }).then(
                 async () =>
                   await interaction.editReply({
                     content: `No manga found with title ${inlineCode(
                       title,
-                    )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.\n${italic(
-                      'eg.',
-                    )} ${NSFWChannels}`,
+                    )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.${NSFWResponse}`,
                   }),
               );
             }
@@ -861,7 +879,7 @@ module.exports = {
               /** @type {import('discord.js').EmbedBuilder[]} */
               const embeds = data.map((item, index, array) =>
                 new EmbedBuilder()
-                  .setColor(guild.members.me.displayHexColor)
+                  .setColor(guild.members.me?.displayHexColor ?? null)
                   .setTimestamp(Date.now())
                   .setFooter({
                     text: `${client.user.username} | Page ${index + 1} of ${
@@ -917,18 +935,20 @@ module.exports = {
                         item.members ||
                         item.rank ||
                         item.favorites
-                          ? `${
-                              item.score
-                                ? `⭐ ${
-                                    item.score
-                                  } (by ${item.scored_by.toLocaleString()} ${pluralize(
+                          ? `${item.score ? `⭐ ${item.score}` : ''}${
+                              item.scored_by
+                                ? ` (by ${item.scored_by.toLocaleString()} ${pluralize(
                                     'user',
                                     item.scored_by,
                                   )})`
                                 : ''
-                            } | 👥 ${item.members.toLocaleString()}${
-                              item.rank ? ` | #️⃣ #${item.rank}` : ''
-                            } | ❤️ ${item.favorites}`
+                            }${
+                              item.members
+                                ? ` | 👥 ${item.members.toLocaleString()}`
+                                : ''
+                            }${item.rank ? ` | #️⃣ #${item.rank}` : ''}${
+                              item.favorites ? ` | ❤️ ${item.favorites}` : ''
+                            }`
                           : italic('None'),
                       inline: true,
                     },
@@ -983,7 +1003,7 @@ module.exports = {
                     {
                       name: '💫 Synopsis',
                       value: item.synopsis
-                        ? item.synopsis?.includes('[Written by MAL Rewrite]')
+                        ? item.synopsis.includes('[Written by MAL Rewrite]')
                           ? truncate(
                               item.synopsis.replace(
                                 '[Written by MAL Rewrite]',
@@ -1014,11 +1034,12 @@ module.exports = {
 
               await pagination.render();
             });
-          });
+          },
+        );
       }
 
       case 'image': {
-        const query = options.getString('query');
+        const query = options.getString('query', true);
 
         const google = new Scraper({
           puppeteer: {
@@ -1029,116 +1050,116 @@ module.exports = {
         return interaction.deferReply({ ephemeral: true }).then(async () => {
           await wait(4000);
 
-          await google.scrape(query, 5).then(
-            /**
-             *
-             * @param {import('images-scraper').Scraper.ScrapeResult[]} results
-             */
-            async (results) => {
-              const pagination = new Pagination(interaction, {
-                limit: 1,
-              });
+          await google.scrape(query, 5).then(async (results) => {
+            const pagination = new Pagination(interaction, {
+              limit: 1,
+            });
 
-              pagination.setColor(guild.members.me.displayHexColor);
-              pagination.setTimestamp(Date.now());
-              pagination.setFooter({
-                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                iconURL: client.user.displayAvatarURL({
-                  dynamic: true,
-                }),
-              });
-              pagination.setAuthor({
-                name: 'Image Search Results',
-                iconURL:
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/480px-Google_%22G%22_Logo.svg.png',
-              });
-              pagination.setImages(results.map((result) => result.url));
+            pagination.setColor(guild.members.me?.displayHexColor ?? null);
+            pagination.setTimestamp(Date.now());
+            pagination.setFooter({
+              text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+              iconURL: client.user.displayAvatarURL({
+                dynamic: true,
+              }),
+            });
+            pagination.setAuthor({
+              name: 'Image Search Results',
+              iconURL:
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/480px-Google_%22G%22_Logo.svg.png',
+            });
+            pagination.setImages(results.map((result) => result.url));
 
-              pagination.buttons = {
-                ...pagination.buttons,
-                extra: new ButtonBuilder()
-                  .setCustomId('jump')
-                  .setEmoji('↕️')
-                  .setDisabled(false)
-                  .setStyle(ButtonStyle.Secondary),
-              };
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
 
-              paginations.set(pagination.interaction.id, pagination);
+            paginations.set(pagination.interaction.id, pagination);
 
-              await pagination.render();
-            },
-          );
+            await pagination.render();
+          });
         });
       }
 
       case 'definition': {
-        const term = options.getString('term');
+        const term = options.getString('term', true);
         const query = new URLSearchParams({ term });
 
         return axios
           .get(`https://api.urbandictionary.com/v0/define?${query}`)
-          .then(async ({ data: { list } }) => {
-            if (!list.length) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: `No result found for ${inlineCode(term)}.`,
-                  }),
-              );
-            }
+          .then(
+            /**
+             *
+             * @param {{ data: { list: import('../../constants/types').UrbanDictionary[] } }}
+             */
+            async ({ data: { list } }) => {
+              if (!list.length) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: `No result found for ${inlineCode(term)}.`,
+                    }),
+                );
+              }
 
-            const {
-              author,
-              definition,
-              example,
-              permalink,
-              thumbs_down,
-              thumbs_up,
-              word,
-              written_on,
-            } = list[Math.floor(Math.random() * list.length)];
+              const {
+                author,
+                definition,
+                example,
+                permalink,
+                thumbs_down,
+                thumbs_up,
+                word,
+                written_on,
+              } = list[Math.floor(Math.random() * list.length)];
 
-            const formattedCite = `\n${italic(
-              `by ${author} — ${time(
-                new Date(written_on),
-                TimestampStyles.RelativeTime,
-              )}`,
-            )}`;
+              const formattedCite = `\n${italic(
+                `by ${author} — ${time(
+                  new Date(written_on),
+                  TimestampStyles.RelativeTime,
+                )}`,
+              )}`;
 
-            embed.setAuthor({
-              name: `${capitalCase(word)}`,
-              url: permalink,
-              iconURL:
-                'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Urban_Dictionary_logo.svg/320px-Urban_Dictionary_logo.svg.png',
-            });
-            embed.setFields([
-              {
-                name: '🔤 Definition',
-                value: `${truncate(
-                  definition,
-                  1024 - formattedCite.length - 3,
-                )}${formattedCite}`,
-              },
-              {
-                name: '🔤 Example',
-                value: truncate(example, 1024),
-              },
-              {
-                name: '⭐ Rating',
-                value: `${thumbs_up.toLocaleString()} 👍 | ${thumbs_down.toLocaleString()} 👎`,
-              },
-            ]);
+              embed.setAuthor({
+                name: capitalCase(word),
+                url: permalink,
+                iconURL:
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Urban_Dictionary_logo.svg/320px-Urban_Dictionary_logo.svg.png',
+              });
+              embed.setFields([
+                {
+                  name: '🔤 Definition',
+                  value: `${truncate(
+                    definition,
+                    1024 - formattedCite.length - 3,
+                  )}${formattedCite}`,
+                },
+                {
+                  name: '🔤 Example',
+                  value: truncate(example, 1024),
+                },
+                {
+                  name: '⭐ Rating',
+                  value: `${thumbs_up.toLocaleString()} 👍 | ${thumbs_down.toLocaleString()} 👎`,
+                },
+              ]);
 
-            await interaction
-              .deferReply()
-              .then(
-                async () => await interaction.editReply({ embeds: [embed] }),
-              );
-          });
+              await interaction
+                .deferReply()
+                .then(
+                  async () => await interaction.editReply({ embeds: [embed] }),
+                );
+            },
+          );
       }
 
       case 'mdn': {
-        const term = options.getString('term');
+        const term = options.getString('term', true);
         const language = options.getString('language');
         const query = new URLSearchParams({
           q: term,
@@ -1146,9 +1167,12 @@ module.exports = {
         });
         const baseURL = 'https://developer.mozilla.org';
 
-        return axios
-          .get(`${baseURL}/api/v1/search?${query}`)
-          .then(async ({ data: { documents, suggestions } }) => {
+        return axios.get(`${baseURL}/api/v1/search?${query}`).then(
+          /**
+           *
+           * @param {{ data: { documents: import('../../constants/types').MDNDocument[], suggestions: import('../../constants/types').MDNSuggestion[] } }}
+           */
+          async ({ data: { documents, suggestions } }) => {
             if (!documents.length) {
               if (!suggestions.length) {
                 return interaction.deferReply({ ephemeral: true }).then(
@@ -1164,9 +1188,12 @@ module.exports = {
                 locale: language ?? 'en-US',
               });
 
-              return axios
-                .get(`${baseURL}/api/v1/search${newQuery}`)
-                .then(async ({ data: { documents: docs } }) => {
+              return axios.get(`${baseURL}/api/v1/search?${newQuery}`).then(
+                /**
+                 *
+                 * @param {{ data: { documents: import('../../constants/types').MDNDocument[] } }}
+                 */
+                async ({ data: { documents: docs } }) => {
                   const fields = docs.map((doc) => ({
                     name: doc.title,
                     value: `${doc.summary}\n${hyperlink(
@@ -1189,7 +1216,8 @@ module.exports = {
                       async () =>
                         await interaction.editReply({ embeds: [embed] }),
                     );
-                });
+                },
+              );
             }
 
             const fields = documents.map((doc) => ({
@@ -1211,7 +1239,8 @@ module.exports = {
               .then(
                 async () => await interaction.editReply({ embeds: [embed] }),
               );
-          });
+          },
+        );
       }
     }
   },

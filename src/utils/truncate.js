@@ -1,6 +1,6 @@
 /**
  *
- * @param {String} str
+ * @param {?String} str
  * @param {Number} max
  * @param {Number} [trim=3]
  * @returns {String} The truncated string.

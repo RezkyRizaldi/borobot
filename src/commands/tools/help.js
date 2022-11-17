@@ -27,8 +27,10 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ client: import('discord.js').Client, guild: import('discord.js').Guild, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    /** @type {{ client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
     const { client, guild, options } = interaction;
+
+    if (!guild) return;
 
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
@@ -55,7 +57,7 @@ module.exports = {
         limit: 5,
       });
 
-      pagination.setColor(guild.members.me.displayHexColor);
+      pagination.setColor(guild.members.me?.displayHexColor ?? null);
       pagination.setTimestamp(Date.now());
       pagination.setFooter({
         text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -68,12 +70,12 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
       pagination.setFields(
-        commands.map((cmd) => ({
+        commands.map(({ description, id, name, type }) => ({
           name:
-            cmd.type !== ApplicationCommandType.ChatInput
-              ? cmd.name
-              : chatInputApplicationCommandMention(cmd.name, cmd.id),
-          value: cmd.description,
+            type !== ApplicationCommandType.ChatInput
+              ? name
+              : chatInputApplicationCommandMention(name, id),
+          value: description,
         })),
       );
       pagination.paginateFields();
@@ -92,11 +94,11 @@ module.exports = {
       return pagination.render();
     }
 
-    if (
-      !commands.some(
-        (cmd) => cmd.name.toLowerCase().trim() === command.toLowerCase().trim(),
-      )
-    ) {
+    const cmd = commands.find(
+      (c) => c.name.toLowerCase().trim() === command.toLowerCase().trim(),
+    );
+
+    if (!cmd) {
       return interaction.deferReply({ ephemeral: true }).then(
         async () =>
           await interaction.editReply({
@@ -105,15 +107,11 @@ module.exports = {
       );
     }
 
-    const cmd = commands.find(
-      (c) => c.name.toLowerCase().trim() === command.toLowerCase().trim(),
-    );
-
     const pagination = new Pagination(interaction, {
       limit: 1,
     });
 
-    pagination.setColor(guild.members.me.displayHexColor);
+    pagination.setColor(guild.members.me?.displayHexColor ?? null);
     pagination.setTimestamp(Date.now());
     pagination.setFooter({
       text: `${client.user.username} | Page {pageNumber} of {totalPages}`,

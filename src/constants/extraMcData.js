@@ -1,4 +1,5 @@
-module.exports = {
+/** @type {import('./types').ExtraMinecraftData} */
+const extraMcData = {
   block: {
     air: {
       version: 'JE2',
@@ -10055,3 +10056,5 @@ module.exports = {
     },
   },
 };
+
+module.exports = { extraMcData };

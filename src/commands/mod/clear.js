@@ -21,6 +21,8 @@ module.exports = {
       option
         .setName('amount')
         .setDescription('🔢 The amount of messages to delete.')
+        .setMinValue(1)
+        .setMaxValue(50)
         .setRequired(true),
     )
     .addUserOption((option) =>
@@ -42,15 +44,25 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ channel: import('discord.js').TextChannel, client: import('discord.js').Client, guild: import('discord.js').Guild | null, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild | null, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
     const { channel, client, guild, options } = interaction;
 
-    const amount = options.getInteger('amount');
+    if (!guild) return;
 
-    /** @type {import('discord.js').GuildMember} */
+    if (!channel) {
+      return interaction.deferReply({ ephemeral: true }).then(async () =>
+        interaction.editReply({
+          content: "Channel doesn't exist.",
+        }),
+      );
+    }
+
+    const amount = options.getInteger('amount', true);
+
+    /** @type {?import('discord.js').GuildMember} */
     const member = options.getMember('member');
 
-    /** @type {import('discord.js').Role} */
+    /** @type {?import('discord.js').Role} */
     const role = options.getRole('role');
 
     const messages = await channel.messages.fetch();
@@ -65,22 +77,6 @@ module.exports = {
       if (!messages.first().deletable) {
         return interaction.editReply({
           content: "You don't have appropiate permissions to delete messages.",
-        });
-      }
-
-      if (amount <= 0) {
-        return interaction.editReply({
-          content: `Please specify the message amount from ${bold(
-            '1',
-          )} to ${bold('50')}.`,
-        });
-      }
-
-      if (amount > 50) {
-        return interaction.editReply({
-          content: `You can only delete up to ${bold(
-            '50',
-          )} messages at a time.`,
         });
       }
 
@@ -153,14 +149,6 @@ module.exports = {
         }
       }
 
-      if (filteredMessages.size > 50) {
-        return interaction.editReply({
-          content: `You can only delete up to ${bold(
-            '50',
-          )} messages at a time.`,
-        });
-      }
-
       await channel
         .bulkDelete(filteredMessages.size ? filteredMessages : amount, true)
         .then(async (msgs) => {
@@ -171,7 +159,7 @@ module.exports = {
           }
 
           const embed = new EmbedBuilder()
-            .setColor(guild.members.me.displayHexColor)
+            .setColor(guild.members.me?.displayHexColor ?? null)
             .setTimestamp(Date.now())
             .setFooter({
               text: client.user.username,

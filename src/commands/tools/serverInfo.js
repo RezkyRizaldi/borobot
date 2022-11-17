@@ -36,6 +36,8 @@ module.exports = {
   async execute(interaction) {
     const { client, guild } = interaction;
 
+    if (!guild) return;
+
     const categoryChannelCount = guild.channels.cache.filter(
       (channel) => channel.type === ChannelType.GuildCategory,
     ).size;
@@ -85,7 +87,7 @@ module.exports = {
       })
       .setThumbnail(guild.iconURL({ dynamic: true }))
       .setDescription(guild.description ?? italic('No description'))
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(guild.members.me?.displayHexColor ?? null)
       .setFooter({
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({
@@ -127,10 +129,14 @@ module.exports = {
           value: `${onlineMemberCount.toLocaleString()} ${pluralize(
             'Online',
             onlineMemberCount,
-          )} | ${boosterCount.toLocaleString()} ${pluralize(
-            'Booster',
-            boosterCount,
-          )}`,
+          )}${
+            boosterCount
+              ? ` | ${boosterCount.toLocaleString()} ${pluralize(
+                  'Booster',
+                  boosterCount,
+                )}`
+              : ''
+          }`,
           inline: true,
         },
         {
