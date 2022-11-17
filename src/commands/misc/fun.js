@@ -1,6 +1,11 @@
 const AnimeImages = require('anime-images-api');
 const axios = require('axios');
-const { EmbedBuilder, italic, SlashCommandBuilder } = require('discord.js');
+const {
+  AttachmentBuilder,
+  EmbedBuilder,
+  italic,
+  SlashCommandBuilder,
+} = require('discord.js');
 const nekoClient = require('nekos.life');
 
 const { waifuChoices } = require('../../constants');
@@ -9,6 +14,9 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('fun')
     .setDescription('🎉 Fun command.')
+    .addSubcommand((subcommand) =>
+      subcommand.setName('ahegao').setDescription('🚫 Send a ahegao image.'),
+    )
     .addSubcommand((subcommand) =>
       subcommand.setName('boobs').setDescription('🚫 Send a boobs gif.'),
     )
@@ -191,7 +199,7 @@ module.exports = {
       }),
     });
 
-    if (!member || !target) {
+    if (!member) {
       return interaction.deferReply({ ephemeral: true }).then(async () =>
         interaction.editReply({
           content: "Member doesn't exist.",
@@ -201,6 +209,14 @@ module.exports = {
 
     switch (options.getSubcommand()) {
       case 'hug':
+        if (!target) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Member doesn't exist.",
+            }),
+          );
+        }
+
         return interaction.deferReply().then(async () => {
           const { url } = await neko.hug();
 
@@ -217,6 +233,14 @@ module.exports = {
         });
 
       case 'kiss':
+        if (!target) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Member doesn't exist.",
+            }),
+          );
+        }
+
         return interaction.deferReply().then(async () => {
           const { url } = await neko.kiss();
 
@@ -233,6 +257,14 @@ module.exports = {
         });
 
       case 'slap':
+        if (!target) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Member doesn't exist.",
+            }),
+          );
+        }
+
         return interaction.deferReply().then(async () => {
           const { url } = await neko.slap();
 
@@ -249,6 +281,14 @@ module.exports = {
         });
 
       case 'punch':
+        if (!target) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Member doesn't exist.",
+            }),
+          );
+        }
+
         return interaction.deferReply().then(
           async () =>
             await images.sfw.punch().then(
@@ -267,6 +307,14 @@ module.exports = {
         );
 
       case 'wink':
+        if (!target) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Member doesn't exist.",
+            }),
+          );
+        }
+
         return interaction.deferReply().then(
           async () =>
             await images.sfw.wink().then(
@@ -287,6 +335,14 @@ module.exports = {
         );
 
       case 'pat':
+        if (!target) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Member doesn't exist.",
+            }),
+          );
+        }
+
         return interaction.deferReply().then(async () => {
           const { url } = await neko.pat();
 
@@ -303,6 +359,14 @@ module.exports = {
         });
 
       case 'kill':
+        if (!target) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Member doesn't exist.",
+            }),
+          );
+        }
+
         return interaction.deferReply().then(
           async () =>
             await images.sfw.kill().then(
@@ -321,6 +385,14 @@ module.exports = {
         );
 
       case 'cuddle':
+        if (!target) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Member doesn't exist.",
+            }),
+          );
+        }
+
         return interaction.deferReply().then(async () => {
           const { url } = await neko.cuddle();
 
@@ -337,6 +409,14 @@ module.exports = {
         });
 
       case 'tickle':
+        if (!target) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Member doesn't exist.",
+            }),
+          );
+        }
+
         return interaction.deferReply().then(
           async () =>
             await neko.tickle().then(async ({ url }) => {
@@ -349,6 +429,14 @@ module.exports = {
         );
 
       case 'feed':
+        if (!target) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Member doesn't exist.",
+            }),
+          );
+        }
+
         return interaction.deferReply().then(
           async () =>
             await neko.feed().then(async ({ url }) => {
@@ -383,6 +471,14 @@ module.exports = {
       }
 
       case 'smug':
+        if (!target) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Member doesn't exist.",
+            }),
+          );
+        }
+
         return interaction.deferReply().then(
           async () =>
             await neko.smug().then(async ({ url }) => {
@@ -563,6 +659,56 @@ module.exports = {
               },
             ),
         );
+
+      case 'ahegao':
+        if (!channel) {
+          return interaction.deferReply({ ephemeral: true }).then(async () =>
+            interaction.editReply({
+              content: "Channel doesn't exist.",
+            }),
+          );
+        }
+
+        if (!channel.nsfw) {
+          return interaction.deferReply({ ephemeral: true }).then(
+            async () =>
+              await interaction.editReply({
+                content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+              }),
+          );
+        }
+
+        return axios
+          .get(
+            `https://api.lolhuman.xyz/api/random/nsfw/ahegao?apikey=${process.env.LOLHUMAN_API_KEY}`,
+            {
+              responseType: 'arraybuffer',
+            },
+          )
+          .then(
+            /**
+             *
+             * @param {{ data: ArrayBuffer }}
+             */
+            async ({ data }) => {
+              const base64 = Buffer.from(data, 'base64');
+              const image = new AttachmentBuilder(base64, {
+                name: 'ahegao.png',
+                description: 'Ahegao image',
+              });
+
+              embed.setColor(guild.members.me?.displayHexColor ?? null);
+              embed.setImage('attachment://ahegao.png');
+
+              await interaction.deferReply().then(
+                async () =>
+                  await interaction.editReply({
+                    embeds: [embed],
+                    files: [image],
+                  }),
+              );
+            },
+          );
     }
   },
 };
