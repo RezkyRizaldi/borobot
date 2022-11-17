@@ -31,7 +31,7 @@ module.exports = {
 
     const message = new EmbedBuilder()
       .setDescription(`${user.tag} has been unbanned by ${UnbanLog.executor}.`)
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(guild.members.me?.displayHexColor ?? null)
       .setAuthor({
         name: 'Member Unbanned',
         iconURL: client.user.displayAvatarURL({ dynamic: true }),

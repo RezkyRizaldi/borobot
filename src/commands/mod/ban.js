@@ -104,16 +104,27 @@ module.exports = {
   async execute(interaction) {
     const { client, guild, options, user } = interaction;
 
+    if (!guild) return;
+
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
       switch (options.getSubcommand()) {
         case 'add': {
-          /** @type {import('discord.js').GuildMember} */
+          /** @type {?import('discord.js').GuildMember} */
           const member = options.getMember('member');
-          const deleteMessageSeconds = options.getInteger('delete_messages');
+          const deleteMessageSeconds = options.getInteger(
+            'delete_messages',
+            true,
+          );
           const reason = options.getString('reason') ?? 'No reason';
+
+          if (!member) {
+            return interaction.editReply({
+              content: "Member doesn't exist.",
+            });
+          }
 
           if (!member.bannable) {
             return interaction.editReply({
@@ -156,8 +167,11 @@ module.exports = {
         case 'temp': {
           /** @type {import('discord.js').GuildMember} */
           const member = options.getMember('member');
-          const deleteMessageSeconds = options.getInteger('delete_messages');
-          const duration = options.getInteger('duration');
+          const deleteMessageSeconds = options.getInteger(
+            'delete_messages',
+            true,
+          );
+          const duration = options.getInteger('duration', true);
           const reason = options.getString('reason') ?? 'No reason';
 
           if (!member.bannable) {
@@ -204,6 +218,12 @@ module.exports = {
                 (ban) => ban.user.id === m.user.id,
               );
 
+              if (!bannedUser) {
+                return interaction.editReply({
+                  content: "This user isn't banned.",
+                });
+              }
+
               await guild.members
                 .unban(bannedUser, 'ban temporary duration has passed.')
                 .then(async (u) => {
@@ -230,7 +250,7 @@ module.exports = {
         }
 
         case 'remove': {
-          const userId = options.get('user_id')?.value;
+          const userId = options.get('user_id', true)?.value;
           const reason = options.getString('reason') ?? 'No reason';
 
           const bannedUser = guild.bans.cache.find(
@@ -285,7 +305,7 @@ module.exports = {
                 limit: 10,
               });
 
-              pagination.setColor(guild.members.me.displayHexColor);
+              pagination.setColor(guild.members.me?.displayHexColor ?? null);
               pagination.setTimestamp(Date.now());
               pagination.setFooter({
                 text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -313,7 +333,7 @@ module.exports = {
             }
 
             const embed = new EmbedBuilder()
-              .setColor(guild.members.me.displayHexColor)
+              .setColor(guild.members.me?.displayHexColor ?? null)
               .setTimestamp(Date.now())
               .setFooter({
                 text: client.user.username,

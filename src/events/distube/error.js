@@ -20,7 +20,7 @@ module.exports = {
       .setAuthor({
         name: '❌ An Error Encountered',
       })
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(guild.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
       .setDescription(err.toString().slice(0, 4096))
       .setFooter({

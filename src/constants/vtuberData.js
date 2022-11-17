@@ -1,4 +1,5 @@
-const vtuberAffiliations = {
+/** @type {import('./types').VtuberAffiliation} */
+const vtuberAffiliation = {
   hololive: {
     name: 'Hololive',
     logoURL:
@@ -284,50 +285,4 @@ const vtuberAffiliations = {
   },
 };
 
-const vtuberVideoSorting = [
-  {
-    name: '🆔 ID',
-    value: 'id',
-  },
-  {
-    name: '🔤 Name',
-    value: 'english_name',
-  },
-  {
-    name: '🔤 Channel Name',
-    value: 'name',
-  },
-  {
-    name: '👥 Group',
-    value: 'group',
-  },
-  {
-    name: '🔢 Video Count',
-    value: 'video_count',
-  },
-  {
-    name: '🔢 Subscriber Count',
-    value: 'subscriber_count',
-  },
-  {
-    name: '🔢 Clip Count',
-    value: 'clip_count',
-  },
-];
-
-const vtuberStreamSorting = [
-  {
-    name: '👁️ Live Viewers',
-    value: 'live_viewers',
-  },
-  {
-    name: '🔤 Streamed At',
-    value: 'available_at',
-  },
-];
-
-module.exports = {
-  vtuberAffiliations,
-  vtuberStreamSorting,
-  vtuberVideoSorting,
-};
+module.exports = { vtuberAffiliation };

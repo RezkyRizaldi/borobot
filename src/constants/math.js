@@ -1,4 +1,5 @@
-module.exports = {
+/** @type {{ [name: String]: import('./types').Math }} */
+const math = {
   plus: {
     symbol: '+',
     description: 'Addition operator',
@@ -174,3 +175,5 @@ module.exports = {
     result: 'Infinity',
   },
 };
+
+module.exports = { math };

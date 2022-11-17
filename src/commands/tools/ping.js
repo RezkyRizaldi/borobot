@@ -13,9 +13,9 @@ module.exports = {
   async execute(interaction) {
     const { client, guild } = interaction;
 
-    await interaction.deferReply().then(async (message) => {
+    await interaction.deferReply({ fetchReply: true }).then(async (message) => {
       const embed = new EmbedBuilder()
-        .setColor(guild.members.me.displayHexColor)
+        .setColor(guild?.members.me?.displayHexColor ?? null)
         .setTimestamp(Date.now())
         .setFooter({
           text: client.user.username,

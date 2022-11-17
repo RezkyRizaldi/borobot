@@ -21,7 +21,7 @@ module.exports = {
    */
   async execute(oldMessage, newMessage) {
     const embed = new EmbedBuilder()
-      .setColor(oldMessage.guild.members.me.displayHexColor)
+      .setColor(oldMessage.guild.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: oldMessage.client.user.username,

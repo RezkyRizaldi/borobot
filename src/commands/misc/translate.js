@@ -56,7 +56,7 @@ module.exports = {
     const { paginations } = client;
 
     const embed = new EmbedBuilder()
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(guild?.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
@@ -70,9 +70,7 @@ module.exports = {
       case 'list':
         return interaction.deferReply({ ephemeral: true }).then(async () => {
           const locales = Object.entries(languages)
-            .filter(
-              ([key, value]) => typeof value !== 'function' && key !== 'auto',
-            )
+            .filter(([key]) => key !== 'auto')
             .sort(([key], [key2]) => key.localeCompare(key2));
 
           const responses = locales.map(
@@ -86,7 +84,7 @@ module.exports = {
             limit: 10,
           });
 
-          pagination.setColor(guild.members.me.displayHexColor);
+          pagination.setColor(guild?.members.me?.displayHexColor ?? null);
           pagination.setTimestamp(Date.now());
           pagination.setFooter({
             text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -114,9 +112,9 @@ module.exports = {
         });
 
       case 'run': {
-        const text = options.getString('text');
+        const text = options.getString('text', true);
         const from = options.getString('from');
-        const to = options.getString('to');
+        const to = options.getString('to', true);
 
         const translateOptions = { to };
 

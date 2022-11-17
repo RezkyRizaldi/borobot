@@ -337,29 +337,18 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, guild, options } = interaction;
+    /** @type {{ client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { client, guild, member, options } = interaction;
+
+    if (!guild) return;
 
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
-    /** @type {import('discord.js').GuildMember} */
-    const member = options.getMember('member');
-
-    /** @type {import('discord.js').Role} */
-    const role = options.getRole('role');
-    const name = options.getString('name');
-    const color = options.getString('color');
-    const hoist = options.getBoolean('hoist');
-    const mentionable = options.getBoolean('mentionable');
-
-    /** @type {import('discord.js').Role} */
-    const targetRolePosition = options.getRole('position');
     const reason = options.getString('reason') ?? 'No reason';
-    const convertedColor =
-      color !== null ? applyHexColor(color) : Colors.Default;
 
     const embed = new EmbedBuilder()
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(guild.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
@@ -369,14 +358,17 @@ module.exports = {
       });
 
     switch (options.getSubcommandGroup()) {
-      case 'modify':
+      case 'modify': {
+        /** @type {import('discord.js').Role} */
+        const role = options.getRole('role', true);
+
         return interaction.deferReply({ ephemeral: true }).then(async () => {
           if (
             !interaction.member.permissions.has(
               PermissionFlagsBits.ManageRoles,
             ) ||
             !role.editable ||
-            role.position > guild.members.me.roles.highest.position
+            role.position > guild.members.me?.roles.highest.position
           ) {
             return interaction.editReply({
               content: `You don't have appropiate permissions to modify the ${role} role.`,
@@ -384,7 +376,9 @@ module.exports = {
           }
 
           switch (options.getSubcommand()) {
-            case 'name':
+            case 'name': {
+              const name = options.getString('name', true);
+
               if (name.toLowerCase() === role.name.toLowerCase()) {
                 return interaction.editReply({
                   content: 'You have to specify a different name to modify.',
@@ -397,8 +391,12 @@ module.exports = {
                     content: `Successfully ${bold('modified')} ${r}.`,
                   }),
               );
+            }
 
-            case 'color':
+            case 'color': {
+              const color = options.getString('color', true);
+              const convertedColor = applyHexColor(color);
+
               if (
                 convertedColor.toLowerCase() === role.hexColor.toLowerCase()
               ) {
@@ -413,8 +411,12 @@ module.exports = {
                     content: `Successfully ${bold('modified')} ${r}.`,
                   }),
               );
+            }
 
             case 'position': {
+              /** @type {import('discord.js').Role} */
+              const targetRolePosition = options.getRole('position', true);
+
               if (
                 targetRolePosition.permissions.bitfield >
                 role.permissions.bitfield
@@ -441,7 +443,9 @@ module.exports = {
                 );
             }
 
-            case 'hoist':
+            case 'hoist': {
+              const hoist = options.getBoolean('hoist', true);
+
               if (hoist === role.hoist) {
                 return interaction.editReply({
                   content: `${role}'s hoist state ${
@@ -458,8 +462,11 @@ module.exports = {
                     } ${r}'s hoist state.`,
                   }),
               );
+            }
 
-            case 'mentionable':
+            case 'mentionable': {
+              const mentionable = options.getBoolean('mentionable', true);
+
               if (mentionable === role.mentionable) {
                 return interaction.editReply({
                   content: `${role}'s mentionable state ${
@@ -476,17 +483,17 @@ module.exports = {
                     } ${r}'s mentionable state.`,
                   }),
               );
+            }
 
             case 'permissions': {
-              const type = options.getString('type');
-              const permission = BigInt(options.getInteger('permission'));
-              const permissions = role.permissions.toArray();
-              const missingPermissions = role.permissions.missing(permission);
-
-              pluralize.addPluralRule(/permission$/i, 'permissions');
+              const type = options.getString('type', true);
+              const permission = BigInt(options.getInteger('permission', true));
 
               switch (type) {
                 case 'grant': {
+                  const missingPermissions =
+                    role.permissions.missing(permission);
+
                   if (permission === BigInt(0)) {
                     return interaction.editReply({
                       content: 'You have to specify a permission to grant.',
@@ -498,6 +505,12 @@ module.exports = {
                       content: `${inlineCode(
                         applyPermission(permission),
                       )} permission is already granted for ${role} role.`,
+                    });
+                  }
+
+                  if (!missingPermissions.length) {
+                    return interaction.editReply({
+                      content: `${role} role already have all permissions.`,
                     });
                   }
 
@@ -516,7 +529,13 @@ module.exports = {
                     );
                 }
 
-                case 'deny':
+                case 'deny': {
+                  const hasPermissions = role.permissions
+                    .toArray()
+                    .filter(
+                      (perm) => !role.permissions.toArray().includes(perm),
+                    );
+
                   if (!role.permissions.has(permission)) {
                     return interaction.editReply({
                       content: `${inlineCode(
@@ -525,32 +544,40 @@ module.exports = {
                     });
                   }
 
+                  if (!hasPermissions.length) {
+                    return interaction.editReply({
+                      content: `${role} role doesn't have any permissions.`,
+                    });
+                  }
+
                   return role
                     .setPermissions(role.permissions.remove(permission), reason)
                     .then(
                       async (r) =>
                         await interaction.editReply({
-                          content: `Successfully denied ${permissions
-                            .filter(
-                              (perm) => !r.permissions.toArray().includes(perm),
-                            )
+                          content: `Successfully denied ${hasPermissions
                             .map((perm) => inlineCode(capitalCase(perm)))
                             .join(', ')} ${pluralize(
                             'permission',
-                            missingPermissions.length,
+                            hasPermissions.length,
                           )} for ${r} role.`,
                         }),
                     );
+                }
               }
             }
           }
         });
+      }
     }
 
     switch (options.getSubcommand()) {
       case 'compare': {
         /** @type {import('discord.js').Role} */
-        const targetRole = options.getRole('to_role');
+        const role = options.getRole('role', true);
+
+        /** @type {import('discord.js').Role} */
+        const targetRole = options.getRole('to_role', true);
 
         if (role.id === targetRole.id) {
           return interaction.deferReply({ ephemeral: true }).then(
@@ -650,7 +677,10 @@ module.exports = {
         });
       }
 
-      case 'info':
+      case 'info': {
+        /** @type {import('discord.js').Role} */
+        const role = options.getRole('role', true);
+
         return interaction.deferReply().then(async () => {
           embed.setAuthor({
             name: `ℹ️ ${role.name}'s Role Information`,
@@ -713,19 +743,34 @@ module.exports = {
 
           await interaction.editReply({ embeds: [embed] });
         });
+      }
 
       case 'create': {
+        const name = options.getString('name', true);
+        const color = options.getString('color');
+        const hoist = options.getBoolean('hoist') ?? false;
+        const mentionable = options.getBoolean('mentionable') ?? false;
+
+        /** @type {?import('discord.js').Role} */
+        const targetRolePosition = options.getRole('position');
         const permission = options.getInteger('permission');
         const permission2 = options.getInteger('permission2');
         const permission3 = options.getInteger('permission3');
+
+        const convertedColor =
+          color !== null ? applyHexColor(color) : Colors.Default;
         const permissionArray = [permission, permission2, permission3]
           .filter((perm) => !!perm)
           .map((perm) => BigInt(perm));
 
         return interaction.deferReply({ ephemeral: true }).then(async () => {
-          if (
-            !interaction.member.permissions.has(PermissionFlagsBits.ManageRoles)
-          ) {
+          if (!member) {
+            return interaction.editReply({
+              content: "Member doesn't exist.",
+            });
+          }
+
+          if (!member.permissions.has(PermissionFlagsBits.ManageRoles)) {
             return interaction.editReply({
               content:
                 "You don't have appropiate permissions to create a role.",
@@ -736,8 +781,8 @@ module.exports = {
             .create({
               name,
               color: convertedColor,
-              hoist: hoist ?? false,
-              mentionable: mentionable ?? false,
+              hoist,
+              mentionable,
               reason,
               position: targetRolePosition
                 ? targetRolePosition.position + 1
@@ -755,14 +800,15 @@ module.exports = {
         });
       }
 
-      case 'delete':
+      case 'delete': {
+        /** @type {import('discord.js').Role} */
+        const role = options.getRole('role', true);
+
         return interaction.deferReply({ ephemeral: true }).then(async () => {
           if (
-            !interaction.member.permissions.has(
-              PermissionFlagsBits.ManageRoles,
-            ) ||
+            !member.permissions.has(PermissionFlagsBits.ManageRoles) ||
             role.managed ||
-            role.position > guild.members.me.roles.highest.position
+            role.position > guild.members.me?.roles.highest.position
           ) {
             return interaction.editReply({
               content: `You don't have appropiate permissions to delete ${role} role.`,
@@ -776,58 +822,80 @@ module.exports = {
               }),
           );
         });
+      }
 
-      case 'add':
+      case 'add': {
+        /** @type {import('discord.js').Role} */
+        const role = options.getRole('role', true);
+
+        /** @type {import('discord.js').GuildMember} */
+        const target = options.getMember('member', true);
+
         return interaction.deferReply({ ephemeral: true }).then(async () => {
+          if (!member) {
+            return interaction.editReply({
+              content: "Member doesn't exist.",
+            });
+          }
+
           if (
-            !interaction.member.permissions.has(
-              PermissionFlagsBits.ModerateMembers,
-            ) ||
+            !member.permissions.has(PermissionFlagsBits.ModerateMembers) ||
             role.managed ||
-            role.position > guild.members.me.roles.highest.position ||
-            !member.manageable
+            role.position > guild.members.me?.roles.highest.position ||
+            !target.manageable
           ) {
             return interaction.editReply({
-              content: `You don't have appropiate permissions to add ${role} role to ${member}.`,
+              content: `You don't have appropiate permissions to add ${role} role to ${target}.`,
             });
           }
 
-          if (member.roles.cache.has(role.id)) {
+          if (target.roles.cache.has(role.id)) {
             return interaction.editReply({
-              content: `${member} is already have ${role} role.`,
+              content: `${target} is already have ${role} role.`,
             });
           }
 
-          await member.roles.add(role, reason).then(
+          await target.roles.add(role, reason).then(
             async (m) =>
               await interaction.editReply({
                 content: `Successfully ${bold('added')} ${role} role to ${m}.`,
               }),
           );
         });
+      }
 
-      case 'remove':
+      case 'remove': {
+        /** @type {import('discord.js').Role} */
+        const role = options.getRole('role', true);
+
+        /** @type {import('discord.js').GuildMember} */
+        const target = options.getMember('member', true);
+
         return interaction.deferReply({ ephemeral: true }).then(async () => {
+          if (!member) {
+            return interaction.editReply({
+              content: "Member doesn't exist.",
+            });
+          }
+
           if (
-            !interaction.member.permissions.has(
-              PermissionFlagsBits.ModerateMembers,
-            ) ||
+            !member.permissions.has(PermissionFlagsBits.ModerateMembers) ||
             role.managed ||
-            role.position > guild.members.me.roles.highest.position ||
-            !member.manageable
+            role.position > guild.members.me?.roles.highest.position ||
+            !target.manageable
           ) {
             return interaction.editReply({
-              content: `You don't have appropiate permissions to remove ${role} role from ${member}.`,
+              content: `You don't have appropiate permissions to remove ${role} role from ${target}.`,
             });
           }
 
-          if (!member.roles.cache.has(role.id)) {
+          if (!target.roles.cache.has(role.id)) {
             return interaction.editReply({
-              content: `${member} doesn't have ${role} role.`,
+              content: `${target} doesn't have ${role} role.`,
             });
           }
 
-          await member.roles.remove(role, reason).then(
+          await target.roles.remove(role, reason).then(
             async (m) =>
               await interaction.editReply({
                 content: `Successfully ${bold(
@@ -836,6 +904,7 @@ module.exports = {
               }),
           );
         });
+      }
 
       case 'list':
         return interaction.deferReply().then(
@@ -857,7 +926,7 @@ module.exports = {
                   limit: 10,
                 });
 
-                pagination.setColor(guild.members.me.displayHexColor);
+                pagination.setColor(guild.members.me?.displayHexColor ?? null);
                 pagination.setTimestamp(Date.now());
                 pagination.setFooter({
                   text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -865,17 +934,17 @@ module.exports = {
                     dynamic: true,
                   }),
                 });
-                pagination.setAuthor({
-                  name: `🔐 ${guild} Role Lists (${rls.size.toLocaleString()})`,
-                });
 
-                if (guild.icon) {
+                if (!guild.icon) {
                   pagination.setAuthor({
-                    name: `${guild} Role Lists (${rls.size.toLocaleString()})`,
-                    iconURL: guild.iconURL({ dynamic: true }),
+                    name: `🔐 ${guild} Role Lists (${rls.size.toLocaleString()})`,
                   });
                 }
 
+                pagination.setAuthor({
+                  name: `${guild} Role Lists (${rls.size.toLocaleString()})`,
+                  iconURL: guild.iconURL({ dynamic: true }),
+                });
                 pagination.setDescriptions(descriptions);
 
                 pagination.buttons = {
@@ -892,17 +961,16 @@ module.exports = {
                 return pagination.render();
               }
 
-              embed.setAuthor({
-                name: `🔐 ${guild} Role Lists (${rls.size.toLocaleString()})`,
-              });
-
-              if (guild.icon) {
+              if (!guild.icon) {
                 embed.setAuthor({
-                  name: `${guild} Role Lists (${rls.size.toLocaleString()})`,
-                  iconURL: guild.iconURL({ dynamic: true }),
+                  name: `🔐 ${guild} Role Lists (${rls.size.toLocaleString()})`,
                 });
               }
 
+              embed.setAuthor({
+                name: `${guild} Role Lists (${rls.size.toLocaleString()})`,
+                iconURL: guild.iconURL({ dynamic: true }),
+              });
               embed.setDescription(descriptions.join('\n'));
 
               await interaction.editReply({ embeds: [embed] });

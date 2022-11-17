@@ -37,7 +37,7 @@ const {
   extraMcData,
   githubRepoSortingTypeChoices,
   searchSortingChoices,
-  vtuberAffiliations,
+  vtuberAffiliation,
   vtuberStreamSortingChoices,
   vtuberVideoSortingChoices,
 } = require('../../constants');
@@ -375,7 +375,7 @@ module.exports = {
     const { paginations } = client;
 
     const embed = new EmbedBuilder()
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(guild?.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
@@ -398,12 +398,16 @@ module.exports = {
                     .format('M-DD-YYYY')}`,
                 )
                 .then(
-                  async ({ data }) =>
+                  /**
+                   *
+                   * @param {{ data: import('../../constants/types').CovidLatest[] }}
+                   */
+                  async ({ data }) => {
                     await interaction.deferReply().then(async () => {
                       /** @type {import('discord.js').EmbedBuilder[]} */
                       const embeds = data.map((item, index, array) =>
                         new EmbedBuilder()
-                          .setColor(guild.members.me.displayHexColor)
+                          .setColor(guild?.members.me?.displayHexColor ?? null)
                           .setTimestamp(Date.now())
                           .setFooter({
                             text: `${client.user.username} | Page ${
@@ -442,32 +446,22 @@ module.exports = {
                             },
                             {
                               name: '✅ Confirmed',
-                              value: `${item.confirmed.toLocaleString()} ${pluralize(
-                                'case',
+                              value: `${Number(
                                 item.confirmed,
-                              )}${
-                                item.cases28Days
-                                  ? ` (${item.cases28Days.toLocaleString()} ${pluralize(
-                                      'case',
-                                      item.cases28Days,
-                                    )}/month)`
-                                  : ''
-                              }`,
+                              ).toLocaleString()} ${pluralize(
+                                'case',
+                                Number(item.confirmed),
+                              )}`,
                               inline: true,
                             },
                             {
                               name: '☠️ Deaths',
-                              value: `${item.deaths.toLocaleString()} ${pluralize(
-                                'death',
+                              value: `${Number(
                                 item.deaths,
-                              )}${
-                                item.deaths28Days
-                                  ? ` (${item.deaths28Days.toLocaleString()} ${pluralize(
-                                      'death',
-                                      item.deaths28Days,
-                                    )}/month)`
-                                  : ''
-                              }`,
+                              ).toLocaleString()} ${pluralize(
+                                'death',
+                                Number(item.deaths),
+                              )}`,
                               inline: true,
                             },
                             {
@@ -494,13 +488,17 @@ module.exports = {
                       paginations.set(pagination.interaction.id, pagination);
 
                       await pagination.render();
-                    }),
+                    });
+                  },
                 );
 
             case 'list':
-              return axios
-                .get(`${baseURL}/countries`)
-                .then(async ({ data: { countries } }) => {
+              return axios.get(`${baseURL}/countries`).then(
+                /**
+                 *
+                 * @param {{ data: { countries: import('../../constants/types').CovidCountry[] } }}
+                 */
+                async ({ data: { countries } }) => {
                   await interaction.deferReply().then(async () => {
                     const responses = countries.map(
                       ({ name }, index) => `${bold(`${index + 1}.`)} ${name}`,
@@ -510,7 +508,9 @@ module.exports = {
                       limit: 10,
                     });
 
-                    pagination.setColor(guild.members.me.displayHexColor);
+                    pagination.setColor(
+                      guild?.members.me?.displayHexColor ?? null,
+                    );
                     pagination.setTimestamp(Date.now());
                     pagination.setFooter({
                       text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -536,19 +536,24 @@ module.exports = {
 
                     await pagination.render();
                   });
-                });
+                },
+              );
 
             case 'country': {
               const name = options.getString('name');
 
               if (!name) {
                 return axios.get(`${baseURL}/confirmed`).then(
+                  /**
+                   *
+                   * @param {{ data: import('../../constants/types').CovidConfirmed[] }}
+                   */
                   async ({ data }) =>
                     await interaction.deferReply().then(async () => {
                       /** @type {import('discord.js').EmbedBuilder[]} */
                       const embeds = data.map((item, index, array) =>
                         new EmbedBuilder()
-                          .setColor(guild.members.me.displayHexColor)
+                          .setColor(guild?.members.me?.displayHexColor ?? null)
                           .setTimestamp(Date.now())
                           .setFooter({
                             text: `${client.user.username} | Page ${
@@ -621,12 +626,14 @@ module.exports = {
                             },
                             {
                               name: '📋 Incident Rate',
-                              value: `${Math.floor(
-                                item.incidentRate,
-                              ).toLocaleString()} ${pluralize(
-                                'case',
-                                item.incidentRate,
-                              )}/day`,
+                              value: item.incidentRate
+                                ? `${Math.floor(
+                                    item.incidentRate,
+                                  ).toLocaleString()} ${pluralize(
+                                    'case',
+                                    item.incidentRate,
+                                  )}/day`
+                                : italic('Unknown'),
                               inline: true,
                             },
                           ]),
@@ -652,161 +659,74 @@ module.exports = {
                 );
               }
 
-              const country = await axios
-                .get(`${baseURL}/countries`)
-                .then(
-                  async ({ data: { countries } }) =>
-                    countries.find(
-                      (item) => item.name.toLowerCase() === name.toLowerCase(),
-                    ).name,
-                );
+              const country = await axios.get(`${baseURL}/countries`).then(
+                /**
+                 *
+                 * @param {{ data: { countries: import('../../constants/types').CovidCountry[] } }}
+                 */
+                async ({ data: { countries } }) =>
+                  countries.find(
+                    (item) => item.name.toLowerCase() === name.toLowerCase(),
+                  ).name,
+              );
 
               return axios
                 .get(`${baseURL}/countries/${country}/confirmed`)
-                .then(async ({ data }) => {
-                  if (!data.length) {
-                    return interaction.deferReply({ ephemeral: true }).then(
-                      async () =>
-                        await interaction.editReply({
-                          content: `No information found in ${inlineCode(
-                            name,
-                          )}.`,
-                        }),
-                    );
-                  }
-
-                  if (data.length === 1) {
-                    return interaction.deferReply().then(async () => {
-                      await wait(4000);
-
-                      embed.setThumbnail(
-                        `${baseURL}/countries/${data[0].countryRegion}/og`,
-                      );
-                      embed.setAuthor({
-                        name: `🦠 Covid-19 Confirmed Cases in ${data[0].countryRegion}`,
-                      });
-                      embed.setFields([
-                        {
-                          name: '🗾 Province/State',
-                          value:
-                            !data[0].provinceState ||
-                            data[0].provinceState === 'Unknown'
-                              ? italic('Unknown')
-                              : data[0].provinceState,
-                          inline: true,
-                        },
-                        {
-                          name: '📆 Last Updated',
-                          value: time(
-                            new Date(data[0].lastUpdate),
-                            TimestampStyles.RelativeTime,
-                          ),
-                          inline: true,
-                        },
-                        {
-                          name: '✅ Confirmed',
-                          value: `${data[0].confirmed.toLocaleString()} ${pluralize(
-                            'case',
-                            data[0].confirmed,
-                          )}${
-                            data[0].cases28Days
-                              ? ` (${data[0].cases28Days.toLocaleString()} ${pluralize(
-                                  'case',
-                                  data[0].cases28Days,
-                                )}/month)`
-                              : ''
-                          }`,
-                          inline: true,
-                        },
-                        {
-                          name: '🔴 Active',
-                          value: `${data[0].active.toLocaleString()} ${pluralize(
-                            'case',
-                            data[0].active,
-                          )}`,
-                          inline: true,
-                        },
-                        {
-                          name: '☠️ Deaths',
-                          value: `${data[0].deaths.toLocaleString()} ${pluralize(
-                            'death',
-                            data[0].deaths,
-                          )}${
-                            data[0].deaths28Days
-                              ? ` (${data[0].deaths28Days.toLocaleString()} ${pluralize(
-                                  'death',
-                                  data[0].deaths28Days,
-                                )}/month)`
-                              : ''
-                          }`,
-                          inline: true,
-                        },
-                        {
-                          name: '📋 Incident Rate',
-                          value: `${Math.floor(
-                            data[0].incidentRate,
-                          ).toLocaleString()} ${pluralize(
-                            'case',
-                            data[0].incidentRate,
-                          )}/day`,
-                          inline: true,
-                        },
-                      ]);
-
-                      await interaction.editReply({ embeds: [embed] });
-                    });
-                  }
-
-                  await interaction.deferReply().then(async () => {
-                    await wait(4000);
-
-                    /** @type {import('discord.js').EmbedBuilder[]} */
-                    const embeds = data.map((item, index, array) =>
-                      new EmbedBuilder()
-                        .setColor(guild.members.me.displayHexColor)
-                        .setTimestamp(Date.now())
-                        .setFooter({
-                          text: `${client.user.username} | Page ${
-                            index + 1
-                          } of ${array.length}`,
-                          iconURL: client.user.displayAvatarURL({
-                            dynamic: true,
+                .then(
+                  /**
+                   *
+                   * @param {{ data: import('../../constants/types').CovidConfirmed[] }}
+                   */
+                  async ({ data }) => {
+                    if (!data.length) {
+                      return interaction.deferReply({ ephemeral: true }).then(
+                        async () =>
+                          await interaction.editReply({
+                            content: `No information found in ${inlineCode(
+                              name,
+                            )}.`,
                           }),
-                        })
-                        .setThumbnail(
-                          `${baseURL}/countries/${item.countryRegion}/og`,
-                        )
-                        .setAuthor({
-                          name: `🦠 Covid-19 Confirmed Cases in ${item.countryRegion}`,
-                        })
-                        .setFields([
+                      );
+                    }
+
+                    if (data.length === 1) {
+                      return interaction.deferReply().then(async () => {
+                        await wait(4000);
+
+                        embed.setThumbnail(
+                          `${baseURL}/countries/${data[0].countryRegion}/og`,
+                        );
+                        embed.setAuthor({
+                          name: `🦠 Covid-19 Confirmed Cases in ${data[0].countryRegion}`,
+                        });
+                        embed.setFields([
                           {
                             name: '🗾 Province/State',
                             value:
-                              !item.provinceState ||
-                              item.provinceState === 'Unknown'
+                              !data[0].provinceState ||
+                              data[0].provinceState === 'Unknown'
                                 ? italic('Unknown')
-                                : item.provinceState,
+                                : data[0].provinceState,
                             inline: true,
                           },
                           {
                             name: '📆 Last Updated',
                             value: time(
-                              new Date(item.lastUpdate),
+                              new Date(data[0].lastUpdate),
                               TimestampStyles.RelativeTime,
                             ),
                             inline: true,
                           },
                           {
                             name: '✅ Confirmed',
-                            value: `${item.confirmed.toLocaleString()} ${pluralize(
+                            value: `${data[0].confirmed.toLocaleString()} ${pluralize(
                               'case',
-                              item.confirmed,
+                              data[0].confirmed,
                             )}${
-                              item.cases28Days
-                                ? ` (${item.cases28Days.toLocaleString()} ${pluralize(
+                              data[0].cases28Days
+                                ? ` (${data[0].cases28Days.toLocaleString()} ${pluralize(
                                     'case',
-                                    item.cases28Days,
+                                    data[0].cases28Days,
                                   )}/month)`
                                 : ''
                             }`,
@@ -814,22 +734,24 @@ module.exports = {
                           },
                           {
                             name: '🔴 Active',
-                            value: `${item.active.toLocaleString()} ${pluralize(
-                              'case',
-                              item.active,
-                            )}`,
+                            value: data[0].active
+                              ? `${data[0].active.toLocaleString()} ${pluralize(
+                                  'case',
+                                  data[0].active,
+                                )}`
+                              : italic('Unknown'),
                             inline: true,
                           },
                           {
                             name: '☠️ Deaths',
-                            value: `${item.deaths.toLocaleString()} ${pluralize(
+                            value: `${data[0].deaths.toLocaleString()} ${pluralize(
                               'death',
-                              item.deaths,
+                              data[0].deaths,
                             )}${
-                              item.deaths28Days
-                                ? ` (${item.deaths28Days.toLocaleString()} ${pluralize(
+                              data[0].deaths28Days
+                                ? ` (${data[0].deaths28Days.toLocaleString()} ${pluralize(
                                     'death',
-                                    item.deaths28Days,
+                                    data[0].deaths28Days,
                                   )}/month)`
                                 : ''
                             }`,
@@ -837,35 +759,136 @@ module.exports = {
                           },
                           {
                             name: '📋 Incident Rate',
-                            value: `${Math.floor(
-                              item.incidentRate,
-                            ).toLocaleString()} ${pluralize(
-                              'case',
-                              item.incidentRate,
-                            )}/day`,
+                            value: data[0].incidentRate
+                              ? `${Math.floor(
+                                  data[0].incidentRate,
+                                ).toLocaleString()} ${pluralize(
+                                  'case',
+                                  data[0].incidentRate,
+                                )}/day`
+                              : italic('Unknown'),
                             inline: true,
                           },
-                        ]),
-                    );
+                        ]);
 
-                    const pagination = new Pagination(interaction);
+                        await interaction.editReply({ embeds: [embed] });
+                      });
+                    }
 
-                    pagination.setEmbeds(embeds);
+                    await interaction.deferReply().then(async () => {
+                      await wait(4000);
 
-                    pagination.buttons = {
-                      ...pagination.buttons,
-                      extra: new ButtonBuilder()
-                        .setCustomId('jump')
-                        .setEmoji('↕️')
-                        .setDisabled(false)
-                        .setStyle(ButtonStyle.Secondary),
-                    };
+                      /** @type {import('discord.js').EmbedBuilder[]} */
+                      const embeds = data.map((item, index, array) =>
+                        new EmbedBuilder()
+                          .setColor(guild?.members.me?.displayHexColor ?? null)
+                          .setTimestamp(Date.now())
+                          .setFooter({
+                            text: `${client.user.username} | Page ${
+                              index + 1
+                            } of ${array.length}`,
+                            iconURL: client.user.displayAvatarURL({
+                              dynamic: true,
+                            }),
+                          })
+                          .setThumbnail(
+                            `${baseURL}/countries/${item.countryRegion}/og`,
+                          )
+                          .setAuthor({
+                            name: `🦠 Covid-19 Confirmed Cases in ${item.countryRegion}`,
+                          })
+                          .setFields([
+                            {
+                              name: '🗾 Province/State',
+                              value:
+                                !item.provinceState ||
+                                item.provinceState === 'Unknown'
+                                  ? italic('Unknown')
+                                  : item.provinceState,
+                              inline: true,
+                            },
+                            {
+                              name: '📆 Last Updated',
+                              value: time(
+                                new Date(item.lastUpdate),
+                                TimestampStyles.RelativeTime,
+                              ),
+                              inline: true,
+                            },
+                            {
+                              name: '✅ Confirmed',
+                              value: `${item.confirmed.toLocaleString()} ${pluralize(
+                                'case',
+                                item.confirmed,
+                              )}${
+                                item.cases28Days
+                                  ? ` (${item.cases28Days.toLocaleString()} ${pluralize(
+                                      'case',
+                                      item.cases28Days,
+                                    )}/month)`
+                                  : ''
+                              }`,
+                              inline: true,
+                            },
+                            {
+                              name: '🔴 Active',
+                              value: item.active
+                                ? `${item.active.toLocaleString()} ${pluralize(
+                                    'case',
+                                    item.active,
+                                  )}`
+                                : italic('Unknown'),
+                              inline: true,
+                            },
+                            {
+                              name: '☠️ Deaths',
+                              value: `${item.deaths.toLocaleString()} ${pluralize(
+                                'death',
+                                item.deaths,
+                              )}${
+                                item.deaths28Days
+                                  ? ` (${item.deaths28Days.toLocaleString()} ${pluralize(
+                                      'death',
+                                      item.deaths28Days,
+                                    )}/month)`
+                                  : ''
+                              }`,
+                              inline: true,
+                            },
+                            {
+                              name: '📋 Incident Rate',
+                              value: item.incidentRate
+                                ? `${Math.floor(
+                                    item.incidentRate,
+                                  ).toLocaleString()} ${pluralize(
+                                    'case',
+                                    item.incidentRate,
+                                  )}/day`
+                                : italic('Unknown'),
+                              inline: true,
+                            },
+                          ]),
+                      );
 
-                    paginations.set(pagination.interaction.id, pagination);
+                      const pagination = new Pagination(interaction);
 
-                    await pagination.render();
-                  });
-                });
+                      pagination.setEmbeds(embeds);
+
+                      pagination.buttons = {
+                        ...pagination.buttons,
+                        extra: new ButtonBuilder()
+                          .setCustomId('jump')
+                          .setEmoji('↕️')
+                          .setDisabled(false)
+                          .setStyle(ButtonStyle.Secondary),
+                      };
+
+                      paginations.set(pagination.interaction.id, pagination);
+
+                      await pagination.render();
+                    });
+                  },
+                );
             }
           }
         }
@@ -881,9 +904,12 @@ module.exports = {
             if (!name) {
               return interaction.deferReply().then(
                 async () =>
-                  await axios
-                    .get(`${baseURL}/artifacts`)
-                    .then(async ({ data }) => {
+                  await axios.get(`${baseURL}/artifacts`).then(
+                    /**
+                     *
+                     * @param {{ data: String[] }}
+                     */
+                    async ({ data }) => {
                       const responses = data.map(
                         (item, index) =>
                           `${bold(`${index + 1}.`)} ${capitalCase(item)}`,
@@ -893,7 +919,9 @@ module.exports = {
                         limit: 10,
                       });
 
-                      pagination.setColor(guild.members.me.displayHexColor);
+                      pagination.setColor(
+                        guild?.members.me?.displayHexColor ?? null,
+                      );
                       pagination.setTimestamp(Date.now());
                       pagination.setFooter({
                         text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -922,84 +950,91 @@ module.exports = {
                       paginations.set(pagination.interaction.id, pagination);
 
                       await pagination.render();
-                    }),
+                    },
+                  ),
               );
             }
 
             return axios
               .get(`${baseURL}/artifacts/${paramCase(name)}`)
-              .then(async ({ data }) => {
-                embed.setThumbnail(
-                  getWikiaURL({
-                    fileName: 'Icon_Inventory_Artifacts',
-                    path: 'gensin-impact',
-                  }),
-                );
-                embed.setAuthor({
-                  name: `🛡️ ${data.name}`,
-                });
-                embed.setFields([
-                  {
-                    name: '⭐ Rarity',
-                    value:
-                      data.max_rarity > 1
-                        ? `1-${data.max_rarity} ⭐`
-                        : `${data.max_rarity} ⭐`,
-                  },
-                ]);
-
-                if (data['1-piece_bonus']) {
-                  embed.addFields([
-                    {
-                      name: '🎁 1-piece Bonus',
-                      value: data['1-piece_bonus'],
-                    },
-                  ]);
-                }
-
-                if (data['2-piece_bonus']) {
-                  embed.addFields([
-                    {
-                      name: '🎁 2-piece Bonus',
-                      value: data['2-piece_bonus'],
-                    },
-                  ]);
-                }
-
-                if (data['3-piece_bonus']) {
-                  embed.addFields([
-                    {
-                      name: '🎁 3-piece Bonus',
-                      value: data['3-piece_bonus'],
-                    },
-                  ]);
-                }
-
-                if (data['4-piece_bonus']) {
-                  embed.addFields([
-                    {
-                      name: '🎁 4-piece Bonus',
-                      value: data['4-piece_bonus'],
-                    },
-                  ]);
-                }
-
-                if (data['5-piece_bonus']) {
-                  embed.addFields([
-                    {
-                      name: '🎁 5-piece Bonus',
-                      value: data['5-piece_bonus'],
-                    },
-                  ]);
-                }
-
-                await interaction
-                  .deferReply()
-                  .then(
-                    async () =>
-                      await interaction.editReply({ embeds: [embed] }),
+              .then(
+                /**
+                 *
+                 * @param {{ data: import('../../constants/types').GenshinArtifact }}
+                 */
+                async ({ data }) => {
+                  embed.setThumbnail(
+                    getWikiaURL({
+                      fileName: 'Icon_Inventory_Artifacts',
+                      path: 'gensin-impact',
+                    }),
                   );
-              })
+                  embed.setAuthor({
+                    name: `🛡️ ${data.name}`,
+                  });
+                  embed.setFields([
+                    {
+                      name: '⭐ Rarity',
+                      value:
+                        data.max_rarity > 1
+                          ? `1-${data.max_rarity} ⭐`
+                          : `${data.max_rarity} ⭐`,
+                    },
+                  ]);
+
+                  if (data['1-piece_bonus']) {
+                    embed.addFields([
+                      {
+                        name: '🎁 1-piece Bonus',
+                        value: data['1-piece_bonus'],
+                      },
+                    ]);
+                  }
+
+                  if (data['2-piece_bonus']) {
+                    embed.addFields([
+                      {
+                        name: '🎁 2-piece Bonus',
+                        value: data['2-piece_bonus'],
+                      },
+                    ]);
+                  }
+
+                  if (data['3-piece_bonus']) {
+                    embed.addFields([
+                      {
+                        name: '🎁 3-piece Bonus',
+                        value: data['3-piece_bonus'],
+                      },
+                    ]);
+                  }
+
+                  if (data['4-piece_bonus']) {
+                    embed.addFields([
+                      {
+                        name: '🎁 4-piece Bonus',
+                        value: data['4-piece_bonus'],
+                      },
+                    ]);
+                  }
+
+                  if (data['5-piece_bonus']) {
+                    embed.addFields([
+                      {
+                        name: '🎁 5-piece Bonus',
+                        value: data['5-piece_bonus'],
+                      },
+                    ]);
+                  }
+
+                  await interaction
+                    .deferReply()
+                    .then(
+                      async () =>
+                        await interaction.editReply({ embeds: [embed] }),
+                    );
+                },
+              )
               .catch(async (err) => {
                 console.error(err);
 
@@ -1018,14 +1053,17 @@ module.exports = {
 
           case 'character': {
             const name = options.getString('name');
-            const detailed = options.getBoolean('detailed');
+            const detailed = options.getBoolean('detailed') ?? false;
 
             if (!name) {
               return interaction.deferReply().then(
                 async () =>
-                  await axios
-                    .get(`${baseURL}/characters`)
-                    .then(async ({ data }) => {
+                  await axios.get(`${baseURL}/characters`).then(
+                    /**
+                     *
+                     * @param {{ data: String[] }}
+                     */
+                    async ({ data }) => {
                       const responses = data.map(
                         (item, index) =>
                           `${bold(`${index + 1}.`)} ${capitalCase(item)}`,
@@ -1035,7 +1073,9 @@ module.exports = {
                         limit: 10,
                       });
 
-                      pagination.setColor(guild.members.me.displayHexColor);
+                      pagination.setColor(
+                        guild?.members.me?.displayHexColor ?? null,
+                      );
                       pagination.setTimestamp(Date.now());
                       pagination.setFooter({
                         text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -1064,242 +1104,272 @@ module.exports = {
                       paginations.set(pagination.interaction.id, pagination);
 
                       await pagination.render();
-                    }),
+                    },
+                  ),
               );
             }
 
             return axios
               .get(`${baseURL}/characters/${getFormattedParam(name)}`)
-              .then(async ({ data }) => {
-                const formattedName =
-                  data.name === 'Ayato' ? 'Kamisato Ayato' : data.name;
+              .then(
+                /**
+                 *
+                 * @param {{ data: import('../../constants/types').GenshinCharacter }}
+                 */
+                async ({ data }) => {
+                  const formattedName =
+                    data.name === 'Ayato' ? 'Kamisato Ayato' : data.name;
 
-                embed.setThumbnail(
-                  getWikiaURL({
-                    fileName: `Character_${formattedName}_Thumb`,
-                    path: 'gensin-impact',
-                  }),
-                );
-                embed.setAuthor({
-                  name: `👤 ${formattedName}`,
-                });
-                embed.setFields([
-                  {
-                    name: '🔤 Title',
-                    value: data.title || italic('None'),
-                    inline: true,
-                  },
-                  {
-                    name: '🪄 Vision',
-                    value: data.vision,
-                    inline: true,
-                  },
-                  {
-                    name: '🗡️ Weapon',
-                    value: data.weapon,
-                    inline: true,
-                  },
-                  {
-                    name: '🗺️ Nation',
-                    value: data.nation,
-                    inline: true,
-                  },
-                  {
-                    name: '🏰 Affiliation',
-                    value: data.affiliation,
-                    inline: true,
-                  },
-                  {
-                    name: '⭐ Rarity',
-                    value: '⭐'.repeat(data.rarity),
-                    inline: true,
-                  },
-                  {
-                    name: '✨ Constellation',
-                    value: data.constellation,
-                    inline: true,
-                  },
-                  {
-                    name: '🎂 Birthday',
-                    value: moment(data.birthday).format('MMMM Do'),
-                    inline: true,
-                  },
-                ]);
-
-                if (data.description) {
-                  embed.setDescription(data.description);
-                }
-
-                if (detailed) {
-                  const pagination = new Pagination(interaction);
-
-                  const activeTalentEmbed = new EmbedBuilder()
-                    .setColor(guild.members.me.displayHexColor)
-                    .setTimestamp(Date.now())
-                    .setDescription(
-                      `${bold('Active Talents')}\n${data.skillTalents
-                        .map(
-                          (skill) =>
-                            `${bold(`• ${skill.name}`)} (${
-                              skill.unlock
-                            })\n${skill.description
-                              .replace(/\n\n/g, '\n')
-                              .replace(/\n$/, '')}${
-                              skill.upgrades
-                                ? `\n${bold('- Attributes')}\n${skill.upgrades
-                                    .map(
-                                      (upgrade) =>
-                                        `${upgrade.name}: ${upgrade.value}`,
-                                    )
-                                    .join('\n')}`
-                                : ''
-                            }`,
-                        )
-                        .join('\n\n')}`,
-                    )
-                    .setThumbnail(
-                      getWikiaURL({
-                        fileName: `Character_${formattedName}_Thumb`,
-                        path: 'gensin-impact',
-                      }),
-                    )
-                    .setAuthor({
-                      name: `👤 ${formattedName}`,
-                    });
-
-                  const passiveTalentEmbed = new EmbedBuilder()
-                    .setColor(guild.members.me.displayHexColor)
-                    .setTimestamp(Date.now())
-                    .setDescription(
-                      `${bold('Passive Talents')}\n${data.passiveTalents
-                        .map(
-                          (skill) =>
-                            `${bold(`• ${skill.name}`)} (${
-                              skill.unlock
-                            })\n${skill.description.replace(/\n\n/g, '\n')}`,
-                        )
-                        .join('\n\n')}`,
-                    )
-                    .setThumbnail(
-                      getWikiaURL({
-                        fileName: `Character_${formattedName}_Thumb`,
-                        path: 'gensin-impact',
-                      }),
-                    )
-                    .setAuthor({
-                      name: `👤 ${formattedName}`,
-                    });
-
-                  const constellationEmbed = new EmbedBuilder()
-                    .setColor(guild.members.me.displayHexColor)
-                    .setTimestamp(Date.now())
-                    .setDescription(
-                      `${bold('Constellations')}\n${data.constellations
-                        .map(
-                          (skill) =>
-                            `${bold(`• ${skill.name}`)} (${
-                              skill.unlock
-                            })\n${skill.description.replace(/\n\n/g, '\n')}`,
-                        )
-                        .join('\n\n')}`,
-                    )
-                    .setThumbnail(
-                      getWikiaURL({
-                        fileName: `Character_${formattedName}_Thumb`,
-                        path: 'gensin-impact',
-                      }),
-                    )
-                    .setAuthor({
-                      name: `👤 ${formattedName}`,
-                    });
-
-                  let embeds = [
-                    embed,
-                    activeTalentEmbed,
-                    passiveTalentEmbed,
-                    constellationEmbed,
-                  ];
-
-                  if (data.outfits) {
-                    /** @type {import('discord.js').EmbedBuilder[]} */
-                    const outfitEmbed = data.outfits.map((outfit) =>
-                      new EmbedBuilder()
-                        .setColor(guild.members.me.displayHexColor)
-                        .setTimestamp(Date.now())
-                        .setDescription(
-                          `${bold('• Outfits')}\n${outfit.description}`,
-                        )
-                        .setThumbnail(
-                          getWikiaURL({
-                            fileName: `Character_${formattedName}_Thumb`,
-                            path: 'gensin-impact',
-                          }),
-                        )
-                        .setImage(
-                          getWikiaURL({
-                            fileName: `Outfit_${outfit.name}_Thumb`,
-                            path: 'gensin-impact',
-                          }),
-                        )
-                        .setAuthor({
-                          name: `👤 ${formattedName}`,
-                        })
-                        .setFields([
-                          {
-                            name: '🔣 Type',
-                            value: outfit.type,
-                            inline: true,
-                          },
-                          {
-                            name: '⭐ Rarity',
-                            value: '⭐'.repeat(outfit.rarity),
-                            inline: true,
-                          },
-                          {
-                            name: '💰 Price',
-                            value: `${outfit.price} 💎`,
-                            inline: true,
-                          },
-                        ]),
-                    );
-
-                    embeds.push(...outfitEmbed);
-                  }
-
-                  embeds = embeds.map((emb, index, array) =>
-                    emb.setFooter({
-                      text: `${client.user.username} | Page ${index + 1} of ${
-                        array.length
-                      }`,
-                      iconURL: client.user.displayAvatarURL({
-                        dynamic: true,
-                      }),
+                  embed.setDescription(data.description || null);
+                  embed.setThumbnail(
+                    getWikiaURL({
+                      fileName: `Character_${formattedName}_Thumb`,
+                      path: 'gensin-impact',
                     }),
                   );
+                  embed.setAuthor({
+                    name: `👤 ${formattedName}`,
+                  });
+                  embed.setFields([
+                    {
+                      name: '🔤 Title',
+                      value: data.title || italic('None'),
+                      inline: true,
+                    },
+                    {
+                      name: '🪄 Vision',
+                      value: data.vision,
+                      inline: true,
+                    },
+                    {
+                      name: '🗡️ Weapon',
+                      value: data.weapon,
+                      inline: true,
+                    },
+                    {
+                      name: '🗺️ Nation',
+                      value:
+                        data.nation === 'Unknown'
+                          ? italic('Unknown')
+                          : data.nation,
+                      inline: true,
+                    },
+                    {
+                      name: '🏰 Affiliation',
+                      value:
+                        data.affiliation === 'Not affilated to any Nation'
+                          ? italic('None')
+                          : data.affiliation,
+                      inline: true,
+                    },
+                    {
+                      name: '⭐ Rarity',
+                      value: '⭐'.repeat(data.rarity),
+                      inline: true,
+                    },
+                    {
+                      name: '✨ Constellation',
+                      value: data.constellation,
+                      inline: true,
+                    },
+                    {
+                      name: '🎂 Birthday',
+                      value: data.birthday
+                        ? moment(data.birthday).format('MMMM Do')
+                        : italic('Unknown'),
+                      inline: true,
+                    },
+                  ]);
 
-                  pagination.setEmbeds(embeds);
+                  if (data.specialDish) {
+                    embed.addFields([
+                      {
+                        name: '🍽️ Special Dish',
+                        value: data.specialDish,
+                        inline: true,
+                      },
+                    ]);
+                  }
 
-                  pagination.buttons = {
-                    ...pagination.buttons,
-                    extra: new ButtonBuilder()
-                      .setCustomId('jump')
-                      .setEmoji('↕️')
-                      .setDisabled(false)
-                      .setStyle(ButtonStyle.Secondary),
-                  };
+                  if (detailed) {
+                    const pagination = new Pagination(interaction);
 
-                  paginations.set(pagination.interaction.id, pagination);
+                    const activeTalentEmbed = new EmbedBuilder()
+                      .setColor(guild?.members.me?.displayHexColor ?? null)
+                      .setTimestamp(Date.now())
+                      .setDescription(
+                        `${bold('Active Talents')}\n${data.skillTalents
+                          .map(
+                            (skill) =>
+                              `${
+                                skill.name
+                                  ? `${bold(`• ${skill.name}`)} (${
+                                      skill.unlock
+                                    })`
+                                  : `${bold(`• ${skill.unlock}`)}`
+                              }${
+                                skill.description
+                                  ? `\n${skill.description
+                                      .replace(/\n\n/g, '\n')
+                                      .replace(/\n$/, '')}`
+                                  : ''
+                              }${
+                                skill.upgrades
+                                  ? `\n${bold('- Attributes')}\n${skill.upgrades
+                                      .map(
+                                        (upgrade) =>
+                                          `${upgrade.name}: ${upgrade.value}`,
+                                      )
+                                      .join('\n')}`
+                                  : ''
+                              }`,
+                          )
+                          .join('\n\n')}`,
+                      )
+                      .setThumbnail(
+                        getWikiaURL({
+                          fileName: `Character_${formattedName}_Thumb`,
+                          path: 'gensin-impact',
+                        }),
+                      )
+                      .setAuthor({
+                        name: `👤 ${formattedName}`,
+                      });
 
-                  return pagination.render();
-                }
+                    const passiveTalentEmbed = new EmbedBuilder()
+                      .setColor(guild?.members.me?.displayHexColor ?? null)
+                      .setTimestamp(Date.now())
+                      .setDescription(
+                        `${bold('Passive Talents')}\n${data.passiveTalents
+                          .map(
+                            (skill) =>
+                              `${bold(`• ${skill.name}`)} (${
+                                skill.unlock
+                              })\n${skill.description.replace(/\n\n/g, '\n')}`,
+                          )
+                          .join('\n\n')}`,
+                      )
+                      .setThumbnail(
+                        getWikiaURL({
+                          fileName: `Character_${formattedName}_Thumb`,
+                          path: 'gensin-impact',
+                        }),
+                      )
+                      .setAuthor({
+                        name: `👤 ${formattedName}`,
+                      });
 
-                await interaction
-                  .deferReply()
-                  .then(
-                    async () =>
-                      await interaction.editReply({ embeds: [embed] }),
-                  );
-              })
+                    const constellationEmbed = new EmbedBuilder()
+                      .setColor(guild?.members.me?.displayHexColor ?? null)
+                      .setTimestamp(Date.now())
+                      .setDescription(
+                        `${bold('Constellations')}\n${data.constellations
+                          .map(
+                            (skill) =>
+                              `${bold(`• ${skill.name}`)} (${
+                                skill.unlock
+                              })\n${skill.description.replace(/\n\n/g, '\n')}`,
+                          )
+                          .join('\n\n')}`,
+                      )
+                      .setThumbnail(
+                        getWikiaURL({
+                          fileName: `Character_${formattedName}_Thumb`,
+                          path: 'gensin-impact',
+                        }),
+                      )
+                      .setAuthor({
+                        name: `👤 ${formattedName}`,
+                      });
+
+                    let embeds = [
+                      embed,
+                      activeTalentEmbed,
+                      passiveTalentEmbed,
+                      constellationEmbed,
+                    ];
+
+                    if (data.outfits) {
+                      /** @type {import('discord.js').EmbedBuilder[]} */
+                      const outfitEmbed = data.outfits.map((outfit) =>
+                        new EmbedBuilder()
+                          .setColor(guild?.members.me?.displayHexColor ?? null)
+                          .setTimestamp(Date.now())
+                          .setDescription(
+                            `${bold('• Outfits')}\n${outfit.description}`,
+                          )
+                          .setThumbnail(
+                            getWikiaURL({
+                              fileName: `Character_${formattedName}_Thumb`,
+                              path: 'gensin-impact',
+                            }),
+                          )
+                          .setImage(
+                            getWikiaURL({
+                              fileName: `Outfit_${outfit.name}_Thumb`,
+                              path: 'gensin-impact',
+                            }),
+                          )
+                          .setAuthor({
+                            name: `👤 ${formattedName}`,
+                          })
+                          .setFields([
+                            {
+                              name: '🔣 Type',
+                              value: outfit.type,
+                              inline: true,
+                            },
+                            {
+                              name: '⭐ Rarity',
+                              value: '⭐'.repeat(outfit.rarity),
+                              inline: true,
+                            },
+                            {
+                              name: '💰 Price',
+                              value: `${outfit.price} 💎`,
+                              inline: true,
+                            },
+                          ]),
+                      );
+
+                      embeds.push(...outfitEmbed);
+                    }
+
+                    embeds = embeds.map((emb, index, array) =>
+                      emb.setFooter({
+                        text: `${client.user.username} | Page ${index + 1} of ${
+                          array.length
+                        }`,
+                        iconURL: client.user.displayAvatarURL({
+                          dynamic: true,
+                        }),
+                      }),
+                    );
+
+                    pagination.setEmbeds(embeds);
+
+                    pagination.buttons = {
+                      ...pagination.buttons,
+                      extra: new ButtonBuilder()
+                        .setCustomId('jump')
+                        .setEmoji('↕️')
+                        .setDisabled(false)
+                        .setStyle(ButtonStyle.Secondary),
+                    };
+
+                    paginations.set(pagination.interaction.id, pagination);
+
+                    return pagination.render();
+                  }
+
+                  await interaction
+                    .deferReply()
+                    .then(
+                      async () =>
+                        await interaction.editReply({ embeds: [embed] }),
+                    );
+                },
+              )
               .catch(async (err) => {
                 console.error(err);
 
@@ -1322,9 +1392,12 @@ module.exports = {
             if (!name) {
               return interaction.deferReply().then(
                 async () =>
-                  await axios
-                    .get(`${baseURL}/weapons`)
-                    .then(async ({ data }) => {
+                  await axios.get(`${baseURL}/weapons`).then(
+                    /**
+                     *
+                     * @param {{ data: String[] }}
+                     */
+                    async ({ data }) => {
                       const responses = data.map(
                         (item, index) =>
                           `${bold(`${index + 1}.`)} ${capitalCase(item)}`,
@@ -1334,7 +1407,11 @@ module.exports = {
                         limit: 10,
                       });
 
-                      pagination.setColor(guild.members.me.displayHexColor);
+                      pagination.setColor(
+                        guild.members.me
+                          ? guild.members.me?.displayHexColor ?? null
+                          : null,
+                      );
                       pagination.setTimestamp(Date.now());
                       pagination.setFooter({
                         text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -1363,65 +1440,76 @@ module.exports = {
                       paginations.set(pagination.interaction.id, pagination);
 
                       await pagination.render();
-                    }),
+                    },
+                  ),
               );
             }
 
             return axios
               .get(`${baseURL}/weapons/${paramCase(name)}`)
-              .then(async ({ data }) => {
-                embed.setThumbnail(
-                  getWikiaURL({
-                    fileName: `Weapon_${data.name}`,
-                    path: 'gensin-impact',
-                  }),
-                );
-                embed.setAuthor({
-                  name: `🗡️ ${data.name}`,
-                });
-                embed.setFields([
-                  {
-                    name: '🔣 Type',
-                    value: data.type,
-                    inline: true,
-                  },
-                  {
-                    name: '⭐ Rarity',
-                    value: '⭐'.repeat(data.rarity),
-                    inline: true,
-                  },
-                  {
-                    name: '⚔️ Base ATK',
-                    value: `${data.baseAttack}`,
-                    inline: true,
-                  },
-                  {
-                    name: '⚔️ Sub-stat Type',
-                    value:
-                      data.subStat !== '-' ? data.subStat : italic('Unknown'),
-                    inline: true,
-                  },
-                  {
-                    name: '📥 Obtaining',
-                    value: data.location,
-                    inline: true,
-                  },
-                  {
-                    name: '⚔️ Passive',
-                    value:
-                      data.passiveName !== '-'
-                        ? `${bold(data.passiveName)} - ${data.passiveDesc}`
-                        : italic('None'),
-                  },
-                ]);
-
-                await interaction
-                  .deferReply()
-                  .then(
-                    async () =>
-                      await interaction.editReply({ embeds: [embed] }),
+              .then(
+                /**
+                 *
+                 * @param {{ data: import('../../constants/types').GenshinWeapon }}
+                 */
+                async ({ data }) => {
+                  embed.setThumbnail(
+                    getWikiaURL({
+                      fileName: `Weapon_${data.name}`,
+                      path: 'gensin-impact',
+                    }),
                   );
-              })
+                  embed.setAuthor({
+                    name: `🗡️ ${data.name}`,
+                  });
+                  embed.setFields([
+                    {
+                      name: '🔣 Type',
+                      value: data.type,
+                      inline: true,
+                    },
+                    {
+                      name: '⭐ Rarity',
+                      value: '⭐'.repeat(data.rarity),
+                      inline: true,
+                    },
+                    {
+                      name: '⚔️ Base ATK',
+                      value: `${data.baseAttack}`,
+                      inline: true,
+                    },
+                    {
+                      name: '⚔️ Sub-stat Type',
+                      value:
+                        data.subStat !== '-' ? data.subStat : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '📥 Obtaining',
+                      value: data.location,
+                      inline: true,
+                    },
+                    {
+                      name: '⚔️ Passive',
+                      value:
+                        data.passiveName !== '-'
+                          ? `${bold(data.passiveName)}${
+                              data.passiveDesc || data.passiveDesc !== '-'
+                                ? ` - ${data.passiveDesc}`
+                                : ''
+                            }`
+                          : italic('None'),
+                    },
+                  ]);
+
+                  await interaction
+                    .deferReply()
+                    .then(
+                      async () =>
+                        await interaction.editReply({ embeds: [embed] }),
+                    );
+                },
+              )
               .catch(async (err) => {
                 console.error(err);
 
@@ -1444,11 +1532,15 @@ module.exports = {
       case 'github':
         switch (options.getSubcommand()) {
           case 'user': {
-            const username = options.getString('username');
+            const username = options.getString('username', true);
 
             return axios
               .get(`https://api.github.com/users/${username}`)
               .then(
+                /**
+                 *
+                 * @param {{ data: import('../../constants/types').GithubUser }}
+                 */
                 async ({ data }) =>
                   await interaction.deferReply().then(async () => {
                     embed.setAuthor({
@@ -1457,16 +1549,12 @@ module.exports = {
                       iconURL:
                         'https://cdn-icons-png.flaticon.com/512/25/25231.png',
                     });
-
-                    if (data.bio) {
-                      embed.setDescription(data.bio);
-                    }
-
+                    embed.setDescription(data.bio);
                     embed.setThumbnail(data.avatar_url);
                     embed.setFields([
                       {
                         name: '🔤 Account Name',
-                        value: data.name,
+                        value: data.name ?? italic('Unknown'),
                         inline: true,
                       },
                       {
@@ -1556,7 +1644,7 @@ module.exports = {
           }
 
           case 'repositories': {
-            const name = options.getString('name');
+            const name = options.getString('name', true);
             const language = options.getString('language');
             const sort = options.getString('sort');
             const order = options.getString('order');
@@ -1575,143 +1663,149 @@ module.exports = {
 
             return axios
               .get(`https://api.github.com/search/repositories?${query}`)
-              .then(async ({ data: { items } }) => {
-                if (!items.length) {
-                  return interaction.deferReply({ ephemeral: true }).then(
-                    async () =>
-                      await interaction.editReply({
-                        content: `No repository found with name ${inlineCode(
-                          name,
-                        )}`,
-                      }),
-                  );
-                }
-
-                await interaction.deferReply().then(async () => {
-                  /** @type {import('discord.js').EmbedBuilder[]} */
-                  const embeds = items.map((item, index, array) => {
-                    const newEmbed = new EmbedBuilder()
-                      .setColor(guild.members.me.displayHexColor)
-                      .setTimestamp(Date.now())
-                      .setFooter({
-                        text: `${client.user.username} | Page ${index + 1} of ${
-                          array.length
-                        }`,
-                        iconURL: client.user.displayAvatarURL({
-                          dynamic: true,
-                        }),
-                      })
-                      .setThumbnail(item.owner.avatar_url)
-                      .setAuthor({
-                        name: 'GitHub Repository Search Results',
-                        iconURL:
-                          'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-                      })
-                      .setFields([
-                        {
-                          name: '🔤 Name',
-                          value: hyperlink(
-                            item.name,
-                            item.html_url,
-                            'Click here to view the repository.',
-                          ),
-                          inline: true,
-                        },
-                        {
-                          name: '👑 Owner',
-                          value: `${hyperlink(
-                            `@${item.owner.login}`,
-                            item.owner.html_url,
-                            'Click here to view the account.',
-                          )} (${item.owner.type})`,
-                          inline: true,
-                        },
-                        {
-                          name: '📆 Created At',
-                          value: time(
-                            new Date(item.created_at),
-                            TimestampStyles.RelativeTime,
-                          ),
-                          inline: true,
-                        },
-                        {
-                          name: '📆 Updated At',
-                          value: time(
-                            new Date(item.pushed_at),
-                            TimestampStyles.RelativeTime,
-                          ),
-                          inline: true,
-                        },
-                        {
-                          name: '🔤 Language',
-                          value: item?.language ?? italic('Unknown'),
-                          inline: true,
-                        },
-                        {
-                          name: '📜 License',
-                          value: item.license?.name ?? italic('None'),
-                          inline: true,
-                        },
-                        {
-                          name: '📊 Stats',
-                          value: `⭐ ${item.stargazers_count.toLocaleString()} ${pluralize(
-                            'star',
-                            item.stargazers_count,
-                          )} | 👁️ ${item.watchers_count.toLocaleString()} ${pluralize(
-                            'watcher',
-                            item.watchers_count,
-                          )} | 🕎 ${item.forks_count.toLocaleString()} ${pluralize(
-                            'fork',
-                            item.forks_count,
-                          )} | 🪲 ${item.open_issues_count.toLocaleString()} ${pluralize(
-                            'issue',
-                            item.open_issues_count,
+              .then(
+                /**
+                 *
+                 * @param {{ data: { items: import('../../constants/types').GithubRepository[] } }}
+                 */
+                async ({ data: { items } }) => {
+                  if (!items.length) {
+                    return interaction.deferReply({ ephemeral: true }).then(
+                      async () =>
+                        await interaction.editReply({
+                          content: `No repository found with name ${inlineCode(
+                            name,
                           )}`,
-                        },
-                      ]);
+                        }),
+                    );
+                  }
 
-                    if (item.homepage) {
-                      newEmbed.spliceFields(6, 0, {
-                        name: '📖 Docs',
-                        value: item.homepage,
-                        inline: true,
-                      });
-                    }
+                  await interaction.deferReply().then(async () => {
+                    /** @type {import('discord.js').EmbedBuilder[]} */
+                    const embeds = items.map((item, index, array) => {
+                      const newEmbed = new EmbedBuilder()
+                        .setColor(guild?.members.me?.displayHexColor ?? null)
+                        .setTimestamp(Date.now())
+                        .setFooter({
+                          text: `${client.user.username} | Page ${
+                            index + 1
+                          } of ${array.length}`,
+                          iconURL: client.user.displayAvatarURL({
+                            dynamic: true,
+                          }),
+                        })
+                        .setThumbnail(item.owner?.avatar_url ?? null)
+                        .setAuthor({
+                          name: 'GitHub Repository Search Results',
+                          iconURL:
+                            'https://cdn-icons-png.flaticon.com/512/25/25231.png',
+                        })
+                        .setFields([
+                          {
+                            name: '🔤 Name',
+                            value: hyperlink(
+                              item.name,
+                              item.html_url,
+                              'Click here to view the repository.',
+                            ),
+                            inline: true,
+                          },
+                          {
+                            name: '👑 Owner',
+                            value: `${hyperlink(
+                              `@${item.owner.login}`,
+                              item.owner.html_url,
+                              'Click here to view the account.',
+                            )} (${item.owner.type})`,
+                            inline: true,
+                          },
+                          {
+                            name: '📆 Created At',
+                            value: time(
+                              new Date(item.created_at),
+                              TimestampStyles.RelativeTime,
+                            ),
+                            inline: true,
+                          },
+                          {
+                            name: '📆 Updated At',
+                            value: time(
+                              new Date(item.pushed_at),
+                              TimestampStyles.RelativeTime,
+                            ),
+                            inline: true,
+                          },
+                          {
+                            name: '🔤 Language',
+                            value: item?.language ?? italic('Unknown'),
+                            inline: true,
+                          },
+                          {
+                            name: '📜 License',
+                            value: item.license?.name ?? italic('None'),
+                            inline: true,
+                          },
+                          {
+                            name: '📊 Stats',
+                            value: `⭐ ${item.stargazers_count.toLocaleString()} ${pluralize(
+                              'star',
+                              item.stargazers_count,
+                            )} | 👁️ ${item.watchers_count.toLocaleString()} ${pluralize(
+                              'watcher',
+                              item.watchers_count,
+                            )} | 🕎 ${item.forks_count.toLocaleString()} ${pluralize(
+                              'fork',
+                              item.forks_count,
+                            )} | 🪲 ${item.open_issues_count.toLocaleString()} ${pluralize(
+                              'issue',
+                              item.open_issues_count,
+                            )}`,
+                          },
+                        ]);
 
-                    if (item.topics.length) {
-                      newEmbed.addFields([
-                        {
-                          name: '🗂️ Topics',
-                          value: item.topics.join(', '),
-                        },
-                      ]);
-                    }
+                      if (item.homepage) {
+                        newEmbed.spliceFields(6, 0, {
+                          name: '📖 Docs',
+                          value: item.homepage,
+                          inline: true,
+                        });
+                      }
 
-                    if (item.description) {
-                      newEmbed.setDescription(item.description);
-                    }
+                      if (item.topics.length) {
+                        newEmbed.addFields([
+                          {
+                            name: '🗂️ Topics',
+                            value: item.topics.join(', '),
+                          },
+                        ]);
+                      }
 
-                    return newEmbed;
+                      if (item.description) {
+                        newEmbed.setDescription(item.description);
+                      }
+
+                      return newEmbed;
+                    });
+
+                    const pagination = new Pagination(interaction);
+
+                    pagination.setEmbeds(embeds);
+
+                    pagination.buttons = {
+                      ...pagination.buttons,
+                      extra: new ButtonBuilder()
+                        .setCustomId('jump')
+                        .setEmoji('↕️')
+                        .setDisabled(false)
+                        .setStyle(ButtonStyle.Secondary),
+                    };
+
+                    paginations.set(pagination.interaction.id, pagination);
+
+                    await pagination.render();
                   });
-
-                  const pagination = new Pagination(interaction);
-
-                  pagination.setEmbeds(embeds);
-
-                  pagination.buttons = {
-                    ...pagination.buttons,
-                    extra: new ButtonBuilder()
-                      .setCustomId('jump')
-                      .setEmoji('↕️')
-                      .setDisabled(false)
-                      .setStyle(ButtonStyle.Secondary),
-                  };
-
-                  paginations.set(pagination.interaction.id, pagination);
-
-                  await pagination.render();
-                });
-              });
+                },
+              );
           }
         }
         break;
@@ -1745,7 +1839,9 @@ module.exports = {
                     limit: 10,
                   });
 
-                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setColor(
+                    guild?.members.me?.displayHexColor ?? null,
+                  );
                   pagination.setTimestamp(Date.now());
                   pagination.setFooter({
                     text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -1756,8 +1852,10 @@ module.exports = {
                   pagination.setAuthor({
                     name: `Minecraft ${
                       mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
-                    } Edition v${
+                    } Edition${
                       mcData.version.minecraftVersion
+                        ? ` v${mcData.version.minecraftVersion}`
+                        : ''
                     } Block Lists (${filteredMcData.length})`,
                     iconURL: minecraftLogo,
                   });
@@ -1778,7 +1876,6 @@ module.exports = {
                 });
               }
 
-              /** @type {import('minecraft-data').Block} */
               const block = {
                 ...mcData.blocksByName[
                   getFormattedMinecraftName(snakeCase(name))
@@ -1797,16 +1894,16 @@ module.exports = {
                 );
               }
 
-              embed.setDescription(block.description);
+              embed.setDescription(block?.description ?? null);
               embed.setThumbnail(
                 getWikiaURL({
-                  fileName: `${block.altName ?? block.displayName}${
+                  fileName: `${block?.altName ?? block.displayName}${
                     block.positions?.length
                       ? block.positions.map((pos) => ` (${pos})`).join('')
                       : ''
                   }${block.version ? ` ${block.version}` : ''}`,
                   path: 'minecraft_gamepedia',
-                  animated: block.animated ?? false,
+                  animated: block?.animated ?? false,
                 }),
               );
               embed.setAuthor({
@@ -1815,24 +1912,25 @@ module.exports = {
               embed.setFields([
                 {
                   name: '⛏️ Tool',
-                  value: capitalCase(
-                    block.material !== 'default'
-                      ? block.material.slice(
-                          block.material.indexOf('/'),
-                          block.material.length,
+                  value:
+                    block.material && block.material !== 'default'
+                      ? capitalCase(
+                          block.material.slice(
+                            block.material.indexOf('/'),
+                            block.material.length,
+                          ),
                         )
                       : italic('None'),
-                  ),
                   inline: true,
                 },
                 {
                   name: '💪 Hardness',
-                  value: `${block.hardness}`,
+                  value: block.hardness ?? italic('None'),
                   inline: true,
                 },
                 {
                   name: '🛡️ Blast Resistance',
-                  value: `${block.resistance}`,
+                  value: block?.resistance ?? italic('None'),
                   inline: true,
                 },
                 {
@@ -1882,7 +1980,9 @@ module.exports = {
                     limit: 10,
                   });
 
-                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setColor(
+                    guild?.members.me?.displayHexColor ?? null,
+                  );
                   pagination.setTimestamp(Date.now());
                   pagination.setFooter({
                     text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -1893,8 +1993,10 @@ module.exports = {
                   pagination.setAuthor({
                     name: `Minecraft ${
                       mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
-                    } Edition v${
+                    } Edition${
                       mcData.version.minecraftVersion
+                        ? ` v${mcData.version.minecraftVersion}`
+                        : ''
                     } Biome Lists (${mcData.biomesArray.length})`,
                     iconURL: minecraftLogo,
                   });
@@ -1915,7 +2017,6 @@ module.exports = {
                 });
               }
 
-              /** @type {import('minecraft-data').Biome} */
               const biome = {
                 ...mcData.biomesByName[snakeCase(name)],
                 ...extraMcData.biome[snakeCase(name)],
@@ -1933,7 +2034,7 @@ module.exports = {
               embed.setDescription(biome.description);
               embed.setThumbnail(
                 getWikiaURL({
-                  fileName: `${biome.altName ?? biome.displayName}${
+                  fileName: `${biome?.altName ?? biome.displayName}${
                     biome.version ? ` ${biome.version}` : ''
                   }`,
                   path: 'minecraft_gamepedia',
@@ -2004,7 +2105,9 @@ module.exports = {
                     limit: 10,
                   });
 
-                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setColor(
+                    guild?.members.me?.displayHexColor ?? null,
+                  );
                   pagination.setTimestamp(Date.now());
                   pagination.setFooter({
                     text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -2015,8 +2118,10 @@ module.exports = {
                   pagination.setAuthor({
                     name: `Minecraft ${
                       mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
-                    } Edition v${
+                    } Edition${
                       mcData.version.minecraftVersion
+                        ? ` v${mcData.version.minecraftVersion}`
+                        : ''
                     } Effect Lists (${mcData.effectsArray.length})`,
                     iconURL: minecraftLogo,
                   });
@@ -2037,7 +2142,6 @@ module.exports = {
                 });
               }
 
-              /** @type {import('minecraft-data').Effect} */
               const effect = {
                 ...mcData.effectsByName[pascalCase(name)],
                 ...extraMcData.effect[pascalCase(name)],
@@ -2055,7 +2159,7 @@ module.exports = {
               embed.setDescription(effect.description);
               embed.setThumbnail(
                 getWikiaURL({
-                  fileName: `${effect.altName ?? effect.displayName}${
+                  fileName: `${effect?.altName ?? effect.displayName}${
                     effect.positions?.length
                       ? effect.positions.map((pos) => ` (${pos})`).join('')
                       : ''
@@ -2100,7 +2204,9 @@ module.exports = {
                     limit: 10,
                   });
 
-                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setColor(
+                    guild?.members.me?.displayHexColor ?? null,
+                  );
                   pagination.setTimestamp(Date.now());
                   pagination.setFooter({
                     text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -2111,8 +2217,10 @@ module.exports = {
                   pagination.setAuthor({
                     name: `Minecraft ${
                       mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
-                    } Edition v${
+                    } Edition${
                       mcData.version.minecraftVersion
+                        ? ` v${mcData.version.minecraftVersion}`
+                        : ''
                     } Enchantment Lists (${mcData.enchantmentsArray.length})`,
                     iconURL: minecraftLogo,
                   });
@@ -2133,7 +2241,6 @@ module.exports = {
                 });
               }
 
-              /** @type {import('minecraft-data').Enchantment} */
               const enchantment = {
                 ...mcData.enchantmentsByName[
                   getFormattedMinecraftName(snakeCase(name))
@@ -2218,7 +2325,9 @@ module.exports = {
                     limit: 10,
                   });
 
-                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setColor(
+                    guild?.members.me?.displayHexColor ?? null,
+                  );
                   pagination.setTimestamp(Date.now());
                   pagination.setFooter({
                     text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -2229,8 +2338,10 @@ module.exports = {
                   pagination.setAuthor({
                     name: `Minecraft ${
                       mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
-                    } Edition v${
+                    } Edition${
                       mcData.version.minecraftVersion
+                        ? ` v${mcData.version.minecraftVersion}`
+                        : ''
                     } Entity Lists (${mcData.entitiesArray.length})`,
                     iconURL: minecraftLogo,
                   });
@@ -2251,7 +2362,6 @@ module.exports = {
                 });
               }
 
-              /** @type {import('minecraft-data').Entity} */
               const entity = {
                 ...mcData.entitiesByName[
                   getFormattedMinecraftName(snakeCase(name))
@@ -2273,13 +2383,13 @@ module.exports = {
               embed.setDescription(entity.description);
               embed.setThumbnail(
                 getWikiaURL({
-                  fileName: `${entity.altName ?? entity.displayName}${
+                  fileName: `${entity?.altName ?? entity.displayName}${
                     entity.positions?.length
                       ? entity.positions.map((pos) => ` (${pos})`).join('')
                       : ''
                   }${entity.version ? ` ${entity.version}` : ''}`,
                   path: 'minecraft_gamepedia',
-                  animated: entity.animated ?? false,
+                  animated: entity?.animated ?? false,
                 }),
               );
               embed.setAuthor({
@@ -2393,7 +2503,9 @@ module.exports = {
                     limit: 10,
                   });
 
-                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setColor(
+                    guild?.members.me?.displayHexColor ?? null,
+                  );
                   pagination.setTimestamp(Date.now());
                   pagination.setFooter({
                     text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -2404,9 +2516,11 @@ module.exports = {
                   pagination.setAuthor({
                     name: `Minecraft ${
                       mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
-                    } Edition v${mcData.version.minecraftVersion} Food Lists (${
-                      mcData.foodsArray.length
-                    })`,
+                    } Edition${
+                      mcData.version.minecraftVersion
+                        ? ` v${mcData.version.minecraftVersion}`
+                        : ''
+                    } Food Lists (${mcData.foodsArray.length})`,
                     iconURL: minecraftLogo,
                   });
                   pagination.setDescriptions(responses);
@@ -2426,7 +2540,6 @@ module.exports = {
                 });
               }
 
-              /** @type {import('minecraft-data').Food} */
               const food = {
                 ...mcData.foodsByName[
                   getFormattedMinecraftName(snakeCase(name))
@@ -2446,13 +2559,13 @@ module.exports = {
               embed.setDescription(food.description);
               embed.setThumbnail(
                 getWikiaURL({
-                  fileName: `${food.altName ?? food.displayName}${
+                  fileName: `${food?.altName ?? food.displayName}${
                     food.positions?.length
                       ? food.positions.map((pos) => ` (${pos})`).join('')
                       : ''
                   }${food.version ? ` ${food.version}` : ''}`,
                   path: 'minecraft_gamepedia',
-                  animated: food.animated ?? false,
+                  animated: food?.animated ?? false,
                 }),
               );
               embed.setAuthor({
@@ -2491,7 +2604,7 @@ module.exports = {
           const holodex = new HolodexApiClient({
             apiKey: process.env.HOLODEX_API_KEY,
           });
-          const affiliations = Object.values(vtuberAffiliations);
+          const affiliations = Object.values(vtuberAffiliation);
 
           switch (options.getSubcommand()) {
             case 'affiliation': {
@@ -2500,15 +2613,19 @@ module.exports = {
 
               if (!affiliation) {
                 return interaction.deferReply().then(async () => {
-                  const responses = affiliations.map(
-                    (item, index) => `${bold(`${index + 1}.`)} ${item}`,
-                  );
+                  const responses = affiliations
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map(
+                      ({ name }, index) => `${bold(`${index + 1}.`)} ${name}`,
+                    );
 
                   const pagination = new Pagination(interaction, {
                     limit: 10,
                   });
 
-                  pagination.setColor(guild.members.me.displayHexColor);
+                  pagination.setColor(
+                    guild?.members.me?.displayHexColor ?? null,
+                  );
                   pagination.setTimestamp(Date.now());
                   pagination.setFooter({
                     text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -2581,7 +2698,7 @@ module.exports = {
                       const channel = item.toRaw();
 
                       return new EmbedBuilder()
-                        .setColor(guild.members.me.displayHexColor)
+                        .setColor(guild?.members.me?.displayHexColor ?? null)
                         .setTimestamp(Date.now())
                         .setFooter({
                           text: `${client.user.username} | Page ${
@@ -2591,7 +2708,7 @@ module.exports = {
                             dynamic: true,
                           }),
                         })
-                        .setThumbnail(channel.photo)
+                        .setThumbnail(channel?.photo ?? null)
                         .setAuthor({
                           name: `${
                             channel.org
@@ -2605,7 +2722,7 @@ module.exports = {
                         .setFields([
                           {
                             name: '🔤 Name',
-                            value: channel.english_name || channel.name,
+                            value: channel?.english_name || channel.name,
                             inline: true,
                           },
                           {
@@ -2618,7 +2735,7 @@ module.exports = {
                           },
                           {
                             name: '👥 Group',
-                            value: channel.group || italic('None'),
+                            value: channel?.group || italic('None'),
                             inline: true,
                           },
                           {
@@ -2633,22 +2750,26 @@ module.exports = {
                           },
                           {
                             name: '🔢 VOD Count',
-                            value: `${Number(
-                              channel.video_count,
-                            ).toLocaleString()} ${pluralize(
-                              'video',
-                              channel.video_count,
-                            )}`,
+                            value: channel.video_count
+                              ? `${Number(
+                                  channel.video_count,
+                                ).toLocaleString()} ${pluralize(
+                                  'video',
+                                  Number(channel.video_count),
+                                )}`
+                              : italic('Unknown'),
                             inline: true,
                           },
                           {
                             name: '🔢 Subscriber Count',
-                            value: `${Number(
-                              channel.subscriber_count,
-                            ).toLocaleString()} ${pluralize(
-                              'subscriber',
-                              channel.subscriber_count,
-                            )}`,
+                            value: channel.subscriber_count
+                              ? `${Number(
+                                  channel.subscriber_count,
+                                ).toLocaleString()} ${pluralize(
+                                  'subscriber',
+                                  Number(channel.subscriber_count),
+                                )}`
+                              : italic('Unknown'),
                             inline: true,
                           },
                           {
@@ -2694,7 +2815,7 @@ module.exports = {
             }
 
             case 'channel': {
-              const id = options.getString('id');
+              const id = options.getString('id', true);
 
               return holodex
                 .getChannel(id)
@@ -2702,12 +2823,12 @@ module.exports = {
                   const channel = item.toRaw();
 
                   embed.setDescription(truncate(channel.description, 4096));
-                  embed.setThumbnail(channel.photo);
+                  embed.setThumbnail(channel?.photo ?? null);
                   embed.setAuthor({
                     name: `${
                       channel.org?.includes('Independents') ? '🧑‍💻 ' : ''
                     }${
-                      channel.english_name || channel.name
+                      channel?.english_name || channel.name
                     }'s YouTube Channel Information`,
                     iconURL: affiliations.find(
                       (aff) =>
@@ -2725,20 +2846,22 @@ module.exports = {
                     },
                     {
                       name: '📆 Channel Created At',
-                      value: time(
-                        new Date(channel.published_at),
-                        TimestampStyles.RelativeTime,
-                      ),
+                      value: channel.published_at
+                        ? time(
+                            new Date(channel.published_at),
+                            TimestampStyles.RelativeTime,
+                          )
+                        : italic('Unknown'),
                       inline: true,
                     },
                     {
                       name: '🏢 Affiliation',
-                      value: channel.org ?? italic('Unknown'),
+                      value: channel?.org || italic('Unknown'),
                       inline: true,
                     },
                     {
                       name: '👥 Group',
-                      value: channel.suborg.substring(2) || italic('None'),
+                      value: channel.suborg?.substring(2) || italic('None'),
                       inline: true,
                     },
                     {
@@ -2753,32 +2876,38 @@ module.exports = {
                     },
                     {
                       name: '🔢 View Count',
-                      value: `${Number(
-                        channel.view_count,
-                      ).toLocaleString()} ${pluralize(
-                        'view',
-                        channel.view_count,
-                      )}`,
+                      value: channel.view_count
+                        ? `${Number(
+                            channel.view_count,
+                          ).toLocaleString()} ${pluralize(
+                            'view',
+                            Number(channel.view_count),
+                          )}`
+                        : italic('Unknown'),
                       inline: true,
                     },
                     {
                       name: '🔢 VOD Count',
-                      value: `${Number(
-                        channel.video_count,
-                      ).toLocaleString()} ${pluralize(
-                        'video',
-                        channel.video_count,
-                      )}`,
+                      value: channel.video_count
+                        ? `${Number(
+                            channel.video_count,
+                          ).toLocaleString()} ${pluralize(
+                            'video',
+                            Number(channel.video_count),
+                          )}`
+                        : italic('Unknown'),
                       inline: true,
                     },
                     {
                       name: '🔢 Subscriber Count',
-                      value: `${Number(
-                        channel.subscriber_count,
-                      ).toLocaleString()} ${pluralize(
-                        'subscriber',
-                        channel.subscriber_count,
-                      )}`,
+                      value: channel.subscriber_count
+                        ? `${Number(
+                            channel.subscriber_count,
+                          ).toLocaleString()} ${pluralize(
+                            'subscriber',
+                            Number(channel.subscriber_count),
+                          )}`
+                        : italic('Unknown'),
                       inline: true,
                     },
                     {
@@ -2850,7 +2979,9 @@ module.exports = {
                           const channel = item.toRaw();
 
                           return new EmbedBuilder()
-                            .setColor(guild.members.me.displayHexColor)
+                            .setColor(
+                              guild?.members.me?.displayHexColor ?? null,
+                            )
                             .setTimestamp(Date.now())
                             .setFooter({
                               text: `${client.user.username} | Page ${
@@ -2860,7 +2991,7 @@ module.exports = {
                                 dynamic: true,
                               }),
                             })
-                            .setThumbnail(channel.photo)
+                            .setThumbnail(channel?.photo ?? null)
                             .setAuthor({
                               name: "✂️ VTuber Clipper's YouTube Channel Lists",
                             })
@@ -2885,22 +3016,26 @@ module.exports = {
                               },
                               {
                                 name: '🔢 VOD Count',
-                                value: `${Number(
-                                  channel.video_count,
-                                ).toLocaleString()} ${pluralize(
-                                  'video',
-                                  channel.video_count,
-                                )}`,
+                                value: channel.video_count
+                                  ? `${Number(
+                                      channel.video_count,
+                                    ).toLocaleString()} ${pluralize(
+                                      'video',
+                                      Number(channel.video_count),
+                                    )}`
+                                  : italic('Unknown'),
                                 inline: true,
                               },
                               {
                                 name: '🔢 Subscriber Count',
-                                value: `${Number(
-                                  channel.subscriber_count,
-                                ).toLocaleString()} ${pluralize(
-                                  'subscriber',
-                                  channel.subscriber_count,
-                                )}`,
+                                value: channel.subscriber_count
+                                  ? `${Number(
+                                      channel.subscriber_count,
+                                    ).toLocaleString()} ${pluralize(
+                                      'subscriber',
+                                      Number(channel.subscriber_count),
+                                    )}`
+                                  : italic('Unknown'),
                                 inline: true,
                               },
                             ]);
@@ -2932,7 +3067,7 @@ module.exports = {
                   const channel = item.toRaw();
 
                   embed.setDescription(truncate(channel.description, 4096));
-                  embed.setThumbnail(channel.photo);
+                  embed.setThumbnail(channel?.photo ?? null);
                   embed.setAuthor({
                     name: `✂️ ${channel.name}'s YouTube Channel Information`,
                   });
@@ -2947,10 +3082,12 @@ module.exports = {
                     },
                     {
                       name: '📆 Channel Created At',
-                      value: time(
-                        new Date(channel.published_at),
-                        TimestampStyles.RelativeTime,
-                      ),
+                      value: channel.published_at
+                        ? time(
+                            new Date(channel.published_at),
+                            TimestampStyles.RelativeTime,
+                          )
+                        : italic('Unknown'),
                       inline: true,
                     },
                     {
@@ -2965,32 +3102,38 @@ module.exports = {
                     },
                     {
                       name: '🔢 View Count',
-                      value: `${Number(
-                        channel.view_count,
-                      ).toLocaleString()} ${pluralize(
-                        'view',
-                        channel.view_count,
-                      )}`,
+                      value: channel.view_count
+                        ? `${Number(
+                            channel.view_count,
+                          ).toLocaleString()} ${pluralize(
+                            'view',
+                            Number(channel.view_count),
+                          )}`
+                        : italic('Unknown'),
                       inline: true,
                     },
                     {
                       name: '🔢 VOD Count',
-                      value: `${Number(
-                        channel.video_count,
-                      ).toLocaleString()} ${pluralize(
-                        'video',
-                        channel.video_count,
-                      )}`,
+                      value: channel.video_count
+                        ? `${Number(
+                            channel.video_count,
+                          ).toLocaleString()} ${pluralize(
+                            'video',
+                            Number(channel.video_count),
+                          )}`
+                        : italic('Unknown'),
                       inline: true,
                     },
                     {
                       name: '🔢 Subscriber Count',
-                      value: `${Number(
-                        channel.subscriber_count,
-                      ).toLocaleString()} ${pluralize(
-                        'subscriber',
-                        channel.subscriber_count,
-                      )}`,
+                      value: channel.subscriber_count
+                        ? `${Number(
+                            channel.subscriber_count,
+                          ).toLocaleString()} ${pluralize(
+                            'subscriber',
+                            Number(channel.subscriber_count),
+                          )}`
+                        : italic('Unknown'),
                       inline: true,
                     },
                   ]);
@@ -3080,7 +3223,7 @@ module.exports = {
                         const video = item.toRaw();
 
                         return new EmbedBuilder()
-                          .setColor(guild.members.me.displayHexColor)
+                          .setColor(guild?.members.me?.displayHexColor ?? null)
                           .setTimestamp(Date.now())
                           .setFooter({
                             text: `${client.user.username} | Page ${
@@ -3090,15 +3233,19 @@ module.exports = {
                               dynamic: true,
                             }),
                           })
-                          .setDescription(truncate(video.description, 4096))
-                          .setThumbnail(video.channel.photo)
+                          .setDescription(
+                            video.description
+                              ? truncate(video.description, 4096)
+                              : null,
+                          )
+                          .setThumbnail(video.channel?.photo ?? null)
                           .setAuthor({
                             name: `${
                               video.channel.org?.includes('Independents')
                                 ? '🧑‍💻'
                                 : ''
                             } ${
-                              video.channel.english_name || video.channel.name
+                              video.channel?.english_name || video.channel.name
                             }'s YouTube Stream Lists`,
                             iconURL: affiliations.find(
                               (aff) =>
@@ -3117,10 +3264,12 @@ module.exports = {
                             },
                             {
                               name: '📆 Published At',
-                              value: time(
-                                new Date(video.published_at),
-                                TimestampStyles.RelativeTime,
-                              ),
+                              value: video.published_at
+                                ? time(
+                                    new Date(video.published_at),
+                                    TimestampStyles.RelativeTime,
+                                  )
+                                : italic('Uknown'),
                               inline: true,
                             },
                             {
@@ -3133,7 +3282,7 @@ module.exports = {
                             },
                             {
                               name: '🔢 Live Viewers Count',
-                              value: `${video.live_viewers.toLocaleString()} watching now`,
+                              value: `${video.live_viewers?.toLocaleString()} watching now`,
                               inline: true,
                             },
                             {
@@ -3145,7 +3294,7 @@ module.exports = {
                             },
                             {
                               name: '🏢 Affiliation',
-                              value: video.channel.org ?? italic('Unknown'),
+                              value: video.channel?.org ?? italic('Unknown'),
                               inline: true,
                             },
                           ]);
@@ -3193,15 +3342,19 @@ module.exports = {
                     const video = liveVideos[0].toRaw();
 
                     return interaction.deferReply().then(async () => {
-                      embed.setDescription(truncate(video.description, 4096));
-                      embed.setThumbnail(video.channel.photo);
+                      embed.setDescription(
+                        video.description
+                          ? truncate(video.description, 4096)
+                          : null,
+                      );
+                      embed.setThumbnail(video.channel?.photo ?? null);
                       embed.setAuthor({
                         name: `${
                           video.channel.org?.includes('Independents')
                             ? '🧑‍💻'
                             : ''
                         } ${
-                          video.channel.english_name || video.channel.name
+                          video.channel?.english_name || video.channel.name
                         }'s YouTube Stream Information`,
                         iconURL: affiliations.find(
                           (aff) =>
@@ -3220,10 +3373,12 @@ module.exports = {
                         },
                         {
                           name: '📆 Published At',
-                          value: time(
-                            new Date(video.published_at),
-                            TimestampStyles.RelativeTime,
-                          ),
+                          value: video.published_at
+                            ? time(
+                                new Date(video.published_at),
+                                TimestampStyles.RelativeTime,
+                              )
+                            : italic('Unknown'),
                           inline: true,
                         },
                         {
@@ -3236,7 +3391,7 @@ module.exports = {
                         },
                         {
                           name: '🔢 Live Viewers Count',
-                          value: `${video.live_viewers.toLocaleString()} watching now`,
+                          value: `${video.live_viewers?.toLocaleString()} watching now`,
                           inline: true,
                         },
                         {
@@ -3248,7 +3403,7 @@ module.exports = {
                         },
                         {
                           name: '🏢 Affiliation',
-                          value: video.channel.org ?? italic('Unknown'),
+                          value: video.channel?.org ?? italic('Unknown'),
                           inline: true,
                         },
                       ]);
@@ -3263,7 +3418,7 @@ module.exports = {
                       const video = item.toRaw();
 
                       return new EmbedBuilder()
-                        .setColor(guild.members.me.displayHexColor)
+                        .setColor(guild?.members.me?.displayHexColor ?? null)
                         .setTimestamp(Date.now())
                         .setFooter({
                           text: `${client.user.username} | Page ${
@@ -3273,15 +3428,19 @@ module.exports = {
                             dynamic: true,
                           }),
                         })
-                        .setDescription(truncate(video.description, 4096))
-                        .setThumbnail(video.channel.photo)
+                        .setDescription(
+                          video.description
+                            ? truncate(video.description, 4096)
+                            : null,
+                        )
+                        .setThumbnail(video.channel?.photo ?? null)
                         .setAuthor({
                           name: `${
                             video.channel.org?.includes('Independents')
                               ? '🧑‍💻'
                               : ''
                           } ${
-                            video.channel.english_name || video.channel.name
+                            video.channel?.english_name || video.channel.name
                           }'s YouTube Stream Lists`,
                           iconURL: affiliations.find(
                             (aff) =>
@@ -3300,10 +3459,12 @@ module.exports = {
                           },
                           {
                             name: '📆 Published At',
-                            value: time(
-                              new Date(video.published_at),
-                              TimestampStyles.RelativeTime,
-                            ),
+                            value: video.published_at
+                              ? time(
+                                  new Date(video.published_at),
+                                  TimestampStyles.RelativeTime,
+                                )
+                              : italic('Unknown'),
                             inline: true,
                           },
                           {
@@ -3316,7 +3477,7 @@ module.exports = {
                           },
                           {
                             name: '🔢 Live Viewers Count',
-                            value: `${video.live_viewers.toLocaleString()} watching now`,
+                            value: `${video.live_viewers?.toLocaleString()} watching now`,
                             inline: true,
                           },
                           {
@@ -3328,7 +3489,7 @@ module.exports = {
                           },
                           {
                             name: '🏢 Affiliation',
-                            value: video.channel.org ?? italic('Unknown'),
+                            value: video.channel?.org ?? italic('Unknown'),
                             inline: true,
                           },
                         ]);
@@ -3355,7 +3516,7 @@ module.exports = {
             }
 
             case 'video': {
-              const channelID = options.getString('id');
+              const channelID = options.getString('id', true);
 
               return holodex
                 .getVideosByChannelId(channelID, VideoSearchType.Videos, {
@@ -3380,7 +3541,7 @@ module.exports = {
                       const video = item.toRaw();
 
                       const newEmbed = new EmbedBuilder()
-                        .setColor(guild.members.me.displayHexColor)
+                        .setColor(guild?.members.me?.displayHexColor ?? null)
                         .setTimestamp(Date.now())
                         .setFooter({
                           text: `${client.user.username} | Page ${
@@ -3390,15 +3551,19 @@ module.exports = {
                             dynamic: true,
                           }),
                         })
-                        .setDescription(truncate(video.description, 4096))
-                        .setThumbnail(video.channel.photo)
+                        .setDescription(
+                          video.description
+                            ? truncate(video.description, 4096)
+                            : null,
+                        )
+                        .setThumbnail(video.channel?.photo ?? null)
                         .setAuthor({
                           name: `${
                             video.channel.org?.includes('Independents')
                               ? '🧑‍💻'
                               : ''
                           } ${
-                            video.channel.english_name || video.channel.name
+                            video.channel?.english_name || video.channel.name
                           }'s YouTube Video Lists`,
                           iconURL: affiliations.find(
                             (aff) =>
@@ -3436,10 +3601,12 @@ module.exports = {
                           },
                           {
                             name: '📆 Published At',
-                            value: time(
-                              new Date(video.published_at),
-                              TimestampStyles.RelativeTime,
-                            ),
+                            value: video.published_at
+                              ? time(
+                                  new Date(video.published_at),
+                                  TimestampStyles.RelativeTime,
+                                )
+                              : italic('Unknown'),
                             inline: true,
                           },
                           {
@@ -3491,11 +3658,15 @@ module.exports = {
 
     switch (options.getSubcommand()) {
       case 'npm': {
-        const name = options.getString('name');
+        const name = options.getString('name', true);
 
         return axios
           .get(`https://registry.npmjs.com/${name}`)
           .then(
+            /**
+             *
+             * @param {{ data: import('../../constants/types').NPMPackage }}
+             */
             async ({ data }) =>
               await interaction.deferReply().then(async () => {
                 let maintainers = data.maintainers.map(
@@ -3510,7 +3681,21 @@ module.exports = {
                   maintainers.push(italic(`...and ${rest} more.`));
                 }
 
-                const version = data.versions[data['dist-tags'].latest];
+                let versions =
+                  data['dist-tags'] &&
+                  Object.entries(data['dist-tags']).map(
+                    ([key, value]) => `${bold('•')} ${key} (${value})`,
+                  );
+
+                if (versions && versions.length > 10) {
+                  const rest = versions.length - 10;
+
+                  versions = versions.slice(0, 10);
+                  versions.push(italic(`...and ${rest} more.`));
+                }
+
+                const version =
+                  data['dist-tags'] && data.versions[data['dist-tags'].latest];
 
                 let dependencies =
                   version.dependencies &&
@@ -3525,18 +3710,7 @@ module.exports = {
                   dependencies.push(italic(`...and ${rest} more.`));
                 }
 
-                let versions = Object.entries(data['dist-tags']).map(
-                  ([key, value]) => `${bold('•')} ${key} (${value})`,
-                );
-
-                if (versions && version.length > 10) {
-                  const rest = versions.length - 10;
-
-                  versions = versions.slice(0, 10);
-                  versions.push(italic(`...and ${rest} more.`));
-                }
-
-                const cleanedURL = data.repository?.url.replace('git+', '');
+                const cleanedURL = data.repository.url?.replace('git+', '');
 
                 embed.setAuthor({
                   name: `${data.name}'s NPM Information`,
@@ -3549,12 +3723,15 @@ module.exports = {
                   {
                     name: '👑 Author',
                     value: data.author
-                      ? hyperlink(
-                          `${data.author.name}${
+                      ? data.author.url
+                        ? hyperlink(
+                            `${data.author.name}${
+                              data.author.email ? ` (${data.author.email})` : ''
+                            }`,
+                          )
+                        : `${data.author.name}${
                             data.author.email ? ` (${data.author.email})` : ''
-                          }`,
-                          data.author.url,
-                        )
+                          }`
                       : italic('Unknown'),
                     inline: true,
                   },
@@ -3605,13 +3782,14 @@ module.exports = {
                   },
                   {
                     name: '🔖 Version',
-                    value: versions.join('\n'),
+                    value: versions ? versions.join('\n') : italic('Unknown'),
                   },
                   {
                     name: '📦 Dependency',
-                    value: dependencies
-                      ? dependencies.join('\n')
-                      : italic('None'),
+                    value:
+                      dependencies && dependencies.length
+                        ? dependencies.join('\n')
+                        : italic('None'),
                   },
                 ]);
 
@@ -3633,10 +3811,15 @@ module.exports = {
       }
 
       case 'weather': {
-        const locationTarget = options.getString('location');
+        const locationTarget = options.getString('location', true);
 
         return weather.find(
           { search: locationTarget, degreeType: 'C' },
+          /**
+           *
+           * @param {Error} err
+           * @param {import('../../constants/types').Weather[]} result
+           */
           async (err, result) => {
             if (err) {
               return interaction
@@ -3693,9 +3876,11 @@ module.exports = {
                     (item) =>
                       `${bold(item.day)}\nStatus: ${item.skytextday}\nRange: ${
                         item.low
-                      }°${location.degreetype} - ${item.high}${
+                      }°${location.degreetype} - ${item.high}°${
                         location.degreetype
-                      }\nPrecipitation: ${item.precip}%`,
+                      }\nPrecipitation: ${
+                        !item.precip ? italic('Unknown') : `${item.precip}%`
+                      }`,
                   )
                   .join('\n\n'),
               },

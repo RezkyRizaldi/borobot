@@ -8,7 +8,8 @@ const {
 } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
-const { createWorker, languages } = require('tesseract.js');
+const { createWorker } = require('tesseract.js');
+const languages = require('tesseract.js/src/constants/languages');
 
 const { getImageReadLocale } = require('../../utils');
 
@@ -61,7 +62,7 @@ module.exports = {
             limit: 10,
           });
 
-          pagination.setColor(guild.members.me.displayHexColor);
+          pagination.setColor(guild?.members.me?.displayHexColor ?? null);
           pagination.setTimestamp(Date.now());
           pagination.setFooter({
             text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
@@ -89,7 +90,7 @@ module.exports = {
         }
 
         case 'run': {
-          const file = options.getAttachment('file');
+          const file = options.getAttachment('file', true);
           const worker = createWorker();
 
           await wait(4000);
@@ -104,7 +105,7 @@ module.exports = {
             .recognize(file.url)
             .then(async ({ data: { confidence, text } }) => {
               const embed = new EmbedBuilder()
-                .setColor(guild.members.me.displayHexColor)
+                .setColor(guild?.members.me?.displayHexColor ?? null)
                 .setTimestamp(Date.now())
                 .setFooter({
                   text: client.user.username,
@@ -120,7 +121,7 @@ module.exports = {
                   {
                     name: '📄 File',
                     value: hyperlink(
-                      file.name,
+                      file.name ?? file.url,
                       file.url,
                       file.description ?? 'Click here to view the image file.',
                     ),

@@ -20,6 +20,8 @@ module.exports = {
   async execute(channel) {
     const { client, guild } = channel;
 
+    if (!guild) return;
+
     const ChannelLogger = new WebhookClient({
       id: process.env.CHANNEL_CREATE_WEBHOOK_ID,
       token: process.env.CHANNEL_CREATE_WEBHOOK_TOKEN,
@@ -33,7 +35,7 @@ module.exports = {
       .then((audit) => audit.entries.first());
 
     const embed = new EmbedBuilder()
-      .setColor(guild.members.me.displayHexColor)
+      .setColor(guild.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,

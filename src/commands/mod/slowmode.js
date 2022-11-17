@@ -46,16 +46,25 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ channel: import('discord.js').TextChannel, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
     const { channel, options } = interaction;
 
-    const duration = options.getInteger('duration');
+    if (!channel) {
+      return interaction.deferReply({ ephemeral: true }).then(async () =>
+        interaction.editReply({
+          content: "Channel doesn't exist.",
+        }),
+      );
+    }
+
     const reason = options.getString('reason') ?? 'No reason';
 
     await interaction.deferReply({ ephemeral: true }).then(async () => {
       switch (options.getSubcommand()) {
-        case 'on':
-          if (channel.rateLimitPerUser > 0) {
+        case 'on': {
+          const duration = options.getInteger('duration', true);
+
+          if (channel.rateLimitPerUser && channel.rateLimitPerUser > 0) {
             return interaction.editReply({
               content: `Slowmode in ${channel} is already turned on for ${inlineCode(
                 `${channel.rateLimitPerUser} seconds`,
@@ -71,9 +80,10 @@ module.exports = {
                 )} slowmode in ${ch} for ${inlineCode(`${duration} seconds`)}.`,
               }),
           );
+        }
 
         case 'off':
-          if (channel.rateLimitPerUser === 0) {
+          if (channel.rateLimitPerUser && channel.rateLimitPerUser === 0) {
             return interaction.editReply({
               content: `Slowmode in ${channel} isn't being turned on.`,
             });

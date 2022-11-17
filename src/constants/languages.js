@@ -1,4 +1,5 @@
-module.exports = {
+/** @type {{ [name: String]: String }} */
+const languages = {
   auto: 'Automatic',
   af: 'Afrikaans',
   sq: 'Albanian',
@@ -134,3 +135,5 @@ module.exports = {
   or: 'Odia (Oriya)',
   rw: 'Kinyarwanda',
 };
+
+module.exports = { languages };

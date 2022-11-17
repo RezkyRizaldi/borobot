@@ -30,7 +30,7 @@ module.exports = {
     const { options } = interaction;
 
     /** @type {import('discord.js').GuildMember} */
-    const member = options.getMember('member');
+    const member = options.getMember('member', true);
     const reason = options.getString('reason') ?? 'No reason';
     const { voice } = member;
 
