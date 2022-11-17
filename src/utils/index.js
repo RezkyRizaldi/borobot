@@ -28,6 +28,7 @@ const getWikiaURL = require('./getWikiaURL');
 const groupMessageByAuthor = require('./groupMessageByAuthor');
 const groupMessageByType = require('./groupMessageByType');
 const isAlphabeticLetter = require('./isAlphabeticLetter');
+const isNumericString = require('./isNumericString');
 const isValidURL = require('./isValidURL');
 const serverMute = require('./serverMute');
 const transformCase = require('./transformCase');
@@ -64,6 +65,7 @@ module.exports = {
   groupMessageByAuthor,
   groupMessageByType,
   isAlphabeticLetter,
+  isNumericString,
   isValidURL,
   serverMute,
   transformCase,

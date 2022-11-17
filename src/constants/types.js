@@ -881,4 +881,23 @@
  * @property {String} id
  */
 
+/**
+ * @typedef {Object} NHentai
+ * @property {String} title_romaji
+ * @property {String} title_native
+ * @property {String} read
+ * @property {String[]} tags
+ * @property {String[]} image
+ */
+
+/**
+ * @typedef {Object} NHentaiSearch
+ * @property {Number} id
+ * @property {String} title_native
+ * @property {String} title_english
+ * @property {String} title_japanese
+ * @property {String} title_native
+ * @property {Number} page
+ */
+
 exports.unused = {};

@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { capitalCase } = require('change-case');
 const {
+  AttachmentBuilder,
   bold,
   ButtonBuilder,
   ButtonStyle,
@@ -30,7 +31,11 @@ const {
   searchSortingChoices,
   newsCountries,
 } = require('../../constants');
-const { isAlphabeticLetter, truncate } = require('../../utils');
+const {
+  isAlphabeticLetter,
+  truncate,
+  isNumericString,
+} = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -231,6 +236,35 @@ module.exports = {
           subcommand
             .setName('list')
             .setDescription('🌐 View available news countries.'),
+        ),
+    )
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('nhentai')
+        .setDescription('📔 Doujin command.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('tag')
+            .setDescription('🏷️ Search doujin from NHentai by tag.')
+            .addStringOption((option) =>
+              option
+                .setName('tag')
+                .setDescription('🏷️ The doujin tag.')
+                .setMinLength(5)
+                .setMaxLength(6)
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('query')
+            .setDescription('🔤 Search doujin from NHentai by query.')
+            .addStringOption((option) =>
+              option
+                .setName('query')
+                .setDescription('🔤 The doujin search query.')
+                .setRequired(true),
+            ),
         ),
     ),
   type: 'Chat Input',
@@ -800,6 +834,175 @@ module.exports = {
               );
           }
         }
+        break;
+
+      case 'nhentai':
+        {
+          const baseURL = 'https://api.lolhuman.xyz/api';
+
+          const attachment = new AttachmentBuilder(
+            './src/assets/images/nhentai-logo.png',
+            {
+              name: 'nhentai-logo.png',
+            },
+          );
+
+          switch (options.getSubcommand()) {
+            case 'tag': {
+              const tag = options.getString('tag', true);
+
+              if (!isNumericString(tag)) {
+                return interaction.deferReply({ ephemeral: true }).then(
+                  async () =>
+                    await interaction.editReply({
+                      content: 'Please enter a number.',
+                    }),
+                );
+              }
+
+              return axios
+                .get(
+                  `${baseURL}/nhentai/${tag}?apikey=${process.env.LOLHUMAN_API_KEY}`,
+                )
+                .then(
+                  /**
+                   *
+                   * @param {{ data: { result: import('../../constants/types').NHentai[] } }}
+                   */
+                  async ({ data: { result } }) => {
+                    const pagination = new Pagination(interaction, {
+                      attachments: [attachment],
+                    });
+
+                    embed.setAuthor({
+                      name: result.title_native,
+                      iconURL: 'attachment://nhentai-logo.png',
+                    });
+                    embed.setFields([
+                      {
+                        name: '🏷️ Tags',
+                        value: result.tags.join(', '),
+                      },
+                    ]);
+
+                    const imagesEmbed = result.image.map((url) =>
+                      new EmbedBuilder()
+                        .setColor(guild?.members.me?.displayHexColor ?? null)
+                        .setTimestamp(Date.now())
+                        .setAuthor({
+                          name: result.title_native,
+                          iconURL: 'attachment://nhentai-logo.png',
+                        })
+                        .setImage(url),
+                    );
+
+                    let embeds = [embed, ...imagesEmbed];
+
+                    embeds = embeds.map((emb, index, array) =>
+                      emb.setFooter({
+                        text: `${client.user.username} | Page ${index + 1} of ${
+                          array.length
+                        }`,
+                        iconURL: client.user.displayAvatarURL({
+                          dynamic: true,
+                        }),
+                      }),
+                    );
+
+                    pagination.setEmbeds(embeds);
+
+                    pagination.buttons = {
+                      ...pagination.buttons,
+                      extra: new ButtonBuilder()
+                        .setCustomId('jump')
+                        .setEmoji('↕️')
+                        .setDisabled(false)
+                        .setStyle(ButtonStyle.Secondary),
+                    };
+
+                    paginations.set(pagination.interaction.id, pagination);
+
+                    await pagination.render();
+                  },
+                );
+            }
+
+            case 'query': {
+              const query = options.getString('query', true);
+
+              return axios
+                .get(
+                  `${baseURL}/nhentaisearch?query=${query}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                )
+                .then(
+                  /**
+                   *
+                   * @param {{ data: { result: import('../../constants/types').NHentaiSearch[] } }}
+                   */
+                  async ({ data: { result } }) => {
+                    await interaction.deferReply().then(async () => {
+                      /** @type {import('discord.js').EmbedBuilder[]} */
+                      const embeds = result.map((item, index, array) =>
+                        new EmbedBuilder()
+                          .setColor(guild.members.me?.displayHexColor ?? null)
+                          .setTimestamp(Date.now())
+                          .setFooter({
+                            text: `${client.user.username} | Page ${
+                              index + 1
+                            } of ${array.length}`,
+                            iconURL: client.user.displayAvatarURL({
+                              dynamic: true,
+                            }),
+                          })
+                          .setAuthor({
+                            name: 'Doujin Search Result',
+                            iconURL: 'attachment://nhentai-logo.png',
+                          })
+                          .setFields([
+                            {
+                              name: '🔤 Title',
+                              value: hyperlink(
+                                item.title_native,
+                                `https://nhentai.net/g/${item.id}`,
+                              ),
+                              inline: true,
+                            },
+                            {
+                              name: '📄 Total Page',
+                              value: `${item.page.toLocaleString()} ${pluralize(
+                                'page',
+                                item.page,
+                              )}`,
+                              inline: true,
+                            },
+                          ]),
+                      );
+
+                      const pagination = new Pagination(interaction, {
+                        attachments: [attachment],
+                      });
+
+                      pagination.setEmbeds(embeds);
+
+                      pagination.buttons = {
+                        ...pagination.buttons,
+                        extra: new ButtonBuilder()
+                          .setCustomId('jump')
+                          .setEmoji('↕️')
+                          .setDisabled(false)
+                          .setStyle(ButtonStyle.Secondary),
+                      };
+
+                      paginations.set(pagination.interaction.id, pagination);
+
+                      await pagination.render();
+                    });
+                  },
+                );
+            }
+          }
+        }
+        break;
     }
 
     switch (options.getSubcommand()) {
