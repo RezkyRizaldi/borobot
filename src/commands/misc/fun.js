@@ -7,6 +7,7 @@ const {
   SlashCommandBuilder,
 } = require('discord.js');
 const nekoClient = require('nekos.life');
+const wait = require('node:timers/promises').setTimeout;
 
 const { waifuChoices } = require('../../constants');
 
@@ -678,37 +679,45 @@ module.exports = {
           );
         }
 
-        return axios
-          .get(
-            `https://api.lolhuman.xyz/api/random/nsfw/ahegao?apikey=${process.env.LOLHUMAN_API_KEY}`,
-            {
-              responseType: 'arraybuffer',
-            },
-          )
-          .then(
-            /**
-             *
-             * @param {{ data: ArrayBuffer }}
-             */
-            async ({ data }) => {
-              const base64 = Buffer.from(data, 'base64');
-              const image = new AttachmentBuilder(base64, {
-                name: 'ahegao.png',
-                description: 'Ahegao image',
-              });
+        return interaction.deferReply().then(async () => {
+          await wait(4000);
 
-              embed.setColor(guild.members.me?.displayHexColor ?? null);
-              embed.setImage('attachment://ahegao.png');
+          await axios
+            .get(
+              `https://api.lolhuman.xyz/api/random/nsfw/ahegao?apikey=${process.env.LOLHUMAN_API_KEY}`,
+              {
+                responseType: 'arraybuffer',
+              },
+            )
+            .then(
+              /**
+               *
+               * @param {{ data: ArrayBuffer }}
+               */
+              async ({ data }) => {
+                const base64 = Buffer.from(data, 'base64');
 
-              await interaction.deferReply().then(
-                async () =>
-                  await interaction.editReply({
-                    embeds: [embed],
-                    files: [image],
-                  }),
-              );
-            },
-          );
+                const file = (await import('file-type'))
+                  .fileTypeFromBuffer(base64)
+                  .then((r) => r.ext);
+
+                const ext = await file;
+
+                const image = new AttachmentBuilder(base64, {
+                  name: `ahegao.${ext}`,
+                  description: 'Ahegao image',
+                });
+
+                embed.setColor(guild.members.me?.displayHexColor ?? null);
+                embed.setImage(`attachment://ahegao.${ext}`);
+
+                await interaction.editReply({
+                  embeds: [embed],
+                  files: [image],
+                });
+              },
+            );
+        });
     }
   },
 };
