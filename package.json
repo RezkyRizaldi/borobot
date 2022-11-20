@@ -62,9 +62,8 @@
     "moment": "^2.29.4",
     "nekos.life": "^3.0.0",
     "newsapi": "^2.4.1",
-    "node-url-shortener": "^2.0.3",
     "ordinal": "^1.0.3",
-    "pagination.djs": "^4.0.7",
+    "pagination.djs": "^4.0.9",
     "pluralize": "^8.0.0",
     "qrcode": "^1.5.1",
     "roman-numerals-convert": "^1.0.5",
@@ -75,7 +74,7 @@
     "ytdl-core": "^4.11.2"
   },
   "devDependencies": {
-    "eslint": "^8.27.0",
+    "eslint": "^8.28.0",
     "husky": "^8.0.2",
     "lint-staged": "^13.0.3",
     "nodemon": "^2.0.20",
