@@ -175,6 +175,17 @@ module.exports = {
             ),
         ),
     )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('instagram')
+        .setDescription('👤 Get information about an Instagram account.')
+        .addStringOption((option) =>
+          option
+            .setName('username')
+            .setDescription('🔤 The Instagram username account.')
+            .setRequired(true),
+        ),
+    )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('minecraft')
@@ -3657,6 +3668,73 @@ module.exports = {
     }
 
     switch (options.getSubcommand()) {
+      case 'instagram': {
+        const usernameQuery = options.getString('username', true).toLowerCase();
+        const cleanUsername = usernameQuery.startsWith('@')
+          ? usernameQuery.replace('@', '')
+          : usernameQuery;
+
+        await interaction.deferReply();
+
+        /** @type {{ data: { result: import('../../constants/types').InstagramInfo } }} */
+        const {
+          data: {
+            result: {
+              bio,
+              followers,
+              following,
+              fullname,
+              photo_profile,
+              posts,
+              username,
+            },
+          },
+        } = await axios.get(
+          `https://api.lolhuman.xyz/api/stalkig/${cleanUsername}?apikey=${process.env.LOLHUMAN_API_KEY}`,
+        );
+
+        embed
+          .setDescription(bio || null)
+          .setThumbnail(photo_profile)
+          .setAuthor({
+            name: 'Instagram Account Information',
+            iconURL:
+              'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
+          })
+          .setFields([
+            {
+              name: '🔤 Username',
+              value: hyperlink(
+                username,
+                `https://instagram.com/${username.replace('@', '')}`,
+              ),
+              inline: true,
+            },
+            {
+              name: '🔤 Full Name',
+              value: fullname || italic('None'),
+              inline: true,
+            },
+            {
+              name: '🔢 Posts Count',
+              value: posts.toLocaleString(),
+              inline: true,
+            },
+            {
+              name: '🔢 Following',
+              value: following.toLocaleString(),
+              inline: true,
+            },
+            {
+              name: '🔢 Followers',
+              value: followers.toLocaleString(),
+              inline: true,
+            },
+          ]);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
       case 'npm': {
         const name = options.getString('name', true);
 

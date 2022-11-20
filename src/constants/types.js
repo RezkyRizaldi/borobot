@@ -1053,4 +1053,15 @@
  * @property {String} link
  */
 
+/**
+ * @typedef {Object} InstagramInfo
+ * @property {String} photo_profile
+ * @property {String} username
+ * @property {String} fullname
+ * @property {Number} posts
+ * @property {Number} following
+ * @property {Number} followers
+ * @property {String} bio
+ */
+
 exports.unused = {};

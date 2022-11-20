@@ -27,7 +27,7 @@ const {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('download')
-    .setDescription('📩 Downloader Command.')
+    .setDescription('📩 Downloader command.')
     .addSubcommand((subcommand) =>
       subcommand
         .setName('anime')
