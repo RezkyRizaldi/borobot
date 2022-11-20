@@ -17,6 +17,7 @@ const applyThreadAutoArchiveDuration = require('./applyThreadAutoArchiveDuration
 const applyTier = require('./applyTier');
 const applyVerificationLevel = require('./applyVerificationLevel');
 const applyVideoQualityMode = require('./applyVideoQualityMode');
+const generateAttachmentFromBuffer = require('./generateAttachmentFromBuffer');
 const getFormattedMinecraftName = require('./getFormattedMinecraftName');
 const getFormattedParam = require('./getFormattedParam');
 const getImageReadLocale = require('./getImageReadLocale');
@@ -28,6 +29,7 @@ const getWikiaURL = require('./getWikiaURL');
 const groupMessageByAuthor = require('./groupMessageByAuthor');
 const groupMessageByType = require('./groupMessageByType');
 const isAlphabeticLetter = require('./isAlphabeticLetter');
+const isNumericString = require('./isNumericString');
 const isValidURL = require('./isValidURL');
 const serverMute = require('./serverMute');
 const transformCase = require('./transformCase');
@@ -53,6 +55,7 @@ module.exports = {
   applyTier,
   applyVerificationLevel,
   applyVideoQualityMode,
+  generateAttachmentFromBuffer,
   getFormattedMinecraftName,
   getFormattedParam,
   getImageReadLocale,
@@ -64,6 +67,7 @@ module.exports = {
   groupMessageByAuthor,
   groupMessageByType,
   isAlphabeticLetter,
+  isNumericString,
   isValidURL,
   serverMute,
   transformCase,

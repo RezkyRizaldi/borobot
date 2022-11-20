@@ -754,8 +754,77 @@ const vtuberStreamSorting = [
   },
 ];
 
+/** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+const animeDownloadSiteChoices = [
+  {
+    name: '🌐 Otakudesu',
+    value: 'otakudesu',
+  },
+  {
+    name: '🌐 Kusonime',
+    value: 'kusonime',
+  },
+];
+
+/** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+const instagramDownloadTypeChoices = [
+  {
+    name: '🌐 Instagram Post',
+    value: 'instagram',
+  },
+  {
+    name: '🌐 Instagram Story',
+    value: 'igstory',
+  },
+];
+
+/** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+const tiktokDownloadTypeChoices = [
+  {
+    name: '🎵 Audio',
+    value: 'music',
+  },
+  {
+    name: '🎞️ Video',
+    value: 'video',
+  },
+  {
+    name: '🎞️ Video (No Watermark)',
+    value: 'videoNoWatermark',
+  },
+];
+
+/** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+const twitterDownloadTypeChoices = [
+  {
+    name: '🖼️ Image',
+    value: 'image',
+  },
+  {
+    name: '🎞️ Video',
+    value: 'video',
+  },
+];
+
+/** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+const youtubeDownloadTypeChoices = [
+  {
+    name: '🎵 Audio',
+    value: 'audio',
+  },
+  {
+    name: '🎞️ Shorts',
+    value: 'shorts',
+  },
+  {
+    name: '🎞️ Video',
+    value: 'video',
+  },
+];
+
 module.exports = {
   animeCharacterSearchOrderChoices,
+  animeDownloadSiteChoices,
   animeSearchOrderChoices,
   animeSearchStatusChoices,
   animeSearchTypeChoices,
@@ -764,6 +833,7 @@ module.exports = {
   emitChoices,
   githubRepoSortingTypeChoices,
   guildChannels,
+  instagramDownloadTypeChoices,
   mangaSearchOrderChoices,
   mangaSearchStatusChoices,
   mangaSearchTypeChoices,
@@ -777,8 +847,11 @@ module.exports = {
   serverMuteTempChoices,
   slowmodeChoices,
   threadChannels,
+  tiktokDownloadTypeChoices,
   timeoutChoices,
+  twitterDownloadTypeChoices,
   vtuberStreamSorting,
   vtuberVideoSorting,
   waifuChoices,
+  youtubeDownloadTypeChoices,
 };

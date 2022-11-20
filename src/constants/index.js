@@ -4,6 +4,7 @@ const { math } = require('./math');
 const { newsCountries } = require('./newsCountries');
 const {
   animeCharacterSearchOrderChoices,
+  animeDownloadSiteChoices,
   animeSearchOrderChoices,
   animeSearchStatusChoices,
   animeSearchTypeChoices,
@@ -12,6 +13,7 @@ const {
   emitChoices,
   githubRepoSortingTypeChoices,
   guildChannels,
+  instagramDownloadTypeChoices,
   mangaSearchOrderChoices,
   mangaSearchStatusChoices,
   mangaSearchTypeChoices,
@@ -25,15 +27,19 @@ const {
   serverMuteTempChoices,
   slowmodeChoices,
   threadChannels,
+  tiktokDownloadTypeChoices,
   timeoutChoices,
+  twitterDownloadTypeChoices,
   vtuberStreamSorting,
   vtuberVideoSorting,
   waifuChoices,
+  youtubeDownloadTypeChoices,
 } = require('./slashCommandOptionChoices');
 const { vtuberAffiliation } = require('./vtuberData');
 
 module.exports = {
   animeCharacterSearchOrderChoices,
+  animeDownloadSiteChoices,
   animeSearchOrderChoices,
   animeSearchStatusChoices,
   animeSearchTypeChoices,
@@ -44,6 +50,7 @@ module.exports = {
   emitChoices,
   extraMcData,
   githubRepoSortingTypeChoices,
+  instagramDownloadTypeChoices,
   languages,
   mangaSearchOrderChoices,
   mangaSearchStatusChoices,
@@ -59,9 +66,12 @@ module.exports = {
   serverMuteChoices,
   serverMuteTempChoices,
   slowmodeChoices,
+  tiktokDownloadTypeChoices,
   timeoutChoices,
+  twitterDownloadTypeChoices,
   vtuberAffiliation,
   vtuberVideoSortingChoices: vtuberVideoSorting,
   vtuberStreamSortingChoices: [...vtuberVideoSorting, ...vtuberStreamSorting],
   waifuChoices,
+  youtubeDownloadTypeChoices,
 };

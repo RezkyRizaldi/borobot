@@ -1,5 +1,7 @@
 const { bold, inlineCode } = require('discord.js');
 
+const { isNumericString } = require('../utils');
+
 module.exports = {
   data: {
     name: 'jumpModal',
@@ -22,7 +24,7 @@ module.exports = {
 
         const pagination = paginations.get(message.interaction.id);
 
-        if (!/^\d+$/.test(inputValue)) {
+        if (!isNumericString(inputValue)) {
           return interaction.editReply({
             content: `Please insert a number value between 1 and ${pagination.totalPages}.`,
           });
