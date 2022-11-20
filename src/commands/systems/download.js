@@ -101,6 +101,7 @@ module.exports = {
                         `${bold('•')} ${item.reso}: ${Object.entries(
                           item.link_dl,
                         )
+                          .slice(0, 3)
                           .map(([name, url]) => hyperlink(name, url))
                           .join(' | ')}`,
                     )
