@@ -930,4 +930,127 @@
  * @property {{ [name: String]: { [name: String]: String } }} link_dl
  */
 
+/**
+ * @typedef {Object} Instagram
+ * @property {InstagramAccount} account
+ * @property {String} caption
+ * @property {String[]} media
+ */
+
+/**
+ * @typedef {Object} InstagramAccount
+ * @property {String} username
+ * @property {String} full_name
+ */
+
+/**
+ * @typedef {Object} Spotify
+ * @property {String} id
+ * @property {String} title
+ * @property {String} artists
+ * @property {Number} duration
+ * @property {Number} popularity
+ * @property {{ spotify: String }} external_urls
+ * @property {String} preview_url
+ * @property {String} thumbnail
+ * @property {String} link
+ */
+
+/**
+ * @typedef {Object} TikTok
+ * @property {String} title
+ * @property {String} keywords
+ * @property {String} description
+ * @property {String} thumbnail
+ * @property {Number} duration
+ * @property {TikTokAuthor} author
+ * @property {TikTokStat} statistic
+ * @property {String} link
+ */
+
+/**
+ * @typedef {Object} TikTokAuthor
+ * @property {String} username
+ * @property {String} nickname
+ * @property {String} avatar
+ */
+
+/**
+ * @typedef {Object} TikTokStat
+ * @property {Number} play_count
+ * @property {Number} like_count
+ * @property {Number} share_count
+ * @property {Number} comment_count
+ */
+
+/**
+ * @typedef {Object} TwitterImage
+ * @property {TwitterUser} user
+ * @property {String} title
+ * @property {Date} publish
+ * @property {String} link
+ */
+
+/**
+ * @typedef {Object} TwitterUser
+ * @property {String} name
+ * @property {String} username
+ * @property {String} photo
+ */
+
+/**
+ * @typedef {Object} TwitterVideo
+ * @property {TwitterUser} user
+ * @property {String} title
+ * @property {Date} publish
+ * @property {String} thumbnail
+ * @property {Number} duration
+ * @property {TwitterVideoLink[]} link
+ */
+
+/**
+ * @typedef {Object} TwitterVideoLink
+ * @property {Number} bitrate
+ * @property {String} url
+ */
+
+/**
+ * @typedef {Object} YouTubeAudio
+ * @property {String} title
+ * @property {String} thumbnail
+ * @property {String} size
+ * @property {String} link
+ */
+
+/**
+ * @typedef {Object} YouTubeVideo
+ * @property {String} id
+ * @property {String} title
+ * @property {String} uploader
+ * @property {String} channel
+ * @property {String} duration
+ * @property {Number} view
+ * @property {Number} like
+ * @property {Number} dislike
+ * @property {String} thumbnail
+ * @property {String} description
+ * @property {YouTubeVideoLink} link
+ */
+
+/**
+ * @typedef {Object} YouTubeVideoLink
+ * @property {String} link
+ * @property {String} type
+ * @property {String} resolution
+ * @property {String} size
+ */
+
+/**
+ * @typedef {Object} YouTubeShorts
+ * @property {String} title
+ * @property {String} thumbnail
+ * @property {String} size
+ * @property {String} link
+ */
+
 exports.unused = {};
