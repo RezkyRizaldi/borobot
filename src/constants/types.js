@@ -900,4 +900,34 @@
  * @property {Number} page
  */
 
+/**
+ * @typedef {Object} Otakudesu
+ * @property {String} title
+ * @property {OtakudesuProvider[]} link_dl
+ */
+
+/**
+ * @typedef {Object} OtakudesuProvider
+ * @property {String} reso
+ * @property {String} size
+ * @property {{ [name: String]: String }} link_dl
+ */
+
+/**
+ * @typedef {Object} Kusonime
+ * @property {String} title
+ * @property {String} thumbnail
+ * @property {String} japanese
+ * @property {String} genre
+ * @property {String} seasons
+ * @property {String} producers
+ * @property {String} type
+ * @property {String} status
+ * @property {String} total_episode
+ * @property {String} score
+ * @property {String} duration
+ * @property {String} released_on
+ * @property {{ [name: String]: { [name: String]: String } }} link_dl
+ */
+
 exports.unused = {};

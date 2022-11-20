@@ -754,8 +754,21 @@ const vtuberStreamSorting = [
   },
 ];
 
+/** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
+const animeDownloadSiteChoices = [
+  {
+    name: '🌐 Otakudesu',
+    value: 'otakudesu',
+  },
+  {
+    name: '🌐 Kusonime',
+    value: 'kusonime',
+  },
+];
+
 module.exports = {
   animeCharacterSearchOrderChoices,
+  animeDownloadSiteChoices,
   animeSearchOrderChoices,
   animeSearchStatusChoices,
   animeSearchTypeChoices,

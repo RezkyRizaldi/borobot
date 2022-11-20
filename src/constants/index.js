@@ -4,6 +4,7 @@ const { math } = require('./math');
 const { newsCountries } = require('./newsCountries');
 const {
   animeCharacterSearchOrderChoices,
+  animeDownloadSiteChoices,
   animeSearchOrderChoices,
   animeSearchStatusChoices,
   animeSearchTypeChoices,
@@ -34,6 +35,7 @@ const { vtuberAffiliation } = require('./vtuberData');
 
 module.exports = {
   animeCharacterSearchOrderChoices,
+  animeDownloadSiteChoices,
   animeSearchOrderChoices,
   animeSearchStatusChoices,
   animeSearchTypeChoices,
