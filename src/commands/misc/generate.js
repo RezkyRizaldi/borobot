@@ -1,3 +1,4 @@
+const axios = require('axios');
 const {
   AttachmentBuilder,
   EmbedBuilder,
@@ -11,7 +12,6 @@ const {
   Triggered,
 } = require('discord-image-generation');
 const fs = require('fs');
-const shortUrl = require('node-url-shortener');
 const QRCode = require('qrcode');
 
 const { isValidURL } = require('../../utils');
@@ -89,7 +89,7 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
-        .setName('shortenurl')
+        .setName('shortlink')
         .setDescription('🔗 Generate a shortened URL.')
         .addStringOption((option) =>
           option
@@ -245,7 +245,7 @@ module.exports = {
     }
 
     switch (options.getSubcommand()) {
-      case 'shortenurl': {
+      case 'shortlink': {
         const url = options.getString('url', true);
 
         if (!isValidURL(url)) {
@@ -257,38 +257,28 @@ module.exports = {
           );
         }
 
-        return shortUrl.short(
-          url,
-          /**
-           *
-           * @param {any} err
-           * @param {String} shortURL
-           */
-          async (err, shortURL) => {
-            if (err) {
-              console.error(err);
+        return interaction.deferReply().then(
+          async () =>
+            await axios
+              .get(
+                `https://api.lolhuman.xyz/api/shortlink?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+              )
+              .then(
+                /**
+                 *
+                 * @param {{ data: { result: String } }}
+                 */
+                async ({ data: { result } }) => {
+                  embed.setAuthor({
+                    name: '🔗 Shortened URL Result',
+                  });
+                  embed.setDescription(
+                    `Here's your generated shorten URL: ${result}.`,
+                  );
 
-              return interaction
-                .deferReply({ ephemeral: true })
-                .then(
-                  async () => await interaction.editReply({ content: err }),
-                );
-            }
-
-            embed.setAuthor({
-              name: '🔗 Shortened URL Result',
-            });
-            embed.setDescription(
-              `Here's your generated shorten URL: ${shortURL}.`,
-            );
-
-            await interaction.deferReply().then(
-              async () =>
-                await interaction.editReply({
-                  embeds: [embed],
-                }),
-            );
-          },
+                  await interaction.editReply({ embeds: [embed] });
+                },
+              ),
         );
       }
 
