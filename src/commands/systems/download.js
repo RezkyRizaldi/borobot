@@ -319,20 +319,20 @@ module.exports = {
       case 'instagram':
         {
           const type = options.getString('type', true);
-          const url = options.getString('query', true);
-
-          if (!isValidURL(url, 'instagram')) {
-            await interaction.deferReply({ ephemeral: true });
-
-            return interaction.editReply({
-              content: 'Please provide a valid Instagram URL.',
-            });
-          }
-
-          await interaction.deferReply();
+          const query = options.getString('query', true);
 
           switch (type) {
             case 'instagram': {
+              if (!isValidURL(query, 'instagram')) {
+                await interaction.deferReply({ ephemeral: true });
+
+                return interaction.editReply({
+                  content: 'Please provide a valid Instagram URL.',
+                });
+              }
+
+              await interaction.deferReply();
+
               /** @type {{ data: { result: import('../../constants/types').Instagram } }} */
               const {
                 data: {
@@ -343,7 +343,7 @@ module.exports = {
                   },
                 },
               } = await axios.get(
-                `${baseURL}/instagram2?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                `${baseURL}/instagram2?url=${query}&apikey=${process.env.LOLHUMAN_API_KEY}`,
               );
 
               embed
@@ -380,14 +380,70 @@ module.exports = {
               return interaction.editReply({ embeds: [embed] });
             }
 
-            // TODO: WIP
-            case 'igstory':
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: 'Sorry, this feature still in development.',
-                  }),
+            case 'igstory': {
+              const username = query.toLowerCase();
+
+              /** @type {{ data: { result: String[] } }} */
+              const {
+                data: { result },
+              } = await axios
+                .get(
+                  `${baseURL}/igstory/${username}?apikey=${process.env.LOLHUMAN_API_KEY}`,
+                )
+                .catch(async () => {
+                  await interaction.deferReply({ ephemeral: true });
+
+                  throw `No user found with username ${inlineCode(
+                    username,
+                  )} or its doesn't have any stories right now.`;
+                });
+
+              await interaction.deferReply();
+
+              const URLs = result.map(
+                (url, index) =>
+                  `${bold('•')} ${hyperlink(`Story ${index + 1}`, url)}`,
               );
+
+              if (result.length > 5) {
+                const pagination = new Pagination(interaction)
+                  .setColor(guild?.members.me?.displayHexColor ?? null)
+                  .setTimestamp(Date.now())
+                  .setAuthor({
+                    name: 'Instagram Story Downloader Result',
+                    iconURL:
+                      'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
+                  })
+                  .setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                  })
+                  .setDescriptions(URLs);
+
+                pagination.buttons = {
+                  ...pagination.buttons,
+                  extra: new ButtonBuilder()
+                    .setCustomId('jump')
+                    .setEmoji('↕️')
+                    .setDisabled(false)
+                    .setStyle(ButtonStyle.Secondary),
+                };
+
+                paginations.set(pagination.interaction.id, pagination);
+
+                return pagination.render();
+              }
+
+              embed
+                .setAuthor({
+                  name: 'Instagram Post Downloader Result',
+                  iconURL:
+                    'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
+                })
+                .setDescription(URLs.join('\n'));
+
+              return interaction.editReply({ embeds: [embed] });
+            }
           }
         }
         break;
