@@ -31,6 +31,8 @@ module.exports = {
       token: process.env.MESSAGE_DELETE_WEBHOOK_TOKEN,
     });
 
+    if (!messages.first().guild) return;
+
     const embed = new EmbedBuilder()
       .setColor(messages.first().guild.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
@@ -41,20 +43,17 @@ module.exports = {
           .client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    if (!messages.first().guild) return;
-
     if (messages.first().partial || !messages.first().author) {
-      embed.setAuthor({
-        name: '❌ Messages Deleted',
-      });
-      embed.setDescription(
-        `${messages.size.toLocaleString()} messages was ${bold('deleted')} in ${
-          messages.first().channel
-        } at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
-      );
+      embed
+        .setAuthor({ name: '❌ Messages Deleted' })
+        .setDescription(
+          `${messages.size.toLocaleString()} messages was ${bold(
+            'deleted',
+          )} in ${messages.first().channel} at ${time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          )}.`,
+        );
 
       return MessageLogger.send({ embeds: [embed] }).catch(console.error);
     }
@@ -104,10 +103,7 @@ module.exports = {
         )
         .join('\n\n')}`;
 
-      embed.setAuthor({
-        name: '❌ Messages Deleted',
-      });
-      embed.setDescription(response);
+      embed.setAuthor({ name: '❌ Messages Deleted' }).setDescription(response);
 
       if (response.length > 4096) {
         embed.setDescription(response.slice(0, 4096));
@@ -135,12 +131,13 @@ module.exports = {
       .map((message) => applyMessageType(message))
       .join('\n')}`;
 
-    embed.setAuthor({
-      name: 'Messages Deleted',
-      iconURL: messages.first().author.displayAvatarURL({ dynamic: true }),
-    });
-    embed.setDescription(truncate(response, 4096));
+    embed
+      .setAuthor({
+        name: 'Messages Deleted',
+        iconURL: messages.first().author.displayAvatarURL({ dynamic: true }),
+      })
+      .setDescription(truncate(response, 4096));
 
-    await MessageLogger.send({ embeds: [embed] }).catch(console.error);
+    return MessageLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

@@ -20,6 +20,8 @@ module.exports = {
   async execute(stage) {
     const { channel, client, guild } = stage;
 
+    if (!guild || !channel) return;
+
     const StageLogger = new WebhookClient({
       id: process.env.CHANNEL_STAGE_WEBHOOK_ID,
       token: process.env.CHANNEL_STAGE_WEBHOOK_TOKEN,
@@ -39,20 +41,14 @@ module.exports = {
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
-      .setAuthor({
-        name: '🎤 New Stage Channel Created',
-      })
+      .setAuthor({ name: '🎤 New Stage Channel Created' })
       .setDescription(
         `${channel} stage channel was ${bold('created')} ${
           channel.parent ? `in ${channel.parent}` : ''
         } by ${createLog.executor}.`,
       )
       .setFields([
-        {
-          name: '🔤 Name',
-          value: channel.name,
-          inline: true,
-        },
+        { name: '🔤 Name', value: channel.name, inline: true },
         {
           name: '🔏 Privacy Level',
           value: applyStagePrivacyLevel(stage.privacyLevel),
@@ -63,12 +59,9 @@ module.exports = {
           value: time(channel.createdAt, TimestampStyles.RelativeTime),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: createLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: createLog.reason ?? 'No reason' },
       ]);
 
-    await StageLogger.send({ embeds: [embed] }).catch(console.error);
+    return StageLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

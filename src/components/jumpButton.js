@@ -6,9 +6,7 @@ const {
 } = require('discord.js');
 
 module.exports = {
-  data: {
-    name: 'jump',
-  },
+  data: { name: 'jump' },
 
   /**
    *
@@ -30,6 +28,6 @@ module.exports = {
         ),
       );
 
-    await interaction.showModal(modal);
+    return interaction.showModal(modal);
   },
 };

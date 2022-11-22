@@ -13,25 +13,23 @@ module.exports = {
   async execute(interaction) {
     const { client, guild } = interaction;
 
-    await interaction.deferReply({ fetchReply: true }).then(async (message) => {
-      const embed = new EmbedBuilder()
-        .setColor(guild?.members.me?.displayHexColor ?? null)
-        .setTimestamp(Date.now())
-        .setFooter({
-          text: client.user.username,
-          iconURL: client.user.displayAvatarURL({
-            dynamic: true,
-          }),
-        })
-        .setDescription(
-          `Websocket heartbeat: ${inlineCode(
-            `${Math.round(client.ws.ping)}ms`,
-          )}\nRoundtrip latency: ${inlineCode(
-            `${message.createdTimestamp - interaction.createdTimestamp}ms`,
-          )}`,
-        );
+    const message = await interaction.deferReply({ fetchReply: true });
 
-      await interaction.editReply({ embeds: [embed] });
-    });
+    const embed = new EmbedBuilder()
+      .setColor(guild?.members.me?.displayHexColor ?? null)
+      .setTimestamp(Date.now())
+      .setFooter({
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+      })
+      .setDescription(
+        `Websocket heartbeat: ${inlineCode(
+          `${Math.round(client.ws.ping)}ms`,
+        )}\nRoundtrip latency: ${inlineCode(
+          `${message.createdTimestamp - interaction.createdTimestamp}ms`,
+        )}`,
+      );
+
+    return interaction.editReply({ embeds: [embed] });
   },
 };

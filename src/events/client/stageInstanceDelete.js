@@ -18,6 +18,8 @@ module.exports = {
   async execute(stage) {
     const { channel, client, guild } = stage;
 
+    if (!guild || !channel) return;
+
     const StageLogger = new WebhookClient({
       id: process.env.CHANNEL_STAGE_WEBHOOK_ID,
       token: process.env.CHANNEL_STAGE_WEBHOOK_TOKEN,
@@ -37,20 +39,14 @@ module.exports = {
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
-      .setAuthor({
-        name: '🎤 Stage Channel Deleted',
-      })
+      .setAuthor({ name: '🎤 Stage Channel Deleted' })
       .setDescription(
         `${channel} stage channel was ${bold('deleted')} by ${
           deleteLog.executor
         }.`,
       )
       .setFields([
-        {
-          name: '🔤 Name',
-          value: channel.name,
-          inline: true,
-        },
+        { name: '🔤 Name', value: channel.name, inline: true },
         {
           name: '🕒 Created At',
           value: time(channel.createdAt, TimestampStyles.RelativeTime),
@@ -64,12 +60,9 @@ module.exports = {
           ),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: deleteLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: deleteLog.reason ?? 'No reason' },
       ]);
 
-    await StageLogger.send({ embeds: [embed] }).catch(console.error);
+    return StageLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

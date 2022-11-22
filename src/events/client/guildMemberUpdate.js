@@ -2,6 +2,7 @@ const Canvas = require('@napi-rs/canvas');
 const {
   AttachmentBuilder,
   AuditLogEvent,
+  bold,
   EmbedBuilder,
   italic,
   time,
@@ -69,30 +70,27 @@ module.exports = {
 
       const attachment = new AttachmentBuilder(await canvas.encode('png'), {
         name: 'nitro.png',
+        description: 'Nitro Booster',
       });
 
-      embed.setAuthor({
-        name: '🚀 Server Boosted',
-      });
-
-      if (guild.icon) {
-        embed.setAuthor({
-          name: 'Server Boosted',
-          iconURL: guild.iconURL({ dynamic: true }),
-        });
-      }
-
-      embed.setThumbnail(newMember.displayAvatarURL({ dynamic: true }));
-      embed.setDescription(`Welcome to test, ${newMember.displayName}!`);
-      embed.setImage('attachment://nitro.png');
-
-      await guild.systemChannel
-        .send({ embeds: [embed], files: [attachment] })
-        .catch(console.error);
-
-      embed.setDescription('Thank you for boosting test!');
+      embed
+        .setAuthor({
+          name: `${guild.icon ? '🚀 ' : ''}Server Boosted`,
+          iconURL: guild.iconURL({ dynamic: true }) ?? undefined,
+        })
+        .setDescription(
+          `Thank you for boosting ${guild}, ${bold(newMember.displayName)}!`,
+        );
 
       await newMember.send({ embeds: [embed] }).catch(console.error);
+
+      embed
+        .setThumbnail(newMember.displayAvatarURL({ dynamic: true }))
+        .setImage('attachment://nitro.png');
+
+      if (!guild.systemChannel) return;
+
+      await guild.systemChannel.send({ embeds: [embed], files: [attachment] });
     }
 
     // If the member roles have changed
@@ -107,31 +105,29 @@ module.exports = {
       );
 
       if (removedRoles.size) {
-        embed.setAuthor({
-          name: 'Member Role Removed',
-          iconURL: oldMember.displayAvatarURL({ dynamic: true }),
-        });
-        embed.setDescription(
-          `${removedRoles
-            .map((role) => `${role}`)
-            .join(', ')} have been removed from ${oldMember}'s role by ${
-            roleLog.executor
-          }.`,
-        );
-        embed.setFields([
-          {
-            name: '🕒 Removed At',
-            value: time(
-              Math.floor(Date.now() / 1000),
-              TimestampStyles.RelativeTime,
-            ),
-            inline: true,
-          },
-          {
-            name: '📄 Reason',
-            value: roleLog.reason ?? 'No reason',
-          },
-        ]);
+        embed
+          .setAuthor({
+            name: 'Member Role Removed',
+            iconURL: oldMember.displayAvatarURL({ dynamic: true }),
+          })
+          .setDescription(
+            `${removedRoles
+              .map((role) => `${role}`)
+              .join(', ')} have been removed from ${oldMember}'s role by ${
+              roleLog.executor
+            }.`,
+          )
+          .setFields([
+            {
+              name: '🕒 Removed At',
+              value: time(
+                Math.floor(Date.now() / 1000),
+                TimestampStyles.RelativeTime,
+              ),
+              inline: true,
+            },
+            { name: '📄 Reason', value: roleLog.reason ?? 'No reason' },
+          ]);
 
         await RoleAddLogger.send({ embeds: [embed] }).catch(console.error);
       }
@@ -146,31 +142,29 @@ module.exports = {
       );
 
       if (addedRoles.size) {
-        embed.setAuthor({
-          name: 'Member Roles Added',
-          iconURL: newMember.displayAvatarURL({ dynamic: true }),
-        });
-        embed.setDescription(
-          `${addedRoles
-            .map((role) => `${role}`)
-            .join(', ')} have been added to ${newMember}'s role by ${
-            roleLog.executor
-          }.`,
-        );
-        embed.setFields([
-          {
-            name: '🕒 Added At',
-            value: time(
-              Math.floor(Date.now() / 1000),
-              TimestampStyles.RelativeTime,
-            ),
-            inline: true,
-          },
-          {
-            name: '📄 Reason',
-            value: roleLog.reason ?? 'No reason',
-          },
-        ]);
+        embed
+          .setAuthor({
+            name: 'Member Roles Added',
+            iconURL: newMember.displayAvatarURL({ dynamic: true }),
+          })
+          .setDescription(
+            `${addedRoles
+              .map((role) => `${role}`)
+              .join(', ')} have been added to ${newMember}'s role by ${
+              roleLog.executor
+            }.`,
+          )
+          .setFields([
+            {
+              name: '🕒 Added At',
+              value: time(
+                Math.floor(Date.now() / 1000),
+                TimestampStyles.RelativeTime,
+              ),
+              inline: true,
+            },
+            { name: '📄 Reason', value: roleLog.reason ?? 'No reason' },
+          ]);
 
         await RoleRemoveLogger.send({ embeds: [embed] }).catch(console.error);
       }
@@ -197,27 +191,25 @@ module.exports = {
       !oldMember.roles.cache.has(mutedRole.id) &&
       newMember.roles.cache.has(mutedRole.id)
     ) {
-      embed.setAuthor({
-        name: 'Member Muted from Text Channel',
-        iconURL: newMember.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${newMember} has been muted from text channels by ${muteLog.executor}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Muted At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-          inline: true,
-        },
-        {
-          name: '📄 Reason',
-          value: muteLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Member Muted from Text Channel',
+          iconURL: newMember.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(
+          `${newMember} has been muted from text channels by ${muteLog.executor}.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Muted At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+            inline: true,
+          },
+          { name: '📄 Reason', value: muteLog.reason ?? 'No reason' },
+        ]);
 
       if (muteLog.target.id === newMember.id) {
         await MuteLogger.send({ embeds: [embed] }).catch(console.error);
@@ -229,27 +221,25 @@ module.exports = {
       oldMember.roles.cache.has(mutedRole.id) &&
       !newMember.roles.cache.has(mutedRole.id)
     ) {
-      embed.setAuthor({
-        name: 'Member Unmuted from Text Channel',
-        iconURL: newMember.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${newMember} has been unmuted from text channels by ${muteLog.executor}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Unmuted At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-          inline: true,
-        },
-        {
-          name: '📄 Reason',
-          value: muteLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Member Unmuted from Text Channel',
+          iconURL: newMember.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(
+          `${newMember} has been unmuted from text channels by ${muteLog.executor}.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Unmuted At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+            inline: true,
+          },
+          { name: '📄 Reason', value: muteLog.reason ?? 'No reason' },
+        ]);
 
       if (muteLog.target.id === newMember.id) {
         await MuteLogger.send({ embeds: [embed] }).catch(console.error);
@@ -273,35 +263,33 @@ module.exports = {
         })
         .then((audit) => audit.entries.first());
 
-      embed.setAuthor({
-        name: 'Member Timed Out',
-        iconURL: newMember.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${newMember} has been timed out by ${timeoutLog.executor}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Timed Out At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-          inline: true,
-        },
-        {
-          name: '🕒 Timed Out Until',
-          value: time(
-            newMember.communicationDisabledUntil,
-            TimestampStyles.RelativeTime,
-          ),
-          inline: true,
-        },
-        {
-          name: '📄 Reason',
-          value: timeoutLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Member Timed Out',
+          iconURL: newMember.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(
+          `${newMember} has been timed out by ${timeoutLog.executor}.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Timed Out At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+            inline: true,
+          },
+          {
+            name: '🕒 Timed Out Until',
+            value: time(
+              newMember.communicationDisabledUntil,
+              TimestampStyles.RelativeTime,
+            ),
+            inline: true,
+          },
+          { name: '📄 Reason', value: timeoutLog.reason ?? 'No reason' },
+        ]);
 
       if (timeoutLog.target.id === newMember.id) {
         await TimeoutLogger.send({ embeds: [embed] }).catch(console.error);
@@ -325,27 +313,25 @@ module.exports = {
         })
         .then((audit) => audit.entries.first());
 
-      embed.setAuthor({
-        name: 'Member Timeout Removed',
-        iconURL: newMember.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${newMember} timeout has been removed by ${timeoutRemoveLog.executor}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Timeout Removed At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-          inline: true,
-        },
-        {
-          name: '📄 Reason',
-          value: timeoutRemoveLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Member Timeout Removed',
+          iconURL: newMember.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(
+          `${newMember} timeout has been removed by ${timeoutRemoveLog.executor}.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Timeout Removed At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+            inline: true,
+          },
+          { name: '📄 Reason', value: timeoutRemoveLog.reason ?? 'No reason' },
+        ]);
 
       if (timeoutRemoveLog.target.id === newMember.id) {
         await TimeoutRemoveLogger.send({ embeds: [embed] }).catch(
@@ -368,36 +354,34 @@ module.exports = {
         })
         .then((audit) => audit.entries.first());
 
-      embed.setAuthor({
-        name: 'Member Nickname Changed',
-        iconURL: newMember.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${newMember} nickname has been changed by ${nicknameLog.executor}.`,
-      );
-      embed.setFields(
-        {
-          name: '🕒 Before',
-          value: oldMember.nickname ?? italic('None'),
-          inline: true,
-        },
-        {
-          name: '🕒 After',
-          value: newMember.nickname ?? italic('None'),
-          inline: true,
-        },
-        {
-          name: '🕒 Edited At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: nicknameLog.reason ?? 'No reason',
-        },
-      );
+      embed
+        .setAuthor({
+          name: 'Member Nickname Changed',
+          iconURL: newMember.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(
+          `${newMember} nickname has been changed by ${nicknameLog.executor}.`,
+        )
+        .setFields(
+          {
+            name: '🕒 Before',
+            value: oldMember.nickname ?? italic('None'),
+            inline: true,
+          },
+          {
+            name: '🕒 After',
+            value: newMember.nickname ?? italic('None'),
+            inline: true,
+          },
+          {
+            name: '🕒 Edited At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: nicknameLog.reason ?? 'No reason' },
+        );
 
       if (nicknameLog.target.id === newMember.id) {
         await NicknameLogger.send({ embeds: [embed] }).catch(console.error);

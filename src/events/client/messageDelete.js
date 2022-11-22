@@ -20,6 +20,8 @@ module.exports = {
   async execute(message) {
     const { author, channel, client, guild } = message;
 
+    if (!guild) return;
+
     const MessageLogger = new WebhookClient({
       id: process.env.MESSAGE_DELETE_WEBHOOK_ID,
       token: process.env.MESSAGE_DELETE_WEBHOOK_TOKEN,
@@ -33,12 +35,8 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    if (!guild) return;
-
     if (message.partial || !author) {
-      embed.setAuthor({
-        name: '❌ Message Deleted',
-      });
+      embed.setAuthor({ name: '❌ Message Deleted' });
       embed.setDescription(
         `A message was ${bold('deleted')} in ${channel} at ${time(
           Math.floor(Date.now() / 1000),
@@ -63,12 +61,13 @@ module.exports = {
       TimestampStyles.RelativeTime,
     )}.\n\n${bold('Deleted Message')}\n${applyMessageType(message)}`;
 
-    embed.setAuthor({
-      name: 'Message Deleted',
-      iconURL: author.displayAvatarURL({ dynamic: true }),
-    });
-    embed.setDescription(truncate(response, 4096));
+    embed
+      .setAuthor({
+        name: 'Message Deleted',
+        iconURL: author.displayAvatarURL({ dynamic: true }),
+      })
+      .setDescription(truncate(response, 4096));
 
-    await MessageLogger.send({ embeds: [embed] }).catch(console.error);
+    return MessageLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

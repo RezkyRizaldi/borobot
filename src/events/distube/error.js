@@ -17,9 +17,7 @@ module.exports = {
     const { client, guild } = channel;
 
     const embed = new EmbedBuilder()
-      .setAuthor({
-        name: '❌ An Error Encountered',
-      })
+      .setAuthor({ name: '❌ An Error Encountered' })
       .setColor(guild.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
       .setDescription(err.toString().slice(0, 4096))

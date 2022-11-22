@@ -37,29 +37,20 @@ module.exports = {
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
-      .setAuthor({
-        name: '🛠️ New Role Created',
-      })
+      .setAuthor({ name: '🛠️ New Role Created' })
       .setDescription(
         `${role} role was ${bold('created')} by ${createLog.executor}.`,
       )
       .setFields([
-        {
-          name: '🔤 Name',
-          value: role.name,
-          inline: true,
-        },
+        { name: '🔤 Name', value: role.name, inline: true },
         {
           name: '🕒 Created At',
           value: time(role.createdAt, TimestampStyles.RelativeTime),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: createLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: createLog.reason ?? 'No reason' },
       ]);
 
-    await RoleLogger.send({ embeds: [embed] }).catch(console.error);
+    return RoleLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

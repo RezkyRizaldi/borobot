@@ -25,13 +25,9 @@ module.exports = {
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({
-          dynamic: true,
-        }),
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
-      .setAuthor({
-        name: `🔗 ${client.user.username}'s Invite Link`,
-      })
+      .setAuthor({ name: `🔗 ${client.user.username}'s Invite Link` })
       .setDescription(
         `Here's your ${hyperlink(
           'invite link',
@@ -44,8 +40,8 @@ module.exports = {
       )
       .setThumbnail(client.user.displayAvatarURL({ dynamic: true }));
 
-    await interaction
-      .deferReply()
-      .then(async () => await interaction.editReply({ embeds: [embed] }));
+    await interaction.deferReply();
+
+    return interaction.editReply({ embeds: [embed] });
   },
 };

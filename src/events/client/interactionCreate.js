@@ -42,14 +42,11 @@ module.exports = {
         await command.execute(interaction).catch(async (err) => {
           console.error(err);
 
-          if (interaction.replied || interaction.deferred) {
-            return interaction.editReply({
-              content: 'There was an error while executing this command!',
-            });
-          }
-
-          await interaction.reply({
-            content: 'There was an error while executing this command!',
+          await interaction.editReply({
+            content:
+              typeof err === 'string'
+                ? err
+                : 'There was an error while executing this command!',
           });
         });
       },
@@ -61,14 +58,11 @@ module.exports = {
         await component.execute(interaction).catch(async (err) => {
           console.error(err);
 
-          if (interaction.replied || interaction.deferred) {
-            return interaction.editReply({
-              content: 'There was an error while executing this command!',
-            });
-          }
-
-          await interaction.reply({
-            content: 'There was an error while executing this command!',
+          await interaction.editReply({
+            content:
+              typeof err === 'string'
+                ? err
+                : 'There was an error while executing this command!',
           });
         });
       },
@@ -84,14 +78,11 @@ module.exports = {
         await autocomplete.autocomplete(interaction).catch(async (err) => {
           console.error(err);
 
-          if (interaction.replied || interaction.deferred) {
-            return interaction.editReply({
-              content: 'There was an error while executing this command!',
-            });
-          }
-
-          await interaction.reply({
-            content: 'There was an error while executing this command!',
+          await interaction.editReply({
+            content:
+              typeof err === 'string'
+                ? err
+                : 'There was an error while executing this command!',
           });
         });
       },
@@ -107,14 +98,11 @@ module.exports = {
         await modal.execute(interaction).catch(async (err) => {
           console.error(err);
 
-          if (interaction.replied || interaction.deferred) {
-            return interaction.editReply({
-              content: 'There was an error while executing this command!',
-            });
-          }
-
-          await interaction.reply({
-            content: 'There was an error while executing this command!',
+          await interaction.editReply({
+            content:
+              typeof err === 'string'
+                ? err
+                : 'There was an error while executing this command!',
           });
         });
       },

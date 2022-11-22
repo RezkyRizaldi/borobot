@@ -39,57 +39,26 @@ module.exports = {
     );
 
     if (!membersWithRole.size) {
-      return interaction.deferReply({ ephemeral: true }).then(
-        async () =>
-          await interaction.editReply({
-            content: `There is no member with role ${role}`,
-          }),
-      );
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({
+        content: `There is no member with role ${role}`,
+      });
     }
 
-    await interaction.deferReply().then(async () => {
-      const descriptions = [...membersWithRole.values()].map(
-        (member, index) =>
-          `${bold(`${index + 1}.`)} ${member} (${member.user.username})`,
-      );
+    await interaction.deferReply();
 
-      if (membersWithRole.size > 10) {
-        const pagination = new Pagination(interaction, {
-          limit: 10,
-        });
+    const descriptions = [...membersWithRole.values()].map(
+      (member, index) =>
+        `${bold(`${index + 1}.`)} ${member} (${member.user.username})`,
+    );
 
-        pagination.setColor(guild.members.me?.displayHexColor ?? null);
-        pagination.setTimestamp(Date.now());
-        pagination.setFooter({
-          text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-          iconURL: client.user.displayAvatarURL({ dynamic: true }),
-        });
-        pagination.setAuthor({
-          name: `👥 Member Lists with Role ${
-            role.name
-          } (${membersWithRole.size.toLocaleString()})`,
-        });
-        pagination.setDescriptions(descriptions);
-
-        pagination.buttons = {
-          ...pagination.buttons,
-          extra: new ButtonBuilder()
-            .setCustomId('jump')
-            .setEmoji('↕️')
-            .setDisabled(false)
-            .setStyle(ButtonStyle.Secondary),
-        };
-
-        paginations.set(pagination.interaction.id, pagination);
-
-        return pagination.render();
-      }
-
-      const embed = new EmbedBuilder()
+    if (membersWithRole.size > 10) {
+      const pagination = new Pagination(interaction, { limit: 10 })
         .setColor(guild.members.me?.displayHexColor ?? null)
         .setTimestamp(Date.now())
         .setFooter({
-          text: client.user.username,
+          text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
           iconURL: client.user.displayAvatarURL({ dynamic: true }),
         })
         .setAuthor({
@@ -97,9 +66,36 @@ module.exports = {
             role.name
           } (${membersWithRole.size.toLocaleString()})`,
         })
-        .setDescription(descriptions.join('\n'));
+        .setDescriptions(descriptions);
 
-      await interaction.editReply({ embeds: [embed] });
-    });
+      pagination.buttons = {
+        ...pagination.buttons,
+        extra: new ButtonBuilder()
+          .setCustomId('jump')
+          .setEmoji('↕️')
+          .setDisabled(false)
+          .setStyle(ButtonStyle.Secondary),
+      };
+
+      paginations.set(pagination.interaction.id, pagination);
+
+      return pagination.render();
+    }
+
+    const embed = new EmbedBuilder()
+      .setColor(guild.members.me?.displayHexColor ?? null)
+      .setTimestamp(Date.now())
+      .setFooter({
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+      })
+      .setAuthor({
+        name: `👥 Member Lists with Role ${
+          role.name
+        } (${membersWithRole.size.toLocaleString()})`,
+      })
+      .setDescription(descriptions.join('\n'));
+
+    return interaction.editReply({ embeds: [embed] });
   },
 };

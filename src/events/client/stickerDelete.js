@@ -19,6 +19,8 @@ module.exports = {
   async execute(sticker) {
     const { client, guild } = sticker;
 
+    if (!guild) return;
+
     const StickerLogger = new WebhookClient({
       id: process.env.SERVER_STICKER_WEBHOOK_ID,
       token: process.env.SERVER_STICKER_WEBHOOK_TOKEN,
@@ -38,9 +40,7 @@ module.exports = {
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
-      .setAuthor({
-        name: '😀 Sticker Deleted',
-      })
+      .setAuthor({ name: '😀 Sticker Deleted' })
       .setDescription(
         `A sticker was ${bold('deleted')} by ${deleteLog.executor}.`,
       )
@@ -67,12 +67,9 @@ module.exports = {
           ),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: deleteLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: deleteLog.reason ?? 'No reason' },
       ]);
 
-    await StickerLogger.send({ embeds: [embed] }).catch(console.error);
+    return StickerLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

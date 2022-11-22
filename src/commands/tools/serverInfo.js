@@ -20,6 +20,7 @@ const {
   applyNSFWLevel,
   applyTier,
   applyVerificationLevel,
+  count,
   getPreferredLocale,
 } = require('../../utils');
 
@@ -82,30 +83,18 @@ module.exports = {
       .join('\n');
 
     const embed = new EmbedBuilder()
-      .setAuthor({
-        name: `ℹ️ ${guild} Server Information`,
-      })
+      .setAuthor({ name: `ℹ️ ${guild} Server Information` })
       .setThumbnail(guild.iconURL({ dynamic: true }))
       .setDescription(guild.description ?? italic('No description'))
       .setColor(guild.members.me?.displayHexColor ?? null)
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({
-          dynamic: true,
-        }),
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setTimestamp(Date.now())
       .setFields([
-        {
-          name: '🆔 ID',
-          value: guild.id,
-          inline: true,
-        },
-        {
-          name: '👑 Owner',
-          value: userMention(guild.ownerId),
-          inline: true,
-        },
+        { name: '🆔 ID', value: guild.id, inline: true },
+        { name: '👑 Owner', value: userMention(guild.ownerId), inline: true },
         {
           name: '🚀 Boost Level',
           value: applyTier(guild.premiumTier),
@@ -126,36 +115,24 @@ module.exports = {
                 })`
               : ''
           }`,
-          value: `${onlineMemberCount.toLocaleString()} ${pluralize(
-            'Online',
-            onlineMemberCount,
-          )}${
+          value: `${count({ total: onlineMemberCount, data: 'Online' })}${
             boosterCount
-              ? ` | ${boosterCount.toLocaleString()} ${pluralize(
-                  'Booster',
-                  boosterCount,
-                )}`
+              ? ` | ${count({ total: boosterCount, data: 'Booster' })}`
               : ''
           }`,
           inline: true,
         },
         {
           name: '😀 Emoji & Sticker',
-          value: `${emojiCount.toLocaleString()} ${pluralize(
-            'Emoji',
-            emojiCount,
-          )} | ${stickerCount.toLocaleString()} ${pluralize(
-            'Sticker',
-            stickerCount,
-          )}`,
+          value: `${count({ total: emojiCount, data: 'Emoji' })} | ${count({
+            total: stickerCount,
+            data: 'Sticker',
+          })}`,
           inline: true,
         },
         {
           name: '🛠️ Roles',
-          value: `${roleCount.toLocaleString()} ${pluralize(
-            'Role',
-            roleCount,
-          )}`,
+          value: count({ total: roleCount, data: 'Role' }),
           inline: true,
         },
         {
@@ -270,8 +247,8 @@ module.exports = {
         },
       ]);
 
-    await interaction
-      .deferReply()
-      .then(async () => await interaction.editReply({ embeds: [embed] }));
+    await interaction.deferReply();
+
+    return interaction.editReply({ embeds: [embed] });
   },
 };

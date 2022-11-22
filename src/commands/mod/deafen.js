@@ -34,25 +34,24 @@ module.exports = {
     const reason = options.getString('reason') ?? 'No reason';
     const { voice } = member;
 
-    await interaction.deferReply({ ephemeral: true }).then(async () => {
-      if (!voice.channel) {
-        return interaction.editReply({
-          content: `${member} is not connected to a voice channel.`,
-        });
-      }
+    await interaction.deferReply({ ephemeral: true });
 
-      if (voice.serverDeaf) {
-        return interaction.editReply({
-          content: `${member} is already being deafen.`,
-        });
-      }
+    if (!voice.channel) {
+      return interaction.editReply({
+        content: `${member} is not connected to a voice channel.`,
+      });
+    }
 
-      await voice.setDeaf(true, reason).then(
-        async (m) =>
-          await interaction.editReply({
-            content: `Successfully ${bold('deafen')} ${m}.`,
-          }),
-      );
+    if (voice.serverDeaf) {
+      return interaction.editReply({
+        content: `${member} is already being deafen.`,
+      });
+    }
+
+    await voice.setDeaf(true, reason);
+
+    return interaction.editReply({
+      content: `Successfully ${bold('deafen')} ${member}.`,
     });
   },
 };

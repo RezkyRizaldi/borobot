@@ -37,16 +37,10 @@ module.exports = {
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
-      .setAuthor({
-        name: '🛠️ Role Deleted',
-      })
+      .setAuthor({ name: '🛠️ Role Deleted' })
       .setDescription(`A role was ${bold('deleted')} by ${deleteLog.executor}.`)
       .setFields([
-        {
-          name: '🔤 Name',
-          value: role.name,
-          inline: true,
-        },
+        { name: '🔤 Name', value: role.name, inline: true },
         {
           name: '🕒 Created At',
           value: time(role.createdAt, TimestampStyles.RelativeTime),
@@ -60,12 +54,9 @@ module.exports = {
           ),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: deleteLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: deleteLog.reason ?? 'No reason' },
       ]);
 
-    await RoleLogger.send({ embeds: [embed] }).catch(console.error);
+    return RoleLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

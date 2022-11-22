@@ -1,9 +1,5 @@
 const axios = require('axios');
-const {
-  AttachmentBuilder,
-  EmbedBuilder,
-  SlashCommandBuilder,
-} = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const {
   Blur,
   Greyscale,
@@ -14,7 +10,7 @@ const {
 const fs = require('fs');
 const QRCode = require('qrcode');
 
-const { isValidURL } = require('../../utils');
+const { isValidURL, generateAttachmentFromBuffer } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -124,9 +120,7 @@ module.exports = {
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({
-          dynamic: true,
-        }),
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
     switch (options.getSubcommandGroup()) {
@@ -134,111 +128,76 @@ module.exports = {
         {
           const image = options.getAttachment('image', true);
 
-          embed.setAuthor({
-            name: '🖼️ Applied Filter Result',
-          });
+          embed.setAuthor({ name: '🖼️ Applied Filter Result' });
+
+          await interaction.deferReply();
 
           switch (options.getSubcommand()) {
             case 'blur': {
               const amount = options.getInteger('amount') ?? undefined;
 
-              return interaction.deferReply().then(
-                async () =>
-                  await new Blur()
-                    .getImage(image.url, amount)
-                    .then(async (buffer) => {
-                      const file = new AttachmentBuilder(buffer, {
-                        name: 'blur.png',
-                        description: 'Blurred image',
-                      });
+              const { attachment: img, ext } =
+                await generateAttachmentFromBuffer({
+                  buffer: await new Blur().getImage(image.url, amount),
+                  fileName: 'blur',
+                  fileDesc: 'Blurred Image',
+                });
 
-                      embed.setImage('attachment://blur.png');
+              embed.setImage(`attachment://${img.name}.${ext}`);
 
-                      await interaction.editReply({
-                        embeds: [embed],
-                        files: [file],
-                      });
-                    }),
-              );
+              return interaction.editReply({ embeds: [embed], files: [img] });
             }
 
-            case 'greyscale':
-              return interaction.deferReply().then(
-                async () =>
-                  await new Greyscale()
-                    .getImage(image.url)
-                    .then(async (buffer) => {
-                      const file = new AttachmentBuilder(buffer, {
-                        name: 'greyscale.png',
-                        description: 'Greyscaled image',
-                      });
+            case 'greyscale': {
+              const { attachment: img, ext } =
+                await generateAttachmentFromBuffer({
+                  buffer: await new Greyscale().getImage(image.url),
+                  fileName: 'greyscale',
+                  fileDesc: 'Greyscaled image',
+                });
 
-                      embed.setImage('attachment://greyscale.png');
+              embed.setImage(`attachment://${img.name}.${ext}`);
 
-                      await interaction.editReply({
-                        embeds: [embed],
-                        files: [file],
-                      });
-                    }),
-              );
+              return interaction.editReply({ embeds: [embed], files: [img] });
+            }
 
-            case 'invert':
-              return interaction.deferReply().then(
-                async () =>
-                  await new Invert()
-                    .getImage(image.url)
-                    .then(async (buffer) => {
-                      const file = new AttachmentBuilder(buffer, {
-                        name: 'invert.png',
-                        description: 'Inverted image',
-                      });
+            case 'invert': {
+              const { attachment: img, ext } =
+                await generateAttachmentFromBuffer({
+                  buffer: await new Invert().getImage(image.url),
+                  fileName: 'invert',
+                  fileDesc: 'Invertd image',
+                });
 
-                      embed.setImage('attachment://invert.png');
+              embed.setImage(`attachment://${img.name}.${ext}`);
 
-                      await interaction.editReply({
-                        embeds: [embed],
-                        files: [file],
-                      });
-                    }),
-              );
+              return interaction.editReply({ embeds: [embed], files: [img] });
+            }
 
-            case 'sepia':
-              return interaction.deferReply().then(
-                async () =>
-                  await new Sepia().getImage(image.url).then(async (buffer) => {
-                    const file = new AttachmentBuilder(buffer, {
-                      name: 'sepia.png',
-                      description: 'Sepia image',
-                    });
+            case 'sepia': {
+              const { attachment: img, ext } =
+                await generateAttachmentFromBuffer({
+                  buffer: await new Sepia().getImage(image.url),
+                  fileName: 'sepia',
+                  fileDesc: 'Sepia Image',
+                });
 
-                    embed.setImage('attachment://sepia.png');
+              embed.setImage(`attachment://${img.name}.${ext}`);
 
-                    await interaction.editReply({
-                      embeds: [embed],
-                      files: [file],
-                    });
-                  }),
-              );
+              return interaction.editReply({ embeds: [embed], files: [img] });
+            }
 
-            case 'triggered':
-              return interaction.deferReply().then(
-                async () =>
-                  await new Triggered()
-                    .getImage(image.url)
-                    .then(async (buffer) => {
-                      const file = new AttachmentBuilder(buffer, {
-                        name: 'triggered.gif',
-                        description: 'Triggered image',
-                      });
+            case 'triggered': {
+              const { attachment: img } = await generateAttachmentFromBuffer({
+                buffer: await new Triggered().getImage(image.url),
+                fileName: 'sepia',
+                fileDesc: 'Sepia Image',
+              });
 
-                      embed.setImage('attachment://triggered.gif');
+              embed.setImage(`attachment://${img.name}.gif`);
 
-                      await interaction.editReply({
-                        embeds: [embed],
-                        files: [file],
-                      });
-                    }),
-              );
+              return interaction.editReply({ embeds: [embed], files: [img] });
+            }
           }
         }
         break;
@@ -249,75 +208,55 @@ module.exports = {
         const url = options.getString('url', true);
 
         if (!isValidURL(url)) {
-          return interaction.deferReply({ ephemeral: true }).then(
-            async () =>
-              await interaction.editReply({
-                content: 'Please provide a valid URL.',
-              }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: 'Please provide a valid URL.',
+          });
         }
 
-        return interaction.deferReply().then(
-          async () =>
-            await axios
-              .get(
-                `https://api.lolhuman.xyz/api/shortlink?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
-              )
-              .then(
-                /**
-                 *
-                 * @param {{ data: { result: String } }}
-                 */
-                async ({ data: { result } }) => {
-                  embed.setAuthor({
-                    name: '🔗 Shortened URL Result',
-                  });
-                  embed.setDescription(
-                    `Here's your generated shorten URL: ${result}.`,
-                  );
+        await interaction.deferReply();
 
-                  await interaction.editReply({ embeds: [embed] });
-                },
-              ),
+        /** @type {{ data: { result: String } }} */
+        const {
+          data: { result },
+        } = await axios.get(
+          `https://api.lolhuman.xyz/api/shortlink?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
         );
+
+        embed
+          .setAuthor({ name: '🔗 Shortened URL Result' })
+          .setDescription(`Here's your generated shorten URL: ${result}.`);
+
+        return interaction.editReply({ embeds: [embed] });
       }
 
       case 'qrcode': {
         const content = options.getString('content', true);
 
-        return QRCode.toDataURL(content, { version: 10 })
-          .then(async (url) => {
-            const image = Buffer.from(url.split(';base64,').pop(), 'base64');
-            const imagePath = './src/assets/images/qrcode.png';
+        await interaction.deferReply();
 
-            fs.writeFileSync(imagePath, image, {
-              encoding: 'base64',
-            });
+        const url = await QRCode.toDataURL(content, { version: 10 });
 
-            const file = new AttachmentBuilder(imagePath, {
-              name: 'qrcode.png',
-              description: 'QR Code',
-            });
+        const buffer = Buffer.from(url.split(';base64,').pop(), 'base64');
+        const imagePath = './src/assets/images/qrcode.png';
 
-            await interaction.deferReply().then(async () => {
-              embed.setAuthor({
-                name: '🖼️ QR Code Result',
-              });
-              embed.setDescription("Here's your generated QR Code.");
-              embed.setImage('attachment://qrcode.png');
+        fs.writeFileSync(imagePath, buffer, { encoding: 'base64' });
 
-              await interaction
-                .editReply({ embeds: [embed], files: [file] })
-                .then(() => fs.unlinkSync(imagePath));
-            });
-          })
-          .catch(async (err) => {
-            console.error(err);
+        const { attachment: img } = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'qrcode',
+          fileDesc: 'QR Code',
+        });
 
-            await interaction
-              .deferReply({ ephemeral: true })
-              .then(async () => await interaction.editReply({ content: err }));
-          });
+        embed
+          .setAuthor({ name: '🖼️ QR Code Result' })
+          .setDescription("Here's your generated QR Code.")
+          .setImage(`attachment://${img.name}.png`);
+
+        await interaction.editReply({ embeds: [embed], files: [img] });
+
+        return fs.unlinkSync(imagePath);
       }
     }
   },

@@ -11,10 +11,10 @@ module.exports = {
   async execute(queue) {
     const { client, clientMember, textChannel } = queue;
 
+    if (!clientMember || !textChannel) return;
+
     const embed = new EmbedBuilder()
-      .setAuthor({
-        name: '⏹️ Queue Finished',
-      })
+      .setAuthor({ name: '⏹️ Queue Finished' })
       .setColor(clientMember.displayHexColor)
       .setTimestamp(Date.now())
       .setDescription('The queue has been finished.')
@@ -23,6 +23,6 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    await textChannel.send({ embeds: [embed] }).catch(console.error);
+    return textChannel.send({ embeds: [embed] }).catch(console.error);
   },
 };

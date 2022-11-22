@@ -20,8 +20,6 @@ module.exports = {
   async execute(channel) {
     const { client, guild } = channel;
 
-    if (!guild) return;
-
     const ChannelLogger = new WebhookClient({
       id: process.env.CHANNEL_CREATE_WEBHOOK_ID,
       token: process.env.CHANNEL_CREATE_WEBHOOK_TOKEN,
@@ -52,22 +50,15 @@ module.exports = {
         } by ${createLog.executor}.`,
       )
       .setFields([
-        {
-          name: '🔤 Name',
-          value: channel.name,
-          inline: true,
-        },
+        { name: '🔤 Name', value: channel.name, inline: true },
         {
           name: '🕒 Created At',
           value: time(channel.createdAt, TimestampStyles.RelativeTime),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: createLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: createLog.reason ?? 'No reason' },
       ]);
 
-    await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+    return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

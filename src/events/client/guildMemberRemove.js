@@ -24,9 +24,7 @@ module.exports = {
     });
 
     const leaveMessage = new EmbedBuilder()
-      .setAuthor({
-        name: `🖐️ Goodbye. Thanks for being with ${guild}`,
-      })
+      .setAuthor({ name: `🖐️ Goodbye. Thanks for being with ${guild}` })
       .setDescription(`It's been a long time, ${member}!`)
       .setColor(member.displayHexColor)
       .setThumbnail(member.displayAvatarURL({ dynamic: true }))
@@ -36,11 +34,7 @@ module.exports = {
       })
       .setTimestamp(Date.now())
       .setFields([
-        {
-          name: '🆔 Member ID',
-          value: user.id,
-          inline: true,
-        },
+        { name: '🆔 Member ID', value: user.id, inline: true },
         {
           name: '📆 Member Since',
           value: time(member.joinedAt, TimestampStyles.RelativeTime),
@@ -84,11 +78,7 @@ module.exports = {
       })
       .setTimestamp(Date.now())
       .setFields([
-        {
-          name: '🆔 Member ID',
-          value: user.id,
-          inline: true,
-        },
+        { name: '🆔 Member ID', value: user.id, inline: true },
         {
           name: '📆 Member Since',
           value: time(member.joinedAt, TimestampStyles.RelativeTime),
@@ -102,26 +92,23 @@ module.exports = {
           ),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: kickLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: kickLog.reason ?? 'No reason' },
       ]);
 
     if (kickLog.target.id === user.id) {
-      return KickLogger.send({ embeds: [kickMessage] }).catch(console.error);
+      await KickLogger.send({ embeds: [kickMessage] }).catch(console.error);
     }
 
     if (user.bot) {
-      return guild
-        .fetchIntegrations()
-        .then(
-          async (integrations) =>
-            await integrations
-              .find((integration) => integration.account.id === user.id)
-              .delete('Kicked out from the server'),
-        )
-        .catch(console.error);
+      const integrations = await guild.fetchIntegrations();
+
+      const integration = await integrations.find(
+        (int) => int.account.id === user.id,
+      );
+
+      if (!integration) return;
+
+      return integration.delete('Kicked out from the server');
     }
   },
 };

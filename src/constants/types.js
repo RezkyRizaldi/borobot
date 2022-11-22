@@ -188,7 +188,7 @@
  * @property {Boolean} private
  * @property {?GithubRepositoryOwner} owner
  * @property {String} html_url
- * @property {String} description
+ * @property {?String} description
  * @property {Boolean} fork
  * @property {String} url
  * @property {String} forks_url
@@ -268,7 +268,7 @@
  * @property {String} login
  * @property {Number} id
  * @property {String} node_id
- * @property {String} avatar_url
+ * @property {?String} avatar_url
  * @property {?String} gravatar_id
  * @property {String} url
  * @property {String} html_url

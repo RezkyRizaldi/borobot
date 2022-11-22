@@ -20,6 +20,8 @@ module.exports = {
    * @param {import('discord.js').Message} newMessage
    */
   async execute(oldMessage, newMessage) {
+    if (!oldMessage.guild) return;
+
     const embed = new EmbedBuilder()
       .setColor(oldMessage.guild.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
@@ -27,8 +29,6 @@ module.exports = {
         text: oldMessage.client.user.username,
         iconURL: oldMessage.client.user.displayAvatarURL({ dynamic: true }),
       });
-
-    if (!oldMessage.guild) return;
 
     // If the message pinned
     if (!oldMessage.pinned && newMessage.pinned) {
@@ -44,34 +44,32 @@ module.exports = {
         })
         .then((audit) => audit.entries.first());
 
-      embed.setAuthor({
-        name: 'Message Pinned',
-        value: newMessage.author.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `A ${hyperlink(
-          'message',
-          newMessage.url,
-          'Click here to jump to message',
-        )} by ${newMessage.author} was ${bold('pinned')} by ${
-          pinLog.executor
-        } in ${newMessage.channel}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Pinned At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: pinLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Message Pinned',
+          value: newMessage.author.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(
+          `A ${hyperlink(
+            'message',
+            newMessage.url,
+            'Click here to jump to message',
+          )} by ${newMessage.author} was ${bold('pinned')} by ${
+            pinLog.executor
+          } in ${newMessage.channel}.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Pinned At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: pinLog.reason ?? 'No reason' },
+        ]);
 
-      return PinLogger.send({ embeds: [embed] }).catch(console.error);
+      await PinLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the message unpinned
@@ -88,34 +86,32 @@ module.exports = {
         })
         .then((audit) => audit.entries.first());
 
-      embed.setAuthor({
-        name: 'Message Unpinned',
-        value: newMessage.author.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `A ${hyperlink(
-          'message',
-          newMessage.url,
-          'Click here to jump to message',
-        )} by ${newMessage.author} was ${bold('unpinned')} by ${
-          unpinLog.executor
-        } in ${newMessage.channel}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Unpinned At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: unpinLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Message Unpinned',
+          value: newMessage.author.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(
+          `A ${hyperlink(
+            'message',
+            newMessage.url,
+            'Click here to jump to message',
+          )} by ${newMessage.author} was ${bold('unpinned')} by ${
+            unpinLog.executor
+          } in ${newMessage.channel}.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Unpinned At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: unpinLog.reason ?? 'No reason' },
+        ]);
 
-      return UnpinLogger.send({ embeds: [embed] }).catch(console.error);
+      await UnpinLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     const MessageLogger = new WebhookClient({
@@ -124,17 +120,16 @@ module.exports = {
     });
 
     if (oldMessage.partial || !oldMessage.author) {
-      embed.setAuthor({
-        name: '✏️ Message Edited',
-      });
-      embed.setDescription(
-        `A message was ${bold('edited')} in ${oldMessage.channel} at ${time(
-          Math.floor(Date.now() / 1000),
-          TimestampStyles.RelativeTime,
-        )}.`,
-      );
+      embed
+        .setAuthor({ name: '✏️ Message Edited' })
+        .setDescription(
+          `A message was ${bold('edited')} in ${oldMessage.channel} at ${time(
+            Math.floor(Date.now() / 1000),
+            TimestampStyles.RelativeTime,
+          )}.`,
+        );
 
-      return MessageLogger.send({ embeds: [embed] }).catch(console.error);
+      await MessageLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     if (oldMessage.author.bot) return;
@@ -143,30 +138,31 @@ module.exports = {
 
     if (oldMessage.cleanContent === newMessage.cleanContent) return;
 
-    embed.setAuthor({
-      name: 'Message Edited',
-      iconURL: oldMessage.author.displayAvatarURL({ dynamic: true }),
-    });
-    embed.setDescription(
-      `A ${hyperlink(
-        'message',
-        newMessage.url,
-        'Click here to jump to message',
-      )} by ${newMessage.author} was ${bold('edited')} in ${
-        newMessage.channel
-      } at ${time(newMessage.editedAt, TimestampStyles.RelativeTime)}.`,
-    );
-    embed.setFields(
-      {
-        name: '🕒 Before',
-        value: truncate(applyMessageType(oldMessage), 1024),
-      },
-      {
-        name: '🕒 After',
-        value: truncate(applyMessageType(newMessage, true), 1024),
-      },
-    );
+    embed
+      .setAuthor({
+        name: 'Message Edited',
+        iconURL: oldMessage.author.displayAvatarURL({ dynamic: true }),
+      })
+      .setDescription(
+        `A ${hyperlink(
+          'message',
+          newMessage.url,
+          'Click here to jump to message',
+        )} by ${newMessage.author} was ${bold('edited')} in ${
+          newMessage.channel
+        } at ${time(newMessage.editedAt, TimestampStyles.RelativeTime)}.`,
+      )
+      .setFields(
+        {
+          name: '🕒 Before',
+          value: truncate(applyMessageType(oldMessage), 1024),
+        },
+        {
+          name: '🕒 After',
+          value: truncate(applyMessageType(newMessage, true), 1024),
+        },
+      );
 
-    await MessageLogger.send({ embeds: [embed] }).catch(console.error);
+    return MessageLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

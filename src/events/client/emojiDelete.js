@@ -39,9 +39,7 @@ module.exports = {
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
-      .setAuthor({
-        name: '😀 Emoji Deleted',
-      })
+      .setAuthor({ name: '😀 Emoji Deleted' })
       .setDescription(
         `An emoji was ${bold('deleted')} by ${deleteLog.executor}.`,
       )
@@ -68,12 +66,9 @@ module.exports = {
           ),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: deleteLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: deleteLog.reason ?? 'No reason' },
       ]);
 
-    await EmojiLogger.send({ embeds: [embed] }).catch(console.error);
+    return EmojiLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

@@ -46,106 +46,93 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
-    return interaction.deferReply().then(async () => {
-      switch (options.getSubcommand()) {
-        case 'list': {
-          const locales = Object.values(languages);
+    await interaction.deferReply();
 
-          const responses = locales.map(
-            (value, index) =>
-              `${bold(`${index + 1}. ${value}`)} - ${getImageReadLocale(
-                value,
-              )}`,
-          );
+    switch (options.getSubcommand()) {
+      case 'list': {
+        const locales = Object.values(languages);
 
-          const pagination = new Pagination(interaction, {
-            limit: 10,
-          });
+        const responses = locales.map(
+          (value, index) =>
+            `${bold(`${index + 1}. ${value}`)} - ${getImageReadLocale(value)}`,
+        );
 
-          pagination.setColor(guild?.members.me?.displayHexColor ?? null);
-          pagination.setTimestamp(Date.now());
-          pagination.setFooter({
+        const pagination = new Pagination(interaction, { limit: 10 })
+          .setColor(guild?.members.me?.displayHexColor ?? null)
+          .setTimestamp(Date.now())
+          .setFooter({
             text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-            iconURL: client.user.displayAvatarURL({
-              dynamic: true,
-            }),
-          });
-          pagination.setAuthor({
+            iconURL: client.user.displayAvatarURL({ dynamic: true }),
+          })
+          .setAuthor({
             name: `🌐 Image Reader Locale Lists (${locales.length.toLocaleString()})`,
-          });
-          pagination.setDescriptions(responses);
+          })
+          .setDescriptions(responses);
 
-          pagination.buttons = {
-            ...pagination.buttons,
-            extra: new ButtonBuilder()
-              .setCustomId('jump')
-              .setEmoji('↕️')
-              .setDisabled(false)
-              .setStyle(ButtonStyle.Secondary),
-          };
+        pagination.buttons = {
+          ...pagination.buttons,
+          extra: new ButtonBuilder()
+            .setCustomId('jump')
+            .setEmoji('↕️')
+            .setDisabled(false)
+            .setStyle(ButtonStyle.Secondary),
+        };
 
-          paginations.set(pagination.interaction.id, pagination);
+        paginations.set(pagination.interaction.id, pagination);
 
-          return pagination.render();
-        }
-
-        case 'run': {
-          const file = options.getAttachment('file', true);
-          const worker = createWorker();
-
-          await wait(4000);
-
-          await worker.load();
-
-          await worker.loadLanguage(languages.ENG);
-
-          await worker.initialize(languages.ENG);
-
-          await worker
-            .recognize(file.url)
-            .then(async ({ data: { confidence, text } }) => {
-              const embed = new EmbedBuilder()
-                .setColor(guild?.members.me?.displayHexColor ?? null)
-                .setTimestamp(Date.now())
-                .setFooter({
-                  text: client.user.username,
-                  iconURL: client.user.displayAvatarURL({
-                    dynamic: true,
-                  }),
-                })
-                .setThumbnail(file.url)
-                .setAuthor({
-                  name: '🖨️ Detection Result',
-                })
-                .setFields([
-                  {
-                    name: '📄 File',
-                    value: hyperlink(
-                      file.name ?? file.url,
-                      file.url,
-                      file.description ?? 'Click here to view the image file.',
-                    ),
-                    inline: true,
-                  },
-                  {
-                    name: '🎯 Accuracy Rate',
-                    value: `${Math.floor(confidence)}%`,
-                    inline: true,
-                  },
-                  {
-                    name: `🔠 Detected Text (${getImageReadLocale(
-                      languages.ENG,
-                    )})`,
-                    value: text,
-                  },
-                ]);
-
-              await interaction.editReply({ embeds: [embed] });
-            });
-
-          return worker.terminate();
-        }
+        return pagination.render();
       }
-    });
+
+      case 'run': {
+        const file = options.getAttachment('file', true);
+        const worker = createWorker();
+
+        await wait(4000);
+
+        await worker.load();
+
+        await worker.loadLanguage(languages.ENG);
+
+        await worker.initialize(languages.ENG);
+
+        const {
+          data: { confidence, text },
+        } = await worker.recognize(file.url);
+
+        const embed = new EmbedBuilder()
+          .setColor(guild?.members.me?.displayHexColor ?? null)
+          .setTimestamp(Date.now())
+          .setFooter({
+            text: client.user.username,
+            iconURL: client.user.displayAvatarURL({ dynamic: true }),
+          })
+          .setThumbnail(file.url)
+          .setAuthor({ name: '🖨️ Detection Result' })
+          .setFields([
+            {
+              name: '📄 File',
+              value: hyperlink(
+                file.name ?? file.url,
+                file.url,
+                file.description ?? 'Click here to view the image file.',
+              ),
+              inline: true,
+            },
+            {
+              name: '🎯 Accuracy Rate',
+              value: `${Math.floor(confidence)}%`,
+              inline: true,
+            },
+            {
+              name: `🔠 Detected Text (${getImageReadLocale(languages.ENG)})`,
+              value: text,
+            },
+          ]);
+
+        await interaction.editReply({ embeds: [embed] });
+
+        return worker.terminate();
+      }
+    }
   },
 };

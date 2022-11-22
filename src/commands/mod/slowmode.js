@@ -49,55 +49,47 @@ module.exports = {
     /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
     const { channel, options } = interaction;
 
-    if (!channel) {
-      return interaction.deferReply({ ephemeral: true }).then(async () =>
-        interaction.editReply({
-          content: "Channel doesn't exist.",
-        }),
-      );
-    }
-
     const reason = options.getString('reason') ?? 'No reason';
 
-    await interaction.deferReply({ ephemeral: true }).then(async () => {
-      switch (options.getSubcommand()) {
-        case 'on': {
-          const duration = options.getInteger('duration', true);
+    await interaction.deferReply({ ephemeral: true });
 
-          if (channel.rateLimitPerUser && channel.rateLimitPerUser > 0) {
-            return interaction.editReply({
-              content: `Slowmode in ${channel} is already turned on for ${inlineCode(
-                `${channel.rateLimitPerUser} seconds`,
-              )}.`,
-            });
-          }
+    if (!channel) {
+      return interaction.editReply({ content: "Channel doesn't exist." });
+    }
 
-          return channel.setRateLimitPerUser(duration, reason).then(
-            async (ch) =>
-              await interaction.editReply({
-                content: `Successfully ${bold(
-                  'turned on',
-                )} slowmode in ${ch} for ${inlineCode(`${duration} seconds`)}.`,
-              }),
-          );
+    switch (options.getSubcommand()) {
+      case 'on': {
+        const duration = options.getInteger('duration', true);
+
+        if (channel.rateLimitPerUser && channel.rateLimitPerUser > 0) {
+          return interaction.editReply({
+            content: `Slowmode in ${channel} is already turned on for ${inlineCode(
+              `${channel.rateLimitPerUser} seconds`,
+            )}.`,
+          });
         }
 
-        case 'off':
-          if (channel.rateLimitPerUser && channel.rateLimitPerUser === 0) {
-            return interaction.editReply({
-              content: `Slowmode in ${channel} isn't being turned on.`,
-            });
-          }
+        await channel.setRateLimitPerUser(duration, reason);
 
-          return channel.setRateLimitPerUser(0, reason).then(
-            async (ch) =>
-              await interaction.editReply({
-                content: `Successfully ${bold(
-                  'turned off',
-                )} slowmode in ${ch}.`,
-              }),
-          );
+        return interaction.editReply({
+          content: `Successfully ${bold(
+            'turned on',
+          )} slowmode in ${channel} for ${inlineCode(`${duration} seconds`)}.`,
+        });
       }
-    });
+
+      case 'off':
+        if (channel.rateLimitPerUser && channel.rateLimitPerUser === 0) {
+          return interaction.editReply({
+            content: `Slowmode in ${channel} isn't being turned on.`,
+          });
+        }
+
+        await channel.setRateLimitPerUser(0, reason);
+
+        return interaction.editReply({
+          content: `Successfully ${bold('turned off')} slowmode in ${channel}.`,
+        });
+    }
   },
 };

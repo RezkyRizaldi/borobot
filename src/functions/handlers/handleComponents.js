@@ -9,13 +9,16 @@ const path = require('path');
 module.exports = (client) => {
   client.handleComponents = async () => {
     const table = new AsciiTable('Components');
+
     table.setHeading('Name', 'Status');
+
     const componentPath = path.join(__dirname, '..', '..', 'components');
 
     if (fs.existsSync(componentPath)) {
       const componentFiles = fs
         .readdirSync(componentPath)
         .filter((file) => file.endsWith('.js'));
+
       for (const file of componentFiles) {
         const { components } = client;
         const filePath = path.join(componentPath, file);
@@ -25,7 +28,6 @@ module.exports = (client) => {
           `Components${componentFiles.length && ` (${componentFiles.length})`}`,
         );
         table.addRow(component.data.name, '✅');
-
         components.set(component.data.name, component);
       }
 

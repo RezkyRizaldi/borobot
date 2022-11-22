@@ -37,20 +37,14 @@ module.exports = {
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
-      .setAuthor({
-        name: '💭 Thread Channel Deleted',
-      })
+      .setAuthor({ name: '💭 Thread Channel Deleted' })
       .setDescription(
         `A thread channel ${
           thread.parent ? `in ${thread.parent}` : ''
         } was ${bold('deleted')} by ${deleteLog.executor}.`,
       )
       .setFields([
-        {
-          name: '🔤 Name',
-          value: thread.name,
-          inline: true,
-        },
+        { name: '🔤 Name', value: thread.name, inline: true },
         {
           name: '🕒 Created At',
           value: time(thread.createdAt, TimestampStyles.RelativeTime),
@@ -64,12 +58,9 @@ module.exports = {
           ),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: deleteLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: deleteLog.reason ?? 'No reason' },
       ]);
 
-    await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+    return ThreadLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

@@ -2,20 +2,22 @@ const { AttachmentBuilder } = require('discord.js');
 
 /**
  *
- * @param {ArrayBuffer} buffer
- * @param {String} fileName
- * @param {String} [fileDesc]
- * @returns {AttachmentBuilder} The attachment builder.
+ * @param {{ buffer: Buffer|ArrayBuffer, fileName: String, fileDesc: String }}
+ * @returns {Promise<{ attachment: AttachmentBuilder, ext: import('file-type').FileExtension }>} The attachment builder.
  */
-module.exports = async (buffer, fileName, fileDesc) => {
-  const base64 = Buffer.from(buffer, 'base64');
+module.exports = async ({ buffer, fileName, fileDesc }) => {
+  if (ArrayBuffer.isView(buffer)) {
+    buffer = Buffer.from(buffer, 'base64');
+  }
 
   const ext = await (await import('file-type'))
-    .fileTypeFromBuffer(base64)
+    .fileTypeFromBuffer(buffer)
     .then((r) => r.ext);
 
-  return new AttachmentBuilder(base64, {
+  const attachment = new AttachmentBuilder(buffer, {
     name: `${fileName}.${ext}`,
     description: fileDesc,
   });
+
+  return { attachment, ext };
 };

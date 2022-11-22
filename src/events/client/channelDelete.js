@@ -50,11 +50,7 @@ module.exports = {
         )} by ${deleteLog.executor}.`,
       )
       .setFields([
-        {
-          name: '🔤 Name',
-          value: channel.name,
-          inline: true,
-        },
+        { name: '🔤 Name', value: channel.name, inline: true },
         {
           name: '🕒 Created At',
           value: time(channel.createdAt, TimestampStyles.RelativeTime),
@@ -68,12 +64,9 @@ module.exports = {
           ),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: deleteLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: deleteLog.reason ?? 'No reason' },
       ]);
 
-    await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+    return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

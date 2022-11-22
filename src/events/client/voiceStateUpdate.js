@@ -16,7 +16,7 @@ module.exports = {
    * @param {import('discord.js').VoiceState} newState
    */
   async execute(oldState, newState) {
-    if (oldState.member.user.bot || newState.member.user.bot) return;
+    if (oldState.member?.user.bot || newState.member?.user.bot) return;
 
     const embed = new EmbedBuilder()
       .setFooter({
@@ -24,7 +24,7 @@ module.exports = {
         iconURL: newState.client.user.displayAvatarURL({ dynamic: true }),
       })
       .setTimestamp(Date.now())
-      .setColor(newState.member.displayHexColor);
+      .setColor(newState.member?.displayHexColor ?? null);
 
     // If the member join to a voice channel
     if (!oldState.channel && newState.channel) {
@@ -33,24 +33,23 @@ module.exports = {
         token: process.env.MEMBER_VOICE_JOIN_WEBHOOK_TOKEN,
       });
 
-      embed.setAuthor({
-        name: 'Member Joined Voice Channel',
-        iconURL: newState.member.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${oldState.member} has joined to ${newState.channel}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Joined At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Member Joined Voice Channel',
+          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(`${oldState.member} has joined to ${newState.channel}.`)
+        .setFields([
+          {
+            name: '🕒 Joined At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+        ]);
 
-      return VoiceJoinLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceJoinLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the member leave from a voice channel
@@ -73,24 +72,26 @@ module.exports = {
           token: process.env.MEMBER_VOICE_DISCONNECT_WEBHOOK_TOKEN,
         });
 
-        embed.setAuthor({
-          name: 'Member Disconnected from Voice Channel',
-          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
-        });
-        embed.setDescription(
-          `${newState.member} has disconnected from ${oldState.channel} by ${disconnectLog.executor}.`,
-        );
-        embed.setFields([
-          {
-            name: '🕒 Disconnected At',
-            value: time(
-              Math.floor(Date.now() / 1000),
-              TimestampStyles.RelativeTime,
-            ),
-          },
-        ]);
+        embed
+          .setAuthor({
+            name: 'Member Disconnected from Voice Channel',
+            iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+          })
+          .setDescription(
+            `${newState.member} has disconnected from ${oldState.channel} by ${disconnectLog.executor}.`,
+          )
+          .setFields([
+            {
+              name: '🕒 Disconnected At',
+              value: time(
+                Math.floor(Date.now() / 1000),
+                TimestampStyles.RelativeTime,
+              ),
+            },
+            { name: '📄 Reason', value: disconnectLog.reason ?? 'No reason' },
+          ]);
 
-        return VoiceDisconnectLogger.send({ embeds: [embed] }).catch(
+        await VoiceDisconnectLogger.send({ embeds: [embed] }).catch(
           console.error,
         );
       }
@@ -100,24 +101,24 @@ module.exports = {
         token: process.env.MEMBER_VOICE_LEAVE_WEBHOOK_TOKEN,
       });
 
-      embed.setAuthor({
-        name: 'Member Left from Voice Channel',
-        iconURL: newState.member.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${newState.member} has left from ${oldState.channel}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Left At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Member Left from Voice Channel',
+          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(`${newState.member} has left from ${oldState.channel}.`)
+        .setFields([
+          {
+            name: '🕒 Left At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: disconnectLog.reason ?? 'No reason' },
+        ]);
 
-      return VoiceLeaveLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceLeaveLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the member being moved by a moderator
@@ -139,28 +140,26 @@ module.exports = {
           token: process.env.MEMBER_VOICE_MOVE_WEBHOOK_TOKEN,
         });
 
-        embed.setAuthor({
-          name: 'Member Moved from Voice Channel',
-          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
-        });
-        embed.setDescription(
-          `${newState.member} has been moved from ${oldState.channel} to ${newState.channel} by ${moveLog.executor}.`,
-        );
-        embed.setFields([
-          {
-            name: '🕒 Moved At',
-            value: time(
-              Math.floor(Date.now() / 1000),
-              TimestampStyles.RelativeTime,
-            ),
-          },
-          {
-            name: '📄 Reason',
-            value: moveLog.reason ?? 'No reason',
-          },
-        ]);
+        embed
+          .setAuthor({
+            name: 'Member Moved from Voice Channel',
+            iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+          })
+          .setDescription(
+            `${newState.member} has been moved from ${oldState.channel} to ${newState.channel} by ${moveLog.executor}.`,
+          )
+          .setFields([
+            {
+              name: '🕒 Moved At',
+              value: time(
+                Math.floor(Date.now() / 1000),
+                TimestampStyles.RelativeTime,
+              ),
+            },
+            { name: '📄 Reason', value: moveLog.reason ?? 'No reason' },
+          ]);
 
-        return VoiceMoveLogger.send({ embeds: [embed] }).catch(console.error);
+        await VoiceMoveLogger.send({ embeds: [embed] }).catch(console.error);
       }
     }
 
@@ -178,28 +177,26 @@ module.exports = {
         token: process.env.MEMBER_VOICE_MUTE_WEBHOOK_TOKEN,
       });
 
-      embed.setAuthor({
-        name: 'Member Muted from Voice Channel',
-        iconURL: newState.member.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${oldState.member} has been muted from text channels by ${muteLog.executor}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Muted At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: muteLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Member Muted from Voice Channel',
+          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(
+          `${oldState.member} has been muted from text channels by ${muteLog.executor}.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Muted At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: muteLog.reason ?? 'No reason' },
+        ]);
 
-      return VoiceMuteLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceMuteLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the member being unmuted by a moderator
@@ -216,28 +213,26 @@ module.exports = {
         token: process.env.MEMBER_VOICE_MUTE_WEBHOOK_TOKEN,
       });
 
-      embed.setAuthor({
-        name: 'Member Unmuted from Voice Channel',
-        iconURL: newState.member.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${newState.member} has been unmuted from text channels by ${unmuteLog.executor}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Unmuted At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: unmuteLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Member Unmuted from Voice Channel',
+          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(
+          `${newState.member} has been unmuted from text channels by ${unmuteLog.executor}.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Unmuted At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: unmuteLog.reason ?? 'No reason' },
+        ]);
 
-      return VoiceUnmuteLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceUnmuteLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the member being deafen by a moderator.
@@ -254,28 +249,26 @@ module.exports = {
         token: process.env.MEMBER_VOICE_DEAFEN_WEBHOOK_TOKEN,
       });
 
-      embed.setAuthor({
-        name: 'Member Deafened from Voice Channel',
-        iconURL: newState.member.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${oldState.member} has been deafen from ${newState.channel} by ${deafenLog.executor}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Deafened At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: deafenLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Member Deafened from Voice Channel',
+          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(
+          `${oldState.member} has been deafen from ${newState.channel} by ${deafenLog.executor}.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Deafened At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: deafenLog.reason ?? 'No reason' },
+        ]);
 
-      return VoiceDeafenLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceDeafenLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // If the member being undeafen by a moderator.
@@ -292,28 +285,26 @@ module.exports = {
         token: process.env.MEMBER_VOICE_DEAFEN_WEBHOOK_TOKEN,
       });
 
-      embed.setAuthor({
-        name: 'Member Undeafened from Voice Channel',
-        iconURL: newState.member.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${oldState.member} has been undeafen from ${newState.channel} by ${deafenLog.executor}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Undeafened At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: deafenLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Member Undeafened from Voice Channel',
+          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(
+          `${oldState.member} has been undeafen from ${newState.channel} by ${deafenLog.executor}.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Undeafened At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: deafenLog.reason ?? 'No reason' },
+        ]);
 
-      return VoiceDeafenLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceDeafenLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     // IF the member is streaming using "Screen Share"
@@ -323,24 +314,25 @@ module.exports = {
         token: process.env.MEMBER_VOICE_STREAM_WEBHOOK_TOKEN,
       });
 
-      embed.setAuthor({
-        name: 'Member Streaming in Voice Channel',
-        iconURL: newState.member.displayAvatarURL({ dynamic: true }),
-      });
-      embed.setDescription(
-        `${oldState.member} is streaming in ${newState.channel}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Streaming At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-      ]);
+      embed
+        .setAuthor({
+          name: 'Member Streaming in Voice Channel',
+          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+        })
+        .setDescription(
+          `${oldState.member} is streaming in ${newState.channel}.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Streaming At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+        ]);
 
-      return VoiceStreamLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceStreamLogger.send({ embeds: [embed] }).catch(console.error);
     }
   },
 };

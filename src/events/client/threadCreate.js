@@ -55,22 +55,15 @@ module.exports = {
         )} inactivity duration.`,
       )
       .setFields([
-        {
-          name: '🔤 Name',
-          value: thread.name,
-          inline: true,
-        },
+        { name: '🔤 Name', value: thread.name, inline: true },
         {
           name: '🕒 Created At',
           value: time(thread.createdAt, TimestampStyles.RelativeTime),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: createLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: createLog.reason ?? 'No reason' },
       ]);
 
-    await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+    return ThreadLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

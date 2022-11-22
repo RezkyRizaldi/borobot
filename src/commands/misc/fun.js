@@ -1,14 +1,10 @@
 const AnimeImages = require('anime-images-api');
 const axios = require('axios');
-const {
-  AttachmentBuilder,
-  EmbedBuilder,
-  italic,
-  SlashCommandBuilder,
-} = require('discord.js');
+const { EmbedBuilder, italic, SlashCommandBuilder } = require('discord.js');
 const nekoClient = require('nekos.life');
 
 const { waifuChoices } = require('../../constants');
+const { generateAttachmentFromBuffer } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -176,8 +172,11 @@ module.exports = {
 
     if (!guild) return;
 
-    const images = new AnimeImages();
-    const neko = new nekoClient();
+    if (!member) {
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({ content: "Member doesn't exist." });
+    }
 
     /** @type {{ channels: { cache: import('discord.js').Collection<String, import('discord.js').BaseGuildTextChannel> } */
     const {
@@ -189,232 +188,202 @@ module.exports = {
       ? `\n${italic('eg.')} ${[...NSFWChannels.values()].join(', ')}`
       : '';
 
-    /** @type {?import('discord.js').GuildMember} */
-    const target = options.getMember('target');
-
     const embed = new EmbedBuilder().setTimestamp(Date.now()).setFooter({
       text: client.user.username,
-      iconURL: client.user.displayAvatarURL({
-        dynamic: true,
-      }),
+      iconURL: client.user.displayAvatarURL({ dynamic: true }),
     });
 
-    if (!member) {
-      return interaction.deferReply({ ephemeral: true }).then(async () =>
-        interaction.editReply({
-          content: "Member doesn't exist.",
-        }),
-      );
-    }
+    /** @type {?import('discord.js').GuildMember} */
+    const target = options.getMember('target');
+    const images = new AnimeImages();
+    const neko = new nekoClient();
 
     switch (options.getSubcommand()) {
-      case 'hug':
+      case 'hug': {
         if (!target) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Member doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Member doesn't exist." });
         }
 
-        return interaction.deferReply().then(async () => {
-          const { url } = await neko.hug();
+        await interaction.deferReply();
 
-          /** @type {{ image: String }} */
-          const { image } = await images.sfw.hug();
-          const imgArr = [url, image];
-          const hug = imgArr[Math.floor(Math.random() * imgArr.length)];
+        const { url } = await neko.hug();
 
-          embed.setColor(target.displayHexColor);
-          embed.setImage(hug);
-          embed.setDescription(`${member} has hugged ${target}!`);
+        /** @type {{ image: String }} */
+        const { image } = await images.sfw.hug();
+        const imgArr = [url, image];
+        const hug = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-          await interaction.editReply({ embeds: [embed] });
-        });
+        embed
+          .setColor(target.displayHexColor)
+          .setImage(hug)
+          .setDescription(`${member} has hugged ${target}!`);
 
-      case 'kiss':
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'kiss': {
         if (!target) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Member doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Member doesn't exist." });
         }
 
-        return interaction.deferReply().then(async () => {
-          const { url } = await neko.kiss();
+        await interaction.deferReply();
 
-          /** @type {{ image: String }} */
-          const { image } = await images.sfw.kiss();
-          const imgArr = [url, image];
-          const kiss = imgArr[Math.floor(Math.random() * imgArr.length)];
+        const { url } = await neko.kiss();
 
-          embed.setColor(target.displayHexColor);
-          embed.setImage(kiss);
-          embed.setDescription(`${member} is kissing ${target}!`);
+        /** @type {{ image: String }} */
+        const { image } = await images.sfw.kiss();
+        const imgArr = [url, image];
+        const kiss = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-          await interaction.editReply({ embeds: [embed] });
-        });
+        embed
+          .setColor(target.displayHexColor)
+          .setImage(kiss)
+          .setDescription(`${member} is kissing ${target}!`);
 
-      case 'slap':
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'slap': {
         if (!target) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Member doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Member doesn't exist." });
         }
 
-        return interaction.deferReply().then(async () => {
-          const { url } = await neko.slap();
+        await interaction.deferReply();
 
-          /** @type {{ image: String }} */
-          const { image } = await images.sfw.slap();
-          const imgArr = [url, image];
-          const slap = imgArr[Math.floor(Math.random() * imgArr.length)];
+        const { url } = await neko.slap();
 
-          embed.setColor(target.displayHexColor);
-          embed.setImage(slap);
-          embed.setDescription(`${member} has slapped ${target}!`);
+        /** @type {{ image: String }} */
+        const { image } = await images.sfw.slap();
+        const imgArr = [url, image];
+        const slap = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-          await interaction.editReply({ embeds: [embed] });
-        });
+        embed
+          .setColor(target.displayHexColor)
+          .setImage(slap)
+          .setDescription(`${member} has slapped ${target}!`);
 
-      case 'punch':
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'punch': {
         if (!target) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Member doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Member doesn't exist." });
         }
 
-        return interaction.deferReply().then(
-          async () =>
-            await images.sfw.punch().then(
-              /**
-               *
-               * @param {{ image: String }}
-               */
-              async ({ image }) => {
-                embed.setColor(target.displayHexColor);
-                embed.setImage(image);
-                embed.setDescription(`${member} has punched ${target}!`);
+        await interaction.deferReply();
 
-                await interaction.editReply({ embeds: [embed] });
-              },
-            ),
-        );
+        /** @type {{ image: String }} */
+        const { image } = await images.sfw.punch();
 
-      case 'wink':
+        embed
+          .setColor(target.displayHexColor)
+          .setImage(image)
+          .setDescription(`${member} has punched ${target}!`);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'wink': {
         if (!target) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Member doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Member doesn't exist." });
         }
 
-        return interaction.deferReply().then(
-          async () =>
-            await images.sfw.wink().then(
-              /**
-               *
-               * @param {{ image: String }}
-               */
-              async ({ image }) => {
-                embed.setColor(target.displayHexColor);
-                embed.setImage(image);
-                embed.setDescription(
-                  `${member} is giving a wink for ${target}!`,
-                );
+        await interaction.deferReply();
 
-                await interaction.editReply({ embeds: [embed] });
-              },
-            ),
-        );
+        /** @type {{ image: String }} */
+        const { image } = await images.sfw.wink();
 
-      case 'pat':
+        embed
+          .setColor(target.displayHexColor)
+          .setImage(image)
+          .setDescription(`${member} is giving a wink for ${target}!`);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'pat': {
         if (!target) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Member doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Member doesn't exist." });
         }
 
-        return interaction.deferReply().then(async () => {
-          const { url } = await neko.pat();
+        await interaction.deferReply();
 
-          /** @type {{ image: String }} */
-          const { image } = await images.sfw.pat();
-          const imgArr = [url, image];
-          const pat = imgArr[Math.floor(Math.random() * imgArr.length)];
+        const { url } = await neko.pat();
 
-          embed.setColor(target.displayHexColor);
-          embed.setImage(pat);
-          embed.setDescription(`${member} is giving a pat for ${target}!`);
+        /** @type {{ image: String }} */
+        const { image } = await images.sfw.pat();
+        const imgArr = [url, image];
+        const pat = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-          await interaction.editReply({ embeds: [embed] });
-        });
+        embed
+          .setColor(target.displayHexColor)
+          .setImage(pat)
+          .setDescription(`${member} is giving a pat for ${target}!`);
 
-      case 'kill':
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'kill': {
         if (!target) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Member doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Member doesn't exist." });
         }
 
-        return interaction.deferReply().then(
-          async () =>
-            await images.sfw.kill().then(
-              /**
-               *
-               * @param {{ image: String }}
-               */
-              async ({ image }) => {
-                embed.setColor(target.displayHexColor);
-                embed.setImage(image);
-                embed.setDescription(`${target} has been killed by ${member}!`);
+        await interaction.deferReply();
 
-                await interaction.editReply({ embeds: [embed] });
-              },
-            ),
-        );
+        /** @type {{ image: String }} */
+        const { image } = await images.sfw.kill();
 
-      case 'cuddle':
+        embed
+          .setColor(target.displayHexColor)
+          .setImage(image)
+          .setDescription(`${target} has been killed by ${member}!`);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'cuddle': {
         if (!target) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Member doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Member doesn't exist." });
         }
 
-        return interaction.deferReply().then(async () => {
-          const { url } = await neko.cuddle();
+        await interaction.deferReply();
 
-          /** @type {{ image: String }} */
-          const { image } = await images.sfw.cuddle();
-          const imgArr = [url, image];
-          const cuddle = imgArr[Math.floor(Math.random() * imgArr.length)];
+        const { url } = await neko.cuddle();
 
-          embed.setColor(target.displayHexColor);
-          embed.setImage(cuddle);
-          embed.setDescription(`${member} cuddles ${target}!`);
+        /** @type {{ image: String }} */
+        const { image } = await images.sfw.cuddle();
+        const imgArr = [url, image];
+        const cuddle = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-          await interaction.editReply({ embeds: [embed] });
-        });
+        embed
+          .setColor(target.displayHexColor)
+          .setImage(cuddle)
+          .setDescription(`${member} cuddles ${target}!`);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
 
       case 'tickle':
         if (!target) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Member doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Member doesn't exist." });
         }
 
         return interaction.deferReply().then(
@@ -428,67 +397,58 @@ module.exports = {
             }),
         );
 
-      case 'feed':
+      case 'feed': {
         if (!target) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Member doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Member doesn't exist." });
         }
 
-        return interaction.deferReply().then(
-          async () =>
-            await neko.feed().then(async ({ url }) => {
-              embed.setColor(target.displayHexColor);
-              embed.setImage(url);
-              embed.setDescription(`${member} feeding ${target}!`);
+        await interaction.deferReply();
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
-        );
+        const { url } = await neko.feed();
+
+        embed
+          .setColor(target.displayHexColor)
+          .setImage(url)
+          .setDescription(`${member} feeding ${target}!`);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
 
       case 'kemono': {
         const endpoints = ['neko', 'nekoGif', 'foxGirl'];
 
-        return interaction.deferReply().then(
-          async () =>
-            await neko[
-              endpoints[Math.floor(Math.random() * endpoints.length)]
-            ]().then(
-              /**
-               *
-               * @param {{ url: String }}
-               */
-              async ({ url }) => {
-                embed.setColor(guild.members.me?.displayHexColor ?? null);
-                embed.setImage(url);
+        await interaction.deferReply();
 
-                await interaction.editReply({ embeds: [embed] });
-              },
-            ),
-        );
+        /** @type {{ url: String }} */
+        const { url } = await neko[
+          endpoints[Math.floor(Math.random() * endpoints.length)]
+        ]();
+
+        embed.setColor(guild.members.me?.displayHexColor ?? null).setImage(url);
+
+        return interaction.editReply({ embeds: [embed] });
       }
 
-      case 'smug':
+      case 'smug': {
         if (!target) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Member doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Member doesn't exist." });
         }
 
-        return interaction.deferReply().then(
-          async () =>
-            await neko.smug().then(async ({ url }) => {
-              embed.setColor(target.displayHexColor);
-              embed.setImage(url);
-              embed.setDescription(`${member} smugged ${target}!`);
+        await interaction.deferReply();
 
-              await interaction.editReply({ embeds: [embed] });
-            }),
-        );
+        const { url } = await neko.smug();
+
+        embed
+          .setColor(target.displayHexColor)
+          .setImage(url)
+          .setDescription(`${member} smugged ${target}!`);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
 
       case 'waifu':
         {
@@ -496,224 +456,172 @@ module.exports = {
 
           embed.setColor(member.displayHexColor);
 
+          await interaction.deferReply();
+
           switch (type) {
-            case 'image':
-              return interaction.deferReply().then(
-                async () =>
-                  await axios.get('https://api.waifu.pics/sfw/waifu').then(
-                    /**
-                     *
-                     * @param {{ data: { url: String } }}
-                     */
-                    async ({ data: { url } }) => {
-                      embed.setAuthor({
-                        name: `${member.user.username} Got a Waifu`,
-                        iconURL: member.displayAvatarURL({
-                          dynamic: true,
-                        }),
-                      });
-                      embed.setImage(url);
+            case 'image': {
+              /** @type {{ data: { url: String } }} */
+              const {
+                data: { url },
+              } = await axios.get('https://api.waifu.pics/sfw/waifu');
 
-                      await interaction.editReply({ embeds: [embed] });
-                    },
-                  ),
-              );
-
-            case 'pfp':
-              return interaction.deferReply().then(async () => {
-                const { url } = await neko.avatar();
-
-                /** @type {{ image: String }} */
-                const { image } = await images.sfw.waifu();
-                const imgArr = [url, image];
-                const pfp = imgArr[Math.floor(Math.random() * imgArr.length)];
-
-                embed.setAuthor({
+              embed
+                .setAuthor({
                   name: `${member.user.username} Got a Waifu`,
-                  iconURL: member.displayAvatarURL({
-                    dynamic: true,
-                  }),
-                });
-                embed.setImage(pfp);
+                  iconURL: member.displayAvatarURL({ dynamic: true }),
+                })
+                .setImage(url);
 
-                await interaction.editReply({ embeds: [embed] });
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case 'pfp': {
+              const { url } = await neko.avatar();
+
+              /** @type {{ image: String }} */
+              const { image } = await images.sfw.waifu();
+              const imgArr = [url, image];
+              const pfp = imgArr[Math.floor(Math.random() * imgArr.length)];
+
+              embed.setAuthor({
+                name: `${member.user.username} Got a Waifu`,
+                iconURL: member.displayAvatarURL({ dynamic: true }),
               });
+              embed.setImage(pfp);
 
-            case 'wallpaper':
-              return interaction.deferReply().then(
-                async () =>
-                  await neko.wallpaper().then(async ({ url }) => {
-                    embed.setAuthor({
-                      name: `${member.user.username} Got a Waifu`,
-                      iconURL: member.displayAvatarURL({
-                        dynamic: true,
-                      }),
-                    });
-                    embed.setImage(url);
+              return interaction.editReply({ embeds: [embed] });
+            }
 
-                    await interaction.editReply({ embeds: [embed] });
-                  }),
-              );
+            case 'wallpaper': {
+              const { url } = await neko.wallpaper();
+
+              embed
+                .setAuthor({
+                  name: `${member.user.username} Got a Waifu`,
+                  iconURL: member.displayAvatarURL({ dynamic: true }),
+                })
+                .setImage(url);
+
+              return interaction.editReply({ embeds: [embed] });
+            }
           }
         }
         break;
 
-      case 'hentai':
+      case 'hentai': {
         if (!channel) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Channel doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Channel doesn't exist." });
         }
 
         if (!channel.nsfw) {
-          return interaction.deferReply({ ephemeral: true }).then(
-            async () =>
-              await interaction.editReply({
-                content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
-              }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+          });
         }
 
-        return interaction.deferReply().then(
-          async () =>
-            await images.nsfw.hentai().then(
-              /**
-               *
-               * @param {{ image: String }}
-               */
-              async ({ image }) => {
-                embed.setColor(guild.members.me?.displayHexColor ?? null);
-                embed.setImage(image);
+        await interaction.deferReply();
 
-                await interaction.editReply({ embeds: [embed] });
-              },
-            ),
-        );
+        /** @type {{ image: String }} */
+        const { image } = await images.nsfw.hentai();
 
-      case 'boobs':
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(image);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'boobs': {
         if (!channel) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Channel doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Channel doesn't exist." });
         }
 
         if (!channel.nsfw) {
-          return interaction.deferReply({ ephemeral: true }).then(
-            async () =>
-              await interaction.editReply({
-                content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
-              }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+          });
         }
 
-        return interaction.deferReply().then(
-          async () =>
-            await images.nsfw.boobs().then(
-              /**
-               *
-               * @param {{ image: String }}
-               */
-              async ({ image }) => {
-                embed.setColor(guild.members.me?.displayHexColor ?? null);
-                embed.setImage(image);
+        await interaction.deferReply();
 
-                await interaction.editReply({ embeds: [embed] });
-              },
-            ),
-        );
+        const { image } = await images.nsfw.boobs();
 
-      case 'lesbian':
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(image);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'lesbian': {
         if (!channel) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Channel doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Channel doesn't exist." });
         }
 
         if (!channel.nsfw) {
-          return interaction.deferReply({ ephemeral: true }).then(
-            async () =>
-              await interaction.editReply({
-                content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
-              }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+          });
         }
 
-        return interaction.deferReply().then(
-          async () =>
-            await images.nsfw.lesbian().then(
-              /**
-               *
-               * @param {{ image: String }}
-               */
-              async ({ image }) => {
-                embed.setColor(guild.members.me?.displayHexColor ?? null);
-                embed.setImage(image);
+        await interaction.deferReply();
 
-                await interaction.editReply({ embeds: [embed] });
-              },
-            ),
-        );
+        const { image } = await images.nsfw.lesbian();
 
-      case 'ahegao':
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(image);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'ahegao': {
         if (!channel) {
-          return interaction.deferReply({ ephemeral: true }).then(async () =>
-            interaction.editReply({
-              content: "Channel doesn't exist.",
-            }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Channel doesn't exist." });
         }
 
         if (!channel.nsfw) {
-          return interaction.deferReply({ ephemeral: true }).then(
-            async () =>
-              await interaction.editReply({
-                content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
-              }),
-          );
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+          });
         }
 
-        return interaction.deferReply().then(
-          async () =>
-            await axios
-              .get(
-                `https://api.lolhuman.xyz/api/random/nsfw/ahegao?apikey=${process.env.LOLHUMAN_API_KEY}`,
-                {
-                  responseType: 'arraybuffer',
-                },
-              )
-              .then(
-                /**
-                 *
-                 * @param {{ data: ArrayBuffer }}
-                 */
-                async ({ data }) => {
-                  const base64 = Buffer.from(data, 'base64');
+        await interaction.deferReply();
 
-                  const ext = await (await import('file-type'))
-                    .fileTypeFromBuffer(base64)
-                    .then((r) => r.ext);
-
-                  const image = new AttachmentBuilder(base64, {
-                    name: `ahegao.${ext}`,
-                    description: 'Ahegao image',
-                  });
-
-                  embed.setColor(guild.members.me?.displayHexColor ?? null);
-                  embed.setImage(`attachment://ahegao.${ext}`);
-
-                  await interaction.editReply({
-                    embeds: [embed],
-                    files: [image],
-                  });
-                },
-              ),
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random/nsfw/ahegao?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
         );
+
+        const { attachment: img, ext } = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'ahegao',
+          fileDesc: 'Ahegao Image',
+        });
+
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(`attachment://${img.name}.${ext}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
     }
   },
 };

@@ -34,39 +34,39 @@ module.exports = {
     const member = options.getMember('member');
     const reason = options.getString('reason') ?? 'No reason';
 
-    await interaction.deferReply({ ephemeral: true }).then(async () => {
-      if (!member.kickable) {
-        return interaction.editReply({
-          content: `You don't have appropiate permissions to kick ${member}.`,
-        });
-      }
+    await interaction.deferReply({ ephemeral: true });
 
-      if (member.id === user.id) {
-        return interaction.editReply({ content: "You can't kick yourself." });
-      }
-
-      await member.kick(reason).then(async (m) => {
-        await interaction.editReply({
-          content: `Successfully ${bold('kicked')} ${m}.`,
-        });
-
-        if (!m.user.bot) {
-          return m
-            .send({
-              content: `You have been kicked from ${bold(
-                guild,
-              )} for ${inlineCode(reason)}`,
-            })
-            .catch(async (err) => {
-              console.error(err);
-
-              await interaction.followUp({
-                content: `Could not send a DM to ${m}.`,
-                ephemeral: true,
-              });
-            });
-        }
+    if (!member.kickable) {
+      return interaction.editReply({
+        content: `You don't have appropiate permissions to kick ${member}.`,
       });
+    }
+
+    if (member.id === user.id) {
+      return interaction.editReply({ content: "You can't kick yourself." });
+    }
+
+    await member.kick(reason);
+
+    await interaction.editReply({
+      content: `Successfully ${bold('kicked')} ${member}.`,
     });
+
+    if (!member.user.bot) {
+      return member
+        .send({
+          content: `You have been kicked from ${bold(guild)} for ${inlineCode(
+            reason,
+          )}`,
+        })
+        .catch(async (err) => {
+          console.error(err);
+
+          await interaction.followUp({
+            content: `Could not send a DM to ${member}.`,
+            ephemeral: true,
+          });
+        });
+    }
   },
 };
