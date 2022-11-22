@@ -11,18 +11,18 @@ module.exports = {
   async execute(queue) {
     const { client, clientMember, textChannel } = queue;
 
+    if (!clientMember || !textChannel) return;
+
     const embed = new EmbedBuilder()
       .setColor(clientMember.displayHexColor)
       .setTimestamp(Date.now())
       .setDescription("Can't find related song to play.")
-      .setAuthor({
-        name: '❌ No Related Song',
-      })
+      .setAuthor({ name: '❌ No Related Song' })
       .setFooter({
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    await textChannel.send({ embeds: [embed] }).catch(console.error);
+    return textChannel.send({ embeds: [embed] }).catch(console.error);
   },
 };

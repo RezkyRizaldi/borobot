@@ -61,36 +61,34 @@ module.exports = {
     const nickname = options.getString('nickname', true);
     const reason = options.getString('reason') ?? 'No reason';
 
-    return interaction.deferReply({ ephemeral: true }).then(async () => {
-      switch (options.getSubcommand()) {
-        case 'set':
-          if (member.nickname && member.nickname === nickname) {
-            return interaction.editReply({
-              content: 'You have to specify different nickname.',
-            });
-          }
+    await interaction.deferReply({ ephemeral: true });
 
-          return member.setNickname(nickname, reason).then(
-            async (m) =>
-              await interaction.editReply({
-                content: `Successfully set ${m}'s nickname.`,
-              }),
-          );
+    switch (options.getSubcommand()) {
+      case 'set':
+        if (member.nickname && member.nickname === nickname) {
+          return interaction.editReply({
+            content: 'You have to specify different nickname.',
+          });
+        }
 
-        case 'reset':
-          if (!member.nickname) {
-            return interaction.editReply({
-              content: `${member} doesn't have any nickname.`,
-            });
-          }
+        await member.setNickname(nickname, reason);
 
-          return member.setNickname(null, reason).then(
-            async (m) =>
-              await interaction.editReply({
-                content: `Successfully reset ${m}'s nickname.`,
-              }),
-          );
-      }
-    });
+        return interaction.editReply({
+          content: `Successfully set ${member}'s nickname.`,
+        });
+
+      case 'reset':
+        if (!member.nickname) {
+          return interaction.editReply({
+            content: `${member} doesn't have any nickname.`,
+          });
+        }
+
+        await member.setNickname(null, reason);
+
+        return interaction.editReply({
+          content: `Successfully reset ${member}'s nickname.`,
+        });
+    }
   },
 };

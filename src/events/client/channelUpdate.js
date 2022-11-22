@@ -4,14 +4,14 @@ const {
   bold,
   EmbedBuilder,
   Events,
+  inlineCode,
   italic,
-  time,
   OverwriteType,
   roleMention,
+  time,
   TimestampStyles,
   userMention,
   WebhookClient,
-  inlineCode,
 } = require('discord.js');
 const pluralize = require('pluralize');
 
@@ -54,158 +54,140 @@ module.exports = {
       });
 
     if (oldChannel.name !== newChannel.name) {
-      embed.setDescription(
-        `${oldChannel} channel's name was ${bold('edited')} by ${
-          editLog.executor
-        }.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Before',
-          value: oldChannel.name,
-          inline: true,
-        },
-        {
-          name: '🕒 After',
-          value: newChannel.name,
-          inline: true,
-        },
-        {
-          name: '🕒 Edited At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: editLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setDescription(
+          `${oldChannel} channel's name was ${bold('edited')} by ${
+            editLog.executor
+          }.`,
+        )
+        .setFields([
+          { name: '🕒 Before', value: oldChannel.name, inline: true },
+          { name: '🕒 After', value: newChannel.name, inline: true },
+          {
+            name: '🕒 Edited At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
+        ]);
 
-      return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     if (oldChannel.nsfw !== newChannel.nsfw) {
-      embed.setDescription(
-        `${oldChannel} channel's nsfw state was ${bold(
-          `turned ${newChannel.nsfw ? 'on' : 'off'}`,
-        )} by ${editLog.executor}.`,
-      );
-      embed.setFields([
-        {
-          name: `🕒 Turned ${newChannel.nsfw ? 'On' : 'Off'} At`,
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: editLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setDescription(
+          `${oldChannel} channel's nsfw state was ${bold(
+            `turned ${newChannel.nsfw ? 'on' : 'off'}`,
+          )} by ${editLog.executor}.`,
+        )
+        .setFields([
+          {
+            name: `🕒 Turned ${newChannel.nsfw ? 'On' : 'Off'} At`,
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
+        ]);
 
-      return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     if (oldChannel.parentId !== newChannel.parentId) {
-      embed.setDescription(
-        `${oldChannel} channel's category was ${bold('edited')} by ${
-          editLog.executor
-        }.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Before',
-          value: oldChannel.parent ? `${oldChannel.parent}` : italic('None'),
-          inline: true,
-        },
-        {
-          name: '🕒 After',
-          value: newChannel.parent ? `${newChannel.parent}` : italic('None'),
-          inline: true,
-        },
-        {
-          name: '🕒 Edited At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: editLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setDescription(
+          `${oldChannel} channel's category was ${bold('edited')} by ${
+            editLog.executor
+          }.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Before',
+            value: oldChannel.parent ? `${oldChannel.parent}` : italic('None'),
+            inline: true,
+          },
+          {
+            name: '🕒 After',
+            value: newChannel.parent ? `${newChannel.parent}` : italic('None'),
+            inline: true,
+          },
+          {
+            name: '🕒 Edited At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
+        ]);
 
-      return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     if (oldChannel.userLimit !== newChannel.userLimit) {
-      embed.setDescription(
-        `${oldChannel} channel's user limit was ${bold('edited')} by ${
-          editLog.executor
-        }.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Before',
-          value: pluralize('user', oldChannel.userLimit, true),
-          inline: true,
-        },
-        {
-          name: '🕒 After',
-          value: pluralize('user', newChannel.userLimit, true),
-          inline: true,
-        },
-        {
-          name: '🕒 Edited At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: editLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setDescription(
+          `${oldChannel} channel's user limit was ${bold('edited')} by ${
+            editLog.executor
+          }.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Before',
+            value: pluralize('user', oldChannel.userLimit, true),
+            inline: true,
+          },
+          {
+            name: '🕒 After',
+            value: pluralize('user', newChannel.userLimit, true),
+            inline: true,
+          },
+          {
+            name: '🕒 Edited At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
+        ]);
 
-      return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     if (oldChannel.topic !== newChannel.topic) {
-      embed.setDescription(
-        `${oldChannel} channel's topic was ${bold('edited')} by ${
-          editLog.executor
-        }.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Before',
-          value: oldChannel.topic ?? italic('None'),
-          inline: true,
-        },
-        {
-          name: '🕒 After',
-          value: newChannel.topic ?? italic('None'),
-          inline: true,
-        },
-        {
-          name: '🕒 Edited At',
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: editLog.reason ?? 'No reason',
-        },
-      ]);
+      embed
+        .setDescription(
+          `${oldChannel} channel's topic was ${bold('edited')} by ${
+            editLog.executor
+          }.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Before',
+            value: oldChannel.topic ?? italic('None'),
+            inline: true,
+          },
+          {
+            name: '🕒 After',
+            value: newChannel.topic ?? italic('None'),
+            inline: true,
+          },
+          {
+            name: '🕒 Edited At',
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
+        ]);
 
-      return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     const oldChannelPermissions = oldChannel.permissionOverwrites.cache;
@@ -252,48 +234,46 @@ module.exports = {
         })
         .then((audit) => audit.entries.first());
 
-      embed.setDescription(
-        `${newChannel} permissions was ${bold(
-          oldChannelPermissionsWithoutEveryone.size <
-            newChannelPermissionsWithoutEveryone.size
-            ? 'attached'
-            : 'detached',
-        )} for ${
-          oldChannelPermissionsWithoutEveryone.size <
-          newChannelPermissionsWithoutEveryone.size
-            ? attachedPermission.type === OverwriteType.Role
-              ? roleMention(attachedPermission.id)
-              : userMention(attachedPermission.id)
-            : detachedPermission.type === OverwriteType.Role
-            ? roleMention(detachedPermission.id)
-            : userMention(detachedPermission.id)
-        } by ${
-          oldChannelPermissionsWithoutEveryone.size <
-          newChannelPermissionsWithoutEveryone.size
-            ? permissionCreateLog.executor
-            : permissionDeleteLog.executor
-        }.`,
-      );
-      embed.setFields([
-        {
-          name: `🕒 ${
+      embed
+        .setDescription(
+          `${newChannel} permissions was ${bold(
+            oldChannelPermissionsWithoutEveryone.size <
+              newChannelPermissionsWithoutEveryone.size
+              ? 'attached'
+              : 'detached',
+          )} for ${
             oldChannelPermissionsWithoutEveryone.size <
             newChannelPermissionsWithoutEveryone.size
-              ? 'Attached'
-              : 'Detached'
-          } At`,
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: editLog.reason ?? 'No reason',
-        },
-      ]);
+              ? attachedPermission.type === OverwriteType.Role
+                ? roleMention(attachedPermission.id)
+                : userMention(attachedPermission.id)
+              : detachedPermission.type === OverwriteType.Role
+              ? roleMention(detachedPermission.id)
+              : userMention(detachedPermission.id)
+          } by ${
+            oldChannelPermissionsWithoutEveryone.size <
+            newChannelPermissionsWithoutEveryone.size
+              ? permissionCreateLog.executor
+              : permissionDeleteLog.executor
+          }.`,
+        )
+        .setFields([
+          {
+            name: `🕒 ${
+              oldChannelPermissionsWithoutEveryone.size <
+              newChannelPermissionsWithoutEveryone.size
+                ? 'Attached'
+                : 'Detached'
+            } At`,
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
+        ]);
 
-      return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     const permissionUpdateLog = await guild
@@ -336,51 +316,46 @@ module.exports = {
             )
           : oldGrantedPermissions.first();
 
-      embed.setDescription(
-        `${newChannel} permissions was ${bold(
-          newGrantedPermission.allow
-            .toArray()
-            .filter(
-              (permission) =>
-                !oldGrantedPermission.allow.toArray().includes(permission),
-            ).length
-            ? 'granted'
-            : 'resetted',
-        )} for ${
-          newGrantedPermission.type === OverwriteType.Role
-            ? newGrantedPermission.id === guild.roles.everyone.id
-              ? guild.roles.everyone
-              : roleMention(newGrantedPermission.id)
-            : userMention(newGrantedPermission.id)
-        } by ${permissionUpdateLog.executor}.`,
-      );
-      embed.setFields([
-        {
-          name: '🕒 Previous Permissions',
-          value:
-            oldGrantedPermission.allow
-              .toArray()
-              .map((permission) => inlineCode(capitalCase(permission)))
-              .join(', ') || italic('None'),
-        },
-        {
-          name: `${
+      embed
+        .setDescription(
+          `${newChannel} permissions was ${bold(
             newGrantedPermission.allow
               .toArray()
               .filter(
                 (permission) =>
                   !oldGrantedPermission.allow.toArray().includes(permission),
               ).length
-              ? '🟢 Granted'
-              : '⚫ Resetted'
-          } Permissions`,
-          value: oldGrantedPermissions.size
-            ? newGrantedPermission.allow
+              ? 'granted'
+              : 'resetted',
+          )} for ${
+            newGrantedPermission.type === OverwriteType.Role
+              ? newGrantedPermission.id === guild.roles.everyone.id
+                ? guild.roles.everyone
+                : roleMention(newGrantedPermission.id)
+              : userMention(newGrantedPermission.id)
+          } by ${permissionUpdateLog.executor}.`,
+        )
+        .setFields([
+          {
+            name: '🕒 Previous Permissions',
+            value:
+              oldGrantedPermission.allow
+                .toArray()
+                .map((permission) => inlineCode(capitalCase(permission)))
+                .join(', ') || italic('None'),
+          },
+          {
+            name: `${
+              newGrantedPermission.allow
                 .toArray()
                 .filter(
                   (permission) =>
                     !oldGrantedPermission.allow.toArray().includes(permission),
                 ).length
+                ? '🟢 Granted'
+                : '⚫ Resetted'
+            } Permissions`,
+            value: oldGrantedPermissions.size
               ? newGrantedPermission.allow
                   .toArray()
                   .filter(
@@ -388,41 +363,49 @@ module.exports = {
                       !oldGrantedPermission.allow
                         .toArray()
                         .includes(permission),
-                  )
-                  .map((permission) => inlineCode(capitalCase(permission)))
-                  .join(', ')
+                  ).length
+                ? newGrantedPermission.allow
+                    .toArray()
+                    .filter(
+                      (permission) =>
+                        !oldGrantedPermission.allow
+                          .toArray()
+                          .includes(permission),
+                    )
+                    .map((permission) => inlineCode(capitalCase(permission)))
+                    .join(', ')
+                : newGrantedPermission.allow
+                    .missing(oldGrantedPermission.allow.bitfield)
+                    .map((permission) => inlineCode(capitalCase(permission)))
+                    .join(', ')
               : newGrantedPermission.allow
-                  .missing(oldGrantedPermission.allow.bitfield)
+                  .toArray()
                   .map((permission) => inlineCode(capitalCase(permission)))
-                  .join(', ')
-            : newGrantedPermission.allow
+                  .join(', '),
+          },
+          {
+            name: `🕒 ${
+              newGrantedPermission.allow
                 .toArray()
-                .map((permission) => inlineCode(capitalCase(permission)))
-                .join(', '),
-        },
-        {
-          name: `🕒 ${
-            newGrantedPermission.allow
-              .toArray()
-              .filter(
-                (permission) =>
-                  !oldGrantedPermission.allow.toArray().includes(permission),
-              ).length
-              ? 'Granted'
-              : 'Resetted'
-          } At`,
-          value: time(
-            Math.floor(Date.now() / 1000),
-            TimestampStyles.RelativeTime,
-          ),
-        },
-        {
-          name: '📄 Reason',
-          value: permissionUpdateLog.reason ?? 'No reason',
-        },
-      ]);
+                .filter(
+                  (permission) =>
+                    !oldGrantedPermission.allow.toArray().includes(permission),
+                ).length
+                ? 'Granted'
+                : 'Resetted'
+            } At`,
+            value: time(
+              Math.floor(Date.now() / 1000),
+              TimestampStyles.RelativeTime,
+            ),
+          },
+          {
+            name: '📄 Reason',
+            value: permissionUpdateLog.reason ?? 'No reason',
+          },
+        ]);
 
-      return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     const oldDeniedPermissions = oldChannelPermissions.filter((oldPerm) =>
@@ -539,7 +522,7 @@ module.exports = {
         },
       ]);
 
-      return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
     }
   },
 };

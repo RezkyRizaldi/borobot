@@ -107,8 +107,8 @@ module.exports = {
   async execute(interaction) {
     const { options } = interaction;
 
-    await interaction
-      .deferReply({ ephemeral: true })
-      .then(async () => await serverMute(interaction, options.getSubcommand()));
+    await interaction.deferReply({ ephemeral: true });
+
+    return serverMute(interaction, options.getSubcommand());
   },
 };

@@ -62,12 +62,9 @@ module.exports = {
           value: time(emoji.createdAt, TimestampStyles.RelativeTime),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: createLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: createLog.reason ?? 'No reason' },
       ]);
 
-    await EmojiLogger.send({ embeds: [embed] }).catch(console.error);
+    return EmojiLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

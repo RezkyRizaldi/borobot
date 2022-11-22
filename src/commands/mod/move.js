@@ -45,25 +45,24 @@ module.exports = {
     const reason = options.getString('reason') ?? 'No reason';
     const { voice } = member;
 
-    await interaction.deferReply({ ephemeral: true }).then(async () => {
-      if (!voice.channel) {
-        return interaction.editReply({
-          content: 'This member is not connected to a voice channel.',
-        });
-      }
+    await interaction.deferReply({ ephemeral: true });
 
-      if (voice.channelId === channel.id) {
-        return interaction.editReply({
-          content: `This member is already in ${channel}.`,
-        });
-      }
+    if (!voice.channel) {
+      return interaction.editReply({
+        content: 'This member is not connected to a voice channel.',
+      });
+    }
 
-      await voice.setChannel(channel, reason).then(
-        async (m) =>
-          await interaction.editReply({
-            content: `Successfully ${bold('moved')} ${m} to ${channel}.`,
-          }),
-      );
+    if (voice.channelId === channel.id) {
+      return interaction.editReply({
+        content: `This member is already in ${channel}.`,
+      });
+    }
+
+    await voice.setChannel(channel, reason);
+
+    return interaction.editReply({
+      content: `Successfully ${bold('moved')} ${member} to ${channel}.`,
     });
   },
 };

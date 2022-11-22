@@ -8,7 +8,7 @@ const {
 } = require('discord.js');
 const pluralize = require('pluralize');
 
-const { groupMessageByAuthor } = require('../../utils');
+const { count, groupMessageByAuthor } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -49,12 +49,10 @@ module.exports = {
 
     if (!guild) return;
 
+    await interaction.deferReply({ ephemeral: true });
+
     if (!channel) {
-      return interaction.deferReply({ ephemeral: true }).then(async () =>
-        interaction.editReply({
-          content: "Channel doesn't exist.",
-        }),
-      );
+      return interaction.editReply({ content: "Channel doesn't exist." });
     }
 
     const amount = options.getInteger('amount', true);
@@ -67,26 +65,26 @@ module.exports = {
 
     const messages = await channel.messages.fetch();
 
-    await interaction.deferReply({ ephemeral: true }).then(async () => {
-      if (!messages.size) {
-        return interaction.editReply({
-          content: `${channel} doesn't have any message.`,
-        });
-      }
+    if (!messages.size) {
+      return interaction.editReply({
+        content: `${channel} doesn't have any message.`,
+      });
+    }
 
-      if (!messages.first().deletable) {
-        return interaction.editReply({
-          content: "You don't have appropiate permissions to delete messages.",
-        });
-      }
+    if (!messages.first().deletable) {
+      return interaction.editReply({
+        content: "You don't have appropiate permissions to delete messages.",
+      });
+    }
 
-      let i = 0;
+    let i = 0;
 
-      /** @type {Collection<import('discord.js').Snowflake, import('discord.js').Message>} */
-      const filteredMessages = new Collection();
+    /** @type {Collection<import('discord.js').Snowflake, import('discord.js').Message>} */
+    const filteredMessages = new Collection();
 
-      switch (true) {
-        case !!member && !!role: {
+    switch (true) {
+      case !!member && !!role:
+        {
           const membersWithRole = guild.members.cache
             .filter((m) => m.roles.cache.has(role.id))
             .map((m) => m.id);
@@ -106,11 +104,11 @@ module.exports = {
               content: `members with role ${role} doesn't have any message in ${channel}`,
             });
           }
-
-          break;
         }
+        break;
 
-        case !!member: {
+      case !!member:
+        {
           messages.filter((message) => {
             if (message.author.id === member.id && amount > i) {
               filteredMessages.set(message.id, message);
@@ -123,11 +121,11 @@ module.exports = {
               content: `${member} doesn't have any message in ${channel}`,
             });
           }
-
-          break;
         }
+        break;
 
-        case !!role: {
+      case !!role:
+        {
           const membersWithRole = guild.members.cache
             .filter((m) => m.roles.cache.has(role.id))
             .map((m) => m.id);
@@ -144,102 +142,96 @@ module.exports = {
               content: `members with role ${role} doesn't have any message in ${channel}`,
             });
           }
-
-          break;
         }
-      }
+        break;
+    }
 
-      await channel
-        .bulkDelete(filteredMessages.size ? filteredMessages : amount, true)
-        .then(async (msgs) => {
-          if (!msgs.size) {
-            return interaction.editReply({
-              content: 'No messages can be deleted.',
-            });
-          }
+    const msgs = await channel.bulkDelete(
+      filteredMessages.size ? filteredMessages : amount,
+      true,
+    );
 
-          const embed = new EmbedBuilder()
-            .setColor(guild.members.me?.displayHexColor ?? null)
-            .setTimestamp(Date.now())
-            .setFooter({
-              text: client.user.username,
-              iconURL: client.user.displayAvatarURL({
-                dynamic: true,
-              }),
-            })
-            .setAuthor({
-              name: `🗑️ ${pluralize('Message', msgs.size)} Deleted`,
-            });
+    if (!msgs.size) {
+      return interaction.editReply({ content: 'No messages can be deleted.' });
+    }
 
-          switch (true) {
-            case !!member && !!role: {
-              const groupedMessages = groupMessageByAuthor(msgs);
+    const embed = new EmbedBuilder()
+      .setColor(guild.members.me?.displayHexColor ?? null)
+      .setTimestamp(Date.now())
+      .setFooter({
+        text: client.user.username,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+      })
+      .setAuthor({ name: `🗑️ ${pluralize('Message', msgs.size)} Deleted` });
 
-              embed.setDescription(
-                groupedMessages
-                  .map(
-                    (arrMessage, index, array) =>
-                      `Deleted ${bold(
-                        `${array[index].length.toLocaleString()}`,
-                      )} ${pluralize('message', array[index].length)}${
-                        arrMessage[index]?.author
-                          ? ` from ${userMention(arrMessage[index].author.id)}`
-                          : ''
-                      }.`,
-                  )
-                  .join('\n'),
-              );
+    switch (true) {
+      case !!member && !!role: {
+        const groupedMessages = groupMessageByAuthor(msgs);
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case !!member:
-              embed.setDescription(
-                `Deleted ${bold(`${msgs.size.toLocaleString()}`)} ${pluralize(
-                  'message',
-                  msgs.size,
-                )}${
-                  msgs.first()?.author
-                    ? ` from ${userMention(msgs.first().author.id)}`
+        embed.setDescription(
+          groupedMessages
+            .map(
+              (arrMessage, index, array) =>
+                `Deleted ${count({
+                  total: array[index].length,
+                  data: 'message',
+                })}${
+                  arrMessage[index]?.author
+                    ? ` from ${userMention(arrMessage[index].author.id)}`
                     : ''
                 }.`,
-              );
+            )
+            .join('\n'),
+        );
 
-              return interaction.editReply({ embeds: [embed] });
+        return interaction.editReply({ embeds: [embed] });
+      }
 
-            case !!role: {
-              const groupedMessages = groupMessageByAuthor(msgs);
+      case !!member:
+        embed.setDescription(
+          `Deleted ${bold(`${msgs.size.toLocaleString()}`)} ${pluralize(
+            'message',
+            msgs.size,
+          )}${
+            msgs.first()?.author
+              ? ` from ${userMention(msgs.first().author.id)}`
+              : ''
+          }.`,
+        );
 
-              embed.setDescription(
-                groupedMessages
-                  .map(
-                    (arrMessage, index, array) =>
-                      `Deleted ${bold(
-                        `${array[index].length.toLocaleString()}`,
-                      )} ${pluralize('message', array[index].length)}${
-                        arrMessage[index]?.author
-                          ? ` from ${userMention(arrMessage[index].author.id)}`
-                          : ''
-                      }.`,
-                  )
-                  .join('\n'),
-              );
+        return interaction.editReply({ embeds: [embed] });
 
-              return interaction.editReply({ embeds: [embed] });
-            }
+      case !!role: {
+        const groupedMessages = groupMessageByAuthor(msgs);
 
-            default: {
-              embed.setDescription(
-                `Deleted ${bold(`${msgs.size.toLocaleString()}`)} ${pluralize(
-                  'message',
-                  msgs.size,
-                )}.`,
-              );
+        embed.setDescription(
+          groupedMessages
+            .map(
+              (arrMessage, index, array) =>
+                `Deleted ${bold(
+                  `${array[index].length.toLocaleString()}`,
+                )} ${pluralize('message', array[index].length)}${
+                  arrMessage[index]?.author
+                    ? ` from ${userMention(arrMessage[index].author.id)}`
+                    : ''
+                }.`,
+            )
+            .join('\n'),
+        );
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-          }
-        });
-    });
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      default: {
+        embed.setDescription(
+          `Deleted ${bold(`${msgs.size.toLocaleString()}`)} ${pluralize(
+            'message',
+            msgs.size,
+          )}.`,
+        );
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+    }
   },
 };

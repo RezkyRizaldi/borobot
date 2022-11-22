@@ -210,19 +210,15 @@ module.exports = {
     if (!guild) return;
 
     if (!member) {
-      return interaction.deferReply({ ephemeral: true }).then(async () =>
-        interaction.editReply({
-          content: "Member doesn't exist.",
-        }),
-      );
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({ content: "Member doesn't exist." });
     }
 
     if (!textChannel) {
-      return interaction.deferReply({ ephemeral: true }).then(async () =>
-        interaction.editReply({
-          content: "Channel doesn't exist.",
-        }),
-      );
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({ content: "Channel doesn't exist." });
     }
 
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
@@ -247,227 +243,196 @@ module.exports = {
     );
 
     if (!musicChannel) {
-      return interaction.deferReply({ ephemeral: true }).then(
-        async () =>
-          await interaction.editReply({
-            content: 'Cannot find a music text channel.',
-          }),
-      );
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({
+        content: 'Cannot find a music text channel.',
+      });
     }
 
     if (interaction.channelId !== musicChannel.id) {
-      return interaction.deferReply({ ephemeral: true }).then(
-        async () =>
-          await interaction.editReply({
-            content: `Please use this command in ${musicChannel}.`,
-          }),
-      );
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({
+        content: `Please use this command in ${musicChannel}.`,
+      });
     }
 
     if (!voiceChannel) {
-      return interaction.deferReply({ ephemeral: true }).then(
-        async () =>
-          await interaction.editReply({
-            content:
-              'You must be in a voice channel to be able to use this command.',
-          }),
-      );
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({
+        content:
+          'You must be in a voice channel to be able to use this command.',
+      });
     }
 
     if (
       !!guild.members.me?.voice.channel &&
       guild.members.me?.voice.channelId !== voiceChannel.id
     ) {
-      return interaction.deferReply({ ephemeral: true }).then(
-        async () =>
-          await interaction.editReply({
-            content: `Already playing music in ${guild.members.me.voice.channel}.`,
-          }),
-      );
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({
+        content: `Already playing music in ${guild.members.me.voice.channel}.`,
+      });
     }
 
     if (voiceChannel.full) {
-      return interaction.deferReply({ ephemeral: true }).then(
-        async () =>
-          await interaction.editReply({
-            content: `${voiceChannel} user limit is already full.`,
-          }),
-      );
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({
+        content: `${voiceChannel} user limit is already full.`,
+      });
     }
 
     switch (options.getSubcommand()) {
       case 'play': {
         const query = options.getString('query', true);
 
-        return interaction.deferReply({ ephemeral: true }).then(async () => {
-          await distube
-            .play(voiceChannel, query, {
-              textChannel,
-              member,
-            })
-            .then(
-              async () =>
-                await interaction.editReply({ content: 'Request received.' }),
-            );
-        });
+        await interaction.deferReply({ ephemeral: true });
+
+        await distube.play(voiceChannel, query, { textChannel, member });
+
+        return interaction.editReply({ content: 'Request received.' });
       }
 
       case 'playskip': {
         const query = options.getString('query', true);
 
-        return interaction.deferReply({ ephemeral: true }).then(
-          async () =>
-            await distube
-              .play(voiceChannel, query, {
-                textChannel,
-                member,
-                skip: true,
-              })
-              .then(
-                async () =>
-                  await interaction.editReply({ content: 'Request received.' }),
-              ),
-        );
+        await interaction.deferReply({ ephemeral: true });
+
+        await distube.play(voiceChannel, query, {
+          textChannel,
+          member,
+          skip: true,
+        });
+
+        return interaction.editReply({ content: 'Request received.' });
       }
 
       case 'playfirst': {
         const query = options.getString('query', true);
 
-        return interaction.deferReply({ ephemeral: true }).then(
-          async () =>
-            await distube
-              .play(voiceChannel, query, {
-                textChannel,
-                member,
-                position: 1,
-              })
-              .then(
-                async () =>
-                  await interaction.editReply({ content: 'Request received.' }),
-              ),
-        );
+        await interaction.deferReply({ ephemeral: true });
+
+        await distube.play(voiceChannel, query, {
+          textChannel,
+          member,
+          position: 1,
+        });
+
+        return interaction.editReply({ content: 'Request received.' });
       }
 
       case 'search': {
         const query = options.getString('query', true);
         const type = options.getString('type', true);
 
-        return interaction.deferReply().then(
-          async () =>
-            await distube
-              .search(query, {
-                limit: 10,
-                type,
-              })
-              .then(async (searchResults) => {
-                const response = searchResults
-                  .map(
-                    (searchResult, index) =>
-                      `${bold(index + 1)}. ${inlineCode(searchResult.name)}${
-                        searchResult.type === SearchResultType.VIDEO
-                          ? ` - ${inlineCode(searchResult.formattedDuration)}`
-                          : ''
-                      }${
-                        searchResult.uploader.name
-                          ? searchResult.uploader.url
-                            ? ` by ${hyperlink(
-                                searchResult.uploader.name,
-                                searchResult.uploader.url,
-                              )}`
-                            : ` by ${inlineCode(searchResult.uploader.name)}`
-                          : ''
-                      }`,
-                  )
-                  .join('\n');
+        await interaction.deferReply();
 
-                embed.setAuthor({
-                  name: `🔍 ${
-                    type === SearchResultType.VIDEO ? 'Video' : 'Playlist'
-                  } Search Result`,
-                });
-                embed.setDescription(
-                  `${response}${codeBlock(
-                    'Type between 1 to 10 to play the music. (15s remaining time)',
-                  )}`,
-                );
+        const searchResults = await distube.search(query, { limit: 10, type });
 
-                await interaction
-                  .editReply({ embeds: [embed] })
-                  .then(async (message) => {
-                    let time = 15000;
-                    const interval = setInterval(async () => {
-                      switch (true) {
-                        case time <= 0:
-                          clearInterval(interval);
+        const response = searchResults
+          .map(
+            (searchResult, index) =>
+              `${bold(index + 1)}. ${inlineCode(searchResult.name)}${
+                searchResult.type === SearchResultType.VIDEO
+                  ? ` - ${inlineCode(searchResult.formattedDuration)}`
+                  : ''
+              }${
+                searchResult.uploader.name
+                  ? searchResult.uploader.url
+                    ? ` by ${hyperlink(
+                        searchResult.uploader.name,
+                        searchResult.uploader.url,
+                      )}`
+                    : ` by ${inlineCode(searchResult.uploader.name)}`
+                  : ''
+              }`,
+          )
+          .join('\n');
 
-                          embed.setDescription(
-                            `${response}${codeBlock('Command expired.')}`,
-                          );
+        embed
+          .setAuthor({
+            name: `🔍 ${
+              type === SearchResultType.VIDEO ? 'Video' : 'Playlist'
+            } Search Result`,
+          })
+          .setDescription(
+            `${response}${codeBlock(
+              'Type between 1 to 10 to play the music. (15s remaining time)',
+            )}`,
+          );
 
-                          return message.edit({ embeds: [embed] });
+        const message = await interaction.editReply({ embeds: [embed] });
 
-                        default:
-                          time -= 1000;
+        let time = 15000;
+        const interval = setInterval(async () => {
+          switch (true) {
+            case time <= 0:
+              clearInterval(interval);
 
-                          embed.setDescription(
-                            `${response}${codeBlock(
-                              `Type between 1 to 10 to play the music. (${
-                                time / 1000
-                              }s remaining time)`,
-                            )}`,
-                          );
+              embed.setDescription(
+                `${response}${codeBlock('Command expired.')}`,
+              );
 
-                          return message.edit({ embeds: [embed] });
-                      }
-                    }, 1000);
+              return message.edit({ embeds: [embed] });
 
-                    /**
-                     *
-                     * @param {import('discord.js').Message} msg
-                     * @returns {Boolean} Boolean value of the filtered interaction.
-                     */
-                    const filter = (msg) =>
-                      Array.from(
-                        { length: searchResults.length },
-                        (_, i) => `${i + 1}`,
-                      ).includes(msg.content);
+            default:
+              time -= 1000;
 
-                    await textChannel
-                      .awaitMessages({
-                        filter,
-                        time,
-                        max: 1,
-                        errors: ['time'],
-                      })
-                      .then(
-                        async (messages) =>
-                          await distube
-                            .play(
-                              voiceChannel,
-                              searchResults[+messages.first().content - 1].name,
-                              {
-                                textChannel,
-                                member,
-                              },
-                            )
-                            .then(() => messages.first().delete()),
-                      )
-                      .catch(() => console.log('No one use the command.'));
-                  });
-              }),
-        );
+              embed.setDescription(
+                `${response}${codeBlock(
+                  `Type between 1 to 10 to play the music. (${
+                    time / 1000
+                  }s remaining time)`,
+                )}`,
+              );
+
+              return message.edit({ embeds: [embed] });
+          }
+        }, 1000);
+
+        /**
+         *
+         * @param {import('discord.js').Message} msg
+         * @returns {Boolean} Boolean value of the filtered interaction.
+         */
+        const filter = (msg) =>
+          Array.from(
+            { length: searchResults.length },
+            (_, i) => `${i + 1}`,
+          ).includes(msg.content);
+
+        return textChannel
+          .awaitMessages({
+            filter,
+            time,
+            max: 1,
+            errors: ['time'],
+          })
+          .then(async (messages) => {
+            await distube.play(
+              voiceChannel,
+              searchResults[+messages.first().content - 1].name,
+              { textChannel, member },
+            );
+
+            messages.first().delete();
+          })
+          .catch(() => console.log('No one use the command.'));
       }
     }
 
     const queue = distube.getQueue(voiceChannel);
 
     if (!queue) {
-      return interaction.deferReply({ ephemeral: true }).then(
-        async () =>
-          await interaction.editReply({
-            content: 'There is no playing queue now.',
-          }),
-      );
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({
+        content: 'There is no playing queue now.',
+      });
     }
 
     switch (interaction.options.getSubcommandGroup()) {
@@ -477,92 +442,82 @@ module.exports = {
             const filter = options.getString('filter', true);
 
             if (!queue.filters.names.includes(filter)) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: 'Please provide a valid filters.',
-                  }),
-              );
+              await interaction.deferReply({ ephemeral: true });
+
+              return interaction.editReply({
+                content: 'Please provide a valid filters.',
+              });
             }
+
+            await interaction.deferReply();
 
             if (!queue.filters.has(filter)) {
-              return interaction.deferReply().then(async () => {
-                queue.filters.set(filter);
+              queue.filters.set(filter);
 
-                embed.setAuthor({
-                  name: '🎚️ Music Filters Applied',
-                });
-                embed.setDescription('The music filters successfully applied.');
+              embed
+                .setAuthor({ name: '🎚️ Music Filters Applied' })
+                .setDescription('The music filters successfully applied.');
 
-                await interaction.editReply({ embeds: [embed] });
-              });
+              return interaction.editReply({ embeds: [embed] });
             }
 
-            return interaction.deferReply().then(async () => {
-              queue.filters.add(filter, true);
+            queue.filters.add(filter, true);
 
-              embed.setAuthor({
-                name: '🎚️ Music Filters Applied',
-              });
-              embed.setDescription('The music filters successfully applied.');
+            embed
+              .setAuthor({ name: '🎚️ Music Filters Applied' })
+              .setDescription('The music filters successfully applied.');
 
-              await interaction.editReply({ embeds: [embed] });
-            });
+            return interaction.editReply({ embeds: [embed] });
           }
 
           case 'cease': {
             const filter = options.getString('filter', true);
 
             if (!queue.filters.names.includes(filter)) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: 'Please provide a valid filters.',
-                  }),
-              );
+              await interaction.deferReply({ ephemeral: true });
+
+              return interaction.editReply({
+                content: 'Please provide a valid filters.',
+              });
             }
 
             if (!queue.filters.has(filter)) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: "The queue doesn't have that filters.",
-                  }),
-              );
+              await interaction.deferReply({ ephemeral: true });
+
+              return interaction.editReply({
+                content: "The queue doesn't have that filters.",
+              });
             }
 
-            return interaction.deferReply().then(async () => {
-              queue.filters.remove(filter);
+            await interaction.deferReply();
 
-              embed.setAuthor({
-                name: '🎚️ Music Filters Ceased',
-              });
-              embed.setDescription('The music filters successfully ceased.');
+            queue.filters.remove(filter);
 
-              await interaction.editReply({ embeds: [embed] });
-            });
+            embed
+              .setAuthor({ name: '🎚️ Music Filters Ceased' })
+              .setDescription('The music filters successfully ceased.');
+
+            return interaction.editReply({ embeds: [embed] });
           }
 
           case 'clear':
             if (!queue.filters.size) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.reply({
-                    content: "The queue doesn't have any filters.",
-                  }),
-              );
+              await interaction.deferReply({ ephemeral: true });
+
+              return interaction.reply({
+                content: "The queue doesn't have any filters.",
+              });
             }
 
-            return interaction.deferReply().then(async () => {
-              queue.filters.clear();
+            await interaction.deferReply();
 
-              embed.setAuthor({
-                name: '🎚️ Music Filters Cleared',
-              });
-              embed.setDescription('The music filters successfully cleared.');
+            queue.filters.clear();
 
-              await interaction.editReply({ embeds: [embed] });
-            });
+            embed
+              .setAuthor({ name: '🎚️ Music Filters Cleared' })
+              .setDescription('The music filters successfully cleared.');
+
+            return interaction.editReply({ embeds: [embed] });
         }
         break;
 
@@ -570,108 +525,94 @@ module.exports = {
         {
           const time = options.getInteger('time', true);
 
+          await interaction.deferReply();
+
           switch (options.getSubcommand()) {
             case 'forward':
               if (time > queue.duration || queue.currentTime > queue.duration) {
-                return interaction.deferReply().then(async () => {
-                  queue.seek(queue.beginTime);
+                queue.seek(queue.beginTime);
 
-                  embed.setAuthor({
-                    name: '🕒 Queue Time Adjusted',
-                  });
-                  embed.setDescription(
+                embed
+                  .setAuthor({ name: '🕒 Queue Time Adjusted' })
+                  .setDescription(
                     `The queue time has been set to ${inlineCode(
                       queue.formattedCurrentTime,
                     )}.`,
                   );
 
-                  await interaction.editReply({ embeds: [embed] });
-                });
+                return interaction.editReply({ embeds: [embed] });
               }
 
-              return interaction.deferReply().then(async () => {
-                queue.seek(queue.currentTime + time);
+              queue.seek(queue.currentTime + time);
 
-                embed.setAuthor({
-                  name: '🕒 Queue Time Adjusted',
-                });
-                embed.setDescription(
+              embed
+                .setAuthor({ name: '🕒 Queue Time Adjusted' })
+                .setDescription(
                   `The queue time has been set to ${inlineCode(
                     queue.formattedCurrentTime,
                   )}.`,
                 );
 
-                await interaction.editReply({ embeds: [embed] });
-              });
+              return interaction.editReply({ embeds: [embed] });
 
             case 'seek':
               if (time > queue.duration) {
-                return interaction.deferReply().then(async () => {
-                  queue.seek(queue.beginTime);
+                queue.seek(queue.beginTime);
 
-                  embed.setAuthor({
-                    name: '🕒 Queue Time Adjusted',
-                  });
-                  embed.setDescription(
+                embed
+                  .setAuthor({ name: '🕒 Queue Time Adjusted' })
+                  .setDescription(
                     `The queue time has been set to ${inlineCode(
                       queue.formattedCurrentTime,
                     )}.`,
                   );
 
-                  await interaction.editReply({ embeds: [embed] });
-                });
+                return interaction.editReply({ embeds: [embed] });
               }
 
-              return interaction.deferReply().then(async () => {
-                queue.seek(time);
+              queue.seek(time);
 
-                embed.setAuthor({
-                  name: '🕒 Queue Time Adjusted',
-                });
-                embed.setDescription(
+              embed
+                .setAuthor({ name: '🕒 Queue Time Adjusted' })
+                .setDescription(
                   `The queue time has been set to ${inlineCode(
                     queue.formattedCurrentTime,
                   )}.`,
                 );
 
-                await interaction.editReply({ embeds: [embed] });
-              });
+              return interaction.editReply({ embeds: [embed] });
 
             case 'rewind':
               if (
                 time > queue.duration ||
                 queue.currentTime < queue.beginTime
               ) {
-                return interaction.deferReply().then(async () => {
-                  queue.seek(queue.beginTime);
+                queue.seek(queue.beginTime);
 
-                  embed.setAuthor({
-                    name: '🕒 Queue Time Adjusted',
-                  });
-                  embed.setDescription(
+                embed
+                  .setAuthor({ name: '🕒 Queue Time Adjusted' })
+                  .setDescription(
                     `The queue time has been set to ${inlineCode(
                       queue.formattedCurrentTime,
                     )}.`,
                   );
 
-                  await interaction.editReply({ embeds: [embed] });
-                });
+                return interaction.editReply({ embeds: [embed] });
               }
 
-              return interaction.deferReply().then(async () => {
-                queue.seek(queue.currentTime - time);
+              queue.seek(queue.currentTime - time);
 
-                embed.setAuthor({
+              embed
+                .setAuthor({
                   name: '🕒 Queue Time Adjusted',
-                });
-                embed.setDescription(
+                })
+                .setDescription(
                   `The queue time has been set to ${inlineCode(
                     queue.formattedCurrentTime,
                   )}.`,
                 );
 
-                await interaction.editReply({ embeds: [embed] });
-              });
+              return interaction.editReply({ embeds: [embed] });
           }
         }
         break;
@@ -682,272 +623,253 @@ module.exports = {
             const position = options.getInteger('position', true);
 
             if (position > queue.songs.length) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: `The queue only have ${pluralize(
-                      'song',
-                      queue.songs.length,
-                      true,
-                    )}.`,
-                  }),
-              );
+              await interaction.deferReply({ ephemeral: true });
+
+              return interaction.editReply({
+                content: `The queue only have ${pluralize(
+                  'song',
+                  queue.songs.length,
+                  true,
+                )}.`,
+              });
             }
 
-            return interaction.deferReply().then(
-              async () =>
-                await queue.jump(position).then(async (song) => {
-                  embed.setAuthor({
-                    name: '🔢 Queue Jumped',
-                  });
-                  embed.setDescription('The queue has been jumped.');
+            await interaction.deferReply();
 
-                  if (song.name && song.formattedDuration && song.user) {
-                    embed.setFields([
-                      {
-                        name: 'Next Up',
-                        value: `${inlineCode(song.name)} - ${inlineCode(
-                          song.formattedDuration,
-                        )}\nRequested by: ${song.user}.`,
-                      },
-                    ]);
-                  }
+            const song = await queue.jump(position);
 
-                  embed.setThumbnail(song?.thumbnail ?? null);
+            embed
+              .setAuthor({ name: '🔢 Queue Jumped' })
+              .setDescription('The queue has been jumped.')
+              .setThumbnail(song?.thumbnail ?? null);
 
-                  await interaction.editReply({ embeds: [embed] });
-                }),
-            );
+            if (song.name && song.formattedDuration && song.user) {
+              embed.setFields([
+                {
+                  name: 'Next Up',
+                  value: `${inlineCode(song.name)} - ${inlineCode(
+                    song.formattedDuration,
+                  )}\nRequested by: ${song.user}.`,
+                },
+              ]);
+            }
+
+            return interaction.editReply({ embeds: [embed] });
           }
 
           case 'volume': {
             const percentage = options.getInteger('percentage', true);
 
-            return interaction.deferReply().then(async () => {
-              queue.setVolume(voiceChannel, percentage);
+            await interaction.deferReply();
 
-              embed.setAuthor({
-                name: '🔊 Volume Adjusted',
-              });
-              embed.setDescription(
+            queue.setVolume(voiceChannel, percentage);
+
+            embed
+              .setAuthor({ name: '🔊 Volume Adjusted' })
+              .setDescription(
                 `The volume has been set to ${inlineCode(`${queue.volume}%`)}.`,
               );
 
-              await interaction.editReply({ embeds: [embed] });
-            });
+            return interaction.editReply({ embeds: [embed] });
           }
 
           case 'controls':
             switch (options.getString('options', true)) {
               case 'nowPlaying':
-                return interaction.deferReply().then(async () => {
-                  embed.setAuthor({
-                    name: '💿 Now Playing',
+                {
+                  await interaction.deferReply();
+
+                  embed
+                    .setAuthor({ name: '💿 Now Playing' })
+                    .setDescription(
+                      `${
+                        queue.songs[0].name
+                          ? inlineCode(queue.songs[0].name)
+                          : 'Queue'
+                      }${
+                        queue.songs[0].user
+                          ? `\nRequested by: ${queue.songs[0].user}`
+                          : ''
+                      }\n${queue.formattedCurrentTime} - [${progressbar
+                        .splitBar(
+                          queue.songs[0].duration || 10,
+                          queue.currentTime,
+                          12,
+                        )
+                        .slice(0, -1)
+                        .toString()}]${
+                        queue.songs[0].formattedDuration
+                          ? ` - ${queue.songs[0].formattedDuration}`
+                          : ''
+                      }`,
+                    )
+                    .setThumbnail(queue.songs[0]?.thumbnail ?? null);
+
+                  const message = await interaction.editReply({
+                    embeds: [embed],
                   });
-                  embed.setDescription(
-                    `${
-                      queue.songs[0].name
-                        ? inlineCode(queue.songs[0].name)
-                        : 'Queue'
-                    }${
-                      queue.songs[0].user
-                        ? `\nRequested by: ${queue.songs[0].user}`
-                        : ''
-                    }\n${queue.formattedCurrentTime} - [${progressbar
-                      .splitBar(
-                        queue.songs[0].duration || 10,
-                        queue.currentTime,
-                        12,
-                      )
-                      .slice(0, -1)
-                      .toString()}]${
-                      queue.songs[0].formattedDuration
-                        ? ` - ${queue.songs[0].formattedDuration}`
-                        : ''
-                    }`,
-                  );
-                  embed.setThumbnail(queue.songs[0]?.thumbnail ?? null);
 
-                  await interaction
-                    .editReply({ embeds: [embed] })
-                    .then((message) => {
-                      const interval = setInterval(async () => {
-                        if (queue.currentTime === queue.songs[0].duration) {
-                          clearInterval(interval);
-                        }
-
-                        embed.setDescription(
-                          `${
-                            queue.songs[0].name
-                              ? inlineCode(queue.songs[0].name)
-                              : 'Queue'
-                          }${
-                            queue.songs[0].user
-                              ? `\nRequested by: ${queue.songs[0].user}`
-                              : ''
-                          }\n${queue.formattedCurrentTime} - [${progressbar
-                            .splitBar(
-                              queue.songs[0].duration || 10,
-                              queue.currentTime,
-                              12,
-                            )
-                            .slice(0, -1)
-                            .toString()}]${
-                            queue.songs[0].formattedDuration
-                              ? ` - ${queue.songs[0].formattedDuration}`
-                              : ''
-                          }`,
-                        );
-
-                        await message.edit({ embeds: [embed] });
-                      }, 1000);
-                    });
-                });
-
-              case 'skip':
-                if (queue.songs.length === 1) {
-                  return interaction.deferReply({ ephemeral: true }).then(
-                    async () =>
-                      await interaction.editReply({
-                        content: 'There is no up next song in the queue.',
-                      }),
-                  );
-                }
-
-                return interaction.deferReply().then(async () => {
-                  await queue.skip(voiceChannel).then(async (song) => {
-                    embed.setAuthor({
-                      name: '⏩ Queue Skipped',
-                    });
-                    embed.setDescription('The queue has been skipped.');
-
-                    if (song.name && song.formattedDuration && song.user) {
-                      embed.setFields([
-                        {
-                          name: 'Next Up',
-                          value: `${inlineCode(song.name)} - ${inlineCode(
-                            song.formattedDuration,
-                          )}\nRequested by: ${song.user}.`,
-                        },
-                      ]);
+                  const interval = setInterval(async () => {
+                    if (queue.currentTime === queue.songs[0].duration) {
+                      clearInterval(interval);
                     }
 
-                    embed.setThumbnail(song?.thumbnail ?? null);
+                    embed.setDescription(
+                      `${
+                        queue.songs[0].name
+                          ? inlineCode(queue.songs[0].name)
+                          : 'Queue'
+                      }${
+                        queue.songs[0].user
+                          ? `\nRequested by: ${queue.songs[0].user}`
+                          : ''
+                      }\n${queue.formattedCurrentTime} - [${progressbar
+                        .splitBar(
+                          queue.songs[0].duration || 10,
+                          queue.currentTime,
+                          12,
+                        )
+                        .slice(0, -1)
+                        .toString()}]${
+                        queue.songs[0].formattedDuration
+                          ? ` - ${queue.songs[0].formattedDuration}`
+                          : ''
+                      }`,
+                    );
 
-                    await interaction.editReply({ embeds: [embed] });
+                    await message.edit({ embeds: [embed] });
+                  }, 1000);
+                }
+                break;
+
+              case 'skip': {
+                if (queue.songs.length === 1) {
+                  await interaction.deferReply({ ephemeral: true });
+
+                  return interaction.editReply({
+                    content: 'There is no up next song in the queue.',
                   });
-                });
+                }
+
+                await interaction.deferReply();
+
+                const song = await queue.skip(voiceChannel);
+
+                embed
+                  .setAuthor({ name: '⏩ Queue Skipped' })
+                  .setDescription('The queue has been skipped.')
+                  .setThumbnail(song?.thumbnail ?? null);
+
+                if (song.name && song.formattedDuration && song.user) {
+                  embed.setFields([
+                    {
+                      name: 'Next Up',
+                      value: `${inlineCode(song.name)} - ${inlineCode(
+                        song.formattedDuration,
+                      )}\nRequested by: ${song.user}.`,
+                    },
+                  ]);
+                }
+
+                return interaction.editReply({ embeds: [embed] });
+              }
 
               case 'stop':
-                return interaction
-                  .deferReply({ ephemeral: true })
-                  .then(async () => {
-                    await queue.stop(voiceChannel).then(
-                      async () =>
-                        await interaction.editReply({
-                          content: 'Request received.',
-                        }),
-                    );
-                  });
+                await interaction.deferReply({ ephemeral: true });
+
+                await queue.stop(voiceChannel);
+
+                return interaction.editReply({ content: 'Request received.' });
 
               case 'pause':
                 if (queue.paused) {
-                  return interaction.deferReply({ ephemeral: true }).then(
-                    async () =>
-                      await interaction.editReply({
-                        content: 'The queue has currently being paused.',
-                      }),
-                  );
+                  await interaction.deferReply({ ephemeral: true });
+
+                  return interaction.editReply({
+                    content: 'The queue has currently being paused.',
+                  });
                 }
 
-                return interaction.deferReply().then(async () => {
-                  queue.pause(voiceChannel);
+                await interaction.deferReply();
 
-                  embed.setAuthor({
-                    name: '⏸️ Queue Paused',
-                  });
-                  embed.setDescription('The queue has been paused.');
+                queue.pause(voiceChannel);
 
-                  await interaction.editReply({ embeds: [embed] });
-                });
+                embed
+                  .setAuthor({ name: '⏸️ Queue Paused' })
+                  .setDescription('The queue has been paused.');
+
+                return interaction.editReply({ embeds: [embed] });
 
               case 'resume':
-                return interaction.deferReply().then(async () => {
-                  queue.resume(voiceChannel);
+                await interaction.deferReply();
 
-                  embed.setAuthor({
-                    name: '⏯️ Queue Resumed',
-                  });
-                  embed.setDescription('Resumed back all the queue.');
+                queue.resume(voiceChannel);
 
-                  await interaction.editReply({ embeds: [embed] });
-                });
+                embed
+                  .setAuthor({ name: '⏯️ Queue Resumed' })
+                  .setDescription('Resumed back all the queue.');
+
+                return interaction.editReply({ embeds: [embed] });
 
               case 'shuffle':
-                return interaction.deferReply().then(async () => {
-                  await queue.shuffle(voiceChannel).then(async () => {
-                    embed.setAuthor({
-                      name: '🔀 Queue Shuffled',
-                    });
-                    embed.setDescription('The queue order has been shuffled.');
+                await interaction.deferReply();
 
-                    await interaction.editReply({ embeds: [embed] });
-                  });
-                });
+                await queue.shuffle(voiceChannel);
+
+                embed
+                  .setAuthor({ name: '🔀 Queue Shuffled' })
+                  .setDescription('The queue order has been shuffled.');
+
+                return interaction.editReply({ embeds: [embed] });
 
               case 'autoplay':
-                return interaction.deferReply().then(async () => {
-                  queue.toggleAutoplay();
+                await interaction.deferReply();
 
-                  embed.setAuthor({
-                    name: '▶️ Queue Autoplay Applied',
-                  });
-                  embed.setDescription(
+                queue.toggleAutoplay();
+
+                embed
+                  .setAuthor({ name: '▶️ Queue Autoplay Applied' })
+                  .setDescription(
                     `The Autoplay mode has been set to ${inlineCode(
                       queue.autoplay ? 'On' : 'Off',
                     )}.`,
                   );
 
-                  await interaction.editReply({ embeds: [embed] });
-                });
+                return interaction.editReply({ embeds: [embed] });
 
-              case 'relatedSong':
-                return interaction.deferReply().then(
-                  async () =>
-                    await queue
-                      .addRelatedSong(voiceChannel)
-                      .then(async (song) => {
-                        embed.setAuthor({
-                          name: '🔃 Queue Added',
-                        });
-                        embed.setDescription(
-                          `${
-                            song.name ? inlineCode(song.name) : 'A song'
-                          } has been added to the queue${
-                            song.user ? ` by ${song.user}` : ''
-                          }.`,
-                        );
-                        embed.setThumbnail(song?.thumbnail ?? null);
+              case 'relatedSong': {
+                await interaction.deferReply();
 
-                        await interaction.editReply({ embeds: [embed] });
-                      }),
-                );
+                const song = await queue.addRelatedSong(voiceChannel);
+
+                embed
+                  .setAuthor({ name: '🔃 Queue Added' })
+                  .setDescription(
+                    `${
+                      song.name ? inlineCode(song.name) : 'A song'
+                    } has been added to the queue${
+                      song.user ? ` by ${song.user}` : ''
+                    }.`,
+                  )
+                  .setThumbnail(song?.thumbnail ?? null);
+
+                return interaction.editReply({ embeds: [embed] });
+              }
 
               case 'repeatMode':
-                return interaction.deferReply().then(async () => {
-                  queue.setRepeatMode(queue.repeatMode);
+                await interaction.deferReply();
 
-                  embed.setAuthor({
-                    name: '🔁 Queue Repeat Mode Applied',
-                  });
-                  embed.setDescription(
+                queue.setRepeatMode(queue.repeatMode);
+
+                embed
+                  .setAuthor({ name: '🔁 Queue Repeat Mode Applied' })
+                  .setDescription(
                     `Repeat mode has been set to ${inlineCode(
                       applyRepeatMode(queue.repeatMode),
                     )}.`,
                   );
 
-                  await interaction.editReply({ embeds: [embed] });
-                });
+                return interaction.editReply({ embeds: [embed] });
 
               case 'queue': {
                 const descriptions = queue.songs.map(
@@ -959,88 +881,75 @@ module.exports = {
                     }`,
                 );
 
+                await interaction.deferReply();
+
                 if (queue.songs.length > 10) {
-                  return interaction
-                    .deferReply({ ephemeral: true })
-                    .then(async () => {
-                      const pagination = new Pagination(interaction, {
-                        limit: 10,
-                      });
+                  const pagination = new Pagination(interaction, { limit: 10 })
+                    .setColor(guild.members.me?.displayHexColor ?? null)
+                    .setTimestamp(Date.now())
+                    .setFooter({
+                      text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                      iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                    })
+                    .setAuthor({
+                      name: `🔃 Music Queue (${queue.songs.length.toLocaleString()})`,
+                    })
+                    .setDescriptions(descriptions);
 
-                      pagination.setColor(
-                        guild.members.me?.displayHexColor ?? null,
-                      );
-                      pagination.setTimestamp(Date.now());
-                      pagination.setFooter({
-                        text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                        iconURL: client.user.displayAvatarURL({
-                          dynamic: true,
-                        }),
-                      });
-                      pagination.setAuthor({
-                        name: `🔃 Music Queue (${queue.songs.length.toLocaleString()})`,
-                      });
-                      pagination.setDescriptions(descriptions);
+                  pagination.buttons = {
+                    ...pagination.buttons,
+                    extra: new ButtonBuilder()
+                      .setCustomId('jump')
+                      .setEmoji('↕️')
+                      .setDisabled(false)
+                      .setStyle(ButtonStyle.Secondary),
+                  };
 
-                      pagination.buttons = {
-                        ...pagination.buttons,
-                        extra: new ButtonBuilder()
-                          .setCustomId('jump')
-                          .setEmoji('↕️')
-                          .setDisabled(false)
-                          .setStyle(ButtonStyle.Secondary),
-                      };
+                  paginations.set(pagination.interaction.id, pagination);
 
-                      paginations.set(pagination.interaction.id, pagination);
-
-                      await pagination.render();
-                    });
+                  return pagination.render();
                 }
 
-                return interaction.deferReply().then(async () => {
-                  embed.setAuthor({
+                embed
+                  .setAuthor({
                     name: `🔃 Music Queue (${queue.songs.length.toLocaleString()})`,
-                  });
-                  embed.setDescription(descriptions.join('\n'));
+                  })
+                  .setDescription(descriptions.join('\n'));
 
-                  await interaction.editReply({ embeds: [embed] });
-                });
+                return interaction.editReply({ embeds: [embed] });
               }
 
-              case 'previous':
+              case 'previous': {
                 if (!queue.previousSongs.length) {
-                  return interaction.deferReply({ ephemeral: true }).then(
-                    async () =>
-                      await interaction.editReply({
-                        content: 'There is no previous song in the queue.',
-                      }),
-                  );
+                  await interaction.deferReply({ ephemeral: true });
+
+                  return interaction.editReply({
+                    content: 'There is no previous song in the queue.',
+                  });
                 }
 
-                return interaction.deferReply().then(
-                  async () =>
-                    await queue.previous(voiceChannel).then(async (song) => {
-                      embed.setAuthor({
-                        name: '⏮️ Queue Replayed',
-                      });
-                      embed.setDescription('The queue has been replayed.');
+                await interaction.deferReply();
 
-                      if (song.name && song.formattedDuration && song.user) {
-                        embed.setFields([
-                          {
-                            name: 'Next Up',
-                            value: `${inlineCode(song.name)} - ${inlineCode(
-                              song.formattedDuration,
-                            )}\nRequested by: ${song.user}.`,
-                          },
-                        ]);
-                      }
+                const song = await queue.previous(voiceChannel);
 
-                      embed.setThumbnail(song?.thumbnail ?? null);
+                embed
+                  .setAuthor({ name: '⏮️ Queue Replayed' })
+                  .setDescription('The queue has been replayed.')
+                  .setThumbnail(song?.thumbnail ?? null);
 
-                      await interaction.editReply({ embeds: [embed] });
-                    }),
-                );
+                if (song.name && song.formattedDuration && song.user) {
+                  embed.setFields([
+                    {
+                      name: 'Next Up',
+                      value: `${inlineCode(song.name)} - ${inlineCode(
+                        song.formattedDuration,
+                      )}\nRequested by: ${song.user}.`,
+                    },
+                  ]);
+                }
+
+                return interaction.editReply({ embeds: [embed] });
+              }
             }
             break;
         }

@@ -17,7 +17,6 @@ const Scraper = require('images-scraper').default;
 const NewsAPI = require('newsapi');
 const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
-const pluralize = require('pluralize');
 
 const {
   animeCharacterSearchOrderChoices,
@@ -28,13 +27,14 @@ const {
   mangaSearchStatusChoices,
   mangaSearchTypeChoices,
   mdnLocaleChoices,
-  searchSortingChoices,
   newsCountries,
+  searchSortingChoices,
 } = require('../../constants');
 const {
+  count,
   isAlphabeticLetter,
-  truncate,
   isNumericString,
+  truncate,
 } = require('../../utils');
 
 module.exports = {
@@ -297,19 +297,17 @@ module.exports = {
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({
-          dynamic: true,
-        }),
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
     switch (options.getSubcommandGroup()) {
       case 'anime':
         switch (options.getSubcommand()) {
           case 'info': {
-            const title = options.getString('title');
-            const type = options.getString('type');
-            const score = options.getInteger('score');
-            const status = options.getString('status');
+            const titleQuery = options.getString('title');
+            const typeQuery = options.getString('type');
+            const scoreQuery = options.getInteger('score');
+            const statusQuery = options.getString('status');
             const order = options.getString('order');
             const sort = options.getString('sort');
             const letter = options.getString('initial');
@@ -320,23 +318,23 @@ module.exports = {
               query.append('sfw', 'true');
             }
 
-            if (title) {
-              query.append('q', encodeURIComponent(title));
+            if (titleQuery) {
+              query.append('q', encodeURIComponent(titleQuery));
             }
 
-            if (type) {
-              query.append('type', type);
+            if (typeQuery) {
+              query.append('type', typeQuery);
             }
 
-            if (score) {
+            if (scoreQuery) {
               query.append(
                 'score',
-                Number(`${score}`.replace(/,/g, '.')).toFixed(1),
+                Number(`${scoreQuery}`.replace(/,/g, '.')).toFixed(1),
               );
             }
 
-            if (status) {
-              query.append('status', status);
+            if (statusQuery) {
+              query.append('status', statusQuery);
             }
 
             if (order) {
@@ -349,198 +347,195 @@ module.exports = {
 
             if (letter) {
               if (!isAlphabeticLetter(letter)) {
-                return interaction.deferReply({ ephemeral: true }).then(
-                  async () =>
-                    await interaction.editReply({
-                      content: 'You have to specify an alphabetic character.',
-                    }),
-                );
+                await interaction.deferReply({ ephemeral: true });
+
+                return interaction.editReply({
+                  content: 'You have to specify an alphabetic character.',
+                });
               }
 
               query.append('letter', letter);
             }
 
-            return axios.get(`https://api.jikan.moe/v4/anime?${query}`).then(
-              /**
-               *
-               * @param {{ data: { data: import('../../constants/types').AnimeInfo[] } }}
-               */
-              async ({ data: { data } }) => {
-                if (!data.length) {
-                  return interaction.deferReply({ ephemeral: true }).then(
-                    async () =>
-                      await interaction.editReply({
-                        content: `No anime found with title ${inlineCode(
-                          title,
-                        )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.${NSFWResponse}`,
-                      }),
-                  );
-                }
+            /** @type {{ data: { data: import('../../constants/types').AnimeInfo[] } }} */
+            const {
+              data: { data },
+            } = await axios.get(`https://api.jikan.moe/v4/anime?${query}`);
 
-                await interaction.deferReply().then(async () => {
-                  /** @type {import('discord.js').EmbedBuilder[]} */
-                  const embeds = data.map((item, index, array) =>
-                    new EmbedBuilder()
-                      .setColor(guild.members.me?.displayHexColor ?? null)
-                      .setTimestamp(Date.now())
-                      .setFooter({
-                        text: `${client.user.username} | Page ${index + 1} of ${
-                          array.length
-                        }`,
-                        iconURL: client.user.displayAvatarURL({
-                          dynamic: true,
-                        }),
-                      })
-                      .setAuthor({
-                        name: 'Anime Search Results',
-                        iconURL:
-                          'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
-                      })
-                      .setThumbnail(
-                        item.images.jpg.image_url ?? item.images.webp.image_url,
-                      )
-                      .setFields([
-                        {
-                          name: '🔤 Title',
-                          value: hyperlink(item.title, item.url),
-                          inline: true,
-                        },
-                        {
-                          name: '🔠 Type',
-                          value: item.type ?? italic('Unknown'),
-                          inline: true,
-                        },
-                        {
-                          name: '🎬 Episode',
-                          value: `${
-                            item.episodes
-                              ? `${item.episodes.toLocaleString()} ${pluralize(
-                                  'episode',
-                                  item.episodes,
-                                )}`
-                              : '??? episodes'
-                          } (${item.duration})`,
-                          inline: true,
-                        },
-                        {
-                          name: '📊 Stats',
-                          value:
-                            item.score ||
-                            item.scored_by ||
-                            item.members ||
-                            item.rank ||
-                            item.favorites ||
-                            item.rating
-                              ? `${item.score ? `⭐ ${item.score}` : ''}${
-                                  item.scored_by
-                                    ? ` (by ${item.scored_by.toLocaleString()} ${pluralize(
-                                        'user',
-                                        item.scored_by,
-                                      )})`
-                                    : ''
-                                }${
-                                  item.members
-                                    ? ` | 👥 ${item.members.toLocaleString()}`
-                                    : ''
-                                }${item.rank ? ` | #️⃣ #${item.rank}` : ''}${
-                                  item.favorites
-                                    ? ` | ❤️ ${item.favorites}`
-                                    : ''
-                                }${item.rating ? ` | 🔞 ${item.rating}` : ''}`
-                              : italic('None'),
-                          inline: true,
-                        },
-                        {
-                          name: '⌛ Status',
-                          value: item.status,
-                          inline: true,
-                        },
-                        {
-                          name: '📆 Aired',
-                          value: item.aired.string ?? italic('Unknown'),
-                          inline: true,
-                        },
-                        {
-                          name: '📆 Premiered',
-                          value:
-                            item.season || item.year
-                              ? `${
-                                  item.season ? capitalCase(item.season) : ''
-                                } ${item.year ?? ''}`
-                              : italic('Unknown'),
-                          inline: true,
-                        },
-                        {
-                          name: '🏢 Studios',
-                          value: item.studios.length
-                            ? item.studios
-                                .map((studio) =>
-                                  hyperlink(studio.name, studio.url),
-                                )
-                                .join(', ')
-                            : italic('Unknown'),
-                          inline: true,
-                        },
-                        {
-                          name: '🔠 Genres',
-                          value:
-                            item.genres.length ||
-                            item.explicit_genres.length ||
-                            item.themes.length ||
-                            item.demographics.length
-                              ? [
-                                  ...item.genres,
-                                  ...item.explicit_genres,
-                                  ...item.themes,
-                                  ...item.demographics,
-                                ]
-                                  .map((genre) =>
-                                    hyperlink(genre.name, genre.url),
-                                  )
-                                  .join(', ')
-                              : italic('Unknown'),
-                          inline: true,
-                        },
-                        {
-                          name: '💫 Synopsis',
-                          value: item.synopsis
-                            ? item.synopsis.includes('[Written by MAL Rewrite]')
-                              ? truncate(
-                                  item.synopsis.replace(
-                                    '[Written by MAL Rewrite]',
-                                    '',
-                                  ),
-                                  1024,
-                                )
-                              : truncate(item.synopsis, 1024)
-                            : italic('No available'),
-                        },
-                        {
-                          name: '🎞️ Trailer',
-                          value: item.trailer.url ?? italic('No available'),
-                        },
-                      ]),
-                  );
+            if (!data.length) {
+              await interaction.deferReply({ ephemeral: true });
 
-                  const pagination = new Pagination(interaction);
+              return interaction.editReply({
+                content: `No anime found with title ${inlineCode(
+                  titleQuery,
+                )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.${NSFWResponse}`,
+              });
+            }
 
-                  pagination.setEmbeds(embeds);
+            await interaction.deferReply();
 
-                  pagination.buttons = {
-                    ...pagination.buttons,
-                    extra: new ButtonBuilder()
-                      .setCustomId('jump')
-                      .setEmoji('↕️')
-                      .setDisabled(false)
-                      .setStyle(ButtonStyle.Secondary),
-                  };
-
-                  paginations.set(pagination.interaction.id, pagination);
-
-                  await pagination.render();
-                });
-              },
+            const embeds = data.map(
+              (
+                {
+                  aired,
+                  demographics,
+                  duration,
+                  episodes,
+                  explicit_genres,
+                  favorites,
+                  genres,
+                  images: { jpg, webp },
+                  members,
+                  rank,
+                  rating,
+                  score,
+                  scored_by,
+                  season,
+                  status,
+                  studios,
+                  synopsis,
+                  themes,
+                  title,
+                  trailer,
+                  type,
+                  url,
+                  year,
+                },
+                index,
+                array,
+              ) =>
+                new EmbedBuilder()
+                  .setColor(guild.members.me?.displayHexColor ?? null)
+                  .setTimestamp(Date.now())
+                  .setFooter({
+                    text: `${client.user.username} | Page ${index + 1} of ${
+                      array.length
+                    }`,
+                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                  })
+                  .setAuthor({
+                    name: 'Anime Search Results',
+                    iconURL:
+                      'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
+                  })
+                  .setThumbnail(jpg.image_url ?? webp.image_url)
+                  .setFields([
+                    {
+                      name: '🔤 Title',
+                      value: hyperlink(title, url),
+                      inline: true,
+                    },
+                    {
+                      name: '🔠 Type',
+                      value: type ?? italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '🎬 Episode',
+                      value: `${
+                        episodes
+                          ? count({ total: episodes, data: 'episode' })
+                          : '??? episodes'
+                      } (${duration})`,
+                      inline: true,
+                    },
+                    {
+                      name: '📊 Stats',
+                      value:
+                        score ||
+                        scored_by ||
+                        members ||
+                        rank ||
+                        favorites ||
+                        rating
+                          ? `${score ? `⭐ ${score}` : ''}${
+                              scored_by
+                                ? ` (by ${count({
+                                    total: scored_by,
+                                    data: 'user',
+                                  })})`
+                                : ''
+                            }${
+                              members ? ` | 👥 ${members.toLocaleString()}` : ''
+                            }${rank ? ` | #️⃣ #${rank}` : ''}${
+                              favorites ? ` | ❤️ ${favorites}` : ''
+                            }${rating ? ` | 🔞 ${rating}` : ''}`
+                          : italic('None'),
+                      inline: true,
+                    },
+                    { name: '⌛ Status', value: status, inline: true },
+                    {
+                      name: '📆 Aired',
+                      value: aired.string ?? italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '📆 Premiered',
+                      value:
+                        season || year
+                          ? `${season ? capitalCase(season) : ''} ${year ?? ''}`
+                          : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '🏢 Studios',
+                      value: studios.length
+                        ? studios
+                            .map((studio) => hyperlink(studio.name, studio.url))
+                            .join(', ')
+                        : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '🔠 Genres',
+                      value:
+                        genres.length ||
+                        explicit_genres.length ||
+                        themes.length ||
+                        demographics.length
+                          ? [
+                              ...genres,
+                              ...explicit_genres,
+                              ...themes,
+                              ...demographics,
+                            ]
+                              .map((genre) => hyperlink(genre.name, genre.url))
+                              .join(', ')
+                          : italic('Unknown'),
+                      inline: true,
+                    },
+                    {
+                      name: '💫 Synopsis',
+                      value: synopsis
+                        ? synopsis.includes('[Written by MAL Rewrite]')
+                          ? truncate(
+                              synopsis.replace('[Written by MAL Rewrite]', ''),
+                              1024,
+                            )
+                          : truncate(synopsis, 1024)
+                        : italic('No available'),
+                    },
+                    {
+                      name: '🎞️ Trailer',
+                      value: trailer.url ?? italic('No available'),
+                    },
+                  ]),
             );
+
+            const pagination = new Pagination(interaction).setEmbeds(embeds);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
+
+            return pagination.render();
           }
 
           case 'character': {
@@ -565,110 +560,99 @@ module.exports = {
 
             if (letter) {
               if (!isAlphabeticLetter(letter)) {
-                return interaction.deferReply({ ephemeral: true }).then(
-                  async () =>
-                    await interaction.editReply({
-                      content: 'You have to specify an alphabetic character.',
-                    }),
-                );
+                await interaction.deferReply({ ephemeral: true });
+
+                return interaction.editReply({
+                  content: 'You have to specify an alphabetic character.',
+                });
               }
 
               query.append('letter', letter);
             }
 
-            return axios
-              .get(`https://api.jikan.moe/v4/characters?${query}`)
-              .then(
-                /**
-                 *
-                 * @param {{ data: { data: import('../../constants/types').AnimeCharacter[] } }}
-                 */
-                async ({ data: { data } }) => {
-                  if (!data.length) {
-                    return interaction.deferReply({ ephemeral: true }).then(
-                      async () =>
-                        await interaction.editReply({
-                          content: `No anime character found with name ${inlineCode(
-                            name,
-                          )}`,
-                        }),
-                    );
-                  }
+            /** @type {{ data: { data: import('../../constants/types').AnimeCharacter[] } }} */
+            const {
+              data: { data },
+            } = await axios.get(`https://api.jikan.moe/v4/characters?${query}`);
 
-                  await interaction.deferReply().then(async () => {
-                    const embeds = data.map((item, index, array) =>
-                      new EmbedBuilder()
-                        .setColor(guild.members.me?.displayHexColor ?? null)
-                        .setTimestamp(Date.now())
-                        .setFooter({
-                          text: `${client.user.username} | Page ${
-                            index + 1
-                          } of ${array.length}`,
-                          iconURL: client.user.displayAvatarURL({
-                            dynamic: true,
-                          }),
-                        })
-                        .setDescription(
-                          truncate(
-                            item.about?.replace(/\n\n\n/g, '\n\n'),
-                            4096,
-                          ),
-                        )
-                        .setAuthor({
-                          name: 'Anime Character Search Results',
-                          iconURL:
-                            'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
-                        })
-                        .setThumbnail(
-                          item.images.jpg.image_url ??
-                            item.images.webp.image_url,
-                        )
-                        .setFields([
-                          {
-                            name: '🔤 Name',
-                            value: hyperlink(
-                              `${item.name} (${item.name_kanji})`,
-                              item.url,
-                            ),
-                            inline: true,
-                          },
-                          {
-                            name: '🔤 Nickname',
-                            value: item.nicknames.length
-                              ? item.nicknames.join(', ')
-                              : italic('None'),
-                            inline: true,
-                          },
-                          {
-                            name: '❤️ Favorite',
-                            value: `${item.favorites.toLocaleString()} ${pluralize(
-                              'favorite',
-                              item.favorites,
-                            )}`,
-                            inline: true,
-                          },
-                        ]),
-                    );
+            if (!data.length) {
+              await interaction.deferReply({ ephemeral: true });
 
-                    const pagination = new Pagination(interaction);
+              return interaction.editReply({
+                content: `No anime character found with name ${inlineCode(
+                  name,
+                )}`,
+              });
+            }
 
-                    pagination.setEmbeds(embeds);
+            await interaction.deferReply();
 
-                    pagination.buttons = {
-                      ...pagination.buttons,
-                      extra: new ButtonBuilder()
-                        .setCustomId('jump')
-                        .setEmoji('↕️')
-                        .setDisabled(false)
-                        .setStyle(ButtonStyle.Secondary),
-                    };
-
-                    paginations.set(pagination.interaction.id, pagination);
-
-                    await pagination.render();
-                  });
+            const embeds = data.map(
+              (
+                {
+                  about,
+                  favorites,
+                  images: { jpg, webp },
+                  name_kanji,
+                  nicknames,
+                  url,
                 },
-              );
+                index,
+                array,
+              ) =>
+                new EmbedBuilder()
+                  .setColor(guild.members.me?.displayHexColor ?? null)
+                  .setTimestamp(Date.now())
+                  .setFooter({
+                    text: `${client.user.username} | Page ${index + 1} of ${
+                      array.length
+                    }`,
+                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                  })
+                  .setDescription(
+                    truncate(about?.replace(/\n\n\n/g, '\n\n'), 4096),
+                  )
+                  .setAuthor({
+                    name: 'Anime Character Search Results',
+                    iconURL:
+                      'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
+                  })
+                  .setThumbnail(jpg.image_url ?? webp.image_url)
+                  .setFields([
+                    {
+                      name: '🔤 Name',
+                      value: hyperlink(`${name} (${name_kanji})`, url),
+                      inline: true,
+                    },
+                    {
+                      name: '🔤 Nickname',
+                      value: nicknames.length
+                        ? nicknames.join(', ')
+                        : italic('None'),
+                      inline: true,
+                    },
+                    {
+                      name: '❤️ Favorite',
+                      value: count({ total: favorites, data: 'favorite' }),
+                      inline: true,
+                    },
+                  ]),
+            );
+
+            const pagination = new Pagination(interaction).setEmbeds(embeds);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
+
+            return pagination.render();
           }
         }
         break;
@@ -676,28 +660,25 @@ module.exports = {
       case 'news':
         switch (options.getSubcommand()) {
           case 'list': {
+            await interaction.deferReply();
+
             const countries = Object.values(newsCountries);
 
             const responses = countries.map(
               (country, index) => `${bold(`${index + 1}.`)} ${country}`,
             );
 
-            const pagination = new Pagination(interaction, {
-              limit: 10,
-            });
-
-            pagination.setColor(guild.members.me?.displayHexColor ?? null);
-            pagination.setTimestamp(Date.now());
-            pagination.setFooter({
-              text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-              iconURL: client.user.displayAvatarURL({
-                dynamic: true,
-              }),
-            });
-            pagination.setAuthor({
-              name: `🌐 News Country Lists (${countries.length.toLocaleString()})`,
-            });
-            pagination.setDescriptions(responses);
+            const pagination = new Pagination(interaction, { limit: 10 })
+              .setColor(guild.members.me?.displayHexColor ?? null)
+              .setTimestamp(Date.now())
+              .setFooter({
+                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                iconURL: client.user.displayAvatarURL({ dynamic: true }),
+              })
+              .setAuthor({
+                name: `🌐 News Country Lists (${countries.length.toLocaleString()})`,
+              })
+              .setDescriptions(responses);
 
             pagination.buttons = {
               ...pagination.buttons,
@@ -721,376 +702,46 @@ module.exports = {
             );
 
             if (!country) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: `No country available with name ${inlineCode(
-                      name,
-                    )}.`,
-                  }),
-              );
+              await interaction.deferReply({ ephemeral: true });
+
+              return interaction.editReply({
+                content: `No country available with name ${inlineCode(name)}.`,
+              });
             }
 
-            return newsapi.v2
-              .topHeadlines({
-                country: Object.keys(newsCountries).find(
-                  (key) =>
-                    newsCountries[key].toLowerCase() === country.toLowerCase(),
-                ),
-              })
-              .then(
-                /**
-                 *
-                 * @param {{ articles: import('../../constants/types').News[] }}
-                 */
-                async ({ articles }) => {
-                  if (!articles.length) {
-                    return interaction.deferReply({ ephemeral: true }).then(
-                      async () =>
-                        await interaction.editReply({
-                          content: `No news found in ${inlineCode(country)}.`,
-                        }),
-                    );
-                  }
+            /** @type {{ articles: import('../../constants/types').News[] }} */
+            const { articles } = await newsapi.v2.topHeadlines({
+              country: Object.keys(newsCountries).find(
+                (key) =>
+                  newsCountries[key].toLowerCase() === country.toLowerCase(),
+              ),
+            });
 
-                  await interaction.deferReply().then(async () => {
-                    /** @type {import('discord.js').EmbedBuilder[]} */
-                    const embeds = articles.map((article, index, array) =>
-                      new EmbedBuilder()
-                        .setColor(guild.members.me?.displayHexColor ?? null)
-                        .setTimestamp(Date.now())
-                        .setFooter({
-                          text: `${client.user.username} | Page ${
-                            index + 1
-                          } of ${array.length}`,
-                          iconURL: client.user.displayAvatarURL({
-                            dynamic: true,
-                          }),
-                        })
-                        .setDescription(
-                          truncate(
-                            article.content
-                              ?.slice(0, article.content?.indexOf('[+'))
-                              ?.replace(/<ul>/gi, '')
-                              ?.replace(/<li>/gi, '')
-                              ?.replace(/<\/li>/gi, ''),
-                            4096,
-                          ),
-                        )
-                        .setThumbnail(article.urlToImage)
-                        .setAuthor({
-                          name: `📰 ${country} News Lists`,
-                        })
-                        .setFields([
-                          {
-                            name: '🔤 Headline',
-                            value: hyperlink(article.title, article.url),
-                            inline: true,
-                          },
-                          {
-                            name: '🔤 Subheadline',
-                            value: article.description ?? italic('None'),
-                            inline: true,
-                          },
-                          {
-                            name: '📆 Published At',
-                            value: time(
-                              new Date(article.publishedAt),
-                              TimestampStyles.RelativeTime,
-                            ),
-                            inline: true,
-                          },
-                          {
-                            name: '✒️ Author',
-                            value: article.author ?? italic('Unknown'),
-                            inline: true,
-                          },
-                          {
-                            name: '🔢 Source',
-                            value: article.source.name,
-                            inline: true,
-                          },
-                        ]),
-                    );
+            if (!articles.length) {
+              await interaction.deferReply({ ephemeral: true });
 
-                    const pagination = new Pagination(interaction);
+              return interaction.editReply({
+                content: `No news found in ${inlineCode(country)}.`,
+              });
+            }
 
-                    pagination.setEmbeds(embeds);
+            await interaction.deferReply();
 
-                    pagination.buttons = {
-                      ...pagination.buttons,
-                      extra: new ButtonBuilder()
-                        .setCustomId('jump')
-                        .setEmoji('↕️')
-                        .setDisabled(false)
-                        .setStyle(ButtonStyle.Secondary),
-                    };
-
-                    paginations.set(pagination.interaction.id, pagination);
-
-                    await pagination.render();
-                  });
+            const embeds = articles.map(
+              (
+                {
+                  author,
+                  content,
+                  description,
+                  publishedAt,
+                  source,
+                  title,
+                  url,
+                  urlToImage,
                 },
-              );
-          }
-        }
-        break;
-
-      case 'nhentai':
-        {
-          const baseURL = 'https://api.lolhuman.xyz/api';
-
-          const attachment = new AttachmentBuilder(
-            './src/assets/images/nhentai-logo.png',
-            {
-              name: 'nhentai-logo.png',
-            },
-          );
-
-          if (!channel.nsfw) {
-            return interaction.deferReply({ ephemeral: true }).then(
-              async () =>
-                await interaction.editReply({
-                  content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
-                }),
-            );
-          }
-
-          switch (options.getSubcommand()) {
-            case 'tag': {
-              const tag = options.getString('tag', true);
-
-              if (!isNumericString(tag)) {
-                return interaction.deferReply({ ephemeral: true }).then(
-                  async () =>
-                    await interaction.editReply({
-                      content: 'Please enter a number.',
-                    }),
-                );
-              }
-
-              return axios
-                .get(
-                  `${baseURL}/nhentai/${tag}?apikey=${process.env.LOLHUMAN_API_KEY}`,
-                )
-                .then(
-                  /**
-                   *
-                   * @param {{ data: { result: import('../../constants/types').NHentai[] } }}
-                   */
-                  async ({ data: { result } }) => {
-                    const pagination = new Pagination(interaction, {
-                      attachments: [attachment],
-                    });
-
-                    embed.setAuthor({
-                      name: result.title_native,
-                      iconURL: 'attachment://nhentai-logo.png',
-                    });
-                    embed.setFields([
-                      {
-                        name: '🏷️ Tags',
-                        value: result.tags.join(', '),
-                      },
-                    ]);
-
-                    /** @type {import('discord.js').EmbedBuilder[]} */
-                    const imagesEmbed = result.image.map((url) =>
-                      new EmbedBuilder()
-                        .setColor(guild?.members.me?.displayHexColor ?? null)
-                        .setTimestamp(Date.now())
-                        .setAuthor({
-                          name: result.title_native,
-                          iconURL: 'attachment://nhentai-logo.png',
-                        })
-                        .setImage(url),
-                    );
-
-                    let embeds = [embed, ...imagesEmbed];
-
-                    embeds = embeds.map((emb, index, array) =>
-                      emb.setFooter({
-                        text: `${client.user.username} | Page ${index + 1} of ${
-                          array.length
-                        }`,
-                        iconURL: client.user.displayAvatarURL({
-                          dynamic: true,
-                        }),
-                      }),
-                    );
-
-                    pagination.setEmbeds(embeds);
-
-                    pagination.buttons = {
-                      ...pagination.buttons,
-                      extra: new ButtonBuilder()
-                        .setCustomId('jump')
-                        .setEmoji('↕️')
-                        .setDisabled(false)
-                        .setStyle(ButtonStyle.Secondary),
-                    };
-
-                    paginations.set(pagination.interaction.id, pagination);
-
-                    await pagination.render();
-                  },
-                );
-            }
-
-            case 'query': {
-              const query = options.getString('query', true);
-
-              return axios
-                .get(
-                  `${baseURL}/nhentaisearch?query=${query}&apikey=${process.env.LOLHUMAN_API_KEY}`,
-                )
-                .then(
-                  /**
-                   *
-                   * @param {{ data: { result: import('../../constants/types').NHentaiSearch[] } }}
-                   */
-                  async ({ data: { result } }) => {
-                    await interaction.deferReply().then(async () => {
-                      /** @type {import('discord.js').EmbedBuilder[]} */
-                      const embeds = result.map((item, index, array) =>
-                        new EmbedBuilder()
-                          .setColor(guild.members.me?.displayHexColor ?? null)
-                          .setTimestamp(Date.now())
-                          .setFooter({
-                            text: `${client.user.username} | Page ${
-                              index + 1
-                            } of ${array.length}`,
-                            iconURL: client.user.displayAvatarURL({
-                              dynamic: true,
-                            }),
-                          })
-                          .setAuthor({
-                            name: 'Doujin Search Result',
-                            iconURL: 'attachment://nhentai-logo.png',
-                          })
-                          .setFields([
-                            {
-                              name: '🔤 Title',
-                              value: hyperlink(
-                                item.title_native,
-                                `https://nhentai.net/g/${item.id}`,
-                              ),
-                              inline: true,
-                            },
-                            {
-                              name: '📄 Total Page',
-                              value: `${item.page.toLocaleString()} ${pluralize(
-                                'page',
-                                item.page,
-                              )}`,
-                              inline: true,
-                            },
-                          ]),
-                      );
-
-                      const pagination = new Pagination(interaction, {
-                        attachments: [attachment],
-                      });
-
-                      pagination.setEmbeds(embeds);
-
-                      pagination.buttons = {
-                        ...pagination.buttons,
-                        extra: new ButtonBuilder()
-                          .setCustomId('jump')
-                          .setEmoji('↕️')
-                          .setDisabled(false)
-                          .setStyle(ButtonStyle.Secondary),
-                      };
-
-                      paginations.set(pagination.interaction.id, pagination);
-
-                      await pagination.render();
-                    });
-                  },
-                );
-            }
-          }
-        }
-        break;
-    }
-
-    switch (options.getSubcommand()) {
-      case 'manga': {
-        const title = options.getString('title');
-        const type = options.getString('type');
-        const score = options.getInteger('score');
-        const status = options.getString('status');
-        const order = options.getString('order');
-        const sort = options.getString('sort');
-        const letter = options.getString('initial');
-
-        const query = new URLSearchParams();
-
-        if (!channel.nsfw) {
-          query.append('sfw', 'true');
-        }
-
-        if (title) {
-          query.append('q', encodeURIComponent(title));
-        }
-
-        if (type) {
-          query.append('type', type);
-        }
-
-        if (score) {
-          query.append(
-            'score',
-            Number(`${score}`.replace(/,/g, '.')).toFixed(1),
-          );
-        }
-
-        if (status) {
-          query.append('status', status);
-        }
-
-        if (order) {
-          query.append('order_by', order);
-        }
-
-        if (sort) {
-          query.append('sort', sort);
-        }
-
-        if (letter) {
-          if (!isAlphabeticLetter(letter)) {
-            return interaction.deferReply({ ephemeral: true }).then(
-              async () =>
-                await interaction.editReply({
-                  content: 'You have to specify an alphabetic character.',
-                }),
-            );
-          }
-
-          query.append('letter', letter);
-        }
-
-        return axios.get(`https://api.jikan.moe/v4/manga?${query}`).then(
-          /**
-           *
-           * @param {{ data: { data: import('../../constants/types').MangaInfo[] } }}
-           */
-          async ({ data: { data } }) => {
-            if (!data.length) {
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: `No manga found with title ${inlineCode(
-                      title,
-                    )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.${NSFWResponse}`,
-                  }),
-              );
-            }
-
-            await interaction.deferReply().then(async () => {
-              /** @type {import('discord.js').EmbedBuilder[]} */
-              const embeds = data.map((item, index, array) =>
+                index,
+                array,
+              ) =>
                 new EmbedBuilder()
                   .setColor(guild.members.me?.displayHexColor ?? null)
                   .setTimestamp(Date.now())
@@ -1102,186 +753,47 @@ module.exports = {
                       dynamic: true,
                     }),
                   })
-                  .setThumbnail(
-                    item.images.jpg.image_url ?? item.images.webp.image_url,
+                  .setDescription(
+                    truncate(
+                      content
+                        ?.slice(0, content?.indexOf('[+'))
+                        ?.replace(/<ul>/gi, '')
+                        ?.replace(/<li>/gi, '')
+                        ?.replace(/<\/li>/gi, ''),
+                      4096,
+                    ),
                   )
-                  .setAuthor({
-                    name: 'Manga Search Results',
-                    iconURL:
-                      'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
-                  })
+                  .setThumbnail(urlToImage)
+                  .setAuthor({ name: `📰 ${country} News Lists` })
                   .setFields([
                     {
-                      name: '🔤 Title',
-                      value: hyperlink(item.title, item.url),
+                      name: '🔤 Headline',
+                      value: hyperlink(title, url),
                       inline: true,
                     },
                     {
-                      name: '🔠 Type',
-                      value: item.type ?? italic('Unknown'),
+                      name: '🔤 Subheadline',
+                      value: description ?? italic('None'),
                       inline: true,
                     },
                     {
-                      name: '📚 Volume & Chapter',
-                      value: `${
-                        item.volumes
-                          ? `${item.volumes.toLocaleString()} ${pluralize(
-                              'volume',
-                              item.volumes,
-                            )}`
-                          : '??? volumes'
-                      } ${
-                        item.chapters
-                          ? `${item.chapters.toLocaleString()} (${pluralize(
-                              'chapter',
-                              item.chapters,
-                            )})`
-                          : ''
-                      }`,
+                      name: '📆 Published At',
+                      value: time(
+                        new Date(publishedAt),
+                        TimestampStyles.RelativeTime,
+                      ),
                       inline: true,
                     },
                     {
-                      name: '📊 Stats',
-                      value:
-                        item.score ||
-                        item.scored_by ||
-                        item.members ||
-                        item.rank ||
-                        item.favorites
-                          ? `${item.score ? `⭐ ${item.score}` : ''}${
-                              item.scored_by
-                                ? ` (by ${item.scored_by.toLocaleString()} ${pluralize(
-                                    'user',
-                                    item.scored_by,
-                                  )})`
-                                : ''
-                            }${
-                              item.members
-                                ? ` | 👥 ${item.members.toLocaleString()}`
-                                : ''
-                            }${item.rank ? ` | #️⃣ #${item.rank}` : ''}${
-                              item.favorites ? ` | ❤️ ${item.favorites}` : ''
-                            }`
-                          : italic('None'),
+                      name: '✒️ Author',
+                      value: author ?? italic('Unknown'),
                       inline: true,
                     },
-                    {
-                      name: '⌛ Status',
-                      value: item.status ?? italic('Unknown'),
-                      inline: true,
-                    },
-                    {
-                      name: '📆 Published',
-                      value: item.published.string ?? italic('Unknown'),
-                      inline: true,
-                    },
-                    {
-                      name: '📝 Authors',
-                      value: item.authors.length
-                        ? item.authors
-                            .map((author) => hyperlink(author.name, author.url))
-                            .join(', ')
-                        : italic('Unknown'),
-                      inline: true,
-                    },
-                    {
-                      name: '📰 Serializations',
-                      value: item.serializations.length
-                        ? item.serializations
-                            .map((serialization) =>
-                              hyperlink(serialization.name, serialization.url),
-                            )
-                            .join(', ')
-                        : italic('Unknown'),
-                      inline: true,
-                    },
-                    {
-                      name: '🔠 Genres',
-                      value:
-                        item.genres.length ||
-                        item.explicit_genres.length ||
-                        item.themes.length ||
-                        item.demographics.length
-                          ? [
-                              ...item.genres,
-                              ...item.explicit_genres,
-                              ...item.themes,
-                              ...item.demographics,
-                            ]
-                              .map((genre) => hyperlink(genre.name, genre.url))
-                              .join(', ')
-                          : italic('Unknown'),
-                      inline: true,
-                    },
-                    {
-                      name: '💫 Synopsis',
-                      value: item.synopsis
-                        ? item.synopsis.includes('[Written by MAL Rewrite]')
-                          ? truncate(
-                              item.synopsis.replace(
-                                '[Written by MAL Rewrite]',
-                                '',
-                              ),
-                              1024,
-                            )
-                          : truncate(item.synopsis, 1024)
-                        : italic('No available'),
-                    },
+                    { name: '🔢 Source', value: source.name, inline: true },
                   ]),
-              );
+            );
 
-              const pagination = new Pagination(interaction);
-
-              pagination.setEmbeds(embeds);
-
-              pagination.buttons = {
-                ...pagination.buttons,
-                extra: new ButtonBuilder()
-                  .setCustomId('jump')
-                  .setEmoji('↕️')
-                  .setDisabled(false)
-                  .setStyle(ButtonStyle.Secondary),
-              };
-
-              paginations.set(pagination.interaction.id, pagination);
-
-              await pagination.render();
-            });
-          },
-        );
-      }
-
-      case 'image': {
-        const query = options.getString('query', true);
-
-        const google = new Scraper({
-          puppeteer: {
-            waitForInitialPage: true,
-          },
-        });
-
-        return interaction.deferReply({ ephemeral: true }).then(async () => {
-          await wait(4000);
-
-          await google.scrape(query, 5).then(async (results) => {
-            const pagination = new Pagination(interaction, {
-              limit: 1,
-            });
-
-            pagination.setColor(guild.members.me?.displayHexColor ?? null);
-            pagination.setTimestamp(Date.now());
-            pagination.setFooter({
-              text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-              iconURL: client.user.displayAvatarURL({
-                dynamic: true,
-              }),
-            });
-            pagination.setAuthor({
-              name: 'Image Search Results',
-              iconURL:
-                'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/480px-Google_%22G%22_Logo.svg.png',
-            });
-            pagination.setImages(results.map((result) => result.url));
+            const pagination = new Pagination(interaction).setEmbeds(embeds);
 
             pagination.buttons = {
               ...pagination.buttons,
@@ -1294,81 +806,511 @@ module.exports = {
 
             paginations.set(pagination.interaction.id, pagination);
 
-            await pagination.render();
+            return pagination.render();
+          }
+        }
+        break;
+
+      case 'nhentai':
+        {
+          const baseURL = 'https://api.lolhuman.xyz/api';
+
+          const attachment = new AttachmentBuilder(
+            './src/assets/images/nhentai-logo.png',
+            { name: 'nhentai-logo.png' },
+          );
+
+          if (!channel.nsfw) {
+            await interaction.deferReply({ ephemeral: true });
+
+            return interaction.editReply({
+              content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+            });
+          }
+
+          switch (options.getSubcommand()) {
+            case 'tag': {
+              const tag = options.getString('tag', true);
+
+              if (!isNumericString(tag)) {
+                await interaction.deferReply({ ephemeral: true });
+
+                return interaction.editReply({
+                  content: 'Please enter a number.',
+                });
+              }
+
+              /** @type {{ data: { result: import('../../constants/types').NHentai } }} */
+              const {
+                data: {
+                  result: { image, tags, title_native },
+                },
+              } = await axios
+                .get(
+                  `${baseURL}/nhentai/${tag}?apikey=${process.env.LOLHUMAN_API_KEY}`,
+                )
+                .catch(async () => {
+                  await interaction.deferReply({ ephemeral: true });
+
+                  throw `No doujin found with tag ${inlineCode(tag)}.`;
+                });
+
+              await interaction.deferReply();
+
+              embed
+                .setAuthor({
+                  name: title_native,
+                  iconURL: 'attachment://nhentai-logo.png',
+                })
+                .setFields([{ name: '🏷️ Tags', value: tags.join(', ') }]);
+
+              const imagesEmbed = image.map((url) =>
+                new EmbedBuilder()
+                  .setColor(guild?.members.me?.displayHexColor ?? null)
+                  .setTimestamp(Date.now())
+                  .setAuthor({
+                    name: title_native,
+                    iconURL: 'attachment://nhentai-logo.png',
+                  })
+                  .setImage(url),
+              );
+
+              const embeds = [embed, ...imagesEmbed].map((emb, index, array) =>
+                emb.setFooter({
+                  text: `${client.user.username} | Page ${index + 1} of ${
+                    array.length
+                  }`,
+                  iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                }),
+              );
+
+              const pagination = new Pagination(interaction, {
+                attachments: [attachment],
+              }).setEmbeds(embeds);
+
+              pagination.buttons = {
+                ...pagination.buttons,
+                extra: new ButtonBuilder()
+                  .setCustomId('jump')
+                  .setEmoji('↕️')
+                  .setDisabled(false)
+                  .setStyle(ButtonStyle.Secondary),
+              };
+
+              paginations.set(pagination.interaction.id, pagination);
+
+              return pagination.render();
+            }
+
+            case 'query': {
+              const query = options.getString('query', true);
+
+              /** @type {{ data: { result: import('../../constants/types').NHentaiSearch[] } }} */
+              const {
+                data: { result },
+              } = await axios
+                .get(
+                  `${baseURL}/nhentaisearch?query=${query}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                )
+                .catch(async () => {
+                  await interaction.deferReply({ ephemeral: true });
+
+                  throw `No doujin found with query ${inlineCode(query)}.`;
+                });
+
+              await interaction.deferReply();
+
+              const embeds = result.map(
+                ({ id, page, title_native }, index, array) =>
+                  new EmbedBuilder()
+                    .setColor(guild.members.me?.displayHexColor ?? null)
+                    .setTimestamp(Date.now())
+                    .setFooter({
+                      text: `${client.user.username} | Page ${index + 1} of ${
+                        array.length
+                      }`,
+                      iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                    })
+                    .setAuthor({
+                      name: 'Doujin Search Result',
+                      iconURL: 'attachment://nhentai-logo.png',
+                    })
+                    .setFields([
+                      {
+                        name: '🔤 Title',
+                        value: hyperlink(
+                          title_native,
+                          `https://nhentai.net/g/${id}`,
+                        ),
+                        inline: true,
+                      },
+                      {
+                        name: '📄 Total Page',
+                        value: count({ total: page, data: 'page' }),
+                        inline: true,
+                      },
+                    ]),
+              );
+
+              const pagination = new Pagination(interaction, {
+                attachments: [attachment],
+              }).setEmbeds(embeds);
+
+              pagination.buttons = {
+                ...pagination.buttons,
+                extra: new ButtonBuilder()
+                  .setCustomId('jump')
+                  .setEmoji('↕️')
+                  .setDisabled(false)
+                  .setStyle(ButtonStyle.Secondary),
+              };
+
+              paginations.set(pagination.interaction.id, pagination);
+
+              return pagination.render();
+            }
+          }
+        }
+        break;
+    }
+
+    switch (options.getSubcommand()) {
+      case 'manga': {
+        const titleQuery = options.getString('title');
+        const typeQuery = options.getString('type');
+        const scoreQuery = options.getInteger('score');
+        const statusQuery = options.getString('status');
+        const order = options.getString('order');
+        const sort = options.getString('sort');
+        const letter = options.getString('initial');
+
+        const query = new URLSearchParams();
+
+        if (!channel.nsfw) {
+          query.append('sfw', 'true');
+        }
+
+        if (titleQuery) {
+          query.append('q', encodeURIComponent(titleQuery));
+        }
+
+        if (typeQuery) {
+          query.append('type', typeQuery);
+        }
+
+        if (scoreQuery) {
+          query.append(
+            'score',
+            Number(`${scoreQuery}`.replace(/,/g, '.')).toFixed(1),
+          );
+        }
+
+        if (statusQuery) {
+          query.append('status', statusQuery);
+        }
+
+        if (order) {
+          query.append('order_by', order);
+        }
+
+        if (sort) {
+          query.append('sort', sort);
+        }
+
+        if (letter) {
+          if (!isAlphabeticLetter(letter)) {
+            await interaction.deferReply({ ephemeral: true });
+
+            return interaction.editReply({
+              content: 'You have to specify an alphabetic character.',
+            });
+          }
+
+          query.append('letter', letter);
+        }
+
+        /** @type {{ data: { data: import('../../constants/types').MangaInfo[] } }} */
+        const {
+          data: { data },
+        } = await axios.get(`https://api.jikan.moe/v4/manga?${query}`);
+
+        if (!data.length) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `No manga found with title ${inlineCode(
+              titleQuery,
+            )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.${NSFWResponse}`,
           });
-        });
+        }
+
+        await interaction.deferReply();
+
+        const embeds = data.map(
+          (
+            {
+              authors,
+              chapters,
+              demographics,
+              explicit_genres,
+              favorites,
+              genres,
+              images: { jpg, webp },
+              members,
+              published,
+              rank,
+              rating,
+              score,
+              scored_by,
+              serializations,
+              status,
+              synopsis,
+              themes,
+              title,
+              type,
+              url,
+              volumes,
+            },
+            index,
+            array,
+          ) =>
+            new EmbedBuilder()
+              .setColor(guild.members.me?.displayHexColor ?? null)
+              .setTimestamp(Date.now())
+              .setFooter({
+                text: `${client.user.username} | Page ${index + 1} of ${
+                  array.length
+                }`,
+                iconURL: client.user.displayAvatarURL({
+                  dynamic: true,
+                }),
+              })
+              .setThumbnail(jpg.image_url ?? webp.image_url)
+              .setAuthor({
+                name: 'Manga Search Results',
+                iconURL:
+                  'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
+              })
+              .setFields([
+                {
+                  name: '🔤 Title',
+                  value: hyperlink(title, url),
+                  inline: true,
+                },
+                {
+                  name: '🔠 Type',
+                  value: type ?? italic('Unknown'),
+                  inline: true,
+                },
+                {
+                  name: '📚 Volume & Chapter',
+                  value: `${
+                    volumes
+                      ? count({ total: volumes, data: 'volume' })
+                      : '??? volumes'
+                  } ${
+                    chapters ? count({ total: chapters, data: 'chapter' }) : ''
+                  }`,
+                  inline: true,
+                },
+                {
+                  name: '📊 Stats',
+                  value:
+                    score || scored_by || members || rank || favorites || rating
+                      ? `${score ? `⭐ ${score}` : ''}${
+                          scored_by
+                            ? ` (by ${count({
+                                total: scored_by,
+                                data: 'user',
+                              })})`
+                            : ''
+                        }${members ? ` | 👥 ${members.toLocaleString()}` : ''}${
+                          rank ? ` | #️⃣ #${rank}` : ''
+                        }${favorites ? ` | ❤️ ${favorites}` : ''}${
+                          rating ? ` | 🔞 ${rating}` : ''
+                        }`
+                      : italic('None'),
+                  inline: true,
+                },
+                {
+                  name: '⌛ Status',
+                  value: status ?? italic('Unknown'),
+                  inline: true,
+                },
+                {
+                  name: '📆 Published',
+                  value: published.string ?? italic('Unknown'),
+                  inline: true,
+                },
+                {
+                  name: '📝 Authors',
+                  value: authors.length
+                    ? authors
+                        .map((author) => hyperlink(author.name, author.url))
+                        .join(', ')
+                    : italic('Unknown'),
+                  inline: true,
+                },
+                {
+                  name: '📰 Serializations',
+                  value: serializations.length
+                    ? serializations
+                        .map((serialization) =>
+                          hyperlink(serialization.name, serialization.url),
+                        )
+                        .join(', ')
+                    : italic('Unknown'),
+                  inline: true,
+                },
+                {
+                  name: '🔠 Genres',
+                  value:
+                    genres.length ||
+                    explicit_genres.length ||
+                    themes.length ||
+                    demographics.length
+                      ? [
+                          ...genres,
+                          ...explicit_genres,
+                          ...themes,
+                          ...demographics,
+                        ]
+                          .map((genre) => hyperlink(genre.name, genre.url))
+                          .join(', ')
+                      : italic('Unknown'),
+                  inline: true,
+                },
+                {
+                  name: '💫 Synopsis',
+                  value: synopsis
+                    ? synopsis.includes('[Written by MAL Rewrite]')
+                      ? truncate(
+                          synopsis.replace('[Written by MAL Rewrite]', ''),
+                          1024,
+                        )
+                      : truncate(synopsis, 1024)
+                    : italic('No available'),
+                },
+              ]),
+        );
+
+        const pagination = new Pagination(interaction).setEmbeds(embeds);
+
+        pagination.buttons = {
+          ...pagination.buttons,
+          extra: new ButtonBuilder()
+            .setCustomId('jump')
+            .setEmoji('↕️')
+            .setDisabled(false)
+            .setStyle(ButtonStyle.Secondary),
+        };
+
+        paginations.set(pagination.interaction.id, pagination);
+
+        return pagination.render();
+      }
+
+      case 'image': {
+        await interaction.deferReply();
+
+        await wait(4000);
+
+        const query = options.getString('query', true);
+
+        const google = new Scraper({ puppeteer: { waitForInitialPage: true } });
+
+        const images = await google.scrape(query, 5);
+
+        const pagination = new Pagination(interaction, { limit: 1 })
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setTimestamp(Date.now())
+          .setFooter({
+            text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+            iconURL: client.user.displayAvatarURL({ dynamic: true }),
+          })
+          .setAuthor({
+            name: 'Image Search Results',
+            iconURL:
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/480px-Google_%22G%22_Logo.svg.png',
+          })
+          .setImages(images.map((img) => img.url));
+
+        pagination.buttons = {
+          ...pagination.buttons,
+          extra: new ButtonBuilder()
+            .setCustomId('jump')
+            .setEmoji('↕️')
+            .setDisabled(false)
+            .setStyle(ButtonStyle.Secondary),
+        };
+
+        paginations.set(pagination.interaction.id, pagination);
+
+        return pagination.render();
       }
 
       case 'definition': {
         const term = options.getString('term', true);
         const query = new URLSearchParams({ term });
 
-        return axios
-          .get(`https://api.urbandictionary.com/v0/define?${query}`)
-          .then(
-            /**
-             *
-             * @param {{ data: { list: import('../../constants/types').UrbanDictionary[] } }}
-             */
-            async ({ data: { list } }) => {
-              if (!list.length) {
-                return interaction.deferReply({ ephemeral: true }).then(
-                  async () =>
-                    await interaction.editReply({
-                      content: `No result found for ${inlineCode(term)}.`,
-                    }),
-                );
-              }
+        /** @type {{ data: { list: import('../../constants/types').UrbanDictionary[] } }} */
+        const {
+          data: { list },
+        } = await axios.get(
+          `https://api.urbandictionary.com/v0/define?${query}`,
+        );
 
-              const {
-                author,
+        if (!list.length) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `No result found for ${inlineCode(term)}.`,
+          });
+        }
+
+        await interaction.deferReply();
+
+        const {
+          author,
+          definition,
+          example,
+          permalink,
+          thumbs_down,
+          thumbs_up,
+          word,
+          written_on,
+        } = list[Math.floor(Math.random() * list.length)];
+
+        const formattedCite = `\n${italic(
+          `by ${author} — ${time(
+            new Date(written_on),
+            TimestampStyles.RelativeTime,
+          )}`,
+        )}`;
+
+        embed
+          .setAuthor({
+            name: capitalCase(word),
+            url: permalink,
+            iconURL:
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Urban_Dictionary_logo.svg/320px-Urban_Dictionary_logo.svg.png',
+          })
+          .setFields([
+            {
+              name: '🔤 Definition',
+              value: `${truncate(
                 definition,
-                example,
-                permalink,
-                thumbs_down,
-                thumbs_up,
-                word,
-                written_on,
-              } = list[Math.floor(Math.random() * list.length)];
-
-              const formattedCite = `\n${italic(
-                `by ${author} — ${time(
-                  new Date(written_on),
-                  TimestampStyles.RelativeTime,
-                )}`,
-              )}`;
-
-              embed.setAuthor({
-                name: capitalCase(word),
-                url: permalink,
-                iconURL:
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Urban_Dictionary_logo.svg/320px-Urban_Dictionary_logo.svg.png',
-              });
-              embed.setFields([
-                {
-                  name: '🔤 Definition',
-                  value: `${truncate(
-                    definition,
-                    1024 - formattedCite.length - 3,
-                  )}${formattedCite}`,
-                },
-                {
-                  name: '🔤 Example',
-                  value: truncate(example, 1024),
-                },
-                {
-                  name: '⭐ Rating',
-                  value: `${thumbs_up.toLocaleString()} 👍 | ${thumbs_down.toLocaleString()} 👎`,
-                },
-              ]);
-
-              await interaction
-                .deferReply()
-                .then(
-                  async () => await interaction.editReply({ embeds: [embed] }),
-                );
+                1024 - formattedCite.length - 3,
+              )}${formattedCite}`,
             },
-          );
+            { name: '🔤 Example', value: truncate(example, 1024) },
+            {
+              name: '⭐ Rating',
+              value: `${thumbs_up.toLocaleString()} 👍 | ${thumbs_down.toLocaleString()} 👎`,
+            },
+          ]);
+
+        return interaction.editReply({ embeds: [embed] });
       }
 
       case 'mdn': {
@@ -1380,80 +1322,68 @@ module.exports = {
         });
         const baseURL = 'https://developer.mozilla.org';
 
-        return axios.get(`${baseURL}/api/v1/search?${query}`).then(
-          /**
-           *
-           * @param {{ data: { documents: import('../../constants/types').MDNDocument[], suggestions: import('../../constants/types').MDNSuggestion[] } }}
-           */
-          async ({ data: { documents, suggestions } }) => {
-            if (!documents.length) {
-              if (!suggestions.length) {
-                return interaction.deferReply({ ephemeral: true }).then(
-                  async () =>
-                    await interaction.editReply({
-                      content: `No result found for ${inlineCode(term)}.`,
-                    }),
-                );
-              }
+        /** @type {{ data: { documents: import('../../constants/types').MDNDocument[], suggestions: import('../../constants/types').MDNSuggestion[] } }} */
+        const {
+          data: { documents, suggestions },
+        } = await axios.get(`${baseURL}/api/v1/search?${query}`);
 
-              const newQuery = new URLSearchParams({
-                q: suggestions[0].text,
-                locale: language ?? 'en-US',
-              });
+        if (!documents.length) {
+          if (!suggestions.length) {
+            await interaction.deferReply({ ephemeral: true });
 
-              return axios.get(`${baseURL}/api/v1/search?${newQuery}`).then(
-                /**
-                 *
-                 * @param {{ data: { documents: import('../../constants/types').MDNDocument[] } }}
-                 */
-                async ({ data: { documents: docs } }) => {
-                  const fields = docs.map((doc) => ({
-                    name: doc.title,
-                    value: `${doc.summary}\n${hyperlink(
-                      'View Documentation',
-                      `${baseURL}${doc.mdn_url}`,
-                      'Click here to view the documentation.',
-                    )}`,
-                  }));
-
-                  embed.setAuthor({
-                    name: 'Documentation Search Results',
-                    iconURL:
-                      'https://pbs.twimg.com/profile_images/1511434207079407618/AwzUxnVf_400x400.png',
-                  });
-                  embed.setFields(fields);
-
-                  await interaction
-                    .deferReply()
-                    .then(
-                      async () =>
-                        await interaction.editReply({ embeds: [embed] }),
-                    );
-                },
-              );
-            }
-
-            const fields = documents.map((doc) => ({
-              name: doc.title,
-              value: `${doc.summary}\n${hyperlink(
-                'View Documentation',
-                `${baseURL}${doc.mdn_url}`,
-                'Click here to view the documentation.',
-              )}`,
-            }));
-
-            embed.setAuthor({
-              name: '📖 Documentation Search Results',
+            return interaction.editReply({
+              content: `No result found for ${inlineCode(term)}.`,
             });
-            embed.setFields(fields);
+          }
 
-            await interaction
-              .deferReply()
-              .then(
-                async () => await interaction.editReply({ embeds: [embed] }),
-              );
-          },
-        );
+          await interaction.deferReply();
+
+          const newQuery = new URLSearchParams({
+            q: suggestions[0].text,
+            locale: language ?? 'en-US',
+          });
+
+          /** @type {{ data: { documents: import('../../constants/types').MDNDocument[] } }} */
+          const {
+            data: { documents: docs },
+          } = await axios.get(`${baseURL}/api/v1/search?${newQuery}`);
+
+          const fields = docs.map(({ mdn_url, summary, title }) => ({
+            name: title,
+            value: `${summary}\n${hyperlink(
+              'View Documentation',
+              `${baseURL}${mdn_url}`,
+              'Click here to view the documentation.',
+            )}`,
+          }));
+
+          embed
+            .setAuthor({
+              name: 'Documentation Search Results',
+              iconURL:
+                'https://pbs.twimg.com/profile_images/1511434207079407618/AwzUxnVf_400x400.png',
+            })
+            .setFields(fields);
+
+          return interaction.editReply({ embeds: [embed] });
+        }
+
+        await interaction.deferReply();
+
+        const fields = documents.map(({ mdn_url, summary, title }) => ({
+          name: title,
+          value: `${summary}\n${hyperlink(
+            'View Documentation',
+            `${baseURL}${mdn_url}`,
+            'Click here to view the documentation.',
+          )}`,
+        }));
+
+        embed
+          .setAuthor({ name: '📖 Documentation Search Results' })
+          .setFields(fields);
+
+        return interaction.editReply({ embeds: [embed] });
       }
     }
   },

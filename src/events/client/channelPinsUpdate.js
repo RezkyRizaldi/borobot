@@ -30,9 +30,7 @@ module.exports = {
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
-      .setAuthor({
-        name: '📌 Channel Pins Edited',
-      })
+      .setAuthor({ name: '📌 Channel Pins Edited' })
       .setDescription(`${channel} channel pins was ${bold('edited')}.`)
       .setFields([
         {
@@ -45,6 +43,6 @@ module.exports = {
         },
       ]);
 
-    await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+    return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

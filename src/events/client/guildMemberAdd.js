@@ -33,9 +33,7 @@ module.exports = {
     );
 
     const embed = new EmbedBuilder()
-      .setAuthor({
-        name: `👋 Welcome to ${guild}`,
-      })
+      .setAuthor({ name: `👋 Welcome to ${guild}` })
       .setColor(guild.members.me?.displayHexColor ?? null)
       .setFooter({
         text: client.user.username,
@@ -47,70 +45,61 @@ module.exports = {
       await member.send({ embeds: [embed] }).catch(console.error);
     }
 
-    await member.roles
-      .add(!user.bot ? memberRole : botRole)
-      .then(async (m) => {
-        if (!m.user.bot) {
-          embed.setDescription(
-            `hope you enjoy here, ${m}! You're the ${ordinal(
-              guild.memberCount,
-            )} member in ${guild}.`,
-          );
-          embed.setColor(m.displayHexColor);
-          embed.setThumbnail(m.displayAvatarURL({ dynamic: true }));
-          embed.setFields([
-            {
-              name: '🆔 Member ID',
-              value: m.user.id,
-              inline: true,
-            },
-            {
-              name: '🎊 Account Created',
-              value: time(m.user.createdAt, TimestampStyles.RelativeTime),
-              inline: true,
-            },
-            {
-              name: '📆 Joined At',
-              value: time(m.joinedAt, TimestampStyles.RelativeTime),
-              inline: true,
-            },
-          ]);
+    await member.roles.add(!user.bot ? memberRole : botRole);
 
-          return WelcomeLogger.send({ embeds: [embed] });
-        }
-
-        const botLog = await guild
-          .fetchAuditLogs({
-            limit: 1,
-            type: AuditLogEvent.BotAdd,
-          })
-          .then((audit) => audit.entries.first());
-
-        embed.setDescription(
-          `${m} bot was ${bold('added')} by ${botLog.executor}.`,
-        );
-        embed.setColor(m.displayHexColor);
-        embed.setThumbnail(m.displayAvatarURL({ dynamic: true }));
-        embed.setFields([
-          {
-            name: '🆔 Bot ID',
-            value: m.user.id,
-            inline: true,
-          },
+    if (!member.user.bot) {
+      embed
+        .setDescription(
+          `hope you enjoy here, ${member}! You're the ${ordinal(
+            guild.memberCount,
+          )} member in ${guild}.`,
+        )
+        .setColor(member.displayHexColor)
+        .setThumbnail(member.displayAvatarURL({ dynamic: true }))
+        .setFields([
+          { name: '🆔 Member ID', value: member.user.id, inline: true },
           {
             name: '🎊 Account Created',
-            value: time(m.user.createdAt, TimestampStyles.RelativeTime),
+            value: time(member.user.createdAt, TimestampStyles.RelativeTime),
             inline: true,
           },
           {
-            name: '📆 Added At',
-            value: time(m.joinedAt, TimestampStyles.RelativeTime),
+            name: '📆 Joined At',
+            value: time(member.joinedAt, TimestampStyles.RelativeTime),
             inline: true,
           },
         ]);
 
-        await WelcomeLogger.send({ embeds: [embed] });
+      return WelcomeLogger.send({ embeds: [embed] });
+    }
+
+    const botLog = await guild
+      .fetchAuditLogs({
+        limit: 1,
+        type: AuditLogEvent.BotAdd,
       })
-      .catch(console.error);
+      .then((audit) => audit.entries.first());
+
+    embed
+      .setDescription(
+        `${member} bot was ${bold('added')} by ${botLog.executor}.`,
+      )
+      .setColor(member.displayHexColor)
+      .setThumbnail(member.displayAvatarURL({ dynamic: true }))
+      .setFields([
+        { name: '🆔 Bot ID', value: member.user.id, inline: true },
+        {
+          name: '🎊 Account Created',
+          value: time(member.user.createdAt, TimestampStyles.RelativeTime),
+          inline: true,
+        },
+        {
+          name: '📆 Added At',
+          value: time(member.joinedAt, TimestampStyles.RelativeTime),
+          inline: true,
+        },
+      ]);
+
+    return WelcomeLogger.send({ embeds: [embed] });
   },
 };

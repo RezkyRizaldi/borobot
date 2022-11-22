@@ -12,6 +12,8 @@ module.exports = {
   async execute(queue, song) {
     const { client, clientMember, textChannel } = queue;
 
+    if (!clientMember || !textChannel) return;
+
     const embed = new EmbedBuilder()
       .setColor(clientMember.displayHexColor)
       .setTimestamp(Date.now())
@@ -20,18 +22,13 @@ module.exports = {
           song.formattedDuration,
         )} has been added to the queue by ${song.user}.`,
       )
-      .setAuthor({
-        name: '🔃 Queue Added',
-      })
+      .setAuthor({ name: '🔃 Queue Added' })
       .setFooter({
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      });
+      })
+      .setThumbnail(song?.thumbnail ?? null);
 
-    if (song.thumbnail !== undefined) {
-      embed.setThumbnail(song.thumbnail);
-    }
-
-    await textChannel.send({ embeds: [embed] }).catch(console.error);
+    return textChannel.send({ embeds: [embed] }).catch(console.error);
   },
 };

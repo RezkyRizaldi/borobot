@@ -26,16 +26,14 @@ module.exports = {
 
     const event = options.getString('event', true);
 
-    await interaction.deferReply({ ephemeral: true }).then(async () => {
-      if (!member) {
-        return interaction.editReply({
-          content: "Member doesn't exist.",
-        });
-      }
+    await interaction.deferReply({ ephemeral: true });
 
-      client.emit(event, member);
+    if (!member) {
+      return interaction.editReply({ content: "Member doesn't exist." });
+    }
 
-      await interaction.editReply({ content: `Emitted ${event} event.` });
-    });
+    client.emit(event, member);
+
+    return interaction.editReply({ content: `Emitted ${event} event.` });
   },
 };

@@ -24,6 +24,7 @@ const { channelCreateChoices, channelType } = require('../../constants');
 const {
   applyThreadAutoArchiveDuration,
   applyVideoQualityMode,
+  count,
 } = require('../../utils');
 
 module.exports = {
@@ -230,11 +231,9 @@ module.exports = {
     const reason = options.getString('reason') ?? 'No reason';
 
     if (!member) {
-      return interaction.deferReply({ ephemeral: true }).then(async () =>
-        interaction.editReply({
-          content: "Member doesn't exist.",
-        }),
-      );
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({ content: "Member doesn't exist." });
     }
 
     const isMissingPermissions = !member.permissions.has(
@@ -243,140 +242,137 @@ module.exports = {
 
     switch (options.getSubcommandGroup()) {
       case 'modify': {
-        const nsfw = options.getBoolean('nsfw', true);
-        const name = options.getString('name', true);
-
-        /** @type {import('discord.js').CategoryChannel} */
-        const parent = options.getChannel('category', true);
-        const topic = options.getString('topic', true);
-
-        /** @type {import('discord.js').GuildChannel} */
-        const targetChannel = options.getChannel('position', true);
+        await interaction.deferReply({ ephemeral: true });
 
         /** @type {import('discord.js').GuildChannel} */
         const guildChannel = options.getChannel('channel', true);
 
-        return interaction.deferReply({ ephemeral: true }).then(async () => {
-          if (isMissingPermissions || !guildChannel.manageable) {
+        if (isMissingPermissions || !guildChannel.manageable) {
+          return interaction.editReply({
+            content: `You don't have appropiate permissions to modify ${guildChannel} channel.`,
+          });
+        }
+
+        switch (options.getSubcommand()) {
+          case 'category': {
+            /** @type {import('discord.js').CategoryChannel} */
+            const parent = options.getChannel('category', true);
+
+            if (guildChannel.type === parent.type) {
+              return interaction.editReply({
+                content: `Can't modify ${guildChannel} channel's category since it is a category channel.`,
+              });
+            }
+
+            if (guildChannel.parent && guildChannel.parent === parent) {
+              return interaction.editReply({
+                content: `${guildChannel} is already in ${guildChannel.parent} category channel.`,
+              });
+            }
+
+            await guildChannel.setParent(parent, { reason });
+
             return interaction.editReply({
-              content: `You don't have appropiate permissions to modify ${guildChannel} channel.`,
+              content: `Successfully ${bold(
+                'modified',
+              )} ${guildChannel} channel's category to ${guildChannel.parent}.`,
             });
           }
 
-          switch (options.getSubcommand()) {
-            case 'category':
-              if (guildChannel.type === parent.type) {
-                return interaction.editReply({
-                  content: `Can't modify ${guildChannel} channel's category since it is a category channel.`,
-                });
-              }
+          case 'name': {
+            const name = options.getString('name', true);
 
-              if (guildChannel.parent && guildChannel.parent === parent) {
-                return interaction.editReply({
-                  content: `${guildChannel} is already in ${guildChannel.parent} category channel.`,
-                });
-              }
-
-              return guildChannel.setParent(parent, { reason }).then(
-                async (ch) =>
-                  await interaction.editReply({
-                    content: `Successfully ${bold(
-                      'modified',
-                    )} ${ch} channel's category to ${ch.parent}.`,
-                  }),
-              );
-
-            case 'name':
-              if (name.toLowerCase() === guildChannel.name.toLowerCase()) {
-                return interaction.editReply({
-                  content: 'You have to specify a different name to modify.',
-                });
-              }
-
-              return guildChannel.setName(name, reason).then(
-                async (ch) =>
-                  await interaction.editReply({
-                    content: `Successfully ${bold('modified')} ${ch}.`,
-                  }),
-              );
-
-            case 'nsfw': {
-              /** @type {import('discord.js').BaseGuildTextChannel} */
-              const channel = options.getChannel('channel', true);
-
-              if (nsfw === channel.nsfw) {
-                return interaction.editReply({
-                  content: `${channel} nsfw is already being turned ${
-                    channel.nsfw ? 'on' : 'off'
-                  }.`,
-                });
-              }
-
-              return channel.setNSFW(nsfw, reason).then(
-                async (ch) =>
-                  await interaction.editReply({
-                    content: `Successfully ${bold('modified')} ${ch}.`,
-                  }),
-              );
+            if (name.toLowerCase() === guildChannel.name.toLowerCase()) {
+              return interaction.editReply({
+                content: 'You have to specify a different name to modify.',
+              });
             }
 
-            case 'position':
-              if (guildChannel.type !== targetChannel.type) {
-                return interaction.editReply({
-                  content: `${guildChannel} isn't in the same type with ${targetChannel}`,
-                });
-              }
+            await guildChannel.setName(name, reason);
 
-              if (
-                guildChannel.parent &&
-                targetChannel.parent &&
-                guildChannel.parent !== targetChannel.parent
-              ) {
-                return interaction.editReply({
-                  content: `${guildChannel} isn't in the same category with ${targetChannel}`,
-                });
-              }
-
-              if (guildChannel.position === targetChannel.position) {
-                return interaction.editReply({
-                  content:
-                    'You have to specify a different position to modify.',
-                });
-              }
-
-              return guildChannel
-                .setPosition(targetChannel.position, { reason })
-                .then(
-                  async (ch) =>
-                    await interaction.editReply({
-                      content: `Successfully ${bold('modified')} ${ch}.`,
-                    }),
-                );
-
-            case 'topic': {
-              /** @type {import('discord.js').BaseGuildTextChannel} */
-              const channel = options.getChannel('channel', true);
-
-              if (channel.topic && topic === channel.topic) {
-                return interaction.editReply({
-                  content: 'You have to specify a different topic to modify.',
-                });
-              }
-
-              return channel.setTopic(topic, reason).then(
-                async (ch) =>
-                  await interaction.editReply({
-                    content: `Successfully ${bold('modified')} ${ch}.`,
-                  }),
-              );
-            }
+            return interaction.editReply({
+              content: `Successfully ${bold('modified')} ${guildChannel}.`,
+            });
           }
-        });
+
+          case 'nsfw': {
+            /** @type {import('discord.js').BaseGuildTextChannel} */
+            const channel = options.getChannel('channel', true);
+            const nsfw = options.getBoolean('nsfw', true);
+
+            if (nsfw === channel.nsfw) {
+              return interaction.editReply({
+                content: `${channel} nsfw is already being turned ${
+                  channel.nsfw ? 'on' : 'off'
+                }.`,
+              });
+            }
+
+            await channel.setNSFW(nsfw, reason);
+
+            return interaction.editReply({
+              content: `Successfully ${bold('modified')} ${channel}.`,
+            });
+          }
+
+          case 'position': {
+            /** @type {import('discord.js').GuildChannel} */
+            const targetChannel = options.getChannel('position', true);
+
+            if (guildChannel.type !== targetChannel.type) {
+              return interaction.editReply({
+                content: `${guildChannel} isn't in the same type with ${targetChannel}`,
+              });
+            }
+
+            if (
+              guildChannel.parent &&
+              targetChannel.parent &&
+              guildChannel.parent !== targetChannel.parent
+            ) {
+              return interaction.editReply({
+                content: `${guildChannel} isn't in the same category with ${targetChannel}`,
+              });
+            }
+
+            if (guildChannel.position === targetChannel.position) {
+              return interaction.editReply({
+                content: 'You have to specify a different position to modify.',
+              });
+            }
+
+            await guildChannel.setPosition(targetChannel.position, { reason });
+
+            return interaction.editReply({
+              content: `Successfully ${bold('modified')} ${guildChannel}.`,
+            });
+          }
+
+          case 'topic': {
+            /** @type {import('discord.js').BaseGuildTextChannel} */
+            const channel = options.getChannel('channel', true);
+            const topic = options.getString('topic', true);
+
+            if (channel.topic && topic === channel.topic) {
+              return interaction.editReply({
+                content: 'You have to specify a different topic to modify.',
+              });
+            }
+
+            await channel.setTopic(topic, reason);
+
+            return interaction.editReply({
+              content: `Successfully ${bold('modified')} ${channel}.`,
+            });
+          }
+        }
       }
     }
 
     switch (options.getSubcommand()) {
       case 'create': {
+        await interaction.deferReply({ ephemeral: true });
+
         const name = options.getString('name', true);
         const type = options.getInteger('type', true);
 
@@ -384,67 +380,55 @@ module.exports = {
         const parent = options.getChannel('category');
         const topic = options.getString('topic') ?? undefined;
 
-        return interaction.deferReply({ ephemeral: true }).then(async () => {
-          if (isMissingPermissions) {
-            return interaction.editReply({
-              content:
-                "You don't have appropiate permissions to create a channel.",
-            });
-          }
+        if (isMissingPermissions) {
+          return interaction.editReply({
+            content:
+              "You don't have appropiate permissions to create a channel.",
+          });
+        }
 
-          const mutedRole = guild.roles.cache.find(
-            (role) => role.name.toLowerCase() === 'muted',
+        const mutedRole = guild.roles.cache.find(
+          (role) => role.name.toLowerCase() === 'muted',
+        );
+
+        if (!mutedRole) {
+          return interaction.editReply({
+            content: `Can't find role with name ${inlineCode('muted')}.`,
+          });
+        }
+
+        /** @type {import('discord.js').GuildChannel} */
+        const ch = await guild.channels.create({
+          name,
+          type,
+          parent: type === ChannelType.GuildCategory ? null : parent,
+          topic,
+          reason,
+        });
+
+        if (!ch.parent) {
+          await ch.permissionOverwrites.create(
+            mutedRole,
+            {
+              SendMessages: false,
+              AddReactions: false,
+              CreatePublicThreads: false,
+              CreatePrivateThreads: false,
+              SendMessagesInThreads: false,
+              Speak: false,
+            },
+            { type: OverwriteType.Role, reason: 'servermute command setup.' },
           );
 
-          if (!mutedRole) {
-            return interaction.editReply({
-              content: `Can't find role with name ${inlineCode('muted')}.`,
-            });
-          }
+          return interaction.editReply({
+            content: `${ch} created successfully.`,
+          });
+        }
 
-          await guild.channels
-            .create({
-              name,
-              type,
-              parent: type === ChannelType.GuildCategory ? null : parent,
-              topic,
-              reason,
-            })
-            .then(
-              /**
-               *
-               * @param {import('discord.js').GuildChannel} ch
-               */
-              async (ch) => {
-                if (!ch.parent) {
-                  await ch.permissionOverwrites.create(
-                    mutedRole,
-                    {
-                      SendMessages: false,
-                      AddReactions: false,
-                      CreatePublicThreads: false,
-                      CreatePrivateThreads: false,
-                      SendMessagesInThreads: false,
-                      Speak: false,
-                    },
-                    {
-                      type: OverwriteType.Role,
-                      reason: 'servermute command setup.',
-                    },
-                  );
+        await ch.lockPermissions();
 
-                  return interaction.editReply({
-                    content: `${ch} created successfully.`,
-                  });
-                }
-
-                await ch.lockPermissions();
-
-                await interaction.editReply({
-                  content: `${ch} created successfully.`,
-                });
-              },
-            );
+        return interaction.editReply({
+          content: `${ch} created successfully.`,
         });
       }
 
@@ -452,52 +436,52 @@ module.exports = {
         /** @type {import('discord.js').GuildChannel} */
         const guildChannel = options.getChannel('channel', true);
 
-        return interaction.deferReply({ ephemeral: true }).then(async () => {
-          if (isMissingPermissions || !guildChannel.deletable) {
-            return interaction.editReply({
-              content: `You don't have appropiate permissions to delete ${guildChannel} channel.`,
-            });
-          }
+        await interaction.deferReply({ ephemeral: true });
 
-          await guildChannel.delete(reason).then(
-            async () =>
-              await interaction.editReply({
-                content: 'Channel deleted successfully.',
-              }),
-          );
+        if (isMissingPermissions || !guildChannel.deletable) {
+          return interaction.editReply({
+            content: `You don't have appropiate permissions to delete ${guildChannel} channel.`,
+          });
+        }
+
+        await guildChannel.delete(reason);
+
+        return interaction.editReply({
+          content: 'Channel deleted successfully.',
         });
       }
 
-      case 'info': {
-        /** @type {import('discord.js').GuildChannel} */
-        const guildChannel = options.getChannel('channel', true);
+      case 'info':
+        {
+          await interaction.deferReply();
 
-        /** @type {import('discord.js').BaseGuildTextChannel} */
-        const baseGuildTextChannel = options.getChannel('channel', true);
+          /** @type {import('discord.js').GuildChannel} */
+          const guildChannel = options.getChannel('channel', true);
 
-        /** @type {import('discord.js').BaseGuildVoiceChannel} */
-        const baseGuildVoiceChannel = options.getChannel('channel', true);
+          /** @type {import('discord.js').BaseGuildTextChannel} */
+          const baseGuildTextChannel = options.getChannel('channel', true);
 
-        /** @type {import('discord.js').VoiceChannel} */
-        const voiceChannel = options.getChannel('channel', true);
+          /** @type {import('discord.js').BaseGuildVoiceChannel} */
+          const baseGuildVoiceChannel = options.getChannel('channel', true);
 
-        /** @type {import('discord.js').CategoryChannel} */
-        const categoryChannel = options.getChannel('channel', true);
+          /** @type {import('discord.js').VoiceChannel} */
+          const voiceChannel = options.getChannel('channel', true);
 
-        /** @type {import('discord.js').ThreadChannel} */
-        const threadChannel = options.getChannel('channel', true);
+          /** @type {import('discord.js').CategoryChannel} */
+          const categoryChannel = options.getChannel('channel', true);
 
-        /** @type {import('discord.js').ForumChannel} */
-        const forumChannel = options.getChannel('channel', true);
+          /** @type {import('discord.js').ThreadChannel} */
+          const threadChannel = options.getChannel('channel', true);
 
-        return interaction.deferReply().then(async () => {
+          /** @type {import('discord.js').ForumChannel} */
+          const forumChannel = options.getChannel('channel', true);
           const channelTopic = baseGuildTextChannel.topic ?? italic('No topic');
           const isNSFW = baseGuildTextChannel.nsfw ? 'Yes' : 'No';
           const bitrate = `${baseGuildVoiceChannel.bitrate / 1000}kbps`;
-          const memberCount = `${guildChannel.members.size.toLocaleString()} ${pluralize(
-            'member',
-            guildChannel.members.size,
-          )}`;
+          const memberCount = count({
+            total: guildChannel.members.size,
+            data: 'member',
+          });
           const userLimitVoiceBasedChannel =
             baseGuildVoiceChannel.userLimit > 0
               ? pluralize('user', baseGuildVoiceChannel.userLimit, true)
@@ -511,9 +495,7 @@ module.exports = {
             }`,
           );
           const regionOverride = baseGuildVoiceChannel.rtcRegion ?? 'Automatic';
-
           const permissionOverwrites = guildChannel.permissionOverwrites.cache;
-
           const permissionOverwritesList = permissionOverwrites
             .map((permission) => {
               const allowedPermissions = permission.allow.toArray();
@@ -550,9 +532,7 @@ module.exports = {
             .setTimestamp(Date.now())
             .setFooter({
               text: client.user.username,
-              iconURL: client.user.displayAvatarURL({
-                dynamic: true,
-              }),
+              iconURL: client.user.displayAvatarURL({ dynamic: true }),
             })
             .setAuthor({
               name: `ℹ️ ${guildChannel.name}'s Channel Information`,
@@ -704,41 +684,26 @@ module.exports = {
                   }`,
                   inline: true,
                 },
-                {
-                  name: '🗣️ Topic',
-                  value: channelTopic,
-                  inline: true,
-                },
+                { name: '🗣️ Topic', value: channelTopic, inline: true },
                 {
                   name: '💬 Message Count',
-                  value: `${messageCount.toLocaleString()} ${pluralize(
-                    'message',
-                    messageCount,
-                  )}`,
+                  value: count({ total: messageCount, data: 'message' }),
                   inline: true,
                 },
                 {
                   name: '📌 Pinned Message Count',
-                  value: `${pinnedMessageCount.toLocaleString()} ${pluralize(
-                    'pinned message',
-                    pinnedMessageCount,
-                  )}`,
+                  value: count({
+                    total: pinnedMessageCount,
+                    data: 'pinned message',
+                  }),
                   inline: true,
                 },
               );
               embed.spliceFields(
                 7,
                 0,
-                {
-                  name: '⚠️ NSFW',
-                  value: isNSFW,
-                  inline: true,
-                },
-                {
-                  name: '🐌 Slowmode',
-                  value: slowmode,
-                  inline: true,
-                },
+                { name: '⚠️ NSFW', value: isNSFW, inline: true },
+                { name: '🐌 Slowmode', value: slowmode, inline: true },
                 {
                   name: '➕ Extra',
                   value: `${
@@ -755,10 +720,7 @@ module.exports = {
                   } Channel`,
                   inline: true,
                 },
-                {
-                  name: '💭 Threads',
-                  value: threadList,
-                },
+                { name: '💭 Threads', value: threadList },
                 {
                   name: '🔐 Permissions',
                   value: `${
@@ -806,17 +768,10 @@ module.exports = {
                 },
                 {
                   name: '💬 Message Count in Voice',
-                  value: `${messageCount.toLocaleString()} ${pluralize(
-                    'message',
-                    messageCount,
-                  )}`,
+                  value: count({ total: messageCount, data: 'message' }),
                   inline: true,
                 },
-                {
-                  name: '⚡ Bitrate',
-                  value: bitrate,
-                  inline: true,
-                },
+                { name: '⚡ Bitrate', value: bitrate, inline: true },
                 {
                   name: '👥 User Limit',
                   value: userLimitVoiceBasedChannel,
@@ -838,16 +793,8 @@ module.exports = {
               embed.spliceFields(
                 8,
                 0,
-                {
-                  name: '⚠️ NSFW',
-                  value: isNSFW,
-                  inline: true,
-                },
-                {
-                  name: '🐌 Slowmode',
-                  value: slowmode,
-                  inline: true,
-                },
+                { name: '⚠️ NSFW', value: isNSFW, inline: true },
+                { name: '🐌 Slowmode', value: slowmode, inline: true },
               );
 
               if (
@@ -926,6 +873,7 @@ module.exports = {
             case ChannelType.PrivateThread:
             case ChannelType.AnnouncementThread: {
               const messageCount = threadChannel.messages.cache.size;
+
               const pinnedMessageCount = await threadChannel.messages
                 .fetchPinned()
                 .then((pinned) => pinned.size);
@@ -953,26 +901,20 @@ module.exports = {
                 0,
                 {
                   name: '👥 Member Count in Thread',
-                  value: `${memberCount.toLocaleString()} ${pluralize(
-                    'member',
-                    memberCount,
-                  )}`,
+                  value: count({ total: memberCount, data: 'member' }),
                   inline: true,
                 },
                 {
                   name: '💬 Message Count',
-                  value: `${messageCount.toLocaleString()} ${pluralize(
-                    'message',
-                    messageCount,
-                  )}`,
+                  value: count({ total: messageCount, data: 'message' }),
                   inline: true,
                 },
                 {
                   name: '📌 Pinned Message Count',
-                  value: `${pinnedMessageCount.toLocaleString()} ${pluralize(
-                    'pinned message',
-                    pinnedMessageCount,
-                  )}`,
+                  value: count({
+                    total: pinnedMessageCount,
+                    data: 'pinned message',
+                  }),
                   inline: true,
                 },
                 {
@@ -1000,11 +942,7 @@ module.exports = {
                     : italic('Unknown'),
                   inline: true,
                 },
-                {
-                  name: '🐌 Slowmode',
-                  value: slowmode,
-                  inline: true,
-                },
+                { name: '🐌 Slowmode', value: slowmode, inline: true },
               );
 
               return interaction.editReply({ embeds: [embed] });
@@ -1036,11 +974,7 @@ module.exports = {
                   value: memberCount,
                   inline: true,
                 },
-                {
-                  name: '⚡ Bitrate',
-                  value: bitrate,
-                  inline: true,
-                },
+                { name: '⚡ Bitrate', value: bitrate, inline: true },
                 {
                   name: '👥 User Limit',
                   value: userLimitVoiceBasedChannel,
@@ -1216,16 +1150,8 @@ module.exports = {
               embed.spliceFields(
                 6,
                 0,
-                {
-                  name: '⚠️ NSFW',
-                  value: isNSFW,
-                  inline: true,
-                },
-                {
-                  name: '🐌 Slowmode',
-                  value: slowmode,
-                  inline: true,
-                },
+                { name: '⚠️ NSFW', value: isNSFW, inline: true },
+                { name: '🐌 Slowmode', value: slowmode, inline: true },
                 {
                   name: '🏷️ Tags',
                   value: forumChannel.availableTags.length
@@ -1290,62 +1216,54 @@ module.exports = {
               return interaction.editReply({ embeds: [embed] });
             }
           }
-        });
-      }
+        }
+        break;
 
       case 'list': {
-        return interaction.deferReply().then(
-          async () =>
-            await guild.channels.fetch().then(async (channels) => {
-              if (!channels.size) {
-                return interaction.editReply({
-                  content: `${bold(guild)} doesn't have any channels.`,
-                });
-              }
+        const channels = await guild.channels.fetch();
 
-              const descriptions = [...channels.values()]
-                .sort((a, b) => b.type - a.type)
-                .map((ch, index) => `${bold(`${index + 1}.`)} ${ch}`);
+        if (!channels.size) {
+          await interaction.deferReply({ ephemeral: true });
 
-              const pagination = new Pagination(interaction, {
-                limit: 10,
-              });
+          return interaction.editReply({
+            content: `${bold(guild)} doesn't have any channels.`,
+          });
+        }
 
-              pagination.setColor(guild.members.me?.displayHexColor ?? null);
-              pagination.setTimestamp(Date.now());
-              pagination.setFooter({
-                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                iconURL: client.user.displayAvatarURL({
-                  dynamic: true,
-                }),
-              });
-              pagination.setAuthor({
-                name: `#️⃣ ${guild} Channel Lists (${channels.size.toLocaleString()})`,
-              });
+        await interaction.deferReply();
 
-              if (guild.icon) {
-                pagination.setAuthor({
-                  name: `${guild} Channel Lists (${channels.size.toLocaleString()})`,
-                  iconURL: guild.iconURL({ dynamic: true }) ?? undefined,
-                });
-              }
+        const descriptions = [...channels.values()]
+          .sort((a, b) => b.type - a.type)
+          .map((ch, index) => `${bold(`${index + 1}.`)} ${ch}`);
 
-              pagination.buttons = {
-                ...pagination.buttons,
-                extra: new ButtonBuilder()
-                  .setCustomId('jump')
-                  .setEmoji('↕️')
-                  .setDisabled(false)
-                  .setStyle(ButtonStyle.Secondary),
-              };
+        const pagination = new Pagination(interaction, { limit: 10 })
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setTimestamp(Date.now())
+          .setFooter({
+            text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+            iconURL: client.user.displayAvatarURL({ dynamic: true }),
+          })
+          .setAuthor({
+            name: `${
+              guild.icon ? '#️⃣ ' : ''
+            }${guild} Channel Lists (${channels.size.toLocaleString()})`,
+            iconURL: guild.iconURL({ dynamic: true }) ?? undefined,
+          });
 
-              paginations.set(pagination.interaction.id, pagination);
+        pagination.buttons = {
+          ...pagination.buttons,
+          extra: new ButtonBuilder()
+            .setCustomId('jump')
+            .setEmoji('↕️')
+            .setDisabled(false)
+            .setStyle(ButtonStyle.Secondary),
+        };
 
-              pagination.setDescriptions(descriptions);
+        pagination.setDescriptions(descriptions);
 
-              await pagination.render();
-            }),
-        );
+        paginations.set(pagination.interaction.id, pagination);
+
+        return pagination.render();
       }
     }
   },

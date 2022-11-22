@@ -21,6 +21,8 @@ module.exports = {
   async execute(sticker) {
     const { client, guild } = sticker;
 
+    if (!guild) return;
+
     const StickerLogger = new WebhookClient({
       id: process.env.SERVER_STICKER_WEBHOOK_ID,
       token: process.env.SERVER_STICKER_WEBHOOK_TOKEN,
@@ -40,9 +42,7 @@ module.exports = {
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
-      .setAuthor({
-        name: '😀 New Sticker Created',
-      })
+      .setAuthor({ name: '😀 New Sticker Created' })
       .setDescription(
         `${sticker} sticker was ${bold('created')} ${
           sticker.user ? `by ${sticker.user}` : ''
@@ -73,12 +73,9 @@ module.exports = {
           value: time(sticker.createdAt, TimestampStyles.RelativeTime),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: createLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: createLog.reason ?? 'No reason' },
       ]);
 
-    await StickerLogger.send({ embeds: [embed] }).catch(console.error);
+    return StickerLogger.send({ embeds: [embed] }).catch(console.error);
   },
 };

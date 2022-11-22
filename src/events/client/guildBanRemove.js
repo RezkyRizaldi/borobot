@@ -42,11 +42,7 @@ module.exports = {
       })
       .setTimestamp(Date.now())
       .setFields([
-        {
-          name: '🆔 Member ID',
-          value: user.id,
-          inline: true,
-        },
+        { name: '🆔 Member ID', value: user.id, inline: true },
         {
           name: '🕒 Unbanned At',
           value: time(
@@ -55,10 +51,7 @@ module.exports = {
           ),
           inline: true,
         },
-        {
-          name: '📄 Reason',
-          value: UnbanLog.reason ?? 'No reason',
-        },
+        { name: '📄 Reason', value: UnbanLog.reason ?? 'No reason' },
       ]);
 
     if (UnbanLog.target.id === user.id) {

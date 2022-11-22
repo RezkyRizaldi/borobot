@@ -62,54 +62,48 @@ module.exports = {
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
-      .setAuthor({
-        name: '📑 Translation Result',
-      });
+      .setAuthor({ name: '📑 Translation Result' });
+
+    await interaction.deferReply();
 
     switch (options.getSubcommand()) {
-      case 'list':
-        return interaction.deferReply({ ephemeral: true }).then(async () => {
-          const locales = Object.entries(languages)
-            .filter(([key]) => key !== 'auto')
-            .sort(([key], [key2]) => key.localeCompare(key2));
+      case 'list': {
+        const locales = Object.entries(languages)
+          .filter(([key]) => key !== 'auto')
+          .sort(([key], [key2]) => key.localeCompare(key2));
 
-          const responses = locales.map(
-            ([key, value], index) =>
-              `${bold(`${index + 1}. ${key}`)} - ${value} ${getTranslateFlag(
-                value,
-              )}`,
-          );
+        const responses = locales.map(
+          ([key, value], index) =>
+            `${bold(`${index + 1}. ${key}`)} - ${value} ${getTranslateFlag(
+              value,
+            )}`,
+        );
 
-          const pagination = new Pagination(interaction, {
-            limit: 10,
-          });
-
-          pagination.setColor(guild?.members.me?.displayHexColor ?? null);
-          pagination.setTimestamp(Date.now());
-          pagination.setFooter({
+        const pagination = new Pagination(interaction, { limit: 10 })
+          .setColor(guild?.members.me?.displayHexColor ?? null)
+          .setTimestamp(Date.now())
+          .setFooter({
             text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-            iconURL: client.user.displayAvatarURL({
-              dynamic: true,
-            }),
-          });
-          pagination.setAuthor({
+            iconURL: client.user.displayAvatarURL({ dynamic: true }),
+          })
+          .setAuthor({
             name: `🌐 Translation Locale Lists (${locales.length.toLocaleString()})`,
-          });
-          pagination.setDescriptions(responses);
+          })
+          .setDescriptions(responses);
 
-          pagination.buttons = {
-            ...pagination.buttons,
-            extra: new ButtonBuilder()
-              .setCustomId('jump')
-              .setEmoji('↕️')
-              .setDisabled(false)
-              .setStyle(ButtonStyle.Secondary),
-          };
+        pagination.buttons = {
+          ...pagination.buttons,
+          extra: new ButtonBuilder()
+            .setCustomId('jump')
+            .setEmoji('↕️')
+            .setDisabled(false)
+            .setStyle(ButtonStyle.Secondary),
+        };
 
-          paginations.set(pagination.interaction.id, pagination);
+        paginations.set(pagination.interaction.id, pagination);
 
-          await pagination.render();
-        });
+        return pagination.render();
+      }
 
       case 'run': {
         const text = options.getString('text', true);
@@ -120,28 +114,26 @@ module.exports = {
 
         if (from) Object.assign(translateOptions, { from });
 
-        return interaction.deferReply().then(async () => {
-          await wait(4000);
+        await wait(4000);
 
-          await translate(text, translateOptions).then(async (result) => {
-            embed.setFields([
-              {
-                name: `From ${getLanguage(languages, result.raw.src)}${
-                  from ? '' : ' - Detected'
-                } ${getTranslateFlag(languages[result.raw.src])}`,
-                value: result.raw.sentences[0].orig,
-              },
-              {
-                name: `To ${getLanguage(languages, to)} ${getTranslateFlag(
-                  languages[to.toLowerCase()],
-                )}`,
-                value: result.text,
-              },
-            ]);
+        const result = await translate(text, translateOptions);
 
-            await interaction.editReply({ embeds: [embed] });
-          });
-        });
+        embed.setFields([
+          {
+            name: `From ${getLanguage(languages, result.raw.src)}${
+              from ? '' : ' - Detected'
+            } ${getTranslateFlag(languages[result.raw.src])}`,
+            value: result.raw.sentences[0].orig,
+          },
+          {
+            name: `To ${getLanguage(languages, to)} ${getTranslateFlag(
+              languages[to.toLowerCase()],
+            )}`,
+            value: result.text,
+          },
+        ]);
+
+        return interaction.editReply({ embeds: [embed] });
       }
     }
   },

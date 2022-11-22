@@ -109,9 +109,11 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
-    await interaction.deferReply({ ephemeral: true }).then(async () => {
-      switch (options.getSubcommand()) {
-        case 'add': {
+    switch (options.getSubcommand()) {
+      case 'add':
+        {
+          await interaction.deferReply({ ephemeral: true });
+
           /** @type {?import('discord.js').GuildMember} */
           const member = options.getMember('member');
           const deleteMessageSeconds = options.getInteger(
@@ -121,9 +123,7 @@ module.exports = {
           const reason = options.getString('reason') ?? 'No reason';
 
           if (!member) {
-            return interaction.editReply({
-              content: "Member doesn't exist.",
-            });
+            return interaction.editReply({ content: "Member doesn't exist." });
           }
 
           if (!member.bannable) {
@@ -138,33 +138,34 @@ module.exports = {
             });
           }
 
-          return member
-            .ban({ deleteMessageSeconds, reason })
-            .then(async (m) => {
-              await interaction.editReply({
-                content: `Successfully ${bold('banned')} ${m.user.tag}.`,
-              });
+          await member.ban({ deleteMessageSeconds, reason });
 
-              if (!m.user.bot) {
-                return m
-                  .send({
-                    content: `You have been banned from ${bold(
-                      guild,
-                    )} for ${inlineCode(reason)}`,
-                  })
-                  .catch(async (err) => {
-                    console.error(err);
+          await interaction.editReply({
+            content: `Successfully ${bold('banned')} ${member.user.tag}.`,
+          });
 
-                    await interaction.followUp({
-                      content: `Could not send a DM to ${m}.`,
-                      ephemeral: true,
-                    });
-                  });
-              }
-            });
+          if (!member.user.bot) {
+            return member
+              .send({
+                content: `You have been banned from ${bold(
+                  guild,
+                )} for ${inlineCode(reason)}`,
+              })
+              .catch(
+                async () =>
+                  await interaction.followUp({
+                    content: `Could not send a DM to ${member}.`,
+                    ephemeral: true,
+                  }),
+              );
+          }
         }
+        break;
 
-        case 'temp': {
+      case 'temp':
+        {
+          await interaction.deferReply({ ephemeral: true });
+
           /** @type {import('discord.js').GuildMember} */
           const member = options.getMember('member');
           const deleteMessageSeconds = options.getInteger(
@@ -186,70 +187,69 @@ module.exports = {
             });
           }
 
-          return member
-            .ban({ deleteMessageSeconds, reason })
-            .then(async (m) => {
-              await interaction.editReply({
-                content: `Successfully ${bold('banned')} ${
-                  m.user.tag
-                } for ${inlineCode(`${duration / 1000} seconds`)}.`,
-              });
+          await member.ban({ deleteMessageSeconds, reason });
 
-              if (!m.user.bot) {
-                await m
-                  .send({
-                    content: `You have been banned from ${bold(
-                      guild,
-                    )} for ${inlineCode(reason)}`,
-                  })
-                  .catch(async (err) => {
-                    console.error(err);
+          await interaction.editReply({
+            content: `Successfully ${bold('banned')} ${
+              member.user.tag
+            } for ${inlineCode(`${duration / 1000} seconds`)}.`,
+          });
 
-                    await interaction.followUp({
-                      content: `Could not send a DM to ${m}.`,
-                      ephemeral: true,
-                    });
-                  });
-              }
-
-              await wait(duration);
-
-              const bannedUser = guild.bans.cache.find(
-                (ban) => ban.user.id === m.user.id,
+          if (!member.user.bot) {
+            await member.user
+              .send({
+                content: `You have been banned from ${bold(
+                  guild,
+                )} for ${inlineCode(reason)}`,
+              })
+              .catch(
+                async () =>
+                  await interaction.followUp({
+                    content: `Could not send a DM to ${member}.`,
+                    ephemeral: true,
+                  }),
               );
+          }
 
-              if (!bannedUser) {
-                return interaction.editReply({
-                  content: "This user isn't banned.",
-                });
-              }
+          await wait(duration);
 
-              await guild.members
-                .unban(bannedUser, 'ban temporary duration has passed.')
-                .then(async (u) => {
-                  if (!u.bot) {
-                    return u
-                      .send({
-                        content: `Congratulations! You have been unbanned from ${bold(
-                          guild,
-                        )} for ${inlineCode(
-                          'ban temporary duration has passed.',
-                        )}`,
-                      })
-                      .catch(async (err) => {
-                        console.error(err);
+          const bannedUser = guild.bans.cache.find(
+            (ban) => ban.user.id === user.id,
+          );
 
-                        await interaction.followUp({
-                          content: `Could not send a DM to ${u}.`,
-                          ephemeral: true,
-                        });
-                      });
-                  }
-                });
+          if (!bannedUser) {
+            return interaction.editReply({
+              content: "This user isn't banned.",
             });
-        }
+          }
 
-        case 'remove': {
+          const u = await guild.members.unban(
+            bannedUser,
+            'ban temporary duration has passed.',
+          );
+
+          if (!u.bot) {
+            return u
+              .send({
+                content: `Congratulations! You have been unbanned from ${bold(
+                  guild,
+                )} for ${inlineCode('ban temporary duration has passed.')}`,
+              })
+              .catch(
+                async () =>
+                  await interaction.followUp({
+                    content: `Could not send a DM to ${u}.`,
+                    ephemeral: true,
+                  }),
+              );
+          }
+        }
+        break;
+
+      case 'remove':
+        {
+          await interaction.deferReply({ ephemeral: true });
+
           const userId = options.get('user_id', true)?.value;
           const reason = options.getString('reason') ?? 'No reason';
 
@@ -263,93 +263,85 @@ module.exports = {
             });
           }
 
-          return guild.members.unban(bannedUser, reason).then(async (u) => {
-            await interaction.editReply({
-              content: `Successfully ${bold('unbanned')} ${u.tag}.`,
-            });
+          const u = await guild.members.unban(bannedUser, reason);
 
-            if (!u.bot) {
-              return u
-                .send({
-                  content: `Congratulations! You have been unbanned from ${bold(
-                    guild,
-                  )} for ${inlineCode(reason)}`,
-                })
-                .catch(async (err) => {
-                  console.error(err);
+          await interaction.editReply({
+            content: `Successfully ${bold('unbanned')} ${u.tag}.`,
+          });
 
+          if (!u.bot) {
+            return u
+              .send({
+                content: `Congratulations! You have been unbanned from ${bold(
+                  guild,
+                )} for ${inlineCode(reason)}`,
+              })
+              .catch(
+                async () =>
                   await interaction.followUp({
                     content: `Could not send a DM to ${u}.`,
                     ephemeral: true,
-                  });
-                });
-            }
+                  }),
+              );
+          }
+        }
+        break;
+
+      case 'list': {
+        await interaction.deferReply();
+
+        const bannedUsers = await guild.bans.fetch();
+
+        if (!bannedUsers.size) {
+          return interaction.editReply({
+            content: `No one banned in ${bold(guild)}.`,
           });
         }
 
-        case 'list': {
-          return guild.bans.fetch().then(async (bannedUsers) => {
-            if (!bannedUsers.size) {
-              return interaction.editReply({
-                content: `No one banned in ${bold(guild)}.`,
-              });
-            }
+        const descriptions = [...bannedUsers.values()].map(
+          (bannedUser, index) =>
+            `${bold(`${index + 1}.`)} ${bannedUser.user.tag}`,
+        );
 
-            const descriptions = [...bannedUsers.values()].map(
-              (bannedUser, index) =>
-                `${bold(`${index + 1}.`)} ${bannedUser.user.tag}`,
-            );
+        if (bannedUsers.size > 10) {
+          const pagination = new Pagination(interaction, { limit: 10 })
+            .setColor(guild.members.me?.displayHexColor ?? null)
+            .setTimestamp(Date.now())
+            .setFooter({
+              text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+              iconURL: client.user.displayAvatarURL({ dynamic: true }),
+            })
+            .setAuthor({
+              name: `🚫 Banned User Lists (${bannedUsers.size.toLocaleString()})`,
+            })
+            .setDescriptions(descriptions);
 
-            if (bannedUsers.size > 10) {
-              const pagination = new Pagination(interaction, {
-                limit: 10,
-              });
+          pagination.buttons = {
+            ...pagination.buttons,
+            extra: new ButtonBuilder()
+              .setCustomId('jump')
+              .setEmoji('↕️')
+              .setDisabled(false)
+              .setStyle(ButtonStyle.Secondary),
+          };
 
-              pagination.setColor(guild.members.me?.displayHexColor ?? null);
-              pagination.setTimestamp(Date.now());
-              pagination.setFooter({
-                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                iconURL: client.user.displayAvatarURL({
-                  dynamic: true,
-                }),
-              });
-              pagination.setAuthor({
-                name: `🚫 Banned User Lists (${bannedUsers.size.toLocaleString()})`,
-              });
-              pagination.setDescriptions(descriptions);
+          paginations.set(pagination.interaction.id, pagination);
 
-              pagination.buttons = {
-                ...pagination.buttons,
-                extra: new ButtonBuilder()
-                  .setCustomId('jump')
-                  .setEmoji('↕️')
-                  .setDisabled(false)
-                  .setStyle(ButtonStyle.Secondary),
-              };
-
-              paginations.set(pagination.interaction.id, pagination);
-
-              return pagination.render();
-            }
-
-            const embed = new EmbedBuilder()
-              .setColor(guild.members.me?.displayHexColor ?? null)
-              .setTimestamp(Date.now())
-              .setFooter({
-                text: client.user.username,
-                iconURL: client.user.displayAvatarURL({
-                  dynamic: true,
-                }),
-              })
-              .setAuthor({
-                name: `🚫 Banned User Lists (${bannedUsers.size})`,
-              })
-              .setDescription(descriptions.join('\n'));
-
-            await interaction.editReply({ embeds: [embed] });
-          });
+          return pagination.render();
         }
+
+        const embed = new EmbedBuilder()
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setTimestamp(Date.now())
+          .setFooter({
+            text: client.user.username,
+            iconURL: client.user.displayAvatarURL({ dynamic: true }),
+          })
+          .setAuthor({ name: `🚫 Banned User Lists (${bannedUsers.size})` })
+          .setDescription(descriptions.join('\n'));
+
+        return interaction.editReply({ embeds: [embed] });
       }
-    });
+    }
   },
 };

@@ -53,32 +53,27 @@ module.exports = {
     );
 
     if (!command) {
-      const pagination = new Pagination(interaction, {
-        limit: 5,
-      });
-
-      pagination.setColor(guild.members.me?.displayHexColor ?? null);
-      pagination.setTimestamp(Date.now());
-      pagination.setFooter({
-        text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-        iconURL: client.user.displayAvatarURL({
-          dynamic: true,
-        }),
-      });
-      pagination.setAuthor({
-        name: `${client.user.username} Commands (${commands.size})`,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      });
-      pagination.setFields(
-        commands.map(({ description, id, name, type }) => ({
-          name:
-            type !== ApplicationCommandType.ChatInput
-              ? name
-              : chatInputApplicationCommandMention(name, id),
-          value: description,
-        })),
-      );
-      pagination.paginateFields();
+      const pagination = new Pagination(interaction)
+        .setColor(guild.members.me?.displayHexColor ?? null)
+        .setTimestamp(Date.now())
+        .setFooter({
+          text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+          iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        })
+        .setAuthor({
+          name: `${client.user.username} Commands (${commands.size})`,
+          iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        })
+        .setFields(
+          commands.map(({ description, id, name, type }) => ({
+            name:
+              type !== ApplicationCommandType.ChatInput
+                ? name
+                : chatInputApplicationCommandMention(name, id),
+            value: description,
+          })),
+        )
+        .paginateFields();
 
       pagination.buttons = {
         ...pagination.buttons,
@@ -99,32 +94,14 @@ module.exports = {
     );
 
     if (!cmd) {
-      return interaction.deferReply({ ephemeral: true }).then(
-        async () =>
-          await interaction.editReply({
-            content: `${inlineCode(command)} command doesn't exist.`,
-          }),
-      );
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({
+        content: `${inlineCode(command)} command doesn't exist.`,
+      });
     }
 
-    const pagination = new Pagination(interaction, {
-      limit: 1,
-    });
-
-    pagination.setColor(guild.members.me?.displayHexColor ?? null);
-    pagination.setTimestamp(Date.now());
-    pagination.setFooter({
-      text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-      iconURL: client.user.displayAvatarURL({
-        dynamic: true,
-      }),
-    });
-    pagination.setAuthor({
-      name: `${capitalCase(cmd.name)} Command Information`,
-      iconURL: client.user.displayAvatarURL({
-        dynamic: true,
-      }),
-    });
+    await interaction.deferReply();
 
     const descriptions = [
       `${bold('Command Type')}\n${
@@ -314,7 +291,18 @@ module.exports = {
       }
     }
 
-    pagination.setDescriptions(descriptions);
+    const pagination = new Pagination(interaction, { limit: 1 })
+      .setColor(guild.members.me?.displayHexColor ?? null)
+      .setTimestamp(Date.now())
+      .setFooter({
+        text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+      })
+      .setAuthor({
+        name: `${capitalCase(cmd.name)} Command Information`,
+        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+      })
+      .setDescriptions(descriptions);
 
     pagination.buttons = {
       ...pagination.buttons,
@@ -327,6 +315,6 @@ module.exports = {
 
     paginations.set(pagination.interaction.id, pagination);
 
-    await pagination.render();
+    return pagination.render();
   },
 };

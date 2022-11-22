@@ -33,45 +33,43 @@ module.exports = {
       });
 
     if (addedMembers.size) {
-      embed.setAuthor({
-        name: '💭 Member Joined Thread Channel',
-      });
-      embed.setDescription(
-        addedMembers
-          .map(
-            (thr) =>
-              `${thr.guildMember} was ${bold('joined')} ${
-                thr.thread
-              } thread channel at ${time(
-                thr.joinedAt,
-                TimestampStyles.RelativeTime,
-              )}.`,
-          )
-          .join('\n'),
-      );
+      embed
+        .setAuthor({ name: '💭 Member Joined Thread Channel' })
+        .setDescription(
+          addedMembers
+            .map(
+              (thr) =>
+                `${thr.guildMember} was ${bold('joined')} ${
+                  thr.thread
+                } thread channel at ${time(
+                  thr.joinedAt,
+                  TimestampStyles.RelativeTime,
+                )}.`,
+            )
+            .join('\n'),
+        );
 
-      return ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+      await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
     }
 
     if (removedMembers.size) {
-      embed.setAuthor({
-        name: '💭 Member Left Thread Channel',
-      });
-      embed.setDescription(
-        removedMembers
-          .map(
-            (thr) =>
-              `${thr.guildMember} was ${bold('left')} ${
-                thr.thread
-              } thread channel at ${time(
-                Math.floor(Date.now() / 1000),
-                TimestampStyles.RelativeTime,
-              )}.`,
-          )
-          .join('\n'),
-      );
+      embed
+        .setAuthor({ name: '💭 Member Left Thread Channel' })
+        .setDescription(
+          removedMembers
+            .map(
+              (thr) =>
+                `${thr.guildMember} was ${bold('left')} ${
+                  thr.thread
+                } thread channel at ${time(
+                  Math.floor(Date.now() / 1000),
+                  TimestampStyles.RelativeTime,
+                )}.`,
+            )
+            .join('\n'),
+        );
 
-      return ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+      await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
     }
   },
 };

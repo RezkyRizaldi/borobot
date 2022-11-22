@@ -14,9 +14,9 @@ module.exports = {
    */
   async execute(queue, song) {
     const embed = new EmbedBuilder()
-      .setColor(queue.clientMember.displayHexColor)
+      .setColor(queue.clientMember?.displayHexColor ?? null)
       .setTimestamp(Date.now())
-      .setThumbnail(song.thumbnail || null)
+      .setThumbnail(song?.thumbnail || null)
       .setDescription(
         `Playing ${inlineCode(song.name)}\nRequested by ${
           song.user
@@ -31,40 +31,35 @@ module.exports = {
           .slice(0, -1)
           .toString()}] - ${song.formattedDuration}`,
       )
-      .setAuthor({
-        name: '🎶 Playing Music',
-      })
+      .setAuthor({ name: '🎶 Playing Music' })
       .setFooter({
         text: queue.client.user.username,
         iconURL: queue.client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    await queue.textChannel
-      .send({ embeds: [embed] })
-      .then((message) => {
-        const interval = setInterval(async () => {
-          if (queue.currentTime === song.duration) {
-            clearInterval(interval);
-          }
+    const message = await queue.textChannel.send({ embeds: [embed] });
 
-          embed.setDescription(
-            `${inlineCode(song.name)}\nRequested by: ${
-              song.user
-            }\nVolume: ${inlineCode(`${queue.volume}%`)} | Filter: ${inlineCode(
-              queue.filters.names.join(', ') || 'Off',
-            )} | Loop: ${inlineCode(
-              applyRepeatMode(queue.repeatMode),
-            )} | Autoplay: ${inlineCode(queue.autoplay ? 'On' : 'Off')}\n${
-              queue.formattedCurrentTime
-            } - [${progressbar
-              .splitBar(song.duration || 10, queue.currentTime, 12)
-              .slice(0, -1)
-              .toString()}] - ${song.formattedDuration}`,
-          );
+    const interval = setInterval(async () => {
+      if (queue.currentTime === song.duration) {
+        clearInterval(interval);
+      }
 
-          await message.edit({ embeds: [embed] });
-        }, 1000);
-      })
-      .catch(console.error);
+      embed.setDescription(
+        `${inlineCode(song.name)}\nRequested by: ${
+          song.user
+        }\nVolume: ${inlineCode(`${queue.volume}%`)} | Filter: ${inlineCode(
+          queue.filters.names.join(', ') || 'Off',
+        )} | Loop: ${inlineCode(
+          applyRepeatMode(queue.repeatMode),
+        )} | Autoplay: ${inlineCode(queue.autoplay ? 'On' : 'Off')}\n${
+          queue.formattedCurrentTime
+        } - [${progressbar
+          .splitBar(song.duration || 10, queue.currentTime, 12)
+          .slice(0, -1)
+          .toString()}] - ${song.formattedDuration}`,
+      );
+
+      await message.edit({ embeds: [embed] });
+    }, 1000);
   },
 };

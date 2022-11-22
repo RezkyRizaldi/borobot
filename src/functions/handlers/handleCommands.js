@@ -1,4 +1,4 @@
-const AsciiTable = require('ascii-table/ascii-table');
+const AsciiTable = require('ascii-table');
 const { REST, Routes } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
@@ -10,19 +10,24 @@ const path = require('path');
 module.exports = (client) => {
   client.handleCommands = async () => {
     const table = new AsciiTable();
+
     table.setHeading('Name', 'Category', 'Type', 'Status');
+
     const { commands, commandArray } = client;
     const commandPath = path.join(__dirname, '..', '..', 'commands');
     const commandFolders = fs.readdirSync(commandPath);
     const arr = [];
+
     for (const folder of commandFolders) {
       const commandSubPath = path.join(commandPath, folder);
       const commandFiles = fs
         .readdirSync(commandSubPath)
         .filter((file) => file.endsWith('.js'));
+
       for (const file of commandFiles) {
         const filePath = path.join(commandSubPath, file);
         const command = require(filePath);
+
         commands.set(command.data.name, command);
         commandArray.push(command.data.toJSON());
         table.addRow(
@@ -36,11 +41,13 @@ module.exports = (client) => {
       }
     }
     table.setTitle(`Commands${arr.length ? ` (${arr.length})` : ''}`);
+
     console.log(table.toString());
 
     const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
     console.log('Started refreshing application (/) commands.');
+
     await rest
       .put(
         Routes.applicationGuildCommands(

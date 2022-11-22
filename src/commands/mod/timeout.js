@@ -78,9 +78,11 @@ module.exports = {
 
     const reason = options.getString('reason') ?? 'No reason';
 
-    await interaction.deferReply({ ephemeral: true }).then(async () => {
-      switch (options.getSubcommand()) {
-        case 'apply': {
+    switch (options.getSubcommand()) {
+      case 'apply':
+        {
+          await interaction.deferReply({ ephemeral: true });
+
           /** @type {import('discord.js').GuildMember} */
           const member = options.getMember('member', true);
           const duration = options.getInteger('duration', true);
@@ -106,17 +108,19 @@ module.exports = {
             });
           }
 
-          return member.timeout(duration, reason).then(async (m) => {
-            await interaction.editReply({
-              content: `Successfully ${bold(
-                'timed out',
-              )} ${m}. Available back ${time(
-                m.communicationDisabledUntil,
-                TimestampStyles.RelativeTime,
-              )}.`,
-            });
+          await member.timeout(duration, reason);
 
-            await m
+          await interaction.editReply({
+            content: `Successfully ${bold(
+              'timed out',
+            )} ${member}. Available back ${time(
+              member.communicationDisabledUntil,
+              TimestampStyles.RelativeTime,
+            )}.`,
+          });
+
+          if (!member.user.bot) {
+            await member
               .send({
                 content: `You have been ${bold('timed out')} from ${bold(
                   guild,
@@ -129,10 +133,14 @@ module.exports = {
                   content: `Could not send a DM to ${member}.`,
                 });
               });
-          });
+          }
         }
+        break;
 
-        case 'cease': {
+      case 'cease':
+        {
+          await interaction.deferReply({ ephemeral: true });
+
           /** @type {import('discord.js').GuildMember} */
           const member = options.getMember('member', true);
 
@@ -154,12 +162,14 @@ module.exports = {
             });
           }
 
-          return member.timeout(null, reason).then(async (m) => {
-            await interaction.editReply({
-              content: `Successfully ${bold('removing timeout')} from ${m}.`,
-            });
+          await member.timeout(null, reason);
 
-            await m
+          await interaction.editReply({
+            content: `Successfully ${bold('removing timeout')} from ${member}.`,
+          });
+
+          if (!member.user.bot) {
+            await member
               .send({
                 content: `Congratulations! Your ${bold(
                   'timeout',
@@ -173,76 +183,73 @@ module.exports = {
                   ephemeral: true,
                 });
               });
+          }
+        }
+        break;
+
+      case 'list': {
+        const timedoutMembers = guild.members.cache.filter((m) =>
+          m.isCommunicationDisabled(),
+        );
+
+        if (!timedoutMembers.size) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `No one being timed out in ${bold(guild)}.`,
           });
         }
 
-        case 'list': {
-          const timedoutMembers = guild.members.cache.filter((m) =>
-            m.isCommunicationDisabled(),
-          );
+        await interaction.deferReply();
 
-          if (!timedoutMembers.size) {
-            return interaction.editReply({
-              content: `No one being timed out in ${bold(guild)}.`,
-            });
-          }
+        const descriptions = [...timedoutMembers.values()].map(
+          (timedoutMember, index) =>
+            `${bold(`${index + 1}.`)} ${timedoutMember} (${
+              timedoutMember.user.username
+            })`,
+        );
 
-          const descriptions = [...timedoutMembers.values()].map(
-            (timedoutMember, index) =>
-              `${bold(`${index + 1}.`)} ${timedoutMember} (${
-                timedoutMember.user.username
-              })`,
-          );
-
-          if (timedoutMembers.size > 10) {
-            const pagination = new Pagination(interaction, {
-              limit: 10,
-            });
-
-            pagination.setColor(guild.members.me?.displayHexColor ?? null);
-            pagination.setTimestamp(Date.now());
-            pagination.setFooter({
-              text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-              iconURL: client.user.displayAvatarURL({
-                dynamic: true,
-              }),
-            });
-            pagination.setAuthor({
-              name: `🚫 Timed Out Member Lists (${timedoutMembers.size})`,
-            });
-            pagination.setDescriptions(descriptions);
-
-            pagination.buttons = {
-              ...pagination.buttons,
-              extra: new ButtonBuilder()
-                .setCustomId('jump')
-                .setEmoji('↕️')
-                .setDisabled(false)
-                .setStyle(ButtonStyle.Secondary),
-            };
-
-            paginations.set(pagination.interaction.id, pagination);
-
-            return pagination.render();
-          }
-
-          const embed = new EmbedBuilder()
+        if (timedoutMembers.size > 10) {
+          const pagination = new Pagination(interaction, { limit: 10 })
             .setColor(guild.members.me?.displayHexColor ?? null)
             .setTimestamp(Date.now())
             .setFooter({
-              text: client.user.username,
-              iconURL: client.user.displayAvatarURL({
-                dynamic: true,
-              }),
+              text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+              iconURL: client.user.displayAvatarURL({ dynamic: true }),
             })
             .setAuthor({
               name: `🚫 Timed Out Member Lists (${timedoutMembers.size})`,
             })
-            .setDescription(descriptions.join('\n'));
+            .setDescriptions(descriptions);
 
-          return interaction.editReply({ embeds: [embed] });
+          pagination.buttons = {
+            ...pagination.buttons,
+            extra: new ButtonBuilder()
+              .setCustomId('jump')
+              .setEmoji('↕️')
+              .setDisabled(false)
+              .setStyle(ButtonStyle.Secondary),
+          };
+
+          paginations.set(pagination.interaction.id, pagination);
+
+          return pagination.render();
         }
+
+        const embed = new EmbedBuilder()
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setTimestamp(Date.now())
+          .setFooter({
+            text: client.user.username,
+            iconURL: client.user.displayAvatarURL({ dynamic: true }),
+          })
+          .setAuthor({
+            name: `🚫 Timed Out Member Lists (${timedoutMembers.size})`,
+          })
+          .setDescription(descriptions.join('\n'));
+
+        return interaction.editReply({ embeds: [embed] });
       }
-    });
+    }
   },
 };

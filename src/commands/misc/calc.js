@@ -43,80 +43,71 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
-    return interaction.deferReply().then(async () => {
-      switch (options.getSubcommand()) {
-        case 'list': {
-          const symbols = Object.values(math);
+    await interaction.deferReply();
 
-          const responses = symbols.map(
-            ({ description, example, result, symbol }, index) =>
-              `${bold(`${index + 1}.`)} ${inlineCode(symbol)} ${description}${
-                example ? ` ${inlineCode(`eg. ${example}`)}` : ''
-              }${result ? ` returns ${inlineCode(result)}` : ''}`,
-          );
+    switch (options.getSubcommand()) {
+      case 'list': {
+        const symbols = Object.values(math);
 
-          const pagination = new Pagination(interaction, {
-            limit: 10,
-          });
+        const responses = symbols.map(
+          ({ description, example, result, symbol }, index) =>
+            `${bold(`${index + 1}.`)} ${inlineCode(symbol)} ${description}${
+              example ? ` ${inlineCode(`eg. ${example}`)}` : ''
+            }${result ? ` returns ${inlineCode(result)}` : ''}`,
+        );
 
-          pagination.setColor(guild?.members.me?.displayHexColor ?? null);
-          pagination.setTimestamp(Date.now());
-          pagination.setFooter({
+        const pagination = new Pagination(interaction, { limit: 10 })
+          .setColor(guild?.members.me?.displayHexColor ?? null)
+          .setTimestamp(Date.now())
+          .setFooter({
             text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-            iconURL: client.user.displayAvatarURL({
-              dynamic: true,
-            }),
-          });
-          pagination.setAuthor({
+            iconURL: client.user.displayAvatarURL({ dynamic: true }),
+          })
+          .setAuthor({
             name: `➗ Supported Math Symbol Lists (${symbols.length.toLocaleString()})`,
-          });
-          pagination.setDescriptions(responses);
+          })
+          .setDescriptions(responses);
 
-          pagination.buttons = {
-            ...pagination.buttons,
-            extra: new ButtonBuilder()
-              .setCustomId('jump')
-              .setEmoji('↕️')
-              .setDisabled(false)
-              .setStyle(ButtonStyle.Secondary),
-          };
+        pagination.buttons = {
+          ...pagination.buttons,
+          extra: new ButtonBuilder()
+            .setCustomId('jump')
+            .setEmoji('↕️')
+            .setDisabled(false)
+            .setStyle(ButtonStyle.Secondary),
+        };
 
-          paginations.set(pagination.interaction.id, pagination);
+        paginations.set(pagination.interaction.id, pagination);
 
-          return pagination.render();
-        }
-
-        case 'run': {
-          const operation = options.getString('operation', true);
-
-          const embed = new EmbedBuilder()
-            .setColor(guild?.members.me?.displayHexColor ?? null)
-            .setTimestamp(Date.now())
-            .setFooter({
-              text: client.user.username,
-              iconURL: client.user.displayAvatarURL({
-                dynamic: true,
-              }),
-            })
-            .setAuthor({
-              name: '🧮 Calculation Result',
-            })
-            .setFields([
-              {
-                name: '🔢 Operation',
-                value: operation,
-                inline: true,
-              },
-              {
-                name: '🔢 Result',
-                value: `${mexp.eval(operation)}`,
-                inline: true,
-              },
-            ]);
-
-          return interaction.editReply({ embeds: [embed] });
-        }
+        return pagination.render();
       }
-    });
+
+      case 'run': {
+        const operation = options.getString('operation', true);
+
+        const embed = new EmbedBuilder()
+          .setColor(guild?.members.me?.displayHexColor ?? null)
+          .setTimestamp(Date.now())
+          .setFooter({
+            text: client.user.username,
+            iconURL: client.user.displayAvatarURL({ dynamic: true }),
+          })
+          .setAuthor({ name: '🧮 Calculation Result' })
+          .setFields([
+            {
+              name: '🔢 Operation',
+              value: operation,
+              inline: true,
+            },
+            {
+              name: '🔢 Result',
+              value: `${mexp.eval(operation)}`,
+              inline: true,
+            },
+          ]);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+    }
   },
 };
