@@ -1,5 +1,12 @@
+const AnimeImages = require('anime-images-api');
 const axios = require('axios');
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { snakeCase } = require('change-case');
+const {
+  EmbedBuilder,
+  inlineCode,
+  italic,
+  SlashCommandBuilder,
+} = require('discord.js');
 const {
   Blur,
   Greyscale,
@@ -8,14 +15,37 @@ const {
   Triggered,
 } = require('discord-image-generation');
 const fs = require('fs');
+const nekoClient = require('nekos.life');
 const QRCode = require('qrcode');
 
+const { waifuChoices } = require('../../constants');
 const { isValidURL, generateAttachmentFromBuffer } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('generate')
     .setDescription('🏭 Generator command.')
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('ahegao')
+        .setDescription('🚫 Generate a random ahegao image.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('boobs')
+        .setDescription('🚫 Generate a random boobs gif.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('danbooru')
+        .setDescription('🖼️ Generate a random image from Danbooru.')
+        .addStringOption((option) =>
+          option
+            .setName('query')
+            .setDescription('🔠 The image search query.')
+            .setRequired(true),
+        ),
+    )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('filters')
@@ -85,6 +115,21 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
+        .setName('hentai')
+        .setDescription('🚫 Generate a random hentai gif.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('kemono')
+        .setDescription('😻 Generate a random kemono image/gif.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('lesbian')
+        .setDescription('🚫 Generate a random lesbian gif.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
         .setName('shortlink')
         .setDescription('🔗 Generate a shortened URL.')
         .addStringOption((option) =>
@@ -104,6 +149,18 @@ module.exports = {
             .setDescription('🔗 The content to be transformed.')
             .setRequired(true),
         ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('waifu')
+        .setDescription('👰‍♀️ Generate a waifu image/gif.')
+        .addStringOption((option) =>
+          option
+            .setName('type')
+            .setDescription('🖼️ The image type to generate.')
+            .setRequired(true)
+            .addChoices(...waifuChoices),
+        ),
     ),
 
   type: 'Chat Input',
@@ -113,7 +170,24 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, guild, options } = interaction;
+    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { channel, client, guild, member, options } = interaction;
+
+    if (!member) {
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({ content: "Member doesn't exist." });
+    }
+
+    /** @type {{ channels: { cache: import('discord.js').Collection<String, import('discord.js').BaseGuildTextChannel> } */
+    const {
+      channels: { cache: baseGuildTextChannels },
+    } = guild;
+
+    const NSFWChannels = baseGuildTextChannels.filter((ch) => ch.nsfw);
+    const NSFWResponse = NSFWChannels.size
+      ? `\n${italic('eg.')} ${[...NSFWChannels.values()].join(', ')}`
+      : '';
 
     const embed = new EmbedBuilder()
       .setColor(guild?.members.me?.displayHexColor ?? null)
@@ -122,6 +196,9 @@ module.exports = {
         text: client.user.username,
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
+
+    const images = new AnimeImages();
+    const neko = new nekoClient();
 
     switch (options.getSubcommandGroup()) {
       case 'filters':
@@ -204,6 +281,180 @@ module.exports = {
     }
 
     switch (options.getSubcommand()) {
+      case 'ahegao': {
+        if (!channel) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Channel doesn't exist." });
+        }
+
+        if (!channel.nsfw) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+          });
+        }
+
+        await interaction.deferReply();
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random/nsfw/ahegao?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
+
+        const { attachment: img, ext } = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'ahegao',
+          fileDesc: 'Ahegao Image',
+        });
+
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(`attachment://${img.name}.${ext}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
+
+      case 'boobs': {
+        if (!channel) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Channel doesn't exist." });
+        }
+
+        if (!channel.nsfw) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+          });
+        }
+
+        await interaction.deferReply();
+
+        const { image } = await images.nsfw.boobs();
+
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(image);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'danbooru': {
+        const query = options.getString('query', true);
+
+        if (!channel) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Channel doesn't exist." });
+        }
+
+        if (!channel.nsfw) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+          });
+        }
+
+        await interaction.deferReply();
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios
+          .get(
+            `https://api.lolhuman.xyz/api/danbooru?query=${snakeCase(
+              query,
+            )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+            { responseType: 'arraybuffer' },
+          )
+          .catch(() => {
+            throw `No image found with query ${inlineCode(query)}.`;
+          });
+
+        const { attachment: img, ext } = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: snakeCase(query),
+          fileDesc: 'Danbooru Image',
+        });
+
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(`attachment://${img.name}.${ext}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
+
+      case 'hentai': {
+        if (!channel) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Channel doesn't exist." });
+        }
+
+        if (!channel.nsfw) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+          });
+        }
+
+        await interaction.deferReply();
+
+        /** @type {{ image: String }} */
+        const { image } = await images.nsfw.hentai();
+
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(image);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'kemono': {
+        const endpoints = ['neko', 'nekoGif', 'foxGirl'];
+
+        await interaction.deferReply();
+
+        /** @type {{ url: String }} */
+        const { url } = await neko[
+          endpoints[Math.floor(Math.random() * endpoints.length)]
+        ]();
+
+        embed.setColor(guild.members.me?.displayHexColor ?? null).setImage(url);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'lesbian': {
+        if (!channel) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Channel doesn't exist." });
+        }
+
+        if (!channel.nsfw) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+          });
+        }
+
+        await interaction.deferReply();
+
+        const { image } = await images.nsfw.lesbian();
+
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(image);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
       case 'shortlink': {
         const url = options.getString('url', true);
 
@@ -258,6 +509,64 @@ module.exports = {
 
         return fs.unlinkSync(imagePath);
       }
+
+      case 'waifu':
+        {
+          const type = options.getString('type', true);
+
+          embed.setColor(member.displayHexColor);
+
+          await interaction.deferReply();
+
+          switch (type) {
+            case 'image': {
+              /** @type {{ data: { url: String } }} */
+              const {
+                data: { url },
+              } = await axios.get('https://api.waifu.pics/sfw/waifu');
+
+              embed
+                .setAuthor({
+                  name: `${member.user.username} Got a Waifu`,
+                  iconURL: member.displayAvatarURL({ dynamic: true }),
+                })
+                .setImage(url);
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case 'pfp': {
+              const { url } = await neko.avatar();
+
+              /** @type {{ image: String }} */
+              const { image } = await images.sfw.waifu();
+              const imgArr = [url, image];
+              const pfp = imgArr[Math.floor(Math.random() * imgArr.length)];
+
+              embed.setAuthor({
+                name: `${member.user.username} Got a Waifu`,
+                iconURL: member.displayAvatarURL({ dynamic: true }),
+              });
+              embed.setImage(pfp);
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case 'wallpaper': {
+              const { url } = await neko.wallpaper();
+
+              embed
+                .setAuthor({
+                  name: `${member.user.username} Got a Waifu`,
+                  iconURL: member.displayAvatarURL({ dynamic: true }),
+                })
+                .setImage(url);
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+          }
+        }
+        break;
     }
   },
 };
