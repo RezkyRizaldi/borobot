@@ -23,14 +23,11 @@ module.exports = {
   async execute(interaction) {
     /** @type {{ client: import('discord.js').Client<true>, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
     const { client, member, options } = interaction;
-
     const event = options.getString('event', true);
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply();
 
-    if (!member) {
-      return interaction.editReply({ content: "Member doesn't exist." });
-    }
+    if (!member) throw "Member doesn't exist.";
 
     client.emit(event, member);
 

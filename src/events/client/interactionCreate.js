@@ -21,12 +21,11 @@ module.exports = {
       channel.id === guild.widgetChannelId ||
       channel.parent.id === process.env.DASHBOARD_CATEGORY_CHANNEL_ID
     ) {
-      return interaction.deferReply({ ephemeral: true }).then(
-        async () =>
-          await interaction.editReply({
-            content: `You don't have appropiate permissions to use slash command in ${channel}`,
-          }),
-      );
+      await interaction.deferReply({ ephemeral: true });
+
+      return interaction.editReply({
+        content: `You don't have appropiate permissions to use slash command in ${channel}`,
+      });
     }
 
     return {
@@ -40,7 +39,7 @@ module.exports = {
         }
 
         await command.execute(interaction).catch(async (err) => {
-          console.error(err);
+          if (typeof err !== 'string') console.error(err);
 
           await interaction.editReply({
             content:
@@ -56,7 +55,7 @@ module.exports = {
         if (!component) return;
 
         await component.execute(interaction).catch(async (err) => {
-          console.error(err);
+          if (typeof err !== 'string') console.error(err);
 
           await interaction.editReply({
             content:
@@ -76,7 +75,7 @@ module.exports = {
         }
 
         await autocomplete.autocomplete(interaction).catch(async (err) => {
-          console.error(err);
+          if (typeof err !== 'string') console.error(err);
 
           await interaction.editReply({
             content:
@@ -96,7 +95,7 @@ module.exports = {
         }
 
         await modal.execute(interaction).catch(async (err) => {
-          console.error(err);
+          if (typeof err !== 'string') console.error(err);
 
           await interaction.editReply({
             content:

@@ -51,9 +51,7 @@ module.exports = {
 
     await interaction.deferReply({ ephemeral: true });
 
-    if (!channel) {
-      return interaction.editReply({ content: "Channel doesn't exist." });
-    }
+    if (!channel) throw "Channel doesn't exist.";
 
     const amount = options.getInteger('amount', true);
 
@@ -65,16 +63,10 @@ module.exports = {
 
     const messages = await channel.messages.fetch();
 
-    if (!messages.size) {
-      return interaction.editReply({
-        content: `${channel} doesn't have any message.`,
-      });
-    }
+    if (!messages.size) `${channel} doesn't have any message.`;
 
     if (!messages.first().deletable) {
-      return interaction.editReply({
-        content: "You don't have appropiate permissions to delete messages.",
-      });
+      throw "You don't have appropiate permissions to delete messages.";
     }
 
     let i = 0;
@@ -100,9 +92,7 @@ module.exports = {
           });
 
           if (!filteredMessages.size) {
-            return interaction.editReply({
-              content: `members with role ${role} doesn't have any message in ${channel}`,
-            });
+            throw `members with role ${role} doesn't have any message in ${channel}.`;
           }
         }
         break;
@@ -117,9 +107,7 @@ module.exports = {
           });
 
           if (!filteredMessages.size) {
-            return interaction.editReply({
-              content: `${member} doesn't have any message in ${channel}`,
-            });
+            throw `${member} doesn't have any message in ${channel}.`;
           }
         }
         break;
@@ -138,9 +126,7 @@ module.exports = {
           });
 
           if (!filteredMessages.size) {
-            return interaction.editReply({
-              content: `members with role ${role} doesn't have any message in ${channel}`,
-            });
+            throw `members with role ${role} doesn't have any message in ${channel}.`;
           }
         }
         break;
@@ -151,9 +137,7 @@ module.exports = {
       true,
     );
 
-    if (!msgs.size) {
-      return interaction.editReply({ content: 'No messages can be deleted.' });
-    }
+    if (!msgs.size) throw 'No messages can be deleted.';
 
     const embed = new EmbedBuilder()
       .setColor(guild.members.me?.displayHexColor ?? null)

@@ -77,9 +77,9 @@ for (const folder of funcFolders) {
   }
 }
 
-client
-  .handleEvents()
-  .then(() => client.handleComponents())
-  .then(() => client.handleCommands())
-  .then(() => client.login(process.env.TOKEN))
-  .catch(console.error);
+(async () => {
+  await client.handleEvents();
+  await client.handleComponents();
+  await client.handleCommands();
+  await client.login(process.env.TOKEN).catch(console.error);
+})();

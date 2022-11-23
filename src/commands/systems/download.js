@@ -155,6 +155,8 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
+    await interaction.deferReply();
+
     const baseURL = 'https://api.lolhuman.xyz/api';
 
     const embed = new EmbedBuilder()
@@ -188,12 +190,8 @@ module.exports = {
                   `${baseURL}/otakudesusearch?query=${title}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
                 .catch(async () => {
-                  await interaction.deferReply({ ephemeral: true });
-
                   throw `No anime found with title ${inlineCode(title)}.`;
                 });
-
-              await interaction.deferReply();
 
               const responses = downloads.map(
                 ({ title: t, link_dl }) =>
@@ -256,12 +254,8 @@ module.exports = {
                   `${baseURL}/kusonimesearch?query=${title}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
                 .catch(async () => {
-                  await interaction.deferReply({ ephemeral: true });
-
                   throw `No anime found with title ${inlineCode(title)}.`;
                 });
-
-              await interaction.deferReply();
 
               const response = `${bold(t)}\n${Object.entries(link_dl)
                 .map(
@@ -289,14 +283,8 @@ module.exports = {
         const url = options.getString('url', true);
 
         if (!isValidURL(url, 'facebook')) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: 'Please provide a valid Facebook URL.',
-          });
+          throw 'Please provide a valid Facebook URL.';
         }
-
-        await interaction.deferReply();
 
         /** @type {{ data: { result: String } }} */
         const {
@@ -319,20 +307,14 @@ module.exports = {
       case 'instagram':
         {
           const type = options.getString('type', true);
-          const url = options.getString('query', true);
-
-          if (!isValidURL(url, 'instagram')) {
-            await interaction.deferReply({ ephemeral: true });
-
-            return interaction.editReply({
-              content: 'Please provide a valid Instagram URL.',
-            });
-          }
-
-          await interaction.deferReply();
+          const query = options.getString('query', true);
 
           switch (type) {
             case 'instagram': {
+              if (!isValidURL(query, 'instagram')) {
+                throw 'Please provide a valid Instagram URL.';
+              }
+
               /** @type {{ data: { result: import('../../constants/types').Instagram } }} */
               const {
                 data: {
@@ -343,7 +325,7 @@ module.exports = {
                   },
                 },
               } = await axios.get(
-                `${baseURL}/instagram2?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                `${baseURL}/instagram2?url=${query}&apikey=${process.env.LOLHUMAN_API_KEY}`,
               );
 
               embed
@@ -380,14 +362,66 @@ module.exports = {
               return interaction.editReply({ embeds: [embed] });
             }
 
-            // TODO: WIP
-            case 'igstory':
-              return interaction.deferReply({ ephemeral: true }).then(
-                async () =>
-                  await interaction.editReply({
-                    content: 'Sorry, this feature still in development.',
-                  }),
+            case 'igstory': {
+              const username = query.toLowerCase();
+
+              /** @type {{ data: { result: String[] } }} */
+              const {
+                data: { result },
+              } = await axios
+                .get(
+                  `${baseURL}/igstory/${username}?apikey=${process.env.LOLHUMAN_API_KEY}`,
+                )
+                .catch(async () => {
+                  throw `No user found with username ${inlineCode(
+                    username,
+                  )} or its doesn't have any stories right now.`;
+                });
+
+              const URLs = result.map(
+                (url, index) =>
+                  `${bold('•')} ${hyperlink(`Story ${index + 1}`, url)}`,
               );
+
+              if (result.length > 5) {
+                const pagination = new Pagination(interaction)
+                  .setColor(guild?.members.me?.displayHexColor ?? null)
+                  .setTimestamp(Date.now())
+                  .setAuthor({
+                    name: 'Instagram Story Downloader Result',
+                    iconURL:
+                      'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
+                  })
+                  .setFooter({
+                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                  })
+                  .setDescriptions(URLs);
+
+                pagination.buttons = {
+                  ...pagination.buttons,
+                  extra: new ButtonBuilder()
+                    .setCustomId('jump')
+                    .setEmoji('↕️')
+                    .setDisabled(false)
+                    .setStyle(ButtonStyle.Secondary),
+                };
+
+                paginations.set(pagination.interaction.id, pagination);
+
+                return pagination.render();
+              }
+
+              embed
+                .setAuthor({
+                  name: 'Instagram Post Downloader Result',
+                  iconURL:
+                    'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
+                })
+                .setDescription(URLs.join('\n'));
+
+              return interaction.editReply({ embeds: [embed] });
+            }
           }
         }
         break;
@@ -396,14 +430,8 @@ module.exports = {
         const url = options.getString('url', true);
 
         if (!isValidURL(url, 'spotify')) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: 'Please provide a valid Spotify URL.',
-          });
+          throw 'Please provide a valid Spotify URL.';
         }
-
-        await interaction.deferReply();
 
         /** @type {{ data: { result: import('../../constants/types').Spotify } }} */
         const {
@@ -462,14 +490,8 @@ module.exports = {
           const url = options.getString('url', true);
 
           if (!isValidURL(url, 'tiktok')) {
-            await interaction.deferReply({ ephemeral: true });
-
-            return interaction.editReply({
-              content: 'Please provide a valid TikTok URL.',
-            });
+            throw 'Please provide a valid TikTok URL.';
           }
-
-          await interaction.deferReply();
 
           switch (type) {
             case 'audio': {
@@ -479,13 +501,13 @@ module.exports = {
                 { responseType: 'arraybuffer' },
               );
 
-              const { attachment } = await generateAttachmentFromBuffer(
+              const audio = await generateAttachmentFromBuffer(
                 data,
                 'download',
                 'TikTok audio',
               );
 
-              return interaction.editReply({ files: [attachment] });
+              return interaction.editReply({ files: [audio] });
             }
 
             case 'video': {
@@ -495,13 +517,13 @@ module.exports = {
                 { responseType: 'arraybuffer' },
               );
 
-              const { attachment } = await generateAttachmentFromBuffer(
+              const video = await generateAttachmentFromBuffer(
                 data,
                 'download',
                 'TikTok video',
               );
 
-              return interaction.editReply({ files: [attachment] });
+              return interaction.editReply({ files: [video] });
             }
 
             case 'videoNoWatermark': {
@@ -568,14 +590,8 @@ module.exports = {
           const url = options.getString('url', true);
 
           if (!isValidURL(url, 'twitter')) {
-            await interaction.deferReply({ ephemeral: true });
-
-            return interaction.editReply({
-              content: 'Please provide a valid Twitter URL.',
-            });
+            throw 'Please provide a valid Twitter URL.';
           }
-
-          await interaction.deferReply();
 
           switch (type) {
             case 'image': {
@@ -694,14 +710,8 @@ module.exports = {
         const url = options.getString('url', true);
 
         if (!isValidURL(url, 'youtube')) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: 'Please provide a valid YouTube URL.',
-          });
+          throw 'Please provide a valid YouTube URL.';
         }
-
-        await interaction.deferReply();
 
         switch (type) {
           case 'audio': {

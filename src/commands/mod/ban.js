@@ -109,11 +109,11 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
+    await interaction.deferReply();
+
     switch (options.getSubcommand()) {
       case 'add':
         {
-          await interaction.deferReply({ ephemeral: true });
-
           /** @type {?import('discord.js').GuildMember} */
           const member = options.getMember('member');
           const deleteMessageSeconds = options.getInteger(
@@ -122,21 +122,13 @@ module.exports = {
           );
           const reason = options.getString('reason') ?? 'No reason';
 
-          if (!member) {
-            return interaction.editReply({ content: "Member doesn't exist." });
-          }
+          if (!member) throw "Member doesn't exist.";
 
           if (!member.bannable) {
-            return interaction.editReply({
-              content: `You don't have appropiate permissions to ban ${member}.`,
-            });
+            throw `You don't have appropiate permissions to ban ${member}.`;
           }
 
-          if (member.id === user.id) {
-            return interaction.editReply({
-              content: "You can't ban yourself.",
-            });
-          }
+          if (member.id === user.id) throw "You can't ban yourself.";
 
           await member.ban({ deleteMessageSeconds, reason });
 
@@ -164,8 +156,6 @@ module.exports = {
 
       case 'temp':
         {
-          await interaction.deferReply({ ephemeral: true });
-
           /** @type {import('discord.js').GuildMember} */
           const member = options.getMember('member');
           const deleteMessageSeconds = options.getInteger(
@@ -176,16 +166,10 @@ module.exports = {
           const reason = options.getString('reason') ?? 'No reason';
 
           if (!member.bannable) {
-            return interaction.editReply({
-              content: `You don't have appropiate permissions to ban ${member}.`,
-            });
+            throw `You don't have appropiate permissions to ban ${member}.`;
           }
 
-          if (member.id === user.id) {
-            return interaction.editReply({
-              content: "You can't ban yourself.",
-            });
-          }
+          if (member.id === user.id) throw "You can't ban yourself.";
 
           await member.ban({ deleteMessageSeconds, reason });
 
@@ -217,11 +201,7 @@ module.exports = {
             (ban) => ban.user.id === user.id,
           );
 
-          if (!bannedUser) {
-            return interaction.editReply({
-              content: "This user isn't banned.",
-            });
-          }
+          if (!bannedUser) throw "This user isn't banned.";
 
           const u = await guild.members.unban(
             bannedUser,
@@ -248,8 +228,6 @@ module.exports = {
 
       case 'remove':
         {
-          await interaction.deferReply({ ephemeral: true });
-
           const userId = options.get('user_id', true)?.value;
           const reason = options.getString('reason') ?? 'No reason';
 
@@ -257,11 +235,7 @@ module.exports = {
             (ban) => ban.user.id === userId,
           );
 
-          if (!bannedUser) {
-            return interaction.editReply({
-              content: "This user isn't banned.",
-            });
-          }
+          if (!bannedUser) throw "This user isn't banned.";
 
           const u = await guild.members.unban(bannedUser, reason);
 
@@ -288,15 +262,9 @@ module.exports = {
         break;
 
       case 'list': {
-        await interaction.deferReply();
-
         const bannedUsers = await guild.bans.fetch();
 
-        if (!bannedUsers.size) {
-          return interaction.editReply({
-            content: `No one banned in ${bold(guild)}.`,
-          });
-        }
+        if (!bannedUsers.size) throw `No one banned in ${bold(guild)}.`;
 
         const descriptions = [...bannedUsers.values()].map(
           (bannedUser, index) =>

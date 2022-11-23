@@ -49,24 +49,20 @@ module.exports = {
     /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
     const { channel, options } = interaction;
 
+    await interaction.deferReply();
+
     const reason = options.getString('reason') ?? 'No reason';
 
-    await interaction.deferReply({ ephemeral: true });
-
-    if (!channel) {
-      return interaction.editReply({ content: "Channel doesn't exist." });
-    }
+    if (!channel) throw "Channel doesn't exist.";
 
     switch (options.getSubcommand()) {
       case 'on': {
         const duration = options.getInteger('duration', true);
 
         if (channel.rateLimitPerUser && channel.rateLimitPerUser > 0) {
-          return interaction.editReply({
-            content: `Slowmode in ${channel} is already turned on for ${inlineCode(
-              `${channel.rateLimitPerUser} seconds`,
-            )}.`,
-          });
+          throw `Slowmode in ${channel} is already turned on for ${inlineCode(
+            `${channel.rateLimitPerUser} seconds`,
+          )}.`;
         }
 
         await channel.setRateLimitPerUser(duration, reason);
@@ -80,9 +76,7 @@ module.exports = {
 
       case 'off':
         if (channel.rateLimitPerUser && channel.rateLimitPerUser === 0) {
-          return interaction.editReply({
-            content: `Slowmode in ${channel} isn't being turned on.`,
-          });
+          throw `Slowmode in ${channel} isn't being turned on.`;
         }
 
         await channel.setRateLimitPerUser(0, reason);

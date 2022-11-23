@@ -1,6 +1,6 @@
 {
   "name": "borobot",
-  "version": "1.31.0",
+  "version": "1.32.0",
   "description": "A simple Discord Bot build with Discord.js",
   "displayName": "Borobot",
   "bugs": {
@@ -78,7 +78,7 @@
     "husky": "^8.0.2",
     "lint-staged": "^13.0.3",
     "nodemon": "^2.0.20",
-    "prettier": "^2.7.1"
+    "prettier": "^2.8.0"
   },
   "lint-staged": {
     "*.ts": "eslint --cache --fix",

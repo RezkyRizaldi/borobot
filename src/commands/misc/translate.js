@@ -55,6 +55,8 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
+    await interaction.deferReply();
+
     const embed = new EmbedBuilder()
       .setColor(guild?.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
@@ -63,8 +65,6 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       })
       .setAuthor({ name: '📑 Translation Result' });
-
-    await interaction.deferReply();
 
     switch (options.getSubcommand()) {
       case 'list': {

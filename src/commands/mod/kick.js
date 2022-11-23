@@ -30,21 +30,17 @@ module.exports = {
   async execute(interaction) {
     const { guild, options, user } = interaction;
 
+    await interaction.deferReply();
+
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
     const reason = options.getString('reason') ?? 'No reason';
 
-    await interaction.deferReply({ ephemeral: true });
-
     if (!member.kickable) {
-      return interaction.editReply({
-        content: `You don't have appropiate permissions to kick ${member}.`,
-      });
+      throw `You don't have appropiate permissions to kick ${member}.`;
     }
 
-    if (member.id === user.id) {
-      return interaction.editReply({ content: "You can't kick yourself." });
-    }
+    if (member.id === user.id) throw "You can't kick yourself.";
 
     await member.kick(reason);
 

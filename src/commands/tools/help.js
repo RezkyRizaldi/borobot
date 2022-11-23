@@ -35,6 +35,8 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
+    await interaction.deferReply();
+
     const command = options.getString('command');
 
     const commands = await guild.commands.fetch().then((cmds) =>
@@ -93,15 +95,7 @@ module.exports = {
       (c) => c.name.toLowerCase().trim() === command.toLowerCase().trim(),
     );
 
-    if (!cmd) {
-      await interaction.deferReply({ ephemeral: true });
-
-      return interaction.editReply({
-        content: `${inlineCode(command)} command doesn't exist.`,
-      });
-    }
-
-    await interaction.deferReply();
+    if (!cmd) throw `${inlineCode(command)} command doesn't exist.`;
 
     const descriptions = [
       `${bold('Command Type')}\n${

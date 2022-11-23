@@ -76,36 +76,28 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
+    await interaction.deferReply();
+
     const reason = options.getString('reason') ?? 'No reason';
 
     switch (options.getSubcommand()) {
       case 'apply':
         {
-          await interaction.deferReply({ ephemeral: true });
-
           /** @type {import('discord.js').GuildMember} */
           const member = options.getMember('member', true);
           const duration = options.getInteger('duration', true);
 
           if (!member.moderatable) {
-            return interaction.editReply({
-              content: `You don't have appropiate permissions to timeout ${member}.`,
-            });
+            throw `You don't have appropiate permissions to timeout ${member}.`;
           }
 
-          if (member.id === user.id) {
-            return interaction.editReply({
-              content: "You can't timeout yourself.",
-            });
-          }
+          if (member.id === user.id) throw "You can't timeout yourself.";
 
           if (member.isCommunicationDisabled()) {
-            return interaction.editReply({
-              content: `${member} is already timed out. Available back ${time(
-                member.communicationDisabledUntil,
-                TimestampStyles.RelativeTime,
-              )}`,
-            });
+            throw `${member} is already timed out. Available back ${time(
+              member.communicationDisabledUntil,
+              TimestampStyles.RelativeTime,
+            )}`;
           }
 
           await member.timeout(duration, reason);
@@ -139,27 +131,19 @@ module.exports = {
 
       case 'cease':
         {
-          await interaction.deferReply({ ephemeral: true });
-
           /** @type {import('discord.js').GuildMember} */
           const member = options.getMember('member', true);
 
           if (!member.moderatable) {
-            return interaction.editReply({
-              content: `You don't have appropiate permissions to removing the timeout from ${member}.`,
-            });
+            throw `You don't have appropiate permissions to removing the timeout from ${member}.`;
           }
 
           if (member.id === user.id) {
-            return interaction.editReply({
-              content: "You can't remove timeout by yourself.",
-            });
+            throw "You can't remove timeout by yourself.";
           }
 
           if (!member.isCommunicationDisabled()) {
-            return interaction.editReply({
-              content: "This member isn't being timed out.",
-            });
+            throw "This member isn't being timed out.";
           }
 
           await member.timeout(null, reason);
@@ -193,14 +177,8 @@ module.exports = {
         );
 
         if (!timedoutMembers.size) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: `No one being timed out in ${bold(guild)}.`,
-          });
+          throw `No one being timed out in ${bold(guild)}.`;
         }
-
-        await interaction.deferReply();
 
         const descriptions = [...timedoutMembers.values()].map(
           (timedoutMember, index) =>

@@ -3,7 +3,7 @@ const { AttachmentBuilder } = require('discord.js');
 /**
  *
  * @param {{ buffer: Buffer|ArrayBuffer, fileName: String, fileDesc: String }}
- * @returns {Promise<{ attachment: AttachmentBuilder, ext: import('file-type').FileExtension }>} The attachment builder.
+ * @returns {Promise<AttachmentBuilder>} The attachment builder.
  */
 module.exports = async ({ buffer, fileName, fileDesc }) => {
   if (ArrayBuffer.isView(buffer)) {
@@ -14,10 +14,8 @@ module.exports = async ({ buffer, fileName, fileDesc }) => {
     .fileTypeFromBuffer(buffer)
     .then((r) => r.ext);
 
-  const attachment = new AttachmentBuilder(buffer, {
+  return new AttachmentBuilder(buffer, {
     name: `${fileName}.${ext}`,
     description: fileDesc,
   });
-
-  return { attachment, ext };
 };

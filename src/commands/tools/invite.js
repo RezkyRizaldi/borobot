@@ -20,6 +20,8 @@ module.exports = {
   async execute(interaction) {
     const { client, guild } = interaction;
 
+    await interaction.deferReply();
+
     const embed = new EmbedBuilder()
       .setColor(guild?.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
@@ -39,8 +41,6 @@ module.exports = {
         )} for invite me to your server!`,
       )
       .setThumbnail(client.user.displayAvatarURL({ dynamic: true }));
-
-    await interaction.deferReply();
 
     return interaction.editReply({ embeds: [embed] });
   },

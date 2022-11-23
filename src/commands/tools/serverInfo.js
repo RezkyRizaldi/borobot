@@ -39,6 +39,8 @@ module.exports = {
 
     if (!guild) return;
 
+    await interaction.deferReply();
+
     const categoryChannelCount = guild.channels.cache.filter(
       (channel) => channel.type === ChannelType.GuildCategory,
     ).size;
@@ -246,8 +248,6 @@ module.exports = {
             : italic('None'),
         },
       ]);
-
-    await interaction.deferReply();
 
     return interaction.editReply({ embeds: [embed] });
   },

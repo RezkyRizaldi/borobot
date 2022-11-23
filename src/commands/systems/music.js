@@ -209,17 +209,11 @@ module.exports = {
 
     if (!guild) return;
 
-    if (!member) {
-      await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply();
 
-      return interaction.editReply({ content: "Member doesn't exist." });
-    }
+    if (!member) throw "Member doesn't exist.";
 
-    if (!textChannel) {
-      await interaction.deferReply({ ephemeral: true });
-
-      return interaction.editReply({ content: "Channel doesn't exist." });
-    }
+    if (!textChannel) throw "Channel doesn't exist.";
 
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
@@ -242,55 +236,30 @@ module.exports = {
       (channel) => channel.id == process.env.CHANNEL_MUSIC_COMMAND_ID,
     );
 
-    if (!musicChannel) {
-      await interaction.deferReply({ ephemeral: true });
-
-      return interaction.editReply({
-        content: 'Cannot find a music text channel.',
-      });
-    }
+    if (!musicChannel) throw 'Cannot find a music text channel.';
 
     if (interaction.channelId !== musicChannel.id) {
-      await interaction.deferReply({ ephemeral: true });
-
-      return interaction.editReply({
-        content: `Please use this command in ${musicChannel}.`,
-      });
+      throw `Please use this command in ${musicChannel}.`;
     }
 
     if (!voiceChannel) {
-      await interaction.deferReply({ ephemeral: true });
-
-      return interaction.editReply({
-        content:
-          'You must be in a voice channel to be able to use this command.',
-      });
+      throw 'You must be in a voice channel to be able to use this command.';
     }
 
     if (
       !!guild.members.me?.voice.channel &&
       guild.members.me?.voice.channelId !== voiceChannel.id
     ) {
-      await interaction.deferReply({ ephemeral: true });
-
-      return interaction.editReply({
-        content: `Already playing music in ${guild.members.me.voice.channel}.`,
-      });
+      throw `Already playing music in ${guild.members.me.voice.channel}.`;
     }
 
     if (voiceChannel.full) {
-      await interaction.deferReply({ ephemeral: true });
-
-      return interaction.editReply({
-        content: `${voiceChannel} user limit is already full.`,
-      });
+      throw `${voiceChannel} user limit is already full.`;
     }
 
     switch (options.getSubcommand()) {
       case 'play': {
         const query = options.getString('query', true);
-
-        await interaction.deferReply({ ephemeral: true });
 
         await distube.play(voiceChannel, query, { textChannel, member });
 
@@ -299,8 +268,6 @@ module.exports = {
 
       case 'playskip': {
         const query = options.getString('query', true);
-
-        await interaction.deferReply({ ephemeral: true });
 
         await distube.play(voiceChannel, query, {
           textChannel,
@@ -314,8 +281,6 @@ module.exports = {
       case 'playfirst': {
         const query = options.getString('query', true);
 
-        await interaction.deferReply({ ephemeral: true });
-
         await distube.play(voiceChannel, query, {
           textChannel,
           member,
@@ -328,8 +293,6 @@ module.exports = {
       case 'search': {
         const query = options.getString('query', true);
         const type = options.getString('type', true);
-
-        await interaction.deferReply();
 
         const searchResults = await distube.search(query, { limit: 10, type });
 
@@ -427,13 +390,7 @@ module.exports = {
 
     const queue = distube.getQueue(voiceChannel);
 
-    if (!queue) {
-      await interaction.deferReply({ ephemeral: true });
-
-      return interaction.editReply({
-        content: 'There is no playing queue now.',
-      });
-    }
+    if (!queue) throw 'There is no playing queue now.';
 
     switch (interaction.options.getSubcommandGroup()) {
       case 'filters':
@@ -442,14 +399,8 @@ module.exports = {
             const filter = options.getString('filter', true);
 
             if (!queue.filters.names.includes(filter)) {
-              await interaction.deferReply({ ephemeral: true });
-
-              return interaction.editReply({
-                content: 'Please provide a valid filters.',
-              });
+              throw 'Please provide a valid filters.';
             }
-
-            await interaction.deferReply();
 
             if (!queue.filters.has(filter)) {
               queue.filters.set(filter);
@@ -474,22 +425,12 @@ module.exports = {
             const filter = options.getString('filter', true);
 
             if (!queue.filters.names.includes(filter)) {
-              await interaction.deferReply({ ephemeral: true });
-
-              return interaction.editReply({
-                content: 'Please provide a valid filters.',
-              });
+              throw 'Please provide a valid filters.';
             }
 
             if (!queue.filters.has(filter)) {
-              await interaction.deferReply({ ephemeral: true });
-
-              return interaction.editReply({
-                content: "The queue doesn't have that filters.",
-              });
+              throw "The queue doesn't have that filters.";
             }
-
-            await interaction.deferReply();
 
             queue.filters.remove(filter);
 
@@ -502,14 +443,8 @@ module.exports = {
 
           case 'clear':
             if (!queue.filters.size) {
-              await interaction.deferReply({ ephemeral: true });
-
-              return interaction.reply({
-                content: "The queue doesn't have any filters.",
-              });
+              throw "The queue doesn't have any filters.";
             }
-
-            await interaction.deferReply();
 
             queue.filters.clear();
 
@@ -524,8 +459,6 @@ module.exports = {
       case 'playback':
         {
           const time = options.getInteger('time', true);
-
-          await interaction.deferReply();
 
           switch (options.getSubcommand()) {
             case 'forward':
@@ -623,18 +556,12 @@ module.exports = {
             const position = options.getInteger('position', true);
 
             if (position > queue.songs.length) {
-              await interaction.deferReply({ ephemeral: true });
-
-              return interaction.editReply({
-                content: `The queue only have ${pluralize(
-                  'song',
-                  queue.songs.length,
-                  true,
-                )}.`,
-              });
+              throw `The queue only have ${pluralize(
+                'song',
+                queue.songs.length,
+                true,
+              )}.`;
             }
-
-            await interaction.deferReply();
 
             const song = await queue.jump(position);
 
@@ -660,8 +587,6 @@ module.exports = {
           case 'volume': {
             const percentage = options.getInteger('percentage', true);
 
-            await interaction.deferReply();
-
             queue.setVolume(voiceChannel, percentage);
 
             embed
@@ -677,8 +602,6 @@ module.exports = {
             switch (options.getString('options', true)) {
               case 'nowPlaying':
                 {
-                  await interaction.deferReply();
-
                   embed
                     .setAuthor({ name: '💿 Now Playing' })
                     .setDescription(
@@ -744,14 +667,8 @@ module.exports = {
 
               case 'skip': {
                 if (queue.songs.length === 1) {
-                  await interaction.deferReply({ ephemeral: true });
-
-                  return interaction.editReply({
-                    content: 'There is no up next song in the queue.',
-                  });
+                  throw 'There is no up next song in the queue.';
                 }
-
-                await interaction.deferReply();
 
                 const song = await queue.skip(voiceChannel);
 
@@ -775,22 +692,12 @@ module.exports = {
               }
 
               case 'stop':
-                await interaction.deferReply({ ephemeral: true });
-
                 await queue.stop(voiceChannel);
 
                 return interaction.editReply({ content: 'Request received.' });
 
               case 'pause':
-                if (queue.paused) {
-                  await interaction.deferReply({ ephemeral: true });
-
-                  return interaction.editReply({
-                    content: 'The queue has currently being paused.',
-                  });
-                }
-
-                await interaction.deferReply();
+                if (queue.paused) throw 'The queue has currently being paused.';
 
                 queue.pause(voiceChannel);
 
@@ -801,8 +708,6 @@ module.exports = {
                 return interaction.editReply({ embeds: [embed] });
 
               case 'resume':
-                await interaction.deferReply();
-
                 queue.resume(voiceChannel);
 
                 embed
@@ -812,8 +717,6 @@ module.exports = {
                 return interaction.editReply({ embeds: [embed] });
 
               case 'shuffle':
-                await interaction.deferReply();
-
                 await queue.shuffle(voiceChannel);
 
                 embed
@@ -823,8 +726,6 @@ module.exports = {
                 return interaction.editReply({ embeds: [embed] });
 
               case 'autoplay':
-                await interaction.deferReply();
-
                 queue.toggleAutoplay();
 
                 embed
@@ -838,8 +739,6 @@ module.exports = {
                 return interaction.editReply({ embeds: [embed] });
 
               case 'relatedSong': {
-                await interaction.deferReply();
-
                 const song = await queue.addRelatedSong(voiceChannel);
 
                 embed
@@ -857,8 +756,6 @@ module.exports = {
               }
 
               case 'repeatMode':
-                await interaction.deferReply();
-
                 queue.setRepeatMode(queue.repeatMode);
 
                 embed
@@ -880,8 +777,6 @@ module.exports = {
                       song.user
                     }`,
                 );
-
-                await interaction.deferReply();
 
                 if (queue.songs.length > 10) {
                   const pagination = new Pagination(interaction, { limit: 10 })
@@ -921,14 +816,8 @@ module.exports = {
 
               case 'previous': {
                 if (!queue.previousSongs.length) {
-                  await interaction.deferReply({ ephemeral: true });
-
-                  return interaction.editReply({
-                    content: 'There is no previous song in the queue.',
-                  });
+                  throw 'There is no previous song in the queue.';
                 }
-
-                await interaction.deferReply();
 
                 const song = await queue.previous(voiceChannel);
 
