@@ -1,6 +1,12 @@
 const AnimeImages = require('anime-images-api');
 const axios = require('axios');
-const { EmbedBuilder, italic, SlashCommandBuilder } = require('discord.js');
+const { snakeCase } = require('change-case');
+const {
+  EmbedBuilder,
+  italic,
+  SlashCommandBuilder,
+  inlineCode,
+} = require('discord.js');
 const nekoClient = require('nekos.life');
 
 const { waifuChoices } = require('../../constants');
@@ -24,6 +30,17 @@ module.exports = {
           option
             .setName('target')
             .setDescription('👤 The target member to cuddle.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('danbooru')
+        .setDescription('🖼️ Send a random image from Danbooru.')
+        .addStringOption((option) =>
+          option
+            .setName('query')
+            .setDescription('🔠 The image search query.')
             .setRequired(true),
         ),
     )
@@ -614,6 +631,50 @@ module.exports = {
           buffer,
           fileName: 'ahegao',
           fileDesc: 'Ahegao Image',
+        });
+
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(`attachment://${img.name}.${ext}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
+
+      case 'danbooru': {
+        const query = options.getString('query', true);
+
+        if (!channel) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({ content: "Channel doesn't exist." });
+        }
+
+        if (!channel.nsfw) {
+          await interaction.deferReply({ ephemeral: true });
+
+          return interaction.editReply({
+            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
+          });
+        }
+
+        await interaction.deferReply();
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios
+          .get(
+            `https://api.lolhuman.xyz/api/danbooru?query=${snakeCase(
+              query,
+            )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+            { responseType: 'arraybuffer' },
+          )
+          .catch(() => {
+            throw `No image found with query ${inlineCode(query)}.`;
+          });
+
+        const { attachment: img, ext } = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: snakeCase(query),
+          fileDesc: 'Danbooru Image',
         });
 
         embed
