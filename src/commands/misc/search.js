@@ -127,7 +127,7 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
-        .setName('definition')
+        .setName('urban')
         .setDescription(
           '❓ Search the definition of a term from Urban Dictionary.',
         )
@@ -265,6 +265,17 @@ module.exports = {
                 .setDescription('🔤 The doujin search query.')
                 .setRequired(true),
             ),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('wiki')
+        .setDescription('❓ Search the definition of a term from Wikipedia.')
+        .addStringOption((option) =>
+          option
+            .setName('term')
+            .setDescription("🔠 The definition's term.")
+            .setRequired(true),
         ),
     ),
   type: 'Chat Input',
@@ -1249,7 +1260,7 @@ module.exports = {
         return pagination.render();
       }
 
-      case 'definition': {
+      case 'urban': {
         const term = options.getString('term', true);
         const query = new URLSearchParams({ term });
 
@@ -1382,6 +1393,37 @@ module.exports = {
         embed
           .setAuthor({ name: '📖 Documentation Search Results' })
           .setFields(fields);
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'wiki': {
+        const term = options.getString('term', true);
+
+        /** @type {{ data: { result: String } }} */
+        const {
+          data: { result },
+        } = await axios
+          .get(
+            `https://api.lolhuman.xyz/api/wiki?query=${encodeURIComponent(
+              term,
+            )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+          )
+          .catch(async () => {
+            await interaction.deferReply({ ephemeral: true });
+
+            throw `No definition found with term ${inlineCode(term)}.`;
+          });
+
+        await interaction.deferReply();
+
+        embed
+          .setAuthor({
+            name: capitalCase(term),
+            iconURL:
+              'https://upload.wikimedia.org/wikipedia/commons/6/61/Wikipedia-logo-transparent.png',
+          })
+          .setDescription(truncate(result, 4096));
 
         return interaction.editReply({ embeds: [embed] });
       }
