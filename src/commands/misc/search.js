@@ -293,6 +293,8 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
+    await interaction.deferReply();
+
     /** @type {{ channels: { cache: import('discord.js').Collection<String, import('discord.js').BaseGuildTextChannel> } */
     const {
       channels: { cache: baseGuildTextChannels },
@@ -325,17 +327,11 @@ module.exports = {
 
             const query = new URLSearchParams();
 
-            if (!channel.nsfw) {
-              query.append('sfw', 'true');
-            }
+            if (!channel.nsfw) query.append('sfw', 'true');
 
-            if (titleQuery) {
-              query.append('q', encodeURIComponent(titleQuery));
-            }
+            if (titleQuery) query.append('q', encodeURIComponent(titleQuery));
 
-            if (typeQuery) {
-              query.append('type', typeQuery);
-            }
+            if (typeQuery) query.append('type', typeQuery);
 
             if (scoreQuery) {
               query.append(
@@ -344,25 +340,15 @@ module.exports = {
               );
             }
 
-            if (statusQuery) {
-              query.append('status', statusQuery);
-            }
+            if (statusQuery) query.append('status', statusQuery);
 
-            if (order) {
-              query.append('order_by', order);
-            }
+            if (order) query.append('order_by', order);
 
-            if (sort) {
-              query.append('sort', sort);
-            }
+            if (sort) query.append('sort', sort);
 
             if (letter) {
               if (!isAlphabeticLetter(letter)) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: 'You have to specify an alphabetic character.',
-                });
+                throw 'You have to specify an alphabetic character.';
               }
 
               query.append('letter', letter);
@@ -374,16 +360,10 @@ module.exports = {
             } = await axios.get(`https://api.jikan.moe/v4/anime?${query}`);
 
             if (!data.length) {
-              await interaction.deferReply({ ephemeral: true });
-
-              return interaction.editReply({
-                content: `No anime found with title ${inlineCode(
-                  titleQuery,
-                )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.${NSFWResponse}`,
-              });
+              throw `No anime found with title ${inlineCode(
+                titleQuery,
+              )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.${NSFWResponse}`;
             }
-
-            await interaction.deferReply();
 
             const embeds = data.map(
               (
@@ -557,25 +537,15 @@ module.exports = {
 
             const query = new URLSearchParams();
 
-            if (name) {
-              query.append('q', encodeURIComponent(name));
-            }
+            if (name) query.append('q', encodeURIComponent(name));
 
-            if (order) {
-              query.append('order_by', order);
-            }
+            if (order) query.append('order_by', order);
 
-            if (sort) {
-              query.append('sort', sort);
-            }
+            if (sort) query.append('sort', sort);
 
             if (letter) {
               if (!isAlphabeticLetter(letter)) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: 'You have to specify an alphabetic character.',
-                });
+                throw 'You have to specify an alphabetic character.';
               }
 
               query.append('letter', letter);
@@ -587,16 +557,8 @@ module.exports = {
             } = await axios.get(`https://api.jikan.moe/v4/characters?${query}`);
 
             if (!data.length) {
-              await interaction.deferReply({ ephemeral: true });
-
-              return interaction.editReply({
-                content: `No anime character found with name ${inlineCode(
-                  name,
-                )}`,
-              });
+              throw `No anime character found with name ${inlineCode(name)}`;
             }
-
-            await interaction.deferReply();
 
             const embeds = data.map(
               (
@@ -671,8 +633,6 @@ module.exports = {
       case 'news':
         switch (options.getSubcommand()) {
           case 'list': {
-            await interaction.deferReply();
-
             const countries = Object.values(newsCountries);
 
             const responses = countries.map(
@@ -713,11 +673,7 @@ module.exports = {
             );
 
             if (!country) {
-              await interaction.deferReply({ ephemeral: true });
-
-              return interaction.editReply({
-                content: `No country available with name ${inlineCode(name)}.`,
-              });
+              throw `No country available with name ${inlineCode(name)}.`;
             }
 
             /** @type {{ articles: import('../../constants/types').News[] }} */
@@ -729,14 +685,8 @@ module.exports = {
             });
 
             if (!articles.length) {
-              await interaction.deferReply({ ephemeral: true });
-
-              return interaction.editReply({
-                content: `No news found in ${inlineCode(country)}.`,
-              });
+              throw `No news found in ${inlineCode(country)}.`;
             }
-
-            await interaction.deferReply();
 
             const embeds = articles.map(
               (
@@ -832,24 +782,14 @@ module.exports = {
           );
 
           if (!channel.nsfw) {
-            await interaction.deferReply({ ephemeral: true });
-
-            return interaction.editReply({
-              content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
-            });
+            throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
           }
 
           switch (options.getSubcommand()) {
             case 'tag': {
               const tag = options.getString('tag', true);
 
-              if (!isNumericString(tag)) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: 'Please enter a number.',
-                });
-              }
+              if (!isNumericString(tag)) throw 'Please enter a number.';
 
               /** @type {{ data: { result: import('../../constants/types').NHentai } }} */
               const {
@@ -861,12 +801,8 @@ module.exports = {
                   `${baseURL}/nhentai/${tag}?apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
                 .catch(async () => {
-                  await interaction.deferReply({ ephemeral: true });
-
                   throw `No doujin found with tag ${inlineCode(tag)}.`;
                 });
-
-              await interaction.deferReply();
 
               embed
                 .setAuthor({
@@ -924,12 +860,8 @@ module.exports = {
                   `${baseURL}/nhentaisearch?query=${query}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
                 .catch(async () => {
-                  await interaction.deferReply({ ephemeral: true });
-
                   throw `No doujin found with query ${inlineCode(query)}.`;
                 });
-
-              await interaction.deferReply();
 
               const embeds = result.map(
                 ({ id, page, title_native }, index, array) =>
@@ -997,17 +929,11 @@ module.exports = {
 
         const query = new URLSearchParams();
 
-        if (!channel.nsfw) {
-          query.append('sfw', 'true');
-        }
+        if (!channel.nsfw) query.append('sfw', 'true');
 
-        if (titleQuery) {
-          query.append('q', encodeURIComponent(titleQuery));
-        }
+        if (titleQuery) query.append('q', encodeURIComponent(titleQuery));
 
-        if (typeQuery) {
-          query.append('type', typeQuery);
-        }
+        if (typeQuery) query.append('type', typeQuery);
 
         if (scoreQuery) {
           query.append(
@@ -1016,25 +942,15 @@ module.exports = {
           );
         }
 
-        if (statusQuery) {
-          query.append('status', statusQuery);
-        }
+        if (statusQuery) query.append('status', statusQuery);
 
-        if (order) {
-          query.append('order_by', order);
-        }
+        if (order) query.append('order_by', order);
 
-        if (sort) {
-          query.append('sort', sort);
-        }
+        if (sort) query.append('sort', sort);
 
         if (letter) {
           if (!isAlphabeticLetter(letter)) {
-            await interaction.deferReply({ ephemeral: true });
-
-            return interaction.editReply({
-              content: 'You have to specify an alphabetic character.',
-            });
+            throw 'You have to specify an alphabetic character.';
           }
 
           query.append('letter', letter);
@@ -1046,16 +962,10 @@ module.exports = {
         } = await axios.get(`https://api.jikan.moe/v4/manga?${query}`);
 
         if (!data.length) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: `No manga found with title ${inlineCode(
-              titleQuery,
-            )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.${NSFWResponse}`,
-          });
+          throw `No manga found with title ${inlineCode(
+            titleQuery,
+          )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.${NSFWResponse}`;
         }
-
-        await interaction.deferReply();
 
         const embeds = data.map(
           (
@@ -1222,8 +1132,6 @@ module.exports = {
       }
 
       case 'image': {
-        await interaction.deferReply();
-
         await wait(4000);
 
         const query = options.getString('query', true);
@@ -1271,15 +1179,7 @@ module.exports = {
           `https://api.urbandictionary.com/v0/define?${query}`,
         );
 
-        if (!list.length) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: `No result found for ${inlineCode(term)}.`,
-          });
-        }
-
-        await interaction.deferReply();
+        if (!list.length) throw `No result found for ${inlineCode(term)}.`;
 
         const {
           author,
@@ -1340,14 +1240,8 @@ module.exports = {
 
         if (!documents.length) {
           if (!suggestions.length) {
-            await interaction.deferReply({ ephemeral: true });
-
-            return interaction.editReply({
-              content: `No result found for ${inlineCode(term)}.`,
-            });
+            throw `No result found for ${inlineCode(term)}.`;
           }
-
-          await interaction.deferReply();
 
           const newQuery = new URLSearchParams({
             q: suggestions[0].text,
@@ -1379,8 +1273,6 @@ module.exports = {
           return interaction.editReply({ embeds: [embed] });
         }
 
-        await interaction.deferReply();
-
         const fields = documents.map(({ mdn_url, summary, title }) => ({
           name: title,
           value: `${summary}\n${hyperlink(
@@ -1410,12 +1302,8 @@ module.exports = {
             )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
           )
           .catch(async () => {
-            await interaction.deferReply({ ephemeral: true });
-
             throw `No definition found with term ${inlineCode(term)}.`;
           });
-
-        await interaction.deferReply();
 
         embed
           .setAuthor({

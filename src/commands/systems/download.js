@@ -155,6 +155,8 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
+    await interaction.deferReply();
+
     const baseURL = 'https://api.lolhuman.xyz/api';
 
     const embed = new EmbedBuilder()
@@ -188,12 +190,8 @@ module.exports = {
                   `${baseURL}/otakudesusearch?query=${title}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
                 .catch(async () => {
-                  await interaction.deferReply({ ephemeral: true });
-
                   throw `No anime found with title ${inlineCode(title)}.`;
                 });
-
-              await interaction.deferReply();
 
               const responses = downloads.map(
                 ({ title: t, link_dl }) =>
@@ -256,12 +254,8 @@ module.exports = {
                   `${baseURL}/kusonimesearch?query=${title}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
                 .catch(async () => {
-                  await interaction.deferReply({ ephemeral: true });
-
                   throw `No anime found with title ${inlineCode(title)}.`;
                 });
-
-              await interaction.deferReply();
 
               const response = `${bold(t)}\n${Object.entries(link_dl)
                 .map(
@@ -289,14 +283,8 @@ module.exports = {
         const url = options.getString('url', true);
 
         if (!isValidURL(url, 'facebook')) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: 'Please provide a valid Facebook URL.',
-          });
+          throw 'Please provide a valid Facebook URL.';
         }
-
-        await interaction.deferReply();
 
         /** @type {{ data: { result: String } }} */
         const {
@@ -324,14 +312,8 @@ module.exports = {
           switch (type) {
             case 'instagram': {
               if (!isValidURL(query, 'instagram')) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: 'Please provide a valid Instagram URL.',
-                });
+                throw 'Please provide a valid Instagram URL.';
               }
-
-              await interaction.deferReply();
 
               /** @type {{ data: { result: import('../../constants/types').Instagram } }} */
               const {
@@ -391,14 +373,10 @@ module.exports = {
                   `${baseURL}/igstory/${username}?apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
                 .catch(async () => {
-                  await interaction.deferReply({ ephemeral: true });
-
                   throw `No user found with username ${inlineCode(
                     username,
                   )} or its doesn't have any stories right now.`;
                 });
-
-              await interaction.deferReply();
 
               const URLs = result.map(
                 (url, index) =>
@@ -452,14 +430,8 @@ module.exports = {
         const url = options.getString('url', true);
 
         if (!isValidURL(url, 'spotify')) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: 'Please provide a valid Spotify URL.',
-          });
+          throw 'Please provide a valid Spotify URL.';
         }
-
-        await interaction.deferReply();
 
         /** @type {{ data: { result: import('../../constants/types').Spotify } }} */
         const {
@@ -518,14 +490,8 @@ module.exports = {
           const url = options.getString('url', true);
 
           if (!isValidURL(url, 'tiktok')) {
-            await interaction.deferReply({ ephemeral: true });
-
-            return interaction.editReply({
-              content: 'Please provide a valid TikTok URL.',
-            });
+            throw 'Please provide a valid TikTok URL.';
           }
-
-          await interaction.deferReply();
 
           switch (type) {
             case 'audio': {
@@ -535,13 +501,13 @@ module.exports = {
                 { responseType: 'arraybuffer' },
               );
 
-              const { attachment } = await generateAttachmentFromBuffer(
+              const audio = await generateAttachmentFromBuffer(
                 data,
                 'download',
                 'TikTok audio',
               );
 
-              return interaction.editReply({ files: [attachment] });
+              return interaction.editReply({ files: [audio] });
             }
 
             case 'video': {
@@ -551,13 +517,13 @@ module.exports = {
                 { responseType: 'arraybuffer' },
               );
 
-              const { attachment } = await generateAttachmentFromBuffer(
+              const video = await generateAttachmentFromBuffer(
                 data,
                 'download',
                 'TikTok video',
               );
 
-              return interaction.editReply({ files: [attachment] });
+              return interaction.editReply({ files: [video] });
             }
 
             case 'videoNoWatermark': {
@@ -624,14 +590,8 @@ module.exports = {
           const url = options.getString('url', true);
 
           if (!isValidURL(url, 'twitter')) {
-            await interaction.deferReply({ ephemeral: true });
-
-            return interaction.editReply({
-              content: 'Please provide a valid Twitter URL.',
-            });
+            throw 'Please provide a valid Twitter URL.';
           }
-
-          await interaction.deferReply();
 
           switch (type) {
             case 'image': {
@@ -750,14 +710,8 @@ module.exports = {
         const url = options.getString('url', true);
 
         if (!isValidURL(url, 'youtube')) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: 'Please provide a valid YouTube URL.',
-          });
+          throw 'Please provide a valid YouTube URL.';
         }
-
-        await interaction.deferReply();
 
         switch (type) {
           case 'audio': {

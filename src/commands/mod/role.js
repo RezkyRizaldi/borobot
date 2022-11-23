@@ -345,6 +345,8 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
+    await interaction.deferReply();
+
     const reason = options.getString('reason') ?? 'No reason';
 
     const embed = new EmbedBuilder()
@@ -360,8 +362,6 @@ module.exports = {
         /** @type {import('discord.js').Role} */
         const role = options.getRole('role', true);
 
-        await interaction.deferReply({ ephemeral: true });
-
         if (
           !interaction.member.permissions.has(
             PermissionFlagsBits.ManageRoles,
@@ -369,9 +369,7 @@ module.exports = {
           !role.editable ||
           role.position > guild.members.me?.roles.highest.position
         ) {
-          return interaction.editReply({
-            content: `You don't have appropiate permissions to modify the ${role} role.`,
-          });
+          throw `You don't have appropiate permissions to modify the ${role} role.`;
         }
 
         switch (options.getSubcommand()) {
@@ -379,9 +377,7 @@ module.exports = {
             const name = options.getString('name', true);
 
             if (name.toLowerCase() === role.name.toLowerCase()) {
-              return interaction.editReply({
-                content: 'You have to specify a different name to modify.',
-              });
+              throw 'You have to specify a different name to modify.';
             }
 
             await role.setName(name, reason);
@@ -396,9 +392,7 @@ module.exports = {
             const convertedColor = applyHexColor(color);
 
             if (convertedColor.toLowerCase() === role.hexColor.toLowerCase()) {
-              return interaction.editReply({
-                content: 'You have to specify a different color to modify.',
-              });
+              throw 'You have to specify a different color to modify.';
             }
 
             await role.setColor(convertedColor, reason);
@@ -416,15 +410,11 @@ module.exports = {
               targetRolePosition.permissions.bitfield >
               role.permissions.bitfield
             ) {
-              return interaction.editReply({
-                content: `You don't have appropiate permissions to modify ${targetRolePosition} role's position.`,
-              });
+              throw `You don't have appropiate permissions to modify ${targetRolePosition} role's position.`;
             }
 
             if (role.position === targetRolePosition.position) {
-              return interaction.editReply({
-                content: 'You have to specify a different position to modify.',
-              });
+              throw 'You have to specify a different position to modify.';
             }
 
             await role.setPosition(targetRolePosition.position, { reason });
@@ -438,11 +428,9 @@ module.exports = {
             const hoist = options.getBoolean('hoist', true);
 
             if (hoist === role.hoist) {
-              return interaction.editReply({
-                content: `${role}'s hoist state ${
-                  role.hoist ? 'is already' : "isn't"
-                } being turned on.`,
-              });
+              throw `${role}'s hoist state ${
+                role.hoist ? 'is already' : "isn't"
+              } being turned on.`;
             }
 
             await role.setHoist(hoist, reason);
@@ -458,11 +446,9 @@ module.exports = {
             const mentionable = options.getBoolean('mentionable', true);
 
             if (mentionable === role.mentionable) {
-              return interaction.editReply({
-                content: `${role}'s mentionable state ${
-                  role.mentionable ? 'is already' : "isn't"
-                } being turned on.`,
-              });
+              throw `${role}'s mentionable state ${
+                role.mentionable ? 'is already' : "isn't"
+              } being turned on.`;
             }
 
             await role.setMentionable(mentionable, reason);
@@ -483,23 +469,17 @@ module.exports = {
                 const missingPermissions = role.permissions.missing(permission);
 
                 if (permission === BigInt(0)) {
-                  return interaction.editReply({
-                    content: 'You have to specify a permission to grant.',
-                  });
+                  throw 'You have to specify a permission to grant.';
                 }
 
                 if (role.permissions.has(permission)) {
-                  return interaction.editReply({
-                    content: `${inlineCode(
-                      applyPermission(permission),
-                    )} permission is already granted for ${role} role.`,
-                  });
+                  throw `${inlineCode(
+                    applyPermission(permission),
+                  )} permission is already granted for ${role} role.`;
                 }
 
                 if (!missingPermissions.length) {
-                  return interaction.editReply({
-                    content: `${role} role already have all permissions.`,
-                  });
+                  throw `${role} role already have all permissions.`;
                 }
 
                 await role.setPermissions(
@@ -523,17 +503,13 @@ module.exports = {
                   .filter((perm) => !role.permissions.toArray().includes(perm));
 
                 if (!role.permissions.has(permission)) {
-                  return interaction.editReply({
-                    content: `${inlineCode(
-                      applyPermission(permission),
-                    )} permission is already denied for ${role} role.`,
-                  });
+                  throw `${inlineCode(
+                    applyPermission(permission),
+                  )} permission is already denied for ${role} role.`;
                 }
 
                 if (!hasPermissions.length) {
-                  return interaction.editReply({
-                    content: `${role} role doesn't have any permissions.`,
-                  });
+                  throw `${role} role doesn't have any permissions.`;
                 }
 
                 await role.setPermissions(
@@ -565,11 +541,7 @@ module.exports = {
         const targetRole = options.getRole('to_role', true);
 
         if (role.id === targetRole.id) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: 'You have to specify another role to compare.',
-          });
+          throw 'You have to specify another role to compare.';
         }
 
         const positionComparison = role.position > targetRole.position;
@@ -618,8 +590,6 @@ module.exports = {
           moment(role.createdAt).diff(targetRole.createdAt),
         );
 
-        await interaction.deferReply();
-
         embed
           .setAuthor({
             name: `⚖️ ${role.name} & ${targetRole.name} Role Comparison`,
@@ -665,8 +635,6 @@ module.exports = {
       case 'info': {
         /** @type {import('discord.js').Role} */
         const role = options.getRole('role', true);
-
-        await interaction.deferReply();
 
         embed
           .setAuthor({ name: `ℹ️ ${role.name}'s Role Information` })
@@ -740,16 +708,10 @@ module.exports = {
           .filter((perm) => !!perm)
           .map((perm) => BigInt(perm));
 
-        await interaction.deferReply({ ephemeral: true });
-
-        if (!member) {
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
+        if (!member) throw "Member doesn't exist.";
 
         if (!member.permissions.has(PermissionFlagsBits.ManageRoles)) {
-          return interaction.editReply({
-            content: "You don't have appropiate permissions to create a role.",
-          });
+          throw "You don't have appropiate permissions to create a role.";
         }
 
         const role = await guild.roles.create({
@@ -773,16 +735,12 @@ module.exports = {
         /** @type {import('discord.js').Role} */
         const role = options.getRole('role', true);
 
-        await interaction.deferReply({ ephemeral: true });
-
         if (
           !member.permissions.has(PermissionFlagsBits.ManageRoles) ||
           role.managed ||
           role.position > guild.members.me?.roles.highest.position
         ) {
-          return interaction.editReply({
-            content: `You don't have appropiate permissions to delete ${role} role.`,
-          });
+          throw `You don't have appropiate permissions to delete ${role} role.`;
         }
 
         await guild.roles.delete(role, reason);
@@ -797,11 +755,7 @@ module.exports = {
         /** @type {import('discord.js').GuildMember} */
         const target = options.getMember('member', true);
 
-        await interaction.deferReply({ ephemeral: true });
-
-        if (!member) {
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
+        if (!member) throw "Member doesn't exist.";
 
         if (
           !member.permissions.has(PermissionFlagsBits.ModerateMembers) ||
@@ -809,15 +763,11 @@ module.exports = {
           role.position > guild.members.me?.roles.highest.position ||
           !target.manageable
         ) {
-          return interaction.editReply({
-            content: `You don't have appropiate permissions to add ${role} role to ${target}.`,
-          });
+          throw `You don't have appropiate permissions to add ${role} role to ${target}.`;
         }
 
         if (target.roles.cache.has(role.id)) {
-          return interaction.editReply({
-            content: `${target} is already have ${role} role.`,
-          });
+          throw `${target} is already have ${role} role.`;
         }
 
         await target.roles.add(role, reason);
@@ -834,11 +784,7 @@ module.exports = {
         /** @type {import('discord.js').GuildMember} */
         const target = options.getMember('member', true);
 
-        await interaction.deferReply({ ephemeral: true });
-
-        if (!member) {
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
+        if (!member) throw "Member doesn't exist.";
 
         if (
           !member.permissions.has(PermissionFlagsBits.ModerateMembers) ||
@@ -846,15 +792,11 @@ module.exports = {
           role.position > guild.members.me?.roles.highest.position ||
           !target.manageable
         ) {
-          return interaction.editReply({
-            content: `You don't have appropiate permissions to remove ${role} role from ${target}.`,
-          });
+          throw `You don't have appropiate permissions to remove ${role} role from ${target}.`;
         }
 
         if (!target.roles.cache.has(role.id)) {
-          return interaction.editReply({
-            content: `${target} doesn't have ${role} role.`,
-          });
+          throw `${target} doesn't have ${role} role.`;
         }
 
         await target.roles.remove(role, reason);
@@ -867,15 +809,9 @@ module.exports = {
       }
 
       case 'list': {
-        await interaction.deferReply();
-
         const roles = await guild.roles.fetch();
 
-        if (!roles.size) {
-          return interaction.editReply({
-            content: `${bold(guild)} doesn't have any role.`,
-          });
-        }
+        if (!roles.size) throw `${bold(guild)} doesn't have any role.`;
 
         const descriptions = [...roles.values()]
           .filter((r) => r.id !== guild.roles.everyone.id)

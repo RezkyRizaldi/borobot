@@ -56,6 +56,8 @@ module.exports = {
     /** @type {{ discordTogether: import('discord-together').DiscordTogether<{[x: string]: string}> }} */
     const { discordTogether } = client;
 
+    await interaction.deferReply();
+
     const embed = new EmbedBuilder()
       .setColor(guild.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
@@ -67,8 +69,6 @@ module.exports = {
     switch (options.getSubcommand()) {
       case 'youtube': {
         const channel = options.getChannel('channel', true);
-
-        await interaction.deferReply();
 
         const { code } = await discordTogether.createTogetherCode(
           channel.id,
@@ -101,15 +101,7 @@ module.exports = {
         /** @type {import('../../constants/types').GogoAnimeSearch[]} */
         const results = await Gogoanime.search(title);
 
-        if (!results.length) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: `No result found for ${title}`,
-          });
-        }
-
-        await interaction.deferReply();
+        if (!results.length) throw `No result found for ${title}`;
 
         /** @type {import('../../constants/types').GogoAnimeFetch} */
         const { episodeCount, name, slug } = await Gogoanime.fetchAnime(
@@ -117,12 +109,10 @@ module.exports = {
         );
 
         if (episode > Number(episodeCount)) {
-          return interaction.editReply({
-            content: `${name} only have ${count({
-              total: episodeCount,
-              data: 'episode',
-            })}.`,
-          });
+          throw `${name} only have ${count({
+            total: episodeCount,
+            data: 'episode',
+          })}.`;
         }
 
         /** @type {import('../../constants/types').GogoAnimeEpisode} */

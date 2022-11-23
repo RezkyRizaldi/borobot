@@ -31,6 +31,8 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
+    await interaction.deferReply();
+
     /** @type {import('discord.js').Role} */
     const role = options.getRole('role', true);
 
@@ -39,14 +41,8 @@ module.exports = {
     );
 
     if (!membersWithRole.size) {
-      await interaction.deferReply({ ephemeral: true });
-
-      return interaction.editReply({
-        content: `There is no member with role ${role}`,
-      });
+      throw `There is no member with role ${role}`;
     }
-
-    await interaction.deferReply();
 
     const descriptions = [...membersWithRole.values()].map(
       (member, index) =>

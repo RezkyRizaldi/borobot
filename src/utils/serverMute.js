@@ -30,19 +30,15 @@ module.exports = async (interaction, subcommand) => {
   const channelType = options.getInteger('channel_type', true);
 
   if (subcommand !== 'list' && !member.manageable) {
-    return interaction.editReply({
-      content: `You don't have appropiate permissions to ${
-        subcommand === 'apply' || subcommand === 'temp' ? 'mute' : 'unmute'
-      } ${member}.`,
-    });
+    throw `You don't have appropiate permissions to ${
+      subcommand === 'apply' || subcommand === 'temp' ? 'mute' : 'unmute'
+    } ${member}.`;
   }
 
   if (subcommand !== 'list' && member.id === user.id) {
-    return interaction.editReply({
-      content: `You can't ${
-        subcommand === 'apply' || subcommand === 'temp' ? 'mute' : 'unmute'
-      } yourself.`,
-    });
+    throw `You can't ${
+      subcommand === 'apply' || subcommand === 'temp' ? 'mute' : 'unmute'
+    } yourself.`;
   }
 
   switch (subcommand) {
@@ -110,9 +106,7 @@ module.exports = async (interaction, subcommand) => {
       );
 
       if (!mutedRole) {
-        return interaction.editReply({
-          content: `Can't find role with name ${inlineCode('muted')}.`,
-        });
+        throw `Can't find role with name ${inlineCode('muted')}.`;
       }
 
       const textMutedMembers = guild.members.cache.filter(
@@ -130,9 +124,7 @@ module.exports = async (interaction, subcommand) => {
       switch (channelType) {
         case ChannelType.GuildText: {
           if (!textMutedMembers.size) {
-            return interaction.editReply({
-              content: 'No one muted in text channels.',
-            });
+            throw 'No one muted in text channels.';
           }
 
           const descriptions = [...textMutedMembers.values()].map(
@@ -180,9 +172,7 @@ module.exports = async (interaction, subcommand) => {
 
         case ChannelType.GuildVoice: {
           if (!voiceMutedMembers.size) {
-            return interaction.editReply({
-              content: 'No one muted in voice channels.',
-            });
+            throw 'No one muted in voice channels.';
           }
 
           const descriptions = [...voiceMutedMembers.values()].map(
@@ -230,9 +220,7 @@ module.exports = async (interaction, subcommand) => {
 
         default: {
           if (!mutedMembers.size) {
-            return interaction.editReply({
-              content: `No one muted in ${bold(guild)}.`,
-            });
+            throw `No one muted in ${bold(guild)}.`;
           }
 
           const descriptions = [...mutedMembers.values()].map(
@@ -434,11 +422,9 @@ const applyOrRemoveRole = async ({
       : !roles.cache.find((role) => role.name.toLowerCase() === 'muted');
 
   if (muted) {
-    return interaction.editReply({
-      content: `${member} ${
-        type === 'apply' ? 'is already' : "isn't"
-      } being muted from ${all ? bold(guild) : 'text channels'}.`,
-    });
+    throw `${member} ${
+      type === 'apply' ? 'is already' : "isn't"
+    } being muted from ${all ? bold(guild) : 'text channels'}.`;
   }
 
   const role = await findOrCreateRole(interaction);
@@ -504,11 +490,7 @@ const applyOrRemoveRole = async ({
     }
   }
 
-  if (!role) {
-    return interaction.editReply({
-      content: `No one is being muted in ${bold(guild)}.`,
-    });
-  }
+  if (!role) throw `No one is being muted in ${bold(guild)}.`;
 
   await roles.remove(role, reason);
 
@@ -565,19 +547,15 @@ const createVoiceMute = async ({
       });
     }
 
-    return interaction.editReply({
-      content: `${member} is not connected to a voice channel.`,
-    });
+    throw `${member} is not connected to a voice channel.`;
   }
 
   const muted = type === 'apply' ? voice.serverMute : !voice.serverMute;
 
   if (muted) {
-    return interaction.editReply({
-      content: `${member} ${
-        type === 'apply' ? 'is already' : "isn't"
-      } being muted from ${all ? bold(guild) : 'voice channels'}.`,
-    });
+    throw `${member} ${
+      type === 'apply' ? 'is already' : "isn't"
+    } being muted from ${all ? bold(guild) : 'voice channels'}.`;
   }
 
   if (type === 'apply') {

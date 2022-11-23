@@ -173,11 +173,9 @@ module.exports = {
     /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
     const { channel, client, guild, member, options } = interaction;
 
-    if (!member) {
-      await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply();
 
-      return interaction.editReply({ content: "Member doesn't exist." });
-    }
+    if (!member) throw "Member doesn't exist.";
 
     /** @type {{ channels: { cache: import('discord.js').Collection<String, import('discord.js').BaseGuildTextChannel> } */
     const {
@@ -207,65 +205,59 @@ module.exports = {
 
           embed.setAuthor({ name: '🖼️ Applied Filter Result' });
 
-          await interaction.deferReply();
-
           switch (options.getSubcommand()) {
             case 'blur': {
               const amount = options.getInteger('amount') ?? undefined;
 
-              const { attachment: img, ext } =
-                await generateAttachmentFromBuffer({
-                  buffer: await new Blur().getImage(image.url, amount),
-                  fileName: 'blur',
-                  fileDesc: 'Blurred Image',
-                });
+              const img = await generateAttachmentFromBuffer({
+                buffer: await new Blur().getImage(image.url, amount),
+                fileName: 'blur',
+                fileDesc: 'Blurred Image',
+              });
 
-              embed.setImage(`attachment://${img.name}.${ext}`);
+              embed.setImage(`attachment://${img.name}`);
 
               return interaction.editReply({ embeds: [embed], files: [img] });
             }
 
             case 'greyscale': {
-              const { attachment: img, ext } =
-                await generateAttachmentFromBuffer({
-                  buffer: await new Greyscale().getImage(image.url),
-                  fileName: 'greyscale',
-                  fileDesc: 'Greyscaled image',
-                });
+              const img = await generateAttachmentFromBuffer({
+                buffer: await new Greyscale().getImage(image.url),
+                fileName: 'greyscale',
+                fileDesc: 'Greyscaled image',
+              });
 
-              embed.setImage(`attachment://${img.name}.${ext}`);
+              embed.setImage(`attachment://${img.name}`);
 
               return interaction.editReply({ embeds: [embed], files: [img] });
             }
 
             case 'invert': {
-              const { attachment: img, ext } =
-                await generateAttachmentFromBuffer({
-                  buffer: await new Invert().getImage(image.url),
-                  fileName: 'invert',
-                  fileDesc: 'Invertd image',
-                });
+              const img = await generateAttachmentFromBuffer({
+                buffer: await new Invert().getImage(image.url),
+                fileName: 'invert',
+                fileDesc: 'Invertd image',
+              });
 
-              embed.setImage(`attachment://${img.name}.${ext}`);
+              embed.setImage(`attachment://${img.name}`);
 
               return interaction.editReply({ embeds: [embed], files: [img] });
             }
 
             case 'sepia': {
-              const { attachment: img, ext } =
-                await generateAttachmentFromBuffer({
-                  buffer: await new Sepia().getImage(image.url),
-                  fileName: 'sepia',
-                  fileDesc: 'Sepia Image',
-                });
+              const img = await generateAttachmentFromBuffer({
+                buffer: await new Sepia().getImage(image.url),
+                fileName: 'sepia',
+                fileDesc: 'Sepia Image',
+              });
 
-              embed.setImage(`attachment://${img.name}.${ext}`);
+              embed.setImage(`attachment://${img.name}`);
 
               return interaction.editReply({ embeds: [embed], files: [img] });
             }
 
             case 'triggered': {
-              const { attachment: img } = await generateAttachmentFromBuffer({
+              const img = await generateAttachmentFromBuffer({
                 buffer: await new Triggered().getImage(image.url),
                 fileName: 'sepia',
                 fileDesc: 'Sepia Image',
@@ -282,21 +274,11 @@ module.exports = {
 
     switch (options.getSubcommand()) {
       case 'ahegao': {
-        if (!channel) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Channel doesn't exist." });
-        }
+        if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
-          });
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
         }
-
-        await interaction.deferReply();
 
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
@@ -304,7 +286,7 @@ module.exports = {
           { responseType: 'arraybuffer' },
         );
 
-        const { attachment: img, ext } = await generateAttachmentFromBuffer({
+        const img = await generateAttachmentFromBuffer({
           buffer,
           fileName: 'ahegao',
           fileDesc: 'Ahegao Image',
@@ -312,27 +294,17 @@ module.exports = {
 
         embed
           .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(`attachment://${img.name}.${ext}`);
+          .setImage(`attachment://${img.name}`);
 
         return interaction.editReply({ embeds: [embed], files: [img] });
       }
 
       case 'boobs': {
-        if (!channel) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Channel doesn't exist." });
-        }
+        if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
-          });
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
         }
-
-        await interaction.deferReply();
 
         const { image } = await images.nsfw.boobs();
 
@@ -346,21 +318,11 @@ module.exports = {
       case 'danbooru': {
         const query = options.getString('query', true);
 
-        if (!channel) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Channel doesn't exist." });
-        }
+        if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
-          });
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
         }
-
-        await interaction.deferReply();
 
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios
@@ -374,7 +336,7 @@ module.exports = {
             throw `No image found with query ${inlineCode(query)}.`;
           });
 
-        const { attachment: img, ext } = await generateAttachmentFromBuffer({
+        const img = await generateAttachmentFromBuffer({
           buffer,
           fileName: snakeCase(query),
           fileDesc: 'Danbooru Image',
@@ -382,27 +344,17 @@ module.exports = {
 
         embed
           .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(`attachment://${img.name}.${ext}`);
+          .setImage(`attachment://${img.name}`);
 
         return interaction.editReply({ embeds: [embed], files: [img] });
       }
 
       case 'hentai': {
-        if (!channel) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Channel doesn't exist." });
-        }
+        if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
-          });
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
         }
-
-        await interaction.deferReply();
 
         /** @type {{ image: String }} */
         const { image } = await images.nsfw.hentai();
@@ -417,8 +369,6 @@ module.exports = {
       case 'kemono': {
         const endpoints = ['neko', 'nekoGif', 'foxGirl'];
 
-        await interaction.deferReply();
-
         /** @type {{ url: String }} */
         const { url } = await neko[
           endpoints[Math.floor(Math.random() * endpoints.length)]
@@ -430,21 +380,11 @@ module.exports = {
       }
 
       case 'lesbian': {
-        if (!channel) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Channel doesn't exist." });
-        }
+        if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: `Please use this command in a NSFW Channel.${NSFWResponse}`,
-          });
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
         }
-
-        await interaction.deferReply();
 
         const { image } = await images.nsfw.lesbian();
 
@@ -458,15 +398,7 @@ module.exports = {
       case 'shortlink': {
         const url = options.getString('url', true);
 
-        if (!isValidURL(url)) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: 'Please provide a valid URL.',
-          });
-        }
-
-        await interaction.deferReply();
+        if (!isValidURL(url)) throw 'Please provide a valid URL.';
 
         /** @type {{ data: { result: String } }} */
         const {
@@ -485,8 +417,6 @@ module.exports = {
       case 'qrcode': {
         const content = options.getString('content', true);
 
-        await interaction.deferReply();
-
         const url = await QRCode.toDataURL(content, { version: 10 });
 
         const buffer = Buffer.from(url.split(';base64,').pop(), 'base64');
@@ -494,7 +424,7 @@ module.exports = {
 
         fs.writeFileSync(imagePath, buffer, { encoding: 'base64' });
 
-        const { attachment: img } = await generateAttachmentFromBuffer({
+        const img = await generateAttachmentFromBuffer({
           buffer,
           fileName: 'qrcode',
           fileDesc: 'QR Code',
@@ -503,7 +433,7 @@ module.exports = {
         embed
           .setAuthor({ name: '🖼️ QR Code Result' })
           .setDescription("Here's your generated QR Code.")
-          .setImage(`attachment://${img.name}.png`);
+          .setImage(`attachment://${img.name}`);
 
         await interaction.editReply({ embeds: [embed], files: [img] });
 
@@ -515,8 +445,6 @@ module.exports = {
           const type = options.getString('type', true);
 
           embed.setColor(member.displayHexColor);
-
-          await interaction.deferReply();
 
           switch (type) {
             case 'image': {

@@ -228,13 +228,11 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
+    await interaction.deferReply();
+
     const reason = options.getString('reason') ?? 'No reason';
 
-    if (!member) {
-      await interaction.deferReply({ ephemeral: true });
-
-      return interaction.editReply({ content: "Member doesn't exist." });
-    }
+    if (!member) throw "Member doesn't exist.";
 
     const isMissingPermissions = !member.permissions.has(
       PermissionFlagsBits.ManageChannels,
@@ -242,15 +240,11 @@ module.exports = {
 
     switch (options.getSubcommandGroup()) {
       case 'modify': {
-        await interaction.deferReply({ ephemeral: true });
-
         /** @type {import('discord.js').GuildChannel} */
         const guildChannel = options.getChannel('channel', true);
 
         if (isMissingPermissions || !guildChannel.manageable) {
-          return interaction.editReply({
-            content: `You don't have appropiate permissions to modify ${guildChannel} channel.`,
-          });
+          throw `You don't have appropiate permissions to modify ${guildChannel} channel.`;
         }
 
         switch (options.getSubcommand()) {
@@ -259,15 +253,11 @@ module.exports = {
             const parent = options.getChannel('category', true);
 
             if (guildChannel.type === parent.type) {
-              return interaction.editReply({
-                content: `Can't modify ${guildChannel} channel's category since it is a category channel.`,
-              });
+              throw `Can't modify ${guildChannel} channel's category since it is a category channel.`;
             }
 
             if (guildChannel.parent && guildChannel.parent === parent) {
-              return interaction.editReply({
-                content: `${guildChannel} is already in ${guildChannel.parent} category channel.`,
-              });
+              throw `${guildChannel} is already in ${guildChannel.parent} category channel.`;
             }
 
             await guildChannel.setParent(parent, { reason });
@@ -283,9 +273,7 @@ module.exports = {
             const name = options.getString('name', true);
 
             if (name.toLowerCase() === guildChannel.name.toLowerCase()) {
-              return interaction.editReply({
-                content: 'You have to specify a different name to modify.',
-              });
+              throw 'You have to specify a different name to modify.';
             }
 
             await guildChannel.setName(name, reason);
@@ -301,11 +289,9 @@ module.exports = {
             const nsfw = options.getBoolean('nsfw', true);
 
             if (nsfw === channel.nsfw) {
-              return interaction.editReply({
-                content: `${channel} nsfw is already being turned ${
-                  channel.nsfw ? 'on' : 'off'
-                }.`,
-              });
+              throw `${channel} nsfw is already being turned ${
+                channel.nsfw ? 'on' : 'off'
+              }.`;
             }
 
             await channel.setNSFW(nsfw, reason);
@@ -320,9 +306,7 @@ module.exports = {
             const targetChannel = options.getChannel('position', true);
 
             if (guildChannel.type !== targetChannel.type) {
-              return interaction.editReply({
-                content: `${guildChannel} isn't in the same type with ${targetChannel}`,
-              });
+              throw `${guildChannel} isn't in the same type with ${targetChannel}.`;
             }
 
             if (
@@ -330,15 +314,11 @@ module.exports = {
               targetChannel.parent &&
               guildChannel.parent !== targetChannel.parent
             ) {
-              return interaction.editReply({
-                content: `${guildChannel} isn't in the same category with ${targetChannel}`,
-              });
+              throw `${guildChannel} isn't in the same category with ${targetChannel}.`;
             }
 
             if (guildChannel.position === targetChannel.position) {
-              return interaction.editReply({
-                content: 'You have to specify a different position to modify.',
-              });
+              throw 'You have to specify a different position to modify.';
             }
 
             await guildChannel.setPosition(targetChannel.position, { reason });
@@ -354,9 +334,7 @@ module.exports = {
             const topic = options.getString('topic', true);
 
             if (channel.topic && topic === channel.topic) {
-              return interaction.editReply({
-                content: 'You have to specify a different topic to modify.',
-              });
+              throw 'You have to specify a different topic to modify.';
             }
 
             await channel.setTopic(topic, reason);
@@ -371,8 +349,6 @@ module.exports = {
 
     switch (options.getSubcommand()) {
       case 'create': {
-        await interaction.deferReply({ ephemeral: true });
-
         const name = options.getString('name', true);
         const type = options.getInteger('type', true);
 
@@ -381,10 +357,7 @@ module.exports = {
         const topic = options.getString('topic') ?? undefined;
 
         if (isMissingPermissions) {
-          return interaction.editReply({
-            content:
-              "You don't have appropiate permissions to create a channel.",
-          });
+          throw "You don't have appropiate permissions to create a channel.";
         }
 
         const mutedRole = guild.roles.cache.find(
@@ -392,9 +365,7 @@ module.exports = {
         );
 
         if (!mutedRole) {
-          return interaction.editReply({
-            content: `Can't find role with name ${inlineCode('muted')}.`,
-          });
+          throw `Can't find role with name ${inlineCode('muted')}.`;
         }
 
         /** @type {import('discord.js').GuildChannel} */
@@ -436,12 +407,8 @@ module.exports = {
         /** @type {import('discord.js').GuildChannel} */
         const guildChannel = options.getChannel('channel', true);
 
-        await interaction.deferReply({ ephemeral: true });
-
         if (isMissingPermissions || !guildChannel.deletable) {
-          return interaction.editReply({
-            content: `You don't have appropiate permissions to delete ${guildChannel} channel.`,
-          });
+          throw `You don't have appropiate permissions to delete ${guildChannel} channel.`;
         }
 
         await guildChannel.delete(reason);
@@ -453,8 +420,6 @@ module.exports = {
 
       case 'info':
         {
-          await interaction.deferReply();
-
           /** @type {import('discord.js').GuildChannel} */
           const guildChannel = options.getChannel('channel', true);
 
@@ -1222,15 +1187,7 @@ module.exports = {
       case 'list': {
         const channels = await guild.channels.fetch();
 
-        if (!channels.size) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({
-            content: `${bold(guild)} doesn't have any channels.`,
-          });
-        }
-
-        await interaction.deferReply();
+        if (!channels.size) throw `${bold(guild)} doesn't have any channels.`;
 
         const descriptions = [...channels.values()]
           .sort((a, b) => b.type - a.type)

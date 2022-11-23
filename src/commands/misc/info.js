@@ -385,6 +385,8 @@ module.exports = {
     /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
     const { paginations } = client;
 
+    await interaction.deferReply();
+
     const embed = new EmbedBuilder()
       .setColor(guild?.members.me?.displayHexColor ?? null)
       .setTimestamp(Date.now())
@@ -400,8 +402,6 @@ module.exports = {
 
           switch (options.getSubcommand()) {
             case 'latest': {
-              await interaction.deferReply();
-
               /** @type {{ data: import('../../constants/types').CovidLatest[] }} */
               const { data } = await axios.get(
                 `${baseURL}/daily/${moment(Date.now())
@@ -490,8 +490,6 @@ module.exports = {
             }
 
             case 'list': {
-              await interaction.deferReply();
-
               /** @type {{ data: { countries: import('../../constants/types').CovidCountry[] } }} */
               const {
                 data: { countries },
@@ -529,8 +527,6 @@ module.exports = {
               const name = options.getString('name');
 
               if (!name) {
-                await interaction.deferReply();
-
                 /** @type {{ data: import('../../constants/types').CovidConfirmed[] }} */
                 const { data } = await axios.get(`${baseURL}/confirmed`);
 
@@ -653,11 +649,7 @@ module.exports = {
               )?.name;
 
               if (!country) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: `No information found in ${inlineCode(name)}.`,
-                });
+                throw `No information found in ${inlineCode(name)}.`;
               }
 
               /** @type {{ data: import('../../constants/types').CovidConfirmed[] }} */
@@ -666,8 +658,6 @@ module.exports = {
               );
 
               if (data.length === 1) {
-                await interaction.deferReply();
-
                 await wait(4000);
 
                 embed
@@ -746,8 +736,6 @@ module.exports = {
 
                 return interaction.editReply({ embeds: [embed] });
               }
-
-              await interaction.deferReply();
 
               await wait(4000);
 
@@ -869,8 +857,6 @@ module.exports = {
               const nameQuery = options.getString('name');
 
               if (!nameQuery) {
-                await interaction.deferReply();
-
                 /** @type {{ data: String[] }} */
                 const { data } = await axios.get(`${baseURL}/artifacts`);
 
@@ -923,12 +909,8 @@ module.exports = {
               } = await axios
                 .get(`${baseURL}/artifacts/${paramCase(nameQuery)}`)
                 .catch(async () => {
-                  await interaction.deferReply({ ephemeral: true });
-
                   throw `No artifact found with name ${inlineCode(nameQuery)}.`;
                 });
-
-              await interaction.deferReply();
 
               embed
                 .setThumbnail(
@@ -976,8 +958,6 @@ module.exports = {
               const detailed = options.getBoolean('detailed') ?? false;
 
               if (!nameQuery) {
-                await interaction.deferReply();
-
                 /** @type {{ data: String[] }} */
                 const { data } = await axios.get(`${baseURL}/characters`);
 
@@ -1038,14 +1018,10 @@ module.exports = {
               } = await axios
                 .get(`${baseURL}/characters/${getFormattedParam(nameQuery)}`)
                 .catch(async () => {
-                  await interaction.deferReply({ ephemeral: true });
-
                   throw `No character found with name ${inlineCode(
                     nameQuery,
                   )}.`;
                 });
-
-              await interaction.deferReply();
 
               const formattedName = name !== 'Ayato' ? name : 'Kamisato Ayata';
 
@@ -1277,8 +1253,6 @@ module.exports = {
               const nameQuery = options.getString('name');
 
               if (!nameQuery) {
-                await interaction.deferReply();
-
                 /** @type {{ data: String[] }} */
                 const { data } = await axios.get(`${baseURL}/weapons`);
 
@@ -1332,12 +1306,8 @@ module.exports = {
               } = await axios
                 .get(`${baseURL}/weapons/${paramCase(nameQuery)}`)
                 .catch(async () => {
-                  await interaction.deferReply({ ephemeral: true });
-
                   throw `No weapon found with name ${inlineCode(nameQuery)}.`;
                 });
-
-              await interaction.deferReply();
 
               embed
                 .setThumbnail(
@@ -1407,12 +1377,8 @@ module.exports = {
             } = await axios
               .get(`https://api.github.com/users/${username}`)
               .catch(async () => {
-                await interaction.deferReply({ ephemeral: true });
-
                 throw `No user found with username ${inlineCode(username)}.`;
               });
-
-            await interaction.deferReply();
 
             embed
               .setAuthor({
@@ -1496,13 +1462,9 @@ module.exports = {
               q: `${name}${language ? `+language:${language}` : ''}`,
             });
 
-            if (sort) {
-              query.append('sort', sort);
-            }
+            if (sort) query.append('sort', sort);
 
-            if (order) {
-              query.append('order', order);
-            }
+            if (order) query.append('order', order);
 
             /** @type {{ data: { items: import('../../constants/types').GithubRepository[] } }} */
             const {
@@ -1512,14 +1474,8 @@ module.exports = {
             );
 
             if (!items.length) {
-              await interaction.deferReply({ ephemeral: true });
-
-              return interaction.editReply({
-                content: `No repository found with name ${inlineCode(name)}.`,
-              });
+              throw `No repository found with name ${inlineCode(name)}.`;
             }
-
-            await interaction.deferReply();
 
             const embeds = items.map(
               (
@@ -1674,8 +1630,6 @@ module.exports = {
           switch (options.getSubcommand()) {
             case 'block': {
               if (!name) {
-                await interaction.deferReply();
-
                 const filteredMcData = mcData.blocksArray.filter(
                   (item, index, array) =>
                     array.findIndex(
@@ -1725,14 +1679,8 @@ module.exports = {
               };
 
               if (!Object.keys(block).length) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: `No block found with name ${inlineCode(name)}.`,
-                });
+                throw `No block found with name ${inlineCode(name)}.`;
               }
-
-              await interaction.deferReply();
 
               embed
                 .setDescription(block?.description ?? null)
@@ -1805,8 +1753,6 @@ module.exports = {
 
             case 'biome': {
               if (!name) {
-                await interaction.deferReply();
-
                 const responses = mcData.biomesArray.map(
                   (item, index) =>
                     `${bold(`${index + 1}.`)} ${item.displayName}`,
@@ -1845,14 +1791,8 @@ module.exports = {
               };
 
               if (!Object.keys(biome).length) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: `No biome found with name ${inlineCode(name)}.`,
-                });
+                throw `No biome found with name ${inlineCode(name)}.`;
               }
-
-              await interaction.deferReply();
 
               embed
                 .setDescription(biome.description)
@@ -1917,8 +1857,6 @@ module.exports = {
 
             case 'effect': {
               if (!name) {
-                await interaction.deferReply();
-
                 const responses = mcData.effectsArray.map(
                   (item, index) =>
                     `${bold(`${index + 1}.`)} ${item.displayName}`,
@@ -1957,14 +1895,8 @@ module.exports = {
               };
 
               if (!Object.keys(effect).length) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: `No effect found with name ${inlineCode(name)}.`,
-                });
+                throw `No effect found with name ${inlineCode(name)}.`;
               }
-
-              await interaction.deferReply();
 
               embed
                 .setDescription(effect.description)
@@ -1999,8 +1931,6 @@ module.exports = {
 
             case 'enchantment': {
               if (!name) {
-                await interaction.deferReply();
-
                 const responses = mcData.enchantmentsArray.map(
                   (item, index) =>
                     `${bold(`${index + 1}.`)} ${item.displayName}`,
@@ -2043,16 +1973,8 @@ module.exports = {
               };
 
               if (!Object.keys(enchantment).length) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: `No enchantment found with name ${inlineCode(
-                    name,
-                  )}.`,
-                });
+                throw `No enchantment found with name ${inlineCode(name)}.`;
               }
-
-              await interaction.deferReply();
 
               embed
                 .setDescription(enchantment.description)
@@ -2103,8 +2025,6 @@ module.exports = {
 
             case 'entity': {
               if (!name) {
-                await interaction.deferReply();
-
                 const responses = mcData.entitiesArray.map(
                   (item, index) =>
                     `${bold(`${index + 1}.`)} ${item.displayName}`,
@@ -2147,14 +2067,8 @@ module.exports = {
               };
 
               if (!Object.keys(entity).length) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: `No entity found with name ${inlineCode(name)}.`,
-                });
+                throw `No entity found with name ${inlineCode(name)}.`;
               }
-
-              await interaction.deferReply();
 
               embed
                 .setDescription(entity.description)
@@ -2264,8 +2178,6 @@ module.exports = {
 
             case 'food': {
               if (!name) {
-                await interaction.deferReply();
-
                 const responses = mcData.foodsArray.map(
                   (item, index) =>
                     `${bold(`${index + 1}.`)} ${item.displayName}`,
@@ -2306,14 +2218,8 @@ module.exports = {
               };
 
               if (!Object.keys(food).length) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: `No food found with name ${inlineCode(name)}.`,
-                });
+                throw `No food found with name ${inlineCode(name)}.`;
               }
-
-              await interaction.deferReply();
 
               embed
                 .setDescription(food.description)
@@ -2367,8 +2273,6 @@ module.exports = {
               const sort = options.getString('sort');
 
               if (!affiliation) {
-                await interaction.deferReply();
-
                 const responses = affiliations
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map(({ name }, index) => `${bold(`${index + 1}.`)} ${name}`);
@@ -2402,16 +2306,10 @@ module.exports = {
               );
 
               if (!org) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: `No affiliation found with name ${inlineCode(
-                    affiliation,
-                  )} or maybe the data isn't available yet.`,
-                });
+                throw `No affiliation found with name ${inlineCode(
+                  affiliation,
+                )} or maybe the data isn't available yet.`;
               }
-
-              await interaction.deferReply();
 
               const channels = await holodex.getChannels({
                 org: org.name,
@@ -2543,14 +2441,10 @@ module.exports = {
               const id = options.getString('id', true);
 
               const item = await holodex.getChannel(id).catch(async () => {
-                await interaction.deferReply({ ephemeral: true });
-
                 throw `No channel found with ID ${inlineCode(
                   id,
                 )} or maybe the data isn't available yet.`;
               });
-
-              await interaction.deferReply();
 
               const {
                 clip_count,
@@ -2667,8 +2561,6 @@ module.exports = {
               const sort = options.getString('sort');
 
               if (!channelID) {
-                await interaction.deferReply();
-
                 const channels = await holodex.getChannels({
                   limit: 50,
                   sort: sort ?? 'org',
@@ -2765,14 +2657,10 @@ module.exports = {
               const item = await holodex
                 .getChannel(channelID)
                 .catch(async () => {
-                  await interaction.deferReply({ ephemeral: true });
-
                   throw `No channel found with ID ${inlineCode(
                     channelID,
                   )} or maybe the data isn't available yet.`;
                 });
-
-              await interaction.deferReply();
 
               const {
                 description,
@@ -2856,13 +2744,9 @@ module.exports = {
               );
 
               if (affiliation && !org) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: `No affiliation found with name ${inlineCode(
-                    affiliation,
-                  )} or maybe the data isn't available yet.`,
-                });
+                throw `No affiliation found with name ${inlineCode(
+                  affiliation,
+                )} or maybe the data isn't available yet.`;
               }
 
               const videosParam = {
@@ -2890,16 +2774,10 @@ module.exports = {
                 const videos = await holodex.getLiveVideos(videosParam);
 
                 if (!videos.length) {
-                  await interaction.deferReply({ ephemeral: true });
-
-                  return interaction.editReply({
-                    content: `No channel found with ID ${inlineCode(
-                      channelID,
-                    )} or maybe the channel doesn't live right now.`,
-                  });
+                  throw `No channel found with ID ${inlineCode(
+                    channelID,
+                  )} or maybe the channel doesn't live right now.`;
                 }
-
-                await interaction.deferReply();
 
                 const embeds = videos.map((item, index, array) => {
                   const {
@@ -3002,11 +2880,7 @@ module.exports = {
               const videos = await holodex.getLiveVideosByChannelId(channelID);
 
               if (!videos.length) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: `No channel found with ID ${inlineCode(channelID)}.`,
-                });
+                throw `No channel found with ID ${inlineCode(channelID)}.`;
               }
 
               const liveVideos = videos.filter(
@@ -3014,16 +2888,10 @@ module.exports = {
               );
 
               if (!liveVideos.length) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: "Channel doesn't live right now.",
-                });
+                throw "Channel doesn't live right now.";
               }
 
               if (liveVideos.length === 1) {
-                await interaction.deferReply();
-
                 const {
                   available_at,
                   channel: { english_name, name, org: aff, photo },
@@ -3096,8 +2964,6 @@ module.exports = {
 
                 return interaction.editReply({ embeds: [embed] });
               }
-
-              await interaction.deferReply();
 
               const embeds = liveVideos.map((item, index, array) => {
                 const {
@@ -3208,16 +3074,10 @@ module.exports = {
               );
 
               if (!videos.length) {
-                await interaction.deferReply({ ephemeral: true });
-
-                return interaction.editReply({
-                  content: `No channel found with ID ${inlineCode(
-                    channelID,
-                  )} or maybe the channel doesn't have any video.`,
-                });
+                throw `No channel found with ID ${inlineCode(
+                  channelID,
+                )} or maybe the channel doesn't have any video.`;
               }
-
-              await interaction.deferReply();
 
               const embeds = videos.map((item, index, array) => {
                 const {
@@ -3355,12 +3215,8 @@ module.exports = {
             `https://api.lolhuman.xyz/api/stalkig/${cleanUsername}?apikey=${process.env.LOLHUMAN_API_KEY}`,
           )
           .catch(async () => {
-            await interaction.deferReply({ ephemeral: true });
-
             throw `No user found with username ${cleanUsername}.`;
           });
-
-        await interaction.deferReply();
 
         embed
           .setDescription(bio || null)
@@ -3425,12 +3281,8 @@ module.exports = {
         } = await axios
           .get(`https://registry.npmjs.com/${nameQuery}`)
           .catch(async () => {
-            await interaction.deferReply({ ephemeral: true });
-
             throw `No package found with name ${inlineCode(nameQuery)}.`;
           });
-
-        await interaction.deferReply();
 
         let maintainerArr = maintainers.map(
           ({ email, name: maintainerName }) =>
@@ -3550,23 +3402,11 @@ module.exports = {
            * @param {import('../../constants/types').Weather[]} result
            */
           async (err, result) => {
-            if (err) {
-              await interaction.deferReply({ ephemeral: true });
-
-              return interaction.editReply({ content: err });
-            }
+            if (err) throw err;
 
             if (!result.length) {
-              await interaction.deferReply({ ephemeral: true });
-
-              return interaction.editReply({
-                content: `No information found in ${inlineCode(
-                  locationTarget,
-                )}.`,
-              });
+              throw `No information found in ${inlineCode(locationTarget)}.`;
             }
-
-            await interaction.deferReply();
 
             const [
               {

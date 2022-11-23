@@ -134,16 +134,12 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { client, guild, member, options } = interaction;
+    /** @type {{ client: import('discord.js').Client<true>, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { client, member, options } = interaction;
 
-    if (!guild) return;
+    await interaction.deferReply();
 
-    if (!member) {
-      await interaction.deferReply({ ephemeral: true });
-
-      return interaction.editReply({ content: "Member doesn't exist." });
-    }
+    if (!member) throw "Member doesn't exist.";
 
     const embed = new EmbedBuilder().setTimestamp(Date.now()).setFooter({
       text: client.user.username,
@@ -157,13 +153,7 @@ module.exports = {
 
     switch (options.getSubcommand()) {
       case 'hug': {
-        if (!target) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
-
-        await interaction.deferReply();
+        if (!target) throw "Member doesn't exist.";
 
         const { url } = await neko.hug();
 
@@ -181,13 +171,7 @@ module.exports = {
       }
 
       case 'kiss': {
-        if (!target) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
-
-        await interaction.deferReply();
+        if (!target) throw "Member doesn't exist.";
 
         const { url } = await neko.kiss();
 
@@ -205,13 +189,7 @@ module.exports = {
       }
 
       case 'slap': {
-        if (!target) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
-
-        await interaction.deferReply();
+        if (!target) throw "Member doesn't exist.";
 
         const { url } = await neko.slap();
 
@@ -229,13 +207,7 @@ module.exports = {
       }
 
       case 'punch': {
-        if (!target) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
-
-        await interaction.deferReply();
+        if (!target) throw "Member doesn't exist.";
 
         /** @type {{ image: String }} */
         const { image } = await images.sfw.punch();
@@ -249,13 +221,7 @@ module.exports = {
       }
 
       case 'wink': {
-        if (!target) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
-
-        await interaction.deferReply();
+        if (!target) throw "Member doesn't exist.";
 
         /** @type {{ image: String }} */
         const { image } = await images.sfw.wink();
@@ -269,13 +235,7 @@ module.exports = {
       }
 
       case 'pat': {
-        if (!target) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
-
-        await interaction.deferReply();
+        if (!target) throw "Member doesn't exist.";
 
         const { url } = await neko.pat();
 
@@ -293,13 +253,7 @@ module.exports = {
       }
 
       case 'kill': {
-        if (!target) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
-
-        await interaction.deferReply();
+        if (!target) throw "Member doesn't exist.";
 
         /** @type {{ image: String }} */
         const { image } = await images.sfw.kill();
@@ -313,13 +267,7 @@ module.exports = {
       }
 
       case 'cuddle': {
-        if (!target) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
-
-        await interaction.deferReply();
+        if (!target) throw "Member doesn't exist.";
 
         const { url } = await neko.cuddle();
 
@@ -337,13 +285,7 @@ module.exports = {
       }
 
       case 'tickle': {
-        if (!target) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
-
-        await interaction.deferReply();
+        if (!target) throw "Member doesn't exist.";
 
         const { url } = await neko.tickle();
 
@@ -355,13 +297,7 @@ module.exports = {
       }
 
       case 'feed': {
-        if (!target) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
-
-        await interaction.deferReply();
+        if (!target) throw "Member doesn't exist.";
 
         const { url } = await neko.feed();
 
@@ -374,13 +310,7 @@ module.exports = {
       }
 
       case 'smug': {
-        if (!target) {
-          await interaction.deferReply({ ephemeral: true });
-
-          return interaction.editReply({ content: "Member doesn't exist." });
-        }
-
-        await interaction.deferReply();
+        if (!target) throw "Member doesn't exist.";
 
         const { url } = await neko.smug();
 
