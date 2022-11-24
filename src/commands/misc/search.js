@@ -130,6 +130,19 @@ module.exports = {
         .setDescription('📖 Dictionary command.')
         .addSubcommand((subcommand) =>
           subcommand
+            .setName('kbbi')
+            .setDescription(
+              '❓ Search the definition of a term from Kamus Besar Bahasa Indonesia (KBBI).',
+            )
+            .addStringOption((option) =>
+              option
+                .setName('term')
+                .setDescription("🔠 The definition's term.")
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
             .setName('mdn')
             .setDescription(
               '❓ Search the documentation of a term from MDN Web Docs.',
@@ -672,6 +685,197 @@ module.exports = {
           const term = options.getString('term', true);
 
           switch (options.getSubcommand()) {
+            case 'kbbi': {
+              /** @type {{ data: { result: import('../../constants/types').KBBI[] } }} */
+              const {
+                data: { result },
+              } = await axios
+                .get(
+                  `https://api.lolhuman.xyz/api/kbbi?query=${encodeURIComponent(
+                    term,
+                  )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                )
+                .catch(async () => {
+                  throw `No definition found with term ${inlineCode(term)}.`;
+                });
+
+              if (result.length > 1) {
+                const embeds = result.map(
+                  (
+                    {
+                      bentuk_tidak_baku,
+                      kata_dasar,
+                      makna,
+                      nama,
+                      pelafalan,
+                      varian,
+                    },
+                    index,
+                    array,
+                  ) => {
+                    const meanings = makna.map(
+                      ({ contoh, info, kelas, submakna }, i, arr) => ({
+                        name: `❓ Meaning${arr.length > 1 ? `${i + 1}` : ''}`,
+                        value: `${bold('• Part of Speech')}\n${kelas
+                          .map(({ nama: partOfSpeech }) => partOfSpeech)
+                          .join(', ')}\n\n${bold('• Submeaning')}\n${submakna
+                          .map((item) => `- ${item}`)
+                          .join('\n')}${
+                          info ? `\n\n${bold('• Info')}\n${info}` : ''
+                        }\n\n${bold('• Example')}\n${contoh
+                          .map((item) => {
+                            switch (true) {
+                              case item.includes('~'):
+                                return `- ${item.replace(
+                                  '~',
+                                  bold(nama.split('.').join('')),
+                                )}`;
+
+                              case item.includes('--'):
+                                return `- ${item.replace(
+                                  '--',
+                                  bold(nama.split('.').join('')),
+                                )}`;
+                            }
+                          })
+                          .join('\n')}`,
+                      }),
+                    );
+
+                    return new EmbedBuilder()
+                      .setColor(guild.members.me?.displayHexColor ?? null)
+                      .setTimestamp(Date.now())
+                      .setFooter({
+                        text: `${client.user.username} | Page ${index + 1} of ${
+                          array.length
+                        }`,
+                        iconURL: client.user.displayAvatarURL({
+                          dynamic: true,
+                        }),
+                      })
+                      .setAuthor({ name: '📖 KBBI Search Result' })
+                      .setFields([
+                        {
+                          name: '🗣️ Spelling',
+                          value: nama,
+                          inline: true,
+                        },
+                        {
+                          name: '🔤 Root',
+                          value: kata_dasar.length
+                            ? kata_dasar.join(', ')
+                            : italic('None'),
+                          inline: true,
+                        },
+                        {
+                          name: '🗣️ Pronunciation',
+                          value: pelafalan || italic('Unknown'),
+                          inline: true,
+                        },
+                        {
+                          name: '🔤 Nonstandard form',
+                          value: bentuk_tidak_baku.length
+                            ? bentuk_tidak_baku.join(', ')
+                            : italic('None'),
+                          inline: true,
+                        },
+                        {
+                          name: '🔤 Variant',
+                          value: varian.length
+                            ? varian.join(', ')
+                            : italic('None'),
+                          inline: true,
+                        },
+                        ...meanings,
+                      ]);
+                  },
+                );
+
+                const pagination = new Pagination(interaction).setEmbeds(
+                  embeds,
+                );
+
+                pagination.buttons = {
+                  ...pagination.buttons,
+                  extra: new ButtonBuilder()
+                    .setCustomId('jump')
+                    .setEmoji('↕️')
+                    .setDisabled(false)
+                    .setStyle(ButtonStyle.Secondary),
+                };
+
+                paginations.set(pagination.interaction.id, pagination);
+
+                return pagination.render();
+              }
+
+              const meanings = result[0].makna.map(
+                ({ contoh, info, kelas, submakna }, index, arr) => ({
+                  name: `❓ Meaning${arr.length > 1 ? `${index + 1}` : ''}`,
+                  value: `${bold('• Part of Speech')}\n${kelas
+                    .map(({ nama }) => nama)
+                    .join(', ')}\n\n${bold('• Submeaning')}\n${submakna
+                    .map((item) => `- ${item}`)
+                    .join('\n')}${
+                    info ? `\n\n${bold('• Info')}\n${info}` : ''
+                  }\n\n${bold('• Example')}\n${contoh
+                    .map((item) => {
+                      switch (true) {
+                        case item.includes('~'):
+                          return `- ${item.replace(
+                            '~',
+                            bold(result[0].nama.split('.').join('')),
+                          )}`;
+
+                        case item.includes('--'):
+                          return `- ${item.replace(
+                            '--',
+                            bold(result[0].nama.split('.').join('')),
+                          )}`;
+                      }
+                    })
+                    .join('\n')}`,
+                }),
+              );
+
+              embed.setAuthor({ name: '📖 KBBI Search Result' }).setFields([
+                {
+                  name: '🗣️ Spelling',
+                  value: result[0].nama,
+                  inline: true,
+                },
+                {
+                  name: '🔤 Root',
+                  value: result[0].kata_dasar.length
+                    ? result[0].kata_dasar.join(', ')
+                    : italic('None'),
+                  inline: true,
+                },
+                {
+                  name: '🗣️ Pronunciation',
+                  value: result[0].pelafalan || italic('Unknown'),
+                  inline: true,
+                },
+                {
+                  name: '🔤 Nonstandard form',
+                  value: result[0].bentuk_tidak_baku.length
+                    ? result[0].bentuk_tidak_baku.join(', ')
+                    : italic('None'),
+                  inline: true,
+                },
+                {
+                  name: '🔤 Variant',
+                  value: result[0].varian.length
+                    ? result[0].varian.join(', ')
+                    : italic('None'),
+                  inline: true,
+                },
+                ...meanings,
+              ]);
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
             case 'urban': {
               const query = new URLSearchParams({ term });
 

@@ -1081,4 +1081,30 @@
  * @property {String} type
  */
 
+/**
+ * @typedef {Object} KBBI
+ * @property {String} nama
+ * @property {String} nomor
+ * @property {String[]} kata_dasar
+ * @property {String} pelafalan
+ * @property {String[]} bentuk_tidak_baku
+ * @property {String[]} varian
+ * @property {KBBIMeaning[]} makna
+ */
+
+/**
+ * @typedef {Object} KBBIMeaning
+ * @property {KBBIPartOfSpeech[]} kelas
+ * @property {String[]} submakna
+ * @property {String} info
+ * @property {String[]} contoh
+ */
+
+/**
+ * @typedef {Object} KBBIPartOfSpeech
+ * @property {String} kode
+ * @property {String} nama
+ * @property {String} deskripsi
+ */
+
 exports.unused = {};
