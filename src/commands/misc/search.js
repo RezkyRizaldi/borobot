@@ -9,6 +9,7 @@ const {
   hyperlink,
   inlineCode,
   italic,
+  Locale,
   SlashCommandBuilder,
   time,
   TimestampStyles,
@@ -24,7 +25,6 @@ const {
   mangaSearchOrderChoices,
   mangaSearchStatusChoices,
   mangaSearchTypeChoices,
-  mdnLocaleChoices,
   newsCountries,
   searchSortingChoices,
 } = require('../../constants');
@@ -126,6 +126,50 @@ module.exports = {
     )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
+        .setName('dictionary')
+        .setDescription('📖 Dictionary command.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('mdn')
+            .setDescription(
+              '❓ Search the documentation of a term from MDN Web Docs.',
+            )
+            .addStringOption((option) =>
+              option
+                .setName('term')
+                .setDescription("🔠 The documentation's term.")
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('urban')
+            .setDescription(
+              '❓ Search the definition of a term from Urban Dictionary.',
+            )
+            .addStringOption((option) =>
+              option
+                .setName('term')
+                .setDescription("🔠 The definition's term.")
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('wiki')
+            .setDescription(
+              '❓ Search the definition of a term from Wikipedia.',
+            )
+            .addStringOption((option) =>
+              option
+                .setName('term')
+                .setDescription("🔠 The definition's term.")
+                .setRequired(true),
+            ),
+        ),
+    )
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
         .setName('doujindesu')
         .setDescription('📔 Doujin command.')
         .addSubcommand((subcommand) =>
@@ -219,25 +263,6 @@ module.exports = {
             .setMaxLength(1),
         ),
     )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('mdn')
-        .setDescription(
-          '📖 Search the documentation of a term from MDN Web Docs.',
-        )
-        .addStringOption((option) =>
-          option
-            .setName('term')
-            .setDescription("🔠 The documentation's term.")
-            .setRequired(true),
-        )
-        .addStringOption((option) =>
-          option
-            .setName('language')
-            .setDescription("🔠 The documentation's preferred locale.")
-            .addChoices(...mdnLocaleChoices),
-        ),
-    )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName('news')
@@ -288,30 +313,6 @@ module.exports = {
                 .setDescription('🔤 The doujin search query.')
                 .setRequired(true),
             ),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('urban')
-        .setDescription(
-          '❓ Search the definition of a term from Urban Dictionary.',
-        )
-        .addStringOption((option) =>
-          option
-            .setName('term')
-            .setDescription("🔠 The definition's term.")
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('wiki')
-        .setDescription('❓ Search the definition of a term from Wikipedia.')
-        .addStringOption((option) =>
-          option
-            .setName('term')
-            .setDescription("🔠 The definition's term.")
-            .setRequired(true),
         ),
     ),
   type: 'Chat Input',
@@ -666,6 +667,165 @@ module.exports = {
         }
         break;
 
+      case 'dictionary':
+        {
+          const term = options.getString('term', true);
+
+          switch (options.getSubcommand()) {
+            case 'urban': {
+              const query = new URLSearchParams({ term });
+
+              /** @type {{ data: { list: import('../../constants/types').UrbanDictionary[] } }} */
+              const {
+                data: { list },
+              } = await axios.get(
+                `https://api.urbandictionary.com/v0/define?${query}`,
+              );
+
+              if (!list.length) {
+                throw `No result found for ${inlineCode(term)}.`;
+              }
+
+              const {
+                author,
+                definition,
+                example,
+                permalink,
+                thumbs_down,
+                thumbs_up,
+                word,
+                written_on,
+              } = list[Math.floor(Math.random() * list.length)];
+
+              const formattedCite = `\n${italic(
+                `by ${author} — ${time(
+                  new Date(written_on),
+                  TimestampStyles.RelativeTime,
+                )}`,
+              )}`;
+
+              embed
+                .setAuthor({
+                  name: capitalCase(word),
+                  url: permalink,
+                  iconURL:
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Urban_Dictionary_logo.svg/320px-Urban_Dictionary_logo.svg.png',
+                })
+                .setFields([
+                  {
+                    name: '🔤 Definition',
+                    value: `${truncate(
+                      definition,
+                      1024 - formattedCite.length - 3,
+                    )}${formattedCite}`,
+                  },
+                  { name: '🔤 Example', value: truncate(example, 1024) },
+                  {
+                    name: '⭐ Rating',
+                    value: `${thumbs_up.toLocaleString()} 👍 | ${thumbs_down.toLocaleString()} 👎`,
+                  },
+                ]);
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case 'mdn': {
+              const query = new URLSearchParams({
+                q: term,
+                locale:
+                  guild.preferredLocale !== Locale.SpanishES
+                    ? guild.preferredLocale
+                    : 'es',
+              });
+              const baseURL = 'https://developer.mozilla.org';
+
+              /** @type {{ data: { documents: import('../../constants/types').MDNDocument[], suggestions: import('../../constants/types').MDNSuggestion[] } }} */
+              const {
+                data: { documents, suggestions },
+              } = await axios.get(`${baseURL}/api/v1/search?${query}`);
+
+              if (!documents.length) {
+                if (!suggestions.length) {
+                  throw `No result found for ${inlineCode(term)}.`;
+                }
+
+                const newQuery = new URLSearchParams({
+                  q: suggestions[0].text,
+                  locale:
+                    guild.preferredLocale !== Locale.SpanishES
+                      ? guild.preferredLocale
+                      : 'es',
+                });
+
+                /** @type {{ data: { documents: import('../../constants/types').MDNDocument[] } }} */
+                const {
+                  data: { documents: docs },
+                } = await axios.get(`${baseURL}/api/v1/search?${newQuery}`);
+
+                const fields = docs.map(({ mdn_url, summary, title }) => ({
+                  name: title,
+                  value: `${summary}\n${hyperlink(
+                    'View Documentation',
+                    `${baseURL}${mdn_url}`,
+                    'Click here to view the documentation.',
+                  )}`,
+                }));
+
+                embed
+                  .setAuthor({
+                    name: 'Documentation Search Results',
+                    iconURL:
+                      'https://pbs.twimg.com/profile_images/1511434207079407618/AwzUxnVf_400x400.png',
+                  })
+                  .setFields(fields);
+
+                return interaction.editReply({ embeds: [embed] });
+              }
+
+              const fields = documents.map(({ mdn_url, summary, title }) => ({
+                name: title,
+                value: `${summary}\n${hyperlink(
+                  'View Documentation',
+                  `${baseURL}${mdn_url}`,
+                  'Click here to view the documentation.',
+                )}`,
+              }));
+
+              embed
+                .setAuthor({ name: '📖 Documentation Search Results' })
+                .setFields(fields);
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case 'wiki': {
+              /** @type {{ data: { result: String } }} */
+              const {
+                data: { result },
+              } = await axios
+                .get(
+                  `https://api.lolhuman.xyz/api/wiki?query=${encodeURIComponent(
+                    term,
+                  )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                )
+                .catch(async () => {
+                  throw `No definition found with term ${inlineCode(term)}.`;
+                });
+
+              embed
+                .setAuthor({
+                  name: capitalCase(term),
+                  iconURL:
+                    'https://upload.wikimedia.org/wikipedia/commons/6/61/Wikipedia-logo-transparent.png',
+                })
+                .setDescription(truncate(result, 4096));
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+          }
+        }
+        break;
+
       case 'doujindesu': {
         const baseURL = 'https://api.lolhuman.xyz/api';
 
@@ -839,6 +999,10 @@ module.exports = {
 
               embed
                 .setColor(guild.members.me?.displayHexColor ?? null)
+                .setAuthor({
+                  name: 'Danbooru Search Result',
+                  iconURL: 'https://avatars.githubusercontent.com/u/57931572',
+                })
                 .setImage(`attachment://${img.name}`);
 
               return interaction.editReply({ embeds: [embed], files: [img] });
@@ -862,7 +1026,7 @@ module.exports = {
                   iconURL: client.user.displayAvatarURL({ dynamic: true }),
                 })
                 .setAuthor({
-                  name: 'Image Search Results',
+                  name: 'Google Search Result',
                   iconURL:
                     'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/480px-Google_%22G%22_Logo.svg.png',
                 })
@@ -1384,154 +1548,6 @@ module.exports = {
         paginations.set(pagination.interaction.id, pagination);
 
         return pagination.render();
-      }
-
-      case 'urban': {
-        const term = options.getString('term', true);
-        const query = new URLSearchParams({ term });
-
-        /** @type {{ data: { list: import('../../constants/types').UrbanDictionary[] } }} */
-        const {
-          data: { list },
-        } = await axios.get(
-          `https://api.urbandictionary.com/v0/define?${query}`,
-        );
-
-        if (!list.length) throw `No result found for ${inlineCode(term)}.`;
-
-        const {
-          author,
-          definition,
-          example,
-          permalink,
-          thumbs_down,
-          thumbs_up,
-          word,
-          written_on,
-        } = list[Math.floor(Math.random() * list.length)];
-
-        const formattedCite = `\n${italic(
-          `by ${author} — ${time(
-            new Date(written_on),
-            TimestampStyles.RelativeTime,
-          )}`,
-        )}`;
-
-        embed
-          .setAuthor({
-            name: capitalCase(word),
-            url: permalink,
-            iconURL:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Urban_Dictionary_logo.svg/320px-Urban_Dictionary_logo.svg.png',
-          })
-          .setFields([
-            {
-              name: '🔤 Definition',
-              value: `${truncate(
-                definition,
-                1024 - formattedCite.length - 3,
-              )}${formattedCite}`,
-            },
-            { name: '🔤 Example', value: truncate(example, 1024) },
-            {
-              name: '⭐ Rating',
-              value: `${thumbs_up.toLocaleString()} 👍 | ${thumbs_down.toLocaleString()} 👎`,
-            },
-          ]);
-
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'mdn': {
-        const term = options.getString('term', true);
-        const language = options.getString('language');
-        const query = new URLSearchParams({
-          q: term,
-          locale: language ?? 'en-US',
-        });
-        const baseURL = 'https://developer.mozilla.org';
-
-        /** @type {{ data: { documents: import('../../constants/types').MDNDocument[], suggestions: import('../../constants/types').MDNSuggestion[] } }} */
-        const {
-          data: { documents, suggestions },
-        } = await axios.get(`${baseURL}/api/v1/search?${query}`);
-
-        if (!documents.length) {
-          if (!suggestions.length) {
-            throw `No result found for ${inlineCode(term)}.`;
-          }
-
-          const newQuery = new URLSearchParams({
-            q: suggestions[0].text,
-            locale: language ?? 'en-US',
-          });
-
-          /** @type {{ data: { documents: import('../../constants/types').MDNDocument[] } }} */
-          const {
-            data: { documents: docs },
-          } = await axios.get(`${baseURL}/api/v1/search?${newQuery}`);
-
-          const fields = docs.map(({ mdn_url, summary, title }) => ({
-            name: title,
-            value: `${summary}\n${hyperlink(
-              'View Documentation',
-              `${baseURL}${mdn_url}`,
-              'Click here to view the documentation.',
-            )}`,
-          }));
-
-          embed
-            .setAuthor({
-              name: 'Documentation Search Results',
-              iconURL:
-                'https://pbs.twimg.com/profile_images/1511434207079407618/AwzUxnVf_400x400.png',
-            })
-            .setFields(fields);
-
-          return interaction.editReply({ embeds: [embed] });
-        }
-
-        const fields = documents.map(({ mdn_url, summary, title }) => ({
-          name: title,
-          value: `${summary}\n${hyperlink(
-            'View Documentation',
-            `${baseURL}${mdn_url}`,
-            'Click here to view the documentation.',
-          )}`,
-        }));
-
-        embed
-          .setAuthor({ name: '📖 Documentation Search Results' })
-          .setFields(fields);
-
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'wiki': {
-        const term = options.getString('term', true);
-
-        /** @type {{ data: { result: String } }} */
-        const {
-          data: { result },
-        } = await axios
-          .get(
-            `https://api.lolhuman.xyz/api/wiki?query=${encodeURIComponent(
-              term,
-            )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
-          )
-          .catch(async () => {
-            throw `No definition found with term ${inlineCode(term)}.`;
-          });
-
-        embed
-          .setAuthor({
-            name: capitalCase(term),
-            iconURL:
-              'https://upload.wikimedia.org/wikipedia/commons/6/61/Wikipedia-logo-transparent.png',
-          })
-          .setDescription(truncate(result, 4096));
-
-        return interaction.editReply({ embeds: [embed] });
       }
     }
   },

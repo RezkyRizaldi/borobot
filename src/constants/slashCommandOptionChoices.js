@@ -235,50 +235,6 @@ const serverMuteTempChoices = [
 ];
 
 /** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
-const mdnLocaleChoices = [
-  {
-    name: 'English (US)',
-    value: 'en-US',
-  },
-  {
-    name: 'Español',
-    value: 'es',
-  },
-  {
-    name: 'Français',
-    value: 'fr',
-  },
-  {
-    name: '日本語',
-    value: 'ja',
-  },
-  {
-    name: '한국어',
-    value: 'ko',
-  },
-  {
-    name: '한국어',
-    value: 'ko',
-  },
-  {
-    name: 'Português (do Brasil)',
-    value: 'pt-BR',
-  },
-  {
-    name: 'Русский',
-    value: 'ru',
-  },
-  {
-    name: '中文 (简体)',
-    value: 'zh-CN',
-  },
-  {
-    name: '正體中文 (繁體)',
-    value: 'zh-TW',
-  },
-];
-
-/** @type {import('discord.js').APIApplicationCommandOptionChoice[]} */
 const githubRepoSortingTypeChoices = [
   {
     name: '⭐ Stars',
@@ -837,7 +793,6 @@ module.exports = {
   mangaSearchOrderChoices,
   mangaSearchStatusChoices,
   mangaSearchTypeChoices,
-  mdnLocaleChoices,
   musicSearchChoices,
   musicSettingChoices,
   roleModifyPermissionTypeChoices,
