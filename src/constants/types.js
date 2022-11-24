@@ -1064,4 +1064,21 @@
  * @property {String} bio
  */
 
+/**
+ * @typedef {Object} Doujindesu
+ * @property {String} title
+ * @property {String} link
+ * @property {String} thumbnail
+ * @property {String} type
+ */
+
+/**
+ * @typedef {Object} DoujindesuLatest
+ * @property {String} title
+ * @property {String} link
+ * @property {String} thumbnail
+ * @property {String} episode
+ * @property {String} type
+ */
+
 exports.unused = {};

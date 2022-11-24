@@ -125,17 +125,25 @@ module.exports = {
             ),
         ),
     )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('urban')
-        .setDescription(
-          '❓ Search the definition of a term from Urban Dictionary.',
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('doujindesu')
+        .setDescription('📔 Doujin command.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('latest')
+            .setDescription('🆕 Search latest doujin from Doujindesu.'),
         )
-        .addStringOption((option) =>
-          option
-            .setName('term')
-            .setDescription("🔠 The definition's term.")
-            .setRequired(true),
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('query')
+            .setDescription('🔤 Search doujin from Doujindesu by query.')
+            .addStringOption((option) =>
+              option
+                .setName('query')
+                .setDescription('🔤 The doujin search query.')
+                .setRequired(true),
+            ),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -265,6 +273,19 @@ module.exports = {
                 .setDescription('🔤 The doujin search query.')
                 .setRequired(true),
             ),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('urban')
+        .setDescription(
+          '❓ Search the definition of a term from Urban Dictionary.',
+        )
+        .addStringOption((option) =>
+          option
+            .setName('term')
+            .setDescription("🔠 The definition's term.")
+            .setRequired(true),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -629,6 +650,147 @@ module.exports = {
           }
         }
         break;
+
+      case 'doujindesu': {
+        const baseURL = 'https://api.lolhuman.xyz/api';
+
+        const attachment = new AttachmentBuilder(
+          './src/assets/images/doujindesu.png',
+          { name: 'doujindesu.png' },
+        );
+
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+        }
+
+        switch (options.getSubcommand()) {
+          case 'latest': {
+            /** @type {{ data: { result: import('../../constants/types').DoujindesuLatest[] } }} */
+            const {
+              data: { result },
+            } = await axios.get(
+              `${baseURL}/doujindesulatest?apikey=${process.env.LOLHUMAN_API_KEY}`,
+            );
+
+            const embeds = result.map(
+              ({ episode, link, thumbnail, title, type }, index, array) =>
+                new EmbedBuilder()
+                  .setColor(guild.members.me?.displayHexColor ?? null)
+                  .setTimestamp(Date.now())
+                  .setFooter({
+                    text: `${client.user.username} | Page ${index + 1} of ${
+                      array.length
+                    }`,
+                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                  })
+                  .setAuthor({
+                    name: 'Doujin Search Result',
+                    iconURL: 'attachment://doujindesu.png',
+                  })
+                  .setThumbnail(thumbnail)
+                  .setFields([
+                    {
+                      name: '🔤 Title',
+                      value: hyperlink(title, link),
+                      inline: true,
+                    },
+                    {
+                      name: '📄 Chapter',
+                      value: episode,
+                      inline: true,
+                    },
+                    {
+                      name: '🔣 Type',
+                      value: type,
+                      inline: true,
+                    },
+                  ]),
+            );
+
+            const pagination = new Pagination(interaction, {
+              attachments: [attachment],
+            }).setEmbeds(embeds);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
+
+            return pagination.render();
+          }
+
+          case 'query': {
+            const query = options.getString('query', true);
+
+            /** @type {{ data: { result: import('../../constants/types').Doujindesu[] } }} */
+            const {
+              data: { result },
+            } = await axios
+              .get(
+                `${baseURL}/doujindesusearch?query=${encodeURIComponent(
+                  query,
+                )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+              )
+              .catch(() => {
+                throw `No doujin found with query ${inlineCode(query)}.`;
+              });
+
+            const embeds = result.map(
+              ({ link, thumbnail, title, type }, index, array) =>
+                new EmbedBuilder()
+                  .setColor(guild.members.me?.displayHexColor ?? null)
+                  .setTimestamp(Date.now())
+                  .setFooter({
+                    text: `${client.user.username} | Page ${index + 1} of ${
+                      array.length
+                    }`,
+                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                  })
+                  .setAuthor({
+                    name: 'Doujin Search Result',
+                    iconURL: 'attachment://doujindesu.png',
+                  })
+                  .setThumbnail(thumbnail)
+                  .setFields([
+                    {
+                      name: '🔤 Title',
+                      value: hyperlink(title, link),
+                      inline: true,
+                    },
+                    {
+                      name: '🔣 Type',
+                      value: type,
+                      inline: true,
+                    },
+                  ]),
+            );
+
+            const pagination = new Pagination(interaction, {
+              attachments: [attachment],
+            }).setEmbeds(embeds);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
+
+            return pagination.render();
+          }
+        }
+        break;
+      }
 
       case 'news':
         switch (options.getSubcommand()) {
