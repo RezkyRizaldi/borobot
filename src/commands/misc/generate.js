@@ -1,12 +1,6 @@
 const AnimeImages = require('anime-images-api');
 const axios = require('axios');
-const { snakeCase } = require('change-case');
-const {
-  EmbedBuilder,
-  inlineCode,
-  italic,
-  SlashCommandBuilder,
-} = require('discord.js');
+const { EmbedBuilder, italic, SlashCommandBuilder } = require('discord.js');
 const {
   Blur,
   Greyscale,
@@ -34,17 +28,6 @@ module.exports = {
       subcommand
         .setName('boobs')
         .setDescription('🚫 Generate a random boobs gif.'),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('danbooru')
-        .setDescription('🖼️ Generate a random image from Danbooru.')
-        .addStringOption((option) =>
-          option
-            .setName('query')
-            .setDescription('🔠 The image search query.')
-            .setRequired(true),
-        ),
     )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
@@ -313,40 +296,6 @@ module.exports = {
           .setImage(image);
 
         return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'danbooru': {
-        const query = options.getString('query', true);
-
-        if (!channel) throw "Channel doesn't exist.";
-
-        if (!channel.nsfw) {
-          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
-        }
-
-        /** @type {{ data: ArrayBuffer }} */
-        const { data: buffer } = await axios
-          .get(
-            `https://api.lolhuman.xyz/api/danbooru?query=${snakeCase(
-              query,
-            )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
-            { responseType: 'arraybuffer' },
-          )
-          .catch(() => {
-            throw `No image found with query ${inlineCode(query)}.`;
-          });
-
-        const img = await generateAttachmentFromBuffer({
-          buffer,
-          fileName: snakeCase(query),
-          fileDesc: 'Danbooru Image',
-        });
-
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(`attachment://${img.name}`);
-
-        return interaction.editReply({ embeds: [embed], files: [img] });
       }
 
       case 'hentai': {

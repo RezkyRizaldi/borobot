@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { capitalCase } = require('change-case');
+const { capitalCase, snakeCase } = require('change-case');
 const {
   AttachmentBuilder,
   bold,
@@ -13,9 +13,7 @@ const {
   time,
   TimestampStyles,
 } = require('discord.js');
-const Scraper = require('images-scraper').default;
 const NewsAPI = require('newsapi');
-const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 
 const {
@@ -32,6 +30,7 @@ const {
 } = require('../../constants');
 const {
   count,
+  generateAttachmentFromBuffer,
   isAlphabeticLetter,
   isNumericString,
   truncate,
@@ -146,15 +145,31 @@ module.exports = {
             ),
         ),
     )
-    .addSubcommand((subcommand) =>
-      subcommand
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
         .setName('image')
-        .setDescription('🖼️ Search any images from Google.')
-        .addStringOption((option) =>
-          option
-            .setName('query')
-            .setDescription('🔠 The image search query.')
-            .setRequired(true),
+        .setDescription('🖼️ Image command.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('danbooru')
+            .setDescription('🖼️ Search any images from Danbooru.')
+            .addStringOption((option) =>
+              option
+                .setName('query')
+                .setDescription('🔠 The image search query.')
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('google')
+            .setDescription('🖼️ Search any images from Google.')
+            .addStringOption((option) =>
+              option
+                .setName('query')
+                .setDescription('🔠 The image search query.')
+                .setRequired(true),
+            ),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -792,6 +807,84 @@ module.exports = {
         break;
       }
 
+      case 'image':
+        {
+          const query = options.getString('query', true);
+
+          switch (options.getSubcommand()) {
+            case 'danbooru': {
+              if (!channel) throw "Channel doesn't exist.";
+
+              if (!channel.nsfw) {
+                throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+              }
+
+              /** @type {{ data: ArrayBuffer }} */
+              const { data: buffer } = await axios
+                .get(
+                  `https://api.lolhuman.xyz/api/danbooru?query=${snakeCase(
+                    query,
+                  )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                  { responseType: 'arraybuffer' },
+                )
+                .catch(() => {
+                  throw `No image found with query ${inlineCode(query)}.`;
+                });
+
+              const img = await generateAttachmentFromBuffer({
+                buffer,
+                fileName: snakeCase(query),
+                fileDesc: 'Danbooru Image',
+              });
+
+              embed
+                .setColor(guild.members.me?.displayHexColor ?? null)
+                .setImage(`attachment://${img.name}`);
+
+              return interaction.editReply({ embeds: [embed], files: [img] });
+            }
+
+            case 'google': {
+              /** @type {{ data: { result: String[] } }} */
+              const {
+                data: { result },
+              } = await axios.get(
+                `https://api.lolhuman.xyz/api/gimage2?query=${encodeURIComponent(
+                  query,
+                )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+              );
+
+              const pagination = new Pagination(interaction, { limit: 1 })
+                .setColor(guild.members.me?.displayHexColor ?? null)
+                .setTimestamp(Date.now())
+                .setFooter({
+                  text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                  iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                })
+                .setAuthor({
+                  name: 'Image Search Results',
+                  iconURL:
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/480px-Google_%22G%22_Logo.svg.png',
+                })
+                .setImages(result);
+
+              pagination.buttons = {
+                ...pagination.buttons,
+                extra: new ButtonBuilder()
+                  .setCustomId('jump')
+                  .setEmoji('↕️')
+                  .setDisabled(false)
+                  .setStyle(ButtonStyle.Secondary),
+              };
+
+              paginations.set(pagination.interaction.id, pagination);
+
+              return pagination.render();
+            }
+          }
+        }
+        break;
+
       case 'news':
         switch (options.getSubcommand()) {
           case 'list': {
@@ -1278,43 +1371,6 @@ module.exports = {
         );
 
         const pagination = new Pagination(interaction).setEmbeds(embeds);
-
-        pagination.buttons = {
-          ...pagination.buttons,
-          extra: new ButtonBuilder()
-            .setCustomId('jump')
-            .setEmoji('↕️')
-            .setDisabled(false)
-            .setStyle(ButtonStyle.Secondary),
-        };
-
-        paginations.set(pagination.interaction.id, pagination);
-
-        return pagination.render();
-      }
-
-      case 'image': {
-        await wait(4000);
-
-        const query = options.getString('query', true);
-
-        const google = new Scraper({ puppeteer: { waitForInitialPage: true } });
-
-        const images = await google.scrape(query, 5);
-
-        const pagination = new Pagination(interaction, { limit: 1 })
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setTimestamp(Date.now())
-          .setFooter({
-            text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-            iconURL: client.user.displayAvatarURL({ dynamic: true }),
-          })
-          .setAuthor({
-            name: 'Image Search Results',
-            iconURL:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/480px-Google_%22G%22_Logo.svg.png',
-          })
-          .setImages(images.map((img) => img.url));
 
         pagination.buttons = {
           ...pagination.buttons,
