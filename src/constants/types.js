@@ -1113,4 +1113,35 @@
  * @property {String} jawaban
  */
 
+/**
+ * @typedef {Object} CakLontong
+ * @property {String} question
+ * @property {String} answer
+ * @property {String} information
+ */
+
+/**
+ * @typedef {Object} WhoAmI
+ * @property {String} question
+ * @property {String} answer
+ */
+
+/**
+ * @typedef {Object} TebakGambar
+ * @property {String} image
+ * @property {String} answer
+ */
+
+/**
+ * @typedef {Object} GuessWord
+ * @property {String} pertanyaan
+ * @property {String} jawaban
+ */
+
+/**
+ * @typedef {Object} DadJoke
+ * @property {String} question
+ * @property {String} answer
+ */
+
 exports.unused = {};
