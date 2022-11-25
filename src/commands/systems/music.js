@@ -357,14 +357,14 @@ module.exports = {
           })
           .setDescription(
             `${response}${codeBlock(
-              'Type between 1 to 10 to play the music. (15s remaining time)',
+              'Type between 1 to 10 to play the music. (15s remaining)',
             )}`,
           );
 
         const message = await interaction.editReply({ embeds: [embed] });
 
         let time = 15000;
-        const interval = setInterval(async () => {
+        const checkMessage = () => {
           switch (true) {
             case time <= 0:
               clearInterval(interval);
@@ -375,6 +375,10 @@ module.exports = {
 
               return message.edit({ embeds: [embed] });
 
+            case filter(textChannel.lastMessage):
+              clearInterval(interval);
+              break;
+
             default:
               time -= 1000;
 
@@ -382,13 +386,15 @@ module.exports = {
                 `${response}${codeBlock(
                   `Type between 1 to 10 to play the music. (${
                     time / 1000
-                  }s remaining time)`,
+                  }s remaining)`,
                 )}`,
               );
 
               return message.edit({ embeds: [embed] });
           }
-        }, 1000);
+        };
+
+        const interval = setInterval(async () => await checkMessage(), 1000);
 
         /**
          *
@@ -415,7 +421,7 @@ module.exports = {
               { textChannel, member },
             );
 
-            messages.first().delete();
+            await messages.first().delete();
           })
           .catch(() => console.log('No one use the command.'));
       }
