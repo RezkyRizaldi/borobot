@@ -22,12 +22,27 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('ahegao')
-        .setDescription('🚫 Generate a random ahegao image.'),
+        .setDescription('🤪 Generate a random ahegao image.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('armpit')
+        .setDescription('🚫 Generate a random anime armpit image.'),
     )
     .addSubcommand((subcommand) =>
       subcommand
         .setName('boobs')
         .setDescription('🚫 Generate a random boobs gif.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('feet')
+        .setDescription('🦶 Generate a random anime feet image.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('femdom')
+        .setDescription('🚫 Generate a random anime femdom image.'),
     )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
@@ -282,6 +297,32 @@ module.exports = {
         return interaction.editReply({ embeds: [embed], files: [img] });
       }
 
+      case 'armpit': {
+        if (!channel) throw "Channel doesn't exist.";
+
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+        }
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random/nsfw/animearmpits?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
+
+        const img = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'armpit',
+          fileDesc: 'Armpit Image',
+        });
+
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(`attachment://${img.name}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
+
       case 'boobs': {
         if (!channel) throw "Channel doesn't exist.";
 
@@ -296,6 +337,58 @@ module.exports = {
           .setImage(image);
 
         return interaction.editReply({ embeds: [embed] });
+      }
+
+      case 'feet': {
+        if (!channel) throw "Channel doesn't exist.";
+
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+        }
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random/nsfw/animefeets?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
+
+        const img = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'feet',
+          fileDesc: 'Feet Image',
+        });
+
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(`attachment://${img.name}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
+
+      case 'femdom': {
+        if (!channel) throw "Channel doesn't exist.";
+
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+        }
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random2/femdom?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
+
+        const img = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'femdom',
+          fileDesc: 'Femdom Image',
+        });
+
+        embed
+          .setColor(guild.members.me?.displayHexColor ?? null)
+          .setImage(`attachment://${img.name}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
       }
 
       case 'hentai': {
