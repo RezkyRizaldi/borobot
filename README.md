@@ -1,6 +1,7 @@
 # Borobot
 
 ![Borobot](/src/assets/images/borobot.jpeg)
+
 [![Build Status](https://github.com/RezkyRizaldi/borobot/actions/workflows/lint.yml/badge.svg)](https://github.com/RezkyRizaldi/borobot/actions)
 [![Discord Server](https://discordapp.com/api/guilds/791708642813411358/widget.png?style=shield)](https://discord.gg/DT63KwmTKn)
 
