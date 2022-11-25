@@ -227,6 +227,17 @@ module.exports = {
                 .setDescription('🔠 The image search query.')
                 .setRequired(true),
             ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('konachan')
+            .setDescription('🖼️ Search any images from Konachan.')
+            .addStringOption((option) =>
+              option
+                .setName('query')
+                .setDescription('🔠 The image search query.')
+                .setRequired(true),
+            ),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -1248,6 +1259,39 @@ module.exports = {
               paginations.set(pagination.interaction.id, pagination);
 
               return pagination.render();
+            }
+
+            case 'konachan': {
+              if (!channel) throw "Channel doesn't exist.";
+
+              if (!channel.nsfw) {
+                throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+              }
+
+              /** @type {{ data: ArrayBuffer }} */
+              const { data: buffer } = await axios
+                .get(
+                  `https://api.lolhuman.xyz/api/konachan?query=${snakeCase(
+                    query,
+                  )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                  { responseType: 'arraybuffer' },
+                )
+                .catch(() => {
+                  throw `No image found with query ${inlineCode(query)}.`;
+                });
+
+              const img = await generateAttachmentFromBuffer({
+                buffer,
+                fileName: snakeCase(query),
+                fileDesc: 'Konachan Image',
+              });
+
+              embed
+                .setColor(guild.members.me?.displayHexColor ?? null)
+                .setAuthor({ name: '🌐 Konachan Search Result' })
+                .setImage(`attachment://${img.name}`);
+
+              return interaction.editReply({ embeds: [embed], files: [img] });
             }
           }
         }
