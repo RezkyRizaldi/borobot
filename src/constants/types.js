@@ -1107,4 +1107,10 @@
  * @property {String} deskripsi
  */
 
+/**
+ * @typedef {Object} BrainTeaser
+ * @property {String} pertanyaan
+ * @property {String} jawaban
+ */
+
 exports.unused = {};
