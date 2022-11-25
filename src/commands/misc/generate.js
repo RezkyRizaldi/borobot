@@ -1,12 +1,6 @@
 const AnimeImages = require('anime-images-api');
 const axios = require('axios');
-const { snakeCase } = require('change-case');
-const {
-  EmbedBuilder,
-  inlineCode,
-  italic,
-  SlashCommandBuilder,
-} = require('discord.js');
+const { EmbedBuilder, italic, SlashCommandBuilder } = require('discord.js');
 const {
   Blur,
   Greyscale,
@@ -18,7 +12,6 @@ const fs = require('fs');
 const nekoClient = require('nekos.life');
 const QRCode = require('qrcode');
 
-const { waifuChoices } = require('../../constants');
 const { isValidURL, generateAttachmentFromBuffer } = require('../../utils');
 
 module.exports = {
@@ -28,7 +21,12 @@ module.exports = {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('ahegao')
-        .setDescription('🚫 Generate a random ahegao image.'),
+        .setDescription('🤪 Generate a random ahegao image.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('armpit')
+        .setDescription('🚫 Generate a random anime armpit image.'),
     )
     .addSubcommand((subcommand) =>
       subcommand
@@ -37,14 +35,13 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
-        .setName('danbooru')
-        .setDescription('🖼️ Generate a random image from Danbooru.')
-        .addStringOption((option) =>
-          option
-            .setName('query')
-            .setDescription('🔠 The image search query.')
-            .setRequired(true),
-        ),
+        .setName('feet')
+        .setDescription('🦶 Generate a random anime feet image.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('femdom')
+        .setDescription('🚫 Generate a random anime femdom image.'),
     )
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
@@ -152,15 +149,18 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
-        .setName('waifu')
-        .setDescription('👰‍♀️ Generate a waifu image/gif.')
-        .addStringOption((option) =>
-          option
-            .setName('type')
-            .setDescription('🖼️ The image type to generate.')
-            .setRequired(true)
-            .addChoices(...waifuChoices),
-        ),
+        .setName('wakipai')
+        .setDescription('🚫 Generate a random anime wakipai image.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('yaoi')
+        .setDescription('🚫 Generate a random anime yaoi image.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('yuri')
+        .setDescription('🚫 Generate a random anime yuri image.'),
     ),
 
   type: 'Chat Input',
@@ -292,9 +292,31 @@ module.exports = {
           fileDesc: 'Ahegao Image',
         });
 
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(`attachment://${img.name}`);
+        embed.setImage(`attachment://${img.name}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
+
+      case 'armpit': {
+        if (!channel) throw "Channel doesn't exist.";
+
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+        }
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random/nsfw/animearmpits?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
+
+        const img = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'armpit',
+          fileDesc: 'Armpit Image',
+        });
+
+        embed.setImage(`attachment://${img.name}`);
 
         return interaction.editReply({ embeds: [embed], files: [img] });
       }
@@ -308,16 +330,12 @@ module.exports = {
 
         const { image } = await images.nsfw.boobs();
 
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(image);
+        embed.setImage(image);
 
         return interaction.editReply({ embeds: [embed] });
       }
 
-      case 'danbooru': {
-        const query = options.getString('query', true);
-
+      case 'feet': {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
@@ -325,26 +343,42 @@ module.exports = {
         }
 
         /** @type {{ data: ArrayBuffer }} */
-        const { data: buffer } = await axios
-          .get(
-            `https://api.lolhuman.xyz/api/danbooru?query=${snakeCase(
-              query,
-            )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
-            { responseType: 'arraybuffer' },
-          )
-          .catch(() => {
-            throw `No image found with query ${inlineCode(query)}.`;
-          });
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random/nsfw/animefeets?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
 
         const img = await generateAttachmentFromBuffer({
           buffer,
-          fileName: snakeCase(query),
-          fileDesc: 'Danbooru Image',
+          fileName: 'feet',
+          fileDesc: 'Feet Image',
         });
 
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(`attachment://${img.name}`);
+        embed.setImage(`attachment://${img.name}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
+
+      case 'femdom': {
+        if (!channel) throw "Channel doesn't exist.";
+
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+        }
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random2/femdom?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
+
+        const img = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'femdom',
+          fileDesc: 'Femdom Image',
+        });
+
+        embed.setImage(`attachment://${img.name}`);
 
         return interaction.editReply({ embeds: [embed], files: [img] });
       }
@@ -359,9 +393,7 @@ module.exports = {
         /** @type {{ image: String }} */
         const { image } = await images.nsfw.hentai();
 
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(image);
+        embed.setImage(image);
 
         return interaction.editReply({ embeds: [embed] });
       }
@@ -374,7 +406,7 @@ module.exports = {
           endpoints[Math.floor(Math.random() * endpoints.length)]
         ]();
 
-        embed.setColor(guild.members.me?.displayHexColor ?? null).setImage(url);
+        embed.setImage(url);
 
         return interaction.editReply({ embeds: [embed] });
       }
@@ -388,9 +420,7 @@ module.exports = {
 
         const { image } = await images.nsfw.lesbian();
 
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(image);
+        embed.setImage(image);
 
         return interaction.editReply({ embeds: [embed] });
       }
@@ -440,61 +470,77 @@ module.exports = {
         return fs.unlinkSync(imagePath);
       }
 
-      case 'waifu':
-        {
-          const type = options.getString('type', true);
+      case 'wakipai': {
+        if (!channel) throw "Channel doesn't exist.";
 
-          embed.setColor(member.displayHexColor);
-
-          switch (type) {
-            case 'image': {
-              /** @type {{ data: { url: String } }} */
-              const {
-                data: { url },
-              } = await axios.get('https://api.waifu.pics/sfw/waifu');
-
-              embed
-                .setAuthor({
-                  name: `${member.user.username} Got a Waifu`,
-                  iconURL: member.displayAvatarURL({ dynamic: true }),
-                })
-                .setImage(url);
-
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'pfp': {
-              const { url } = await neko.avatar();
-
-              /** @type {{ image: String }} */
-              const { image } = await images.sfw.waifu();
-              const imgArr = [url, image];
-              const pfp = imgArr[Math.floor(Math.random() * imgArr.length)];
-
-              embed.setAuthor({
-                name: `${member.user.username} Got a Waifu`,
-                iconURL: member.displayAvatarURL({ dynamic: true }),
-              });
-              embed.setImage(pfp);
-
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'wallpaper': {
-              const { url } = await neko.wallpaper();
-
-              embed
-                .setAuthor({
-                  name: `${member.user.username} Got a Waifu`,
-                  iconURL: member.displayAvatarURL({ dynamic: true }),
-                })
-                .setImage(url);
-
-              return interaction.editReply({ embeds: [embed] });
-            }
-          }
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
         }
-        break;
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random/nsfw/sideoppai?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
+
+        const img = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'wakipai',
+          fileDesc: 'Wakipai Image',
+        });
+
+        embed.setImage(`attachment://${img.name}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
+
+      case 'yaoi': {
+        if (!channel) throw "Channel doesn't exist.";
+
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+        }
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random/nsfw/yaoi?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
+
+        const img = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'yaoi',
+          fileDesc: 'Yaoi Image',
+        });
+
+        embed.setImage(`attachment://${img.name}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
+
+      case 'yuri': {
+        if (!channel) throw "Channel doesn't exist.";
+
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+        }
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random2/yuri?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
+
+        const img = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'yuri',
+          fileDesc: 'Yuri Image',
+        });
+
+        embed.setImage(`attachment://${img.name}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
     }
   },
 };

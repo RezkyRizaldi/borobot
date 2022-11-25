@@ -1,5 +1,4 @@
 const {
-  bold,
   Collection,
   EmbedBuilder,
   PermissionFlagsBits,
@@ -173,11 +172,8 @@ module.exports = {
 
       case !!member:
         embed.setDescription(
-          `Deleted ${bold(`${msgs.size.toLocaleString()}`)} ${pluralize(
-            'message',
-            msgs.size,
-          )}${
-            msgs.first()?.author
+          `Deleted ${count({ total: msgs.size, data: 'message' })}${
+            msgs.first().author
               ? ` from ${userMention(msgs.first().author.id)}`
               : ''
           }.`,
@@ -192,10 +188,11 @@ module.exports = {
           groupedMessages
             .map(
               (arrMessage, index, array) =>
-                `Deleted ${bold(
-                  `${array[index].length.toLocaleString()}`,
-                )} ${pluralize('message', array[index].length)}${
-                  arrMessage[index]?.author
+                `Deleted ${count({
+                  total: array[index].length,
+                  data: 'message',
+                })}${
+                  arrMessage[index].author
                     ? ` from ${userMention(arrMessage[index].author.id)}`
                     : ''
                 }.`,
@@ -208,10 +205,7 @@ module.exports = {
 
       default: {
         embed.setDescription(
-          `Deleted ${bold(`${msgs.size.toLocaleString()}`)} ${pluralize(
-            'message',
-            msgs.size,
-          )}.`,
+          `Deleted ${count({ total: msgs.size, data: 'message' })}.`,
         );
 
         return interaction.editReply({ embeds: [embed] });

@@ -13,9 +13,12 @@ module.exports = (client) => {
 
     table.setHeading('Name', 'Category', 'Type', 'Status');
 
+    /** @type {{ commands: import('discord.js').Collection<String, { data: import('discord.js').SlashCommandBuilder, type: String, execute(): Promise<void> }>, commandArray: import('discord.js').RESTPostAPIChatInputApplicationCommandsJSONBody[] }} */
     const { commands, commandArray } = client;
     const commandPath = path.join(__dirname, '..', '..', 'commands');
     const commandFolders = fs.readdirSync(commandPath);
+
+    /** @type {String[]} */
     const arr = [];
 
     for (const folder of commandFolders) {
@@ -26,12 +29,14 @@ module.exports = (client) => {
 
       for (const file of commandFiles) {
         const filePath = path.join(commandSubPath, file);
+
+        /** @type {{ data: import('discord.js').SlashCommandBuilder, type: String, execute(): Promise<void> }} */
         const command = require(filePath);
 
         commands.set(command.data.name, command);
         commandArray.push(command.data.toJSON());
         table.addRow(
-          command?.data?.name ?? file,
+          command?.data.name ?? file,
           folder,
           command?.type ?? 'None',
           '✅',
@@ -54,7 +59,7 @@ module.exports = (client) => {
           process.env.CLIENT_ID,
           process.env.GUILD_ID,
         ),
-        { body: commandArray },
+        { body: commandArray.sort((a, b) => a.name.localeCompare(b.name)) },
       )
       .then(() =>
         console.log('Successfully reloaded application (/) commands.'),

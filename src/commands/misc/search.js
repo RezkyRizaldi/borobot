@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { capitalCase } = require('change-case');
+const { capitalCase, snakeCase } = require('change-case');
 const {
   AttachmentBuilder,
   bold,
@@ -9,13 +9,12 @@ const {
   hyperlink,
   inlineCode,
   italic,
+  Locale,
   SlashCommandBuilder,
   time,
   TimestampStyles,
 } = require('discord.js');
-const Scraper = require('images-scraper').default;
 const NewsAPI = require('newsapi');
-const wait = require('node:timers/promises').setTimeout;
 const { Pagination } = require('pagination.djs');
 
 const {
@@ -26,12 +25,12 @@ const {
   mangaSearchOrderChoices,
   mangaSearchStatusChoices,
   mangaSearchTypeChoices,
-  mdnLocaleChoices,
   newsCountries,
   searchSortingChoices,
 } = require('../../constants');
 const {
   count,
+  generateAttachmentFromBuffer,
   isAlphabeticLetter,
   isNumericString,
   truncate,
@@ -125,28 +124,120 @@ module.exports = {
             ),
         ),
     )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('urban')
-        .setDescription(
-          '❓ Search the definition of a term from Urban Dictionary.',
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('dictionary')
+        .setDescription('📖 Dictionary command.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('kbbi')
+            .setDescription(
+              '❓ Search the definition of a term from Kamus Besar Bahasa Indonesia (KBBI).',
+            )
+            .addStringOption((option) =>
+              option
+                .setName('term')
+                .setDescription("🔠 The definition's term.")
+                .setRequired(true),
+            ),
         )
-        .addStringOption((option) =>
-          option
-            .setName('term')
-            .setDescription("🔠 The definition's term.")
-            .setRequired(true),
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('mdn')
+            .setDescription(
+              '❓ Search the documentation of a term from MDN Web Docs.',
+            )
+            .addStringOption((option) =>
+              option
+                .setName('term')
+                .setDescription("🔠 The documentation's term.")
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('urban')
+            .setDescription(
+              '❓ Search the definition of a term from Urban Dictionary.',
+            )
+            .addStringOption((option) =>
+              option
+                .setName('term')
+                .setDescription("🔠 The definition's term.")
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('wiki')
+            .setDescription(
+              '❓ Search the definition of a term from Wikipedia.',
+            )
+            .addStringOption((option) =>
+              option
+                .setName('term')
+                .setDescription("🔠 The definition's term.")
+                .setRequired(true),
+            ),
         ),
     )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('image')
-        .setDescription('🖼️ Search any images from Google.')
-        .addStringOption((option) =>
-          option
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('doujindesu')
+        .setDescription('📔 Doujin command.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('latest')
+            .setDescription('🆕 Search latest doujin from Doujindesu.'),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
             .setName('query')
-            .setDescription('🔠 The image search query.')
-            .setRequired(true),
+            .setDescription('🔤 Search doujin from Doujindesu by query.')
+            .addStringOption((option) =>
+              option
+                .setName('query')
+                .setDescription('🔤 The doujin search query.')
+                .setRequired(true),
+            ),
+        ),
+    )
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('image')
+        .setDescription('🖼️ Image command.')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('danbooru')
+            .setDescription('🖼️ Search any images from Danbooru.')
+            .addStringOption((option) =>
+              option
+                .setName('query')
+                .setDescription('🔠 The image search query.')
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('google')
+            .setDescription('🖼️ Search any images from Google.')
+            .addStringOption((option) =>
+              option
+                .setName('query')
+                .setDescription('🔠 The image search query.')
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('konachan')
+            .setDescription('🖼️ Search any images from Konachan.')
+            .addStringOption((option) =>
+              option
+                .setName('query')
+                .setDescription('🔠 The image search query.')
+                .setRequired(true),
+            ),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -194,25 +285,6 @@ module.exports = {
             .setName('initial')
             .setDescription('🔣 The manga initial search query.')
             .setMaxLength(1),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('mdn')
-        .setDescription(
-          '📖 Search the documentation of a term from MDN Web Docs.',
-        )
-        .addStringOption((option) =>
-          option
-            .setName('term')
-            .setDescription("🔠 The documentation's term.")
-            .setRequired(true),
-        )
-        .addStringOption((option) =>
-          option
-            .setName('language')
-            .setDescription("🔠 The documentation's preferred locale.")
-            .addChoices(...mdnLocaleChoices),
         ),
     )
     .addSubcommandGroup((subcommandGroup) =>
@@ -265,17 +337,6 @@ module.exports = {
                 .setDescription('🔤 The doujin search query.')
                 .setRequired(true),
             ),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('wiki')
-        .setDescription('❓ Search the definition of a term from Wikipedia.')
-        .addStringOption((option) =>
-          option
-            .setName('term')
-            .setDescription("🔠 The definition's term.")
-            .setRequired(true),
         ),
     ),
   type: 'Chat Input',
@@ -626,6 +687,612 @@ module.exports = {
             paginations.set(pagination.interaction.id, pagination);
 
             return pagination.render();
+          }
+        }
+        break;
+
+      case 'dictionary':
+        {
+          const term = options.getString('term', true);
+
+          switch (options.getSubcommand()) {
+            case 'kbbi': {
+              /** @type {{ data: { result: import('../../constants/types').KBBI[] } }} */
+              const {
+                data: { result },
+              } = await axios
+                .get(
+                  `https://api.lolhuman.xyz/api/kbbi?query=${encodeURIComponent(
+                    term,
+                  )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                )
+                .catch(async () => {
+                  throw `No definition found with term ${inlineCode(term)}.`;
+                });
+
+              if (result.length > 1) {
+                const embeds = result.map(
+                  (
+                    {
+                      bentuk_tidak_baku,
+                      kata_dasar,
+                      makna,
+                      nama,
+                      pelafalan,
+                      varian,
+                    },
+                    index,
+                    array,
+                  ) => {
+                    const meanings = makna.map(
+                      ({ contoh, info, kelas, submakna }, i, arr) => ({
+                        name: `❓ Meaning${arr.length > 1 ? `${i + 1}` : ''}`,
+                        value: `${bold('• Part of Speech')}\n${kelas
+                          .map(({ nama: partOfSpeech }) => partOfSpeech)
+                          .join(', ')}\n\n${bold('• Submeaning')}\n${submakna
+                          .map((item) => `- ${item}`)
+                          .join('\n')}${
+                          info ? `\n\n${bold('• Info')}\n${info}` : ''
+                        }\n\n${bold('• Example')}\n${contoh
+                          .map((item) => {
+                            switch (true) {
+                              case item.includes('~'):
+                                return `- ${item.replace(
+                                  '~',
+                                  bold(nama.split('.').join('')),
+                                )}`;
+
+                              case item.includes('--'):
+                                return `- ${item.replace(
+                                  '--',
+                                  bold(nama.split('.').join('')),
+                                )}`;
+                            }
+                          })
+                          .join('\n')}`,
+                      }),
+                    );
+
+                    return new EmbedBuilder()
+                      .setColor(guild.members.me?.displayHexColor ?? null)
+                      .setTimestamp(Date.now())
+                      .setFooter({
+                        text: `${client.user.username} | Page ${index + 1} of ${
+                          array.length
+                        }`,
+                        iconURL: client.user.displayAvatarURL({
+                          dynamic: true,
+                        }),
+                      })
+                      .setAuthor({ name: '📖 KBBI Search Result' })
+                      .setFields([
+                        {
+                          name: '🗣️ Spelling',
+                          value: nama,
+                          inline: true,
+                        },
+                        {
+                          name: '🔤 Root',
+                          value: kata_dasar.length
+                            ? kata_dasar.join(', ')
+                            : italic('None'),
+                          inline: true,
+                        },
+                        {
+                          name: '🗣️ Pronunciation',
+                          value: pelafalan || italic('Unknown'),
+                          inline: true,
+                        },
+                        {
+                          name: '🔤 Nonstandard form',
+                          value: bentuk_tidak_baku.length
+                            ? bentuk_tidak_baku.join(', ')
+                            : italic('None'),
+                          inline: true,
+                        },
+                        {
+                          name: '🔤 Variant',
+                          value: varian.length
+                            ? varian.join(', ')
+                            : italic('None'),
+                          inline: true,
+                        },
+                        ...meanings,
+                      ]);
+                  },
+                );
+
+                const pagination = new Pagination(interaction).setEmbeds(
+                  embeds,
+                );
+
+                pagination.buttons = {
+                  ...pagination.buttons,
+                  extra: new ButtonBuilder()
+                    .setCustomId('jump')
+                    .setEmoji('↕️')
+                    .setDisabled(false)
+                    .setStyle(ButtonStyle.Secondary),
+                };
+
+                paginations.set(pagination.interaction.id, pagination);
+
+                return pagination.render();
+              }
+
+              const meanings = result[0].makna.map(
+                ({ contoh, info, kelas, submakna }, index, arr) => ({
+                  name: `❓ Meaning${arr.length > 1 ? `${index + 1}` : ''}`,
+                  value: `${bold('• Part of Speech')}\n${kelas
+                    .map(({ nama }) => nama)
+                    .join(', ')}\n\n${bold('• Submeaning')}\n${submakna
+                    .map((item) => `- ${item}`)
+                    .join('\n')}${
+                    info ? `\n\n${bold('• Info')}\n${info}` : ''
+                  }\n\n${bold('• Example')}\n${contoh
+                    .map((item) => {
+                      switch (true) {
+                        case item.includes('~'):
+                          return `- ${item.replace(
+                            '~',
+                            bold(result[0].nama.split('.').join('')),
+                          )}`;
+
+                        case item.includes('--'):
+                          return `- ${item.replace(
+                            '--',
+                            bold(result[0].nama.split('.').join('')),
+                          )}`;
+                      }
+                    })
+                    .join('\n')}`,
+                }),
+              );
+
+              embed.setAuthor({ name: '📖 KBBI Search Result' }).setFields([
+                {
+                  name: '🗣️ Spelling',
+                  value: result[0].nama,
+                  inline: true,
+                },
+                {
+                  name: '🔤 Root',
+                  value: result[0].kata_dasar.length
+                    ? result[0].kata_dasar.join(', ')
+                    : italic('None'),
+                  inline: true,
+                },
+                {
+                  name: '🗣️ Pronunciation',
+                  value: result[0].pelafalan || italic('Unknown'),
+                  inline: true,
+                },
+                {
+                  name: '🔤 Nonstandard form',
+                  value: result[0].bentuk_tidak_baku.length
+                    ? result[0].bentuk_tidak_baku.join(', ')
+                    : italic('None'),
+                  inline: true,
+                },
+                {
+                  name: '🔤 Variant',
+                  value: result[0].varian.length
+                    ? result[0].varian.join(', ')
+                    : italic('None'),
+                  inline: true,
+                },
+                ...meanings,
+              ]);
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case 'urban': {
+              const query = new URLSearchParams({ term });
+
+              /** @type {{ data: { list: import('../../constants/types').UrbanDictionary[] } }} */
+              const {
+                data: { list },
+              } = await axios.get(
+                `https://api.urbandictionary.com/v0/define?${query}`,
+              );
+
+              if (!list.length) {
+                throw `No result found for ${inlineCode(term)}.`;
+              }
+
+              const {
+                author,
+                definition,
+                example,
+                permalink,
+                thumbs_down,
+                thumbs_up,
+                word,
+                written_on,
+              } = list[Math.floor(Math.random() * list.length)];
+
+              const formattedCite = `\n${italic(
+                `by ${author} — ${time(
+                  new Date(written_on),
+                  TimestampStyles.RelativeTime,
+                )}`,
+              )}`;
+
+              embed
+                .setAuthor({
+                  name: capitalCase(word),
+                  url: permalink,
+                  iconURL:
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Urban_Dictionary_logo.svg/320px-Urban_Dictionary_logo.svg.png',
+                })
+                .setFields([
+                  {
+                    name: '🔤 Definition',
+                    value: `${truncate(
+                      definition,
+                      1024 - formattedCite.length - 3,
+                    )}${formattedCite}`,
+                  },
+                  { name: '🔤 Example', value: truncate(example, 1024) },
+                  {
+                    name: '⭐ Rating',
+                    value: `${thumbs_up.toLocaleString()} 👍 | ${thumbs_down.toLocaleString()} 👎`,
+                  },
+                ]);
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case 'mdn': {
+              const query = new URLSearchParams({
+                q: term,
+                locale:
+                  guild.preferredLocale !== Locale.SpanishES
+                    ? guild.preferredLocale
+                    : 'es',
+              });
+              const baseURL = 'https://developer.mozilla.org';
+
+              /** @type {{ data: { documents: import('../../constants/types').MDNDocument[], suggestions: import('../../constants/types').MDNSuggestion[] } }} */
+              const {
+                data: { documents, suggestions },
+              } = await axios.get(`${baseURL}/api/v1/search?${query}`);
+
+              if (!documents.length) {
+                if (!suggestions.length) {
+                  throw `No result found for ${inlineCode(term)}.`;
+                }
+
+                const newQuery = new URLSearchParams({
+                  q: suggestions[0].text,
+                  locale:
+                    guild.preferredLocale !== Locale.SpanishES
+                      ? guild.preferredLocale
+                      : 'es',
+                });
+
+                /** @type {{ data: { documents: import('../../constants/types').MDNDocument[] } }} */
+                const {
+                  data: { documents: docs },
+                } = await axios.get(`${baseURL}/api/v1/search?${newQuery}`);
+
+                const fields = docs.map(({ mdn_url, summary, title }) => ({
+                  name: title,
+                  value: `${summary}\n${hyperlink(
+                    'View Documentation',
+                    `${baseURL}${mdn_url}`,
+                    'Click here to view the documentation.',
+                  )}`,
+                }));
+
+                embed
+                  .setAuthor({
+                    name: 'Documentation Search Results',
+                    iconURL:
+                      'https://pbs.twimg.com/profile_images/1511434207079407618/AwzUxnVf_400x400.png',
+                  })
+                  .setFields(fields);
+
+                return interaction.editReply({ embeds: [embed] });
+              }
+
+              const fields = documents.map(({ mdn_url, summary, title }) => ({
+                name: title,
+                value: `${summary}\n${hyperlink(
+                  'View Documentation',
+                  `${baseURL}${mdn_url}`,
+                  'Click here to view the documentation.',
+                )}`,
+              }));
+
+              embed
+                .setAuthor({ name: '📖 Documentation Search Results' })
+                .setFields(fields);
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+
+            case 'wiki': {
+              /** @type {{ data: { result: String } }} */
+              const {
+                data: { result },
+              } = await axios
+                .get(
+                  `https://api.lolhuman.xyz/api/wiki?query=${encodeURIComponent(
+                    term,
+                  )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                )
+                .catch(async () => {
+                  throw `No definition found with term ${inlineCode(term)}.`;
+                });
+
+              embed
+                .setAuthor({
+                  name: capitalCase(term),
+                  iconURL:
+                    'https://upload.wikimedia.org/wikipedia/commons/6/61/Wikipedia-logo-transparent.png',
+                })
+                .setDescription(truncate(result, 4096));
+
+              return interaction.editReply({ embeds: [embed] });
+            }
+          }
+        }
+        break;
+
+      case 'doujindesu': {
+        const baseURL = 'https://api.lolhuman.xyz/api';
+
+        const attachment = new AttachmentBuilder(
+          './src/assets/images/doujindesu.png',
+          { name: 'doujindesu.png' },
+        );
+
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+        }
+
+        switch (options.getSubcommand()) {
+          case 'latest': {
+            /** @type {{ data: { result: import('../../constants/types').DoujindesuLatest[] } }} */
+            const {
+              data: { result },
+            } = await axios.get(
+              `${baseURL}/doujindesulatest?apikey=${process.env.LOLHUMAN_API_KEY}`,
+            );
+
+            const embeds = result.map(
+              ({ episode, link, thumbnail, title, type }, index, array) =>
+                new EmbedBuilder()
+                  .setColor(guild.members.me?.displayHexColor ?? null)
+                  .setTimestamp(Date.now())
+                  .setFooter({
+                    text: `${client.user.username} | Page ${index + 1} of ${
+                      array.length
+                    }`,
+                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                  })
+                  .setAuthor({
+                    name: 'Doujin Search Result',
+                    iconURL: 'attachment://doujindesu.png',
+                  })
+                  .setThumbnail(thumbnail)
+                  .setFields([
+                    {
+                      name: '🔤 Title',
+                      value: hyperlink(title, link),
+                      inline: true,
+                    },
+                    {
+                      name: '📄 Chapter',
+                      value: episode,
+                      inline: true,
+                    },
+                    {
+                      name: '🔣 Type',
+                      value: type,
+                      inline: true,
+                    },
+                  ]),
+            );
+
+            const pagination = new Pagination(interaction, {
+              attachments: [attachment],
+            }).setEmbeds(embeds);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
+
+            return pagination.render();
+          }
+
+          case 'query': {
+            const query = options.getString('query', true);
+
+            /** @type {{ data: { result: import('../../constants/types').Doujindesu[] } }} */
+            const {
+              data: { result },
+            } = await axios
+              .get(
+                `${baseURL}/doujindesusearch?query=${encodeURIComponent(
+                  query,
+                )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+              )
+              .catch(() => {
+                throw `No doujin found with query ${inlineCode(query)}.`;
+              });
+
+            const embeds = result.map(
+              ({ link, thumbnail, title, type }, index, array) =>
+                new EmbedBuilder()
+                  .setColor(guild.members.me?.displayHexColor ?? null)
+                  .setTimestamp(Date.now())
+                  .setFooter({
+                    text: `${client.user.username} | Page ${index + 1} of ${
+                      array.length
+                    }`,
+                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                  })
+                  .setAuthor({
+                    name: 'Doujin Search Result',
+                    iconURL: 'attachment://doujindesu.png',
+                  })
+                  .setThumbnail(thumbnail)
+                  .setFields([
+                    {
+                      name: '🔤 Title',
+                      value: hyperlink(title, link),
+                      inline: true,
+                    },
+                    {
+                      name: '🔣 Type',
+                      value: type,
+                      inline: true,
+                    },
+                  ]),
+            );
+
+            const pagination = new Pagination(interaction, {
+              attachments: [attachment],
+            }).setEmbeds(embeds);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
+
+            return pagination.render();
+          }
+        }
+        break;
+      }
+
+      case 'image':
+        {
+          const query = options.getString('query', true);
+
+          switch (options.getSubcommand()) {
+            case 'danbooru': {
+              if (!channel) throw "Channel doesn't exist.";
+
+              if (!channel.nsfw) {
+                throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+              }
+
+              /** @type {{ data: ArrayBuffer }} */
+              const { data: buffer } = await axios
+                .get(
+                  `https://api.lolhuman.xyz/api/danbooru?query=${snakeCase(
+                    query,
+                  )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                  { responseType: 'arraybuffer' },
+                )
+                .catch(() => {
+                  throw `No image found with query ${inlineCode(query)}.`;
+                });
+
+              const img = await generateAttachmentFromBuffer({
+                buffer,
+                fileName: snakeCase(query),
+                fileDesc: 'Danbooru Image',
+              });
+
+              embed
+                .setColor(guild.members.me?.displayHexColor ?? null)
+                .setAuthor({
+                  name: 'Danbooru Search Result',
+                  iconURL: 'https://avatars.githubusercontent.com/u/57931572',
+                })
+                .setImage(`attachment://${img.name}`);
+
+              return interaction.editReply({ embeds: [embed], files: [img] });
+            }
+
+            case 'google': {
+              /** @type {{ data: { result: String[] } }} */
+              const {
+                data: { result },
+              } = await axios.get(
+                `https://api.lolhuman.xyz/api/gimage2?query=${encodeURIComponent(
+                  query,
+                )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+              );
+
+              const pagination = new Pagination(interaction, { limit: 1 })
+                .setColor(guild.members.me?.displayHexColor ?? null)
+                .setTimestamp(Date.now())
+                .setFooter({
+                  text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                  iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                })
+                .setAuthor({
+                  name: 'Google Search Result',
+                  iconURL:
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/480px-Google_%22G%22_Logo.svg.png',
+                })
+                .setImages(result);
+
+              pagination.buttons = {
+                ...pagination.buttons,
+                extra: new ButtonBuilder()
+                  .setCustomId('jump')
+                  .setEmoji('↕️')
+                  .setDisabled(false)
+                  .setStyle(ButtonStyle.Secondary),
+              };
+
+              paginations.set(pagination.interaction.id, pagination);
+
+              return pagination.render();
+            }
+
+            case 'konachan': {
+              if (!channel) throw "Channel doesn't exist.";
+
+              if (!channel.nsfw) {
+                throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+              }
+
+              /** @type {{ data: ArrayBuffer }} */
+              const { data: buffer } = await axios
+                .get(
+                  `https://api.lolhuman.xyz/api/konachan?query=${snakeCase(
+                    query,
+                  )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                  { responseType: 'arraybuffer' },
+                )
+                .catch(() => {
+                  throw `No image found with query ${inlineCode(query)}.`;
+                });
+
+              const img = await generateAttachmentFromBuffer({
+                buffer,
+                fileName: snakeCase(query),
+                fileDesc: 'Konachan Image',
+              });
+
+              embed
+                .setColor(guild.members.me?.displayHexColor ?? null)
+                .setAuthor({ name: '🌐 Konachan Search Result' })
+                .setImage(`attachment://${img.name}`);
+
+              return interaction.editReply({ embeds: [embed], files: [img] });
+            }
           }
         }
         break;
@@ -1129,191 +1796,6 @@ module.exports = {
         paginations.set(pagination.interaction.id, pagination);
 
         return pagination.render();
-      }
-
-      case 'image': {
-        await wait(4000);
-
-        const query = options.getString('query', true);
-
-        const google = new Scraper({ puppeteer: { waitForInitialPage: true } });
-
-        const images = await google.scrape(query, 5);
-
-        const pagination = new Pagination(interaction, { limit: 1 })
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setTimestamp(Date.now())
-          .setFooter({
-            text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-            iconURL: client.user.displayAvatarURL({ dynamic: true }),
-          })
-          .setAuthor({
-            name: 'Image Search Results',
-            iconURL:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/480px-Google_%22G%22_Logo.svg.png',
-          })
-          .setImages(images.map((img) => img.url));
-
-        pagination.buttons = {
-          ...pagination.buttons,
-          extra: new ButtonBuilder()
-            .setCustomId('jump')
-            .setEmoji('↕️')
-            .setDisabled(false)
-            .setStyle(ButtonStyle.Secondary),
-        };
-
-        paginations.set(pagination.interaction.id, pagination);
-
-        return pagination.render();
-      }
-
-      case 'urban': {
-        const term = options.getString('term', true);
-        const query = new URLSearchParams({ term });
-
-        /** @type {{ data: { list: import('../../constants/types').UrbanDictionary[] } }} */
-        const {
-          data: { list },
-        } = await axios.get(
-          `https://api.urbandictionary.com/v0/define?${query}`,
-        );
-
-        if (!list.length) throw `No result found for ${inlineCode(term)}.`;
-
-        const {
-          author,
-          definition,
-          example,
-          permalink,
-          thumbs_down,
-          thumbs_up,
-          word,
-          written_on,
-        } = list[Math.floor(Math.random() * list.length)];
-
-        const formattedCite = `\n${italic(
-          `by ${author} — ${time(
-            new Date(written_on),
-            TimestampStyles.RelativeTime,
-          )}`,
-        )}`;
-
-        embed
-          .setAuthor({
-            name: capitalCase(word),
-            url: permalink,
-            iconURL:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Urban_Dictionary_logo.svg/320px-Urban_Dictionary_logo.svg.png',
-          })
-          .setFields([
-            {
-              name: '🔤 Definition',
-              value: `${truncate(
-                definition,
-                1024 - formattedCite.length - 3,
-              )}${formattedCite}`,
-            },
-            { name: '🔤 Example', value: truncate(example, 1024) },
-            {
-              name: '⭐ Rating',
-              value: `${thumbs_up.toLocaleString()} 👍 | ${thumbs_down.toLocaleString()} 👎`,
-            },
-          ]);
-
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'mdn': {
-        const term = options.getString('term', true);
-        const language = options.getString('language');
-        const query = new URLSearchParams({
-          q: term,
-          locale: language ?? 'en-US',
-        });
-        const baseURL = 'https://developer.mozilla.org';
-
-        /** @type {{ data: { documents: import('../../constants/types').MDNDocument[], suggestions: import('../../constants/types').MDNSuggestion[] } }} */
-        const {
-          data: { documents, suggestions },
-        } = await axios.get(`${baseURL}/api/v1/search?${query}`);
-
-        if (!documents.length) {
-          if (!suggestions.length) {
-            throw `No result found for ${inlineCode(term)}.`;
-          }
-
-          const newQuery = new URLSearchParams({
-            q: suggestions[0].text,
-            locale: language ?? 'en-US',
-          });
-
-          /** @type {{ data: { documents: import('../../constants/types').MDNDocument[] } }} */
-          const {
-            data: { documents: docs },
-          } = await axios.get(`${baseURL}/api/v1/search?${newQuery}`);
-
-          const fields = docs.map(({ mdn_url, summary, title }) => ({
-            name: title,
-            value: `${summary}\n${hyperlink(
-              'View Documentation',
-              `${baseURL}${mdn_url}`,
-              'Click here to view the documentation.',
-            )}`,
-          }));
-
-          embed
-            .setAuthor({
-              name: 'Documentation Search Results',
-              iconURL:
-                'https://pbs.twimg.com/profile_images/1511434207079407618/AwzUxnVf_400x400.png',
-            })
-            .setFields(fields);
-
-          return interaction.editReply({ embeds: [embed] });
-        }
-
-        const fields = documents.map(({ mdn_url, summary, title }) => ({
-          name: title,
-          value: `${summary}\n${hyperlink(
-            'View Documentation',
-            `${baseURL}${mdn_url}`,
-            'Click here to view the documentation.',
-          )}`,
-        }));
-
-        embed
-          .setAuthor({ name: '📖 Documentation Search Results' })
-          .setFields(fields);
-
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'wiki': {
-        const term = options.getString('term', true);
-
-        /** @type {{ data: { result: String } }} */
-        const {
-          data: { result },
-        } = await axios
-          .get(
-            `https://api.lolhuman.xyz/api/wiki?query=${encodeURIComponent(
-              term,
-            )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
-          )
-          .catch(async () => {
-            throw `No definition found with term ${inlineCode(term)}.`;
-          });
-
-        embed
-          .setAuthor({
-            name: capitalCase(term),
-            iconURL:
-              'https://upload.wikimedia.org/wikipedia/commons/6/61/Wikipedia-logo-transparent.png',
-          })
-          .setDescription(truncate(result, 4096));
-
-        return interaction.editReply({ embeds: [embed] });
       }
     }
   },

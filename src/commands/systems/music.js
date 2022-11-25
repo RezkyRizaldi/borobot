@@ -1,3 +1,4 @@
+const axios = require('axios');
 const {
   bold,
   ButtonBuilder,
@@ -15,7 +16,7 @@ const pluralize = require('pluralize');
 const progressbar = require('string-progressbar');
 
 const { musicSearchChoices, musicSettingChoices } = require('../../constants');
-const { applyRepeatMode } = require('../../utils');
+const { applyRepeatMode, truncate } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -58,6 +59,17 @@ module.exports = {
           subcommand
             .setName('clear')
             .setDescription('❌ Turn off the music filters.'),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('lyrics')
+        .setDescription('🎶 Get a music lyrics from title.')
+        .addStringOption((option) =>
+          option
+            .setName('title')
+            .setDescription('🔠 The music title search query.')
+            .setRequired(true),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -258,6 +270,27 @@ module.exports = {
     }
 
     switch (options.getSubcommand()) {
+      case 'lyrics': {
+        const title = options.getString('title', true);
+
+        /** @type {{ data: { result: String } }} */
+        const {
+          data: { result },
+        } = await axios
+          .get(
+            `https://api.lolhuman.xyz/api/lirik?query=${encodeURIComponent(
+              title,
+            )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+          )
+          .catch(() => {
+            throw `No lyrics found with music title ${inlineCode(title)}.`;
+          });
+
+        embed.setDescription(truncate(result, 4096));
+
+        return interaction.editReply({ embeds: [embed] });
+      }
+
       case 'play': {
         const query = options.getString('query', true);
 
