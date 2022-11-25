@@ -146,6 +146,21 @@ module.exports = {
             .setDescription('🔗 The content to be transformed.')
             .setRequired(true),
         ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('wakipai')
+        .setDescription('🚫 Generate a random anime wakipai image.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('yaoi')
+        .setDescription('🚫 Generate a random anime yaoi image.'),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('yuri')
+        .setDescription('🚫 Generate a random anime yuri image.'),
     ),
 
   type: 'Chat Input',
@@ -453,6 +468,78 @@ module.exports = {
         await interaction.editReply({ embeds: [embed], files: [img] });
 
         return fs.unlinkSync(imagePath);
+      }
+
+      case 'wakipai': {
+        if (!channel) throw "Channel doesn't exist.";
+
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+        }
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random/nsfw/sideoppai?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
+
+        const img = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'wakipai',
+          fileDesc: 'Wakipai Image',
+        });
+
+        embed.setImage(`attachment://${img.name}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
+
+      case 'yaoi': {
+        if (!channel) throw "Channel doesn't exist.";
+
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+        }
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random/nsfw/yaoi?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
+
+        const img = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'yaoi',
+          fileDesc: 'Yaoi Image',
+        });
+
+        embed.setImage(`attachment://${img.name}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
+      }
+
+      case 'yuri': {
+        if (!channel) throw "Channel doesn't exist.";
+
+        if (!channel.nsfw) {
+          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+        }
+
+        /** @type {{ data: ArrayBuffer }} */
+        const { data: buffer } = await axios.get(
+          `https://api.lolhuman.xyz/api/random2/yuri?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { responseType: 'arraybuffer' },
+        );
+
+        const img = await generateAttachmentFromBuffer({
+          buffer,
+          fileName: 'yuri',
+          fileDesc: 'Yuri Image',
+        });
+
+        embed.setImage(`attachment://${img.name}`);
+
+        return interaction.editReply({ embeds: [embed], files: [img] });
       }
     }
   },
