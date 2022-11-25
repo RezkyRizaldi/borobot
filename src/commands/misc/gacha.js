@@ -8,7 +8,7 @@ const { generateAttachmentFromBuffer } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('generate')
+    .setName('gacha')
     .setDescription('💫 Test your luck command.')
     .addSubcommand((subcommand) =>
       subcommand.setName('loli').setDescription('👰‍♀️ Gacha for a loli.'),
@@ -23,7 +23,7 @@ module.exports = {
         .addStringOption((option) =>
           option
             .setName('type')
-            .setDescription('🖼️ The image type to generate.')
+            .setDescription('🖼️ The waifu image type.')
             .setRequired(true)
             .addChoices(...waifuChoices),
         ),
