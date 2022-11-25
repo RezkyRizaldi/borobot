@@ -12,7 +12,6 @@ const fs = require('fs');
 const nekoClient = require('nekos.life');
 const QRCode = require('qrcode');
 
-const { waifuChoices } = require('../../constants');
 const { isValidURL, generateAttachmentFromBuffer } = require('../../utils');
 
 module.exports = {
@@ -147,18 +146,6 @@ module.exports = {
             .setDescription('🔗 The content to be transformed.')
             .setRequired(true),
         ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('waifu')
-        .setDescription('👰‍♀️ Generate a waifu image/gif.')
-        .addStringOption((option) =>
-          option
-            .setName('type')
-            .setDescription('🖼️ The image type to generate.')
-            .setRequired(true)
-            .addChoices(...waifuChoices),
-        ),
     ),
 
   type: 'Chat Input',
@@ -290,9 +277,7 @@ module.exports = {
           fileDesc: 'Ahegao Image',
         });
 
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(`attachment://${img.name}`);
+        embed.setImage(`attachment://${img.name}`);
 
         return interaction.editReply({ embeds: [embed], files: [img] });
       }
@@ -316,9 +301,7 @@ module.exports = {
           fileDesc: 'Armpit Image',
         });
 
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(`attachment://${img.name}`);
+        embed.setImage(`attachment://${img.name}`);
 
         return interaction.editReply({ embeds: [embed], files: [img] });
       }
@@ -332,9 +315,7 @@ module.exports = {
 
         const { image } = await images.nsfw.boobs();
 
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(image);
+        embed.setImage(image);
 
         return interaction.editReply({ embeds: [embed] });
       }
@@ -358,9 +339,7 @@ module.exports = {
           fileDesc: 'Feet Image',
         });
 
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(`attachment://${img.name}`);
+        embed.setImage(`attachment://${img.name}`);
 
         return interaction.editReply({ embeds: [embed], files: [img] });
       }
@@ -384,9 +363,7 @@ module.exports = {
           fileDesc: 'Femdom Image',
         });
 
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(`attachment://${img.name}`);
+        embed.setImage(`attachment://${img.name}`);
 
         return interaction.editReply({ embeds: [embed], files: [img] });
       }
@@ -401,9 +378,7 @@ module.exports = {
         /** @type {{ image: String }} */
         const { image } = await images.nsfw.hentai();
 
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(image);
+        embed.setImage(image);
 
         return interaction.editReply({ embeds: [embed] });
       }
@@ -416,7 +391,7 @@ module.exports = {
           endpoints[Math.floor(Math.random() * endpoints.length)]
         ]();
 
-        embed.setColor(guild.members.me?.displayHexColor ?? null).setImage(url);
+        embed.setImage(url);
 
         return interaction.editReply({ embeds: [embed] });
       }
@@ -430,9 +405,7 @@ module.exports = {
 
         const { image } = await images.nsfw.lesbian();
 
-        embed
-          .setColor(guild.members.me?.displayHexColor ?? null)
-          .setImage(image);
+        embed.setImage(image);
 
         return interaction.editReply({ embeds: [embed] });
       }
@@ -481,62 +454,6 @@ module.exports = {
 
         return fs.unlinkSync(imagePath);
       }
-
-      case 'waifu':
-        {
-          const type = options.getString('type', true);
-
-          embed.setColor(member.displayHexColor);
-
-          switch (type) {
-            case 'image': {
-              /** @type {{ data: { url: String } }} */
-              const {
-                data: { url },
-              } = await axios.get('https://api.waifu.pics/sfw/waifu');
-
-              embed
-                .setAuthor({
-                  name: `${member.user.username} Got a Waifu`,
-                  iconURL: member.displayAvatarURL({ dynamic: true }),
-                })
-                .setImage(url);
-
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'pfp': {
-              const { url } = await neko.avatar();
-
-              /** @type {{ image: String }} */
-              const { image } = await images.sfw.waifu();
-              const imgArr = [url, image];
-              const pfp = imgArr[Math.floor(Math.random() * imgArr.length)];
-
-              embed.setAuthor({
-                name: `${member.user.username} Got a Waifu`,
-                iconURL: member.displayAvatarURL({ dynamic: true }),
-              });
-              embed.setImage(pfp);
-
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'wallpaper': {
-              const { url } = await neko.wallpaper();
-
-              embed
-                .setAuthor({
-                  name: `${member.user.username} Got a Waifu`,
-                  iconURL: member.displayAvatarURL({ dynamic: true }),
-                })
-                .setImage(url);
-
-              return interaction.editReply({ embeds: [embed] });
-            }
-          }
-        }
-        break;
     }
   },
 };
