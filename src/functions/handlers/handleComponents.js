@@ -1,4 +1,3 @@
-const AsciiTable = require('ascii-table');
 const fs = require('fs');
 const path = require('path');
 
@@ -8,10 +7,6 @@ const path = require('path');
  */
 module.exports = (client) => {
   client.handleComponents = () => {
-    const table = new AsciiTable('Components');
-
-    table.setHeading('Name', 'Status');
-
     const componentPath = path.join(__dirname, '..', '..', 'components');
 
     if (fs.existsSync(componentPath)) {
@@ -24,10 +19,6 @@ module.exports = (client) => {
         const filePath = path.join(componentPath, file);
         const component = require(filePath);
 
-        table.setTitle(
-          `Components${componentFiles.length && ` (${componentFiles.length})`}`,
-        );
-        table.addRow(component.data.name, '✅');
         components.set(component.data.name, component);
       }
     }

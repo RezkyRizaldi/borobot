@@ -1,6 +1,3 @@
-const AsciiTable = require('ascii-table');
-const { Events } = require('discord.js');
-const { Events: DistubeEvents } = require('distube');
 const fs = require('fs');
 const path = require('path');
 
@@ -10,11 +7,6 @@ const path = require('path');
  */
 module.exports = (client) => {
   client.handleEvents = () => {
-    const table = new AsciiTable('Events');
-
-    table.setHeading('Name', 'Instance', 'Status');
-
-    let total;
     const eventPath = path.join(__dirname, '..', '..', 'events');
     const eventFolders = fs.readdirSync(eventPath);
 
@@ -30,16 +22,6 @@ module.exports = (client) => {
             const filePath = path.join(eventSubPath, file);
             const event = require(filePath);
 
-            if (!Object.values(Events).includes(event.name)) {
-              table.addRow(
-                event?.name ?? file,
-                `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`,
-                '❌ -> invalid event name.',
-              );
-
-              continue;
-            }
-
             event.once
               ? client.once(
                   event.name,
@@ -49,15 +31,8 @@ module.exports = (client) => {
                   event.name,
                   async (...args) => await event.execute(...args, client),
                 );
-
-            table.addRow(
-              event.name,
-              `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`,
-              '✅',
-            );
           }
 
-          total = eventFiles.length;
           break;
 
         case 'distube':
@@ -65,33 +40,14 @@ module.exports = (client) => {
             const filePath = path.join(eventSubPath, file);
             const event = require(filePath);
 
-            if (!Object.values(DistubeEvents).includes(event.name)) {
-              table.addRow(
-                event?.name ?? file,
-                `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`,
-                '❌ -> invalid event name.',
-              );
-
-              continue;
-            }
-
             client.distube.on(
               event.name,
               async (...args) => await event.execute(...args, client),
             );
-
-            table.addRow(
-              event.name,
-              `${folder.charAt(0).toUpperCase()}${folder.slice(1)}`,
-              '✅',
-            );
           }
 
-          total += eventFiles.length;
           break;
       }
     }
-
-    table.setTitle(`Events ${total > 0 ? `(${total})` : ''}`);
   };
 };

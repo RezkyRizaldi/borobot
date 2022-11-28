@@ -1,4 +1,3 @@
-const AsciiTable = require('ascii-table');
 const { REST, Routes } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
@@ -9,17 +8,10 @@ const path = require('path');
  */
 module.exports = (client) => {
   client.handleCommands = async () => {
-    const table = new AsciiTable();
-
-    table.setHeading('Name', 'Category', 'Type', 'Status');
-
     /** @type {{ commands: import('discord.js').Collection<String, { data: import('discord.js').SlashCommandBuilder, type: String, execute(): Promise<void> }>, commandArray: import('discord.js').RESTPostAPIChatInputApplicationCommandsJSONBody[] }} */
     const { commands, commandArray } = client;
     const commandPath = path.join(__dirname, '..', '..', 'commands');
     const commandFolders = fs.readdirSync(commandPath);
-
-    /** @type {String[]} */
-    const arr = [];
 
     for (const folder of commandFolders) {
       const commandSubPath = path.join(commandPath, folder);
@@ -35,17 +27,8 @@ module.exports = (client) => {
 
         commands.set(command.data.name, command);
         commandArray.push(command.data.toJSON());
-        table.addRow(
-          command?.data.name ?? file,
-          folder,
-          command?.type ?? 'None',
-          '✅',
-        );
-        table.sort((a, b) => a[0].localeCompare(b[0]));
-        arr.push(file);
       }
     }
-    table.setTitle(`Commands${arr.length ? ` (${arr.length})` : ''}`);
 
     const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
