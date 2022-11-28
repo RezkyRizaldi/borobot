@@ -245,7 +245,7 @@ module.exports = {
       });
 
     const musicChannel = guild.channels.cache.find(
-      (channel) => channel.id == process.env.CHANNEL_MUSIC_COMMAND_ID,
+      (channel) => channel.id === process.env.CHANNEL_MUSIC_COMMAND_ID,
     );
 
     if (!musicChannel) throw 'Cannot find a music text channel.';
