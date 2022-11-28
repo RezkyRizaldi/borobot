@@ -73,7 +73,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] });
     }
 
     if (oldChannel.nsfw !== newChannel.nsfw) {
@@ -94,7 +94,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] });
     }
 
     if (oldChannel.parentId !== newChannel.parentId) {
@@ -125,7 +125,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] });
     }
 
     if (oldChannel.userLimit !== newChannel.userLimit) {
@@ -156,7 +156,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] });
     }
 
     if (oldChannel.topic !== newChannel.topic) {
@@ -187,7 +187,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] });
     }
 
     const oldChannelPermissions = oldChannel.permissionOverwrites.cache;
@@ -273,7 +273,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] });
     }
 
     const permissionUpdateLog = await guild
@@ -405,7 +405,7 @@ module.exports = {
           },
         ]);
 
-      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] });
     }
 
     const oldDeniedPermissions = oldChannelPermissions.filter((oldPerm) =>
@@ -522,7 +522,7 @@ module.exports = {
         },
       ]);
 
-      await ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+      await ChannelLogger.send({ embeds: [embed] });
     }
   },
 };

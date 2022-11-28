@@ -62,6 +62,6 @@ module.exports = {
         { name: '📄 Reason', value: createLog.reason ?? 'No reason' },
       ]);
 
-    return StageLogger.send({ embeds: [embed] }).catch(console.error);
+    return StageLogger.send({ embeds: [embed] });
   },
 };

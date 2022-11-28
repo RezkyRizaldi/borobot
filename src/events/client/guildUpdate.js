@@ -91,7 +91,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.afkTimeout !== newGuild.afkTimeout) {
@@ -116,7 +116,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.banner !== newGuild.banner) {
@@ -145,7 +145,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (
@@ -177,7 +177,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.description !== newGuild.description) {
@@ -202,7 +202,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.explicitContentFilter !== newGuild.explicitContentFilter) {
@@ -227,7 +227,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.icon !== newGuild.icon) {
@@ -256,7 +256,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.name !== newGuild.name) {
@@ -273,7 +273,7 @@ module.exports = {
           { name: '🕒 After', value: newGuild.name, inline: true },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.nsfwLevel !== newGuild.nsfwLevel) {
@@ -298,7 +298,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.preferredLocale !== newGuild.preferredLocale) {
@@ -323,7 +323,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.publicUpdatesChannelId !== newGuild.publicUpdatesChannelId) {
@@ -352,7 +352,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.rulesChannelId !== newGuild.rulesChannelId) {
@@ -381,7 +381,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.systemChannelId !== newGuild.systemChannelId) {
@@ -410,7 +410,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.verificationLevel !== newGuild.verificationLevel) {
@@ -435,7 +435,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
 
     if (oldGuild.widgetChannelId !== newGuild.widgetChannelId) {
@@ -464,7 +464,7 @@ module.exports = {
           },
         );
 
-      await ServerLogger.send({ embeds: [embed] }).catch(console.error);
+      await ServerLogger.send({ embeds: [embed] });
     }
   },
 };

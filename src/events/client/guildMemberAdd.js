@@ -42,7 +42,7 @@ module.exports = {
       .setTimestamp(Date.now());
 
     if (!user.bot) {
-      await member.send({ embeds: [embed] }).catch(console.error);
+      await member.send({ embeds: [embed] });
     }
 
     await member.roles.add(!user.bot ? memberRole : botRole);

@@ -705,7 +705,7 @@ module.exports = {
         const convertedColor =
           color !== null ? applyHexColor(color) : Colors.Default;
         const permissionArray = [permission, permission2, permission3]
-          .filter((perm) => !!perm)
+          .filter((perm) => perm !== null)
           .map((perm) => BigInt(perm));
 
         if (!member) throw "Member doesn't exist.";

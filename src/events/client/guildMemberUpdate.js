@@ -82,7 +82,7 @@ module.exports = {
           `Thank you for boosting ${guild}, ${bold(newMember.displayName)}!`,
         );
 
-      await newMember.send({ embeds: [embed] }).catch(console.error);
+      await newMember.send({ embeds: [embed] });
 
       embed
         .setThumbnail(newMember.displayAvatarURL({ dynamic: true }))
@@ -129,7 +129,7 @@ module.exports = {
             { name: '📄 Reason', value: roleLog.reason ?? 'No reason' },
           ]);
 
-        await RoleAddLogger.send({ embeds: [embed] }).catch(console.error);
+        await RoleAddLogger.send({ embeds: [embed] });
       }
 
       const RoleRemoveLogger = new WebhookClient({
@@ -166,7 +166,7 @@ module.exports = {
             { name: '📄 Reason', value: roleLog.reason ?? 'No reason' },
           ]);
 
-        await RoleRemoveLogger.send({ embeds: [embed] }).catch(console.error);
+        await RoleRemoveLogger.send({ embeds: [embed] });
       }
     }
 
@@ -212,7 +212,7 @@ module.exports = {
         ]);
 
       if (muteLog.target.id === newMember.id) {
-        await MuteLogger.send({ embeds: [embed] }).catch(console.error);
+        await MuteLogger.send({ embeds: [embed] });
       }
     }
 
@@ -242,7 +242,7 @@ module.exports = {
         ]);
 
       if (muteLog.target.id === newMember.id) {
-        await MuteLogger.send({ embeds: [embed] }).catch(console.error);
+        await MuteLogger.send({ embeds: [embed] });
       }
     }
 
@@ -292,7 +292,7 @@ module.exports = {
         ]);
 
       if (timeoutLog.target.id === newMember.id) {
-        await TimeoutLogger.send({ embeds: [embed] }).catch(console.error);
+        await TimeoutLogger.send({ embeds: [embed] });
       }
     }
 
@@ -334,9 +334,7 @@ module.exports = {
         ]);
 
       if (timeoutRemoveLog.target.id === newMember.id) {
-        await TimeoutRemoveLogger.send({ embeds: [embed] }).catch(
-          console.error,
-        );
+        await TimeoutRemoveLogger.send({ embeds: [embed] });
       }
     }
 
@@ -384,7 +382,7 @@ module.exports = {
         );
 
       if (nicknameLog.target.id === newMember.id) {
-        await NicknameLogger.send({ embeds: [embed] }).catch(console.error);
+        await NicknameLogger.send({ embeds: [embed] });
       }
     }
   },

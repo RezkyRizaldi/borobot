@@ -7,7 +7,7 @@ const path = require('path');
  * @param {import('discord.js').Client} client
  */
 module.exports = (client) => {
-  client.handleComponents = async () => {
+  client.handleComponents = () => {
     const table = new AsciiTable('Components');
 
     table.setHeading('Name', 'Status');
@@ -30,8 +30,6 @@ module.exports = (client) => {
         table.addRow(component.data.name, '✅');
         components.set(component.data.name, component);
       }
-
-      console.log(table.toString());
     }
   };
 };

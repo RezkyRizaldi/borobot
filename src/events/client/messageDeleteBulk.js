@@ -55,7 +55,7 @@ module.exports = {
           )}.`,
         );
 
-      return MessageLogger.send({ embeds: [embed] }).catch(console.error);
+      return MessageLogger.send({ embeds: [embed] });
     }
 
     const bulkDeleteLog = await messages
@@ -112,12 +112,10 @@ module.exports = {
           response.slice(4096, response.length),
         );
 
-        return MessageLogger.send({ embeds: [embed, secondEmbed] }).catch(
-          console.error,
-        );
+        return MessageLogger.send({ embeds: [embed, secondEmbed] });
       }
 
-      return MessageLogger.send({ embeds: [embed] }).catch(console.error);
+      return MessageLogger.send({ embeds: [embed] });
     }
 
     const response = `${messages.size.toLocaleString()} messages from ${
@@ -138,6 +136,6 @@ module.exports = {
       })
       .setDescription(truncate(response, 4096));
 
-    return MessageLogger.send({ embeds: [embed] }).catch(console.error);
+    return MessageLogger.send({ embeds: [embed] });
   },
 };

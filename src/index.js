@@ -30,7 +30,7 @@ const {
 const { Channel, GuildMember, Message, Reaction, ThreadMember, User } =
   Partials;
 
-/** @type {{ commands: import('discord.js').Collection, components: import('discord.js').Collection, paginations: import('discord.js').Collection, distube: import('distube').DisTube, discordTogether: import('discord-together').DiscordTogether<{[x: string]: string}>, handleEvents(): Promise<void>, handleComponents(): Promise<void>, handleCommands(): Promise<void> }} */
+/** @type {{ commands: import('discord.js').Collection, components: import('discord.js').Collection, paginations: import('discord.js').Collection, distube: import('distube').DisTube, discordTogether: import('discord-together').DiscordTogether<{[x: string]: string}>, handleEvents(): void, handleComponents(): void, handleCommands(): Promise<void> }} */
 
 const client = new Client({
   intents: [
@@ -80,10 +80,13 @@ for (const folder of funcFolders) {
 }
 
 (async () => {
-  await client.handleEvents();
-  await client.handleComponents();
+  client.handleEvents();
+
+  client.handleComponents();
+
   await client.handleCommands();
-  await client.login(process.env.TOKEN).catch(console.error);
+
+  await client.login(process.env.TOKEN);
 })();
 
 keepAlive();

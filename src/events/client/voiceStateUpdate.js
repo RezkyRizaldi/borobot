@@ -49,7 +49,7 @@ module.exports = {
           },
         ]);
 
-      await VoiceJoinLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceJoinLogger.send({ embeds: [embed] });
     }
 
     // If the member leave from a voice channel
@@ -91,9 +91,7 @@ module.exports = {
             { name: '📄 Reason', value: disconnectLog.reason ?? 'No reason' },
           ]);
 
-        await VoiceDisconnectLogger.send({ embeds: [embed] }).catch(
-          console.error,
-        );
+        await VoiceDisconnectLogger.send({ embeds: [embed] });
       }
 
       const VoiceLeaveLogger = new WebhookClient({
@@ -118,7 +116,7 @@ module.exports = {
           { name: '📄 Reason', value: disconnectLog.reason ?? 'No reason' },
         ]);
 
-      await VoiceLeaveLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceLeaveLogger.send({ embeds: [embed] });
     }
 
     // If the member being moved by a moderator
@@ -159,7 +157,7 @@ module.exports = {
             { name: '📄 Reason', value: moveLog.reason ?? 'No reason' },
           ]);
 
-        await VoiceMoveLogger.send({ embeds: [embed] }).catch(console.error);
+        await VoiceMoveLogger.send({ embeds: [embed] });
       }
     }
 
@@ -196,7 +194,7 @@ module.exports = {
           { name: '📄 Reason', value: muteLog.reason ?? 'No reason' },
         ]);
 
-      await VoiceMuteLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceMuteLogger.send({ embeds: [embed] });
     }
 
     // If the member being unmuted by a moderator
@@ -232,7 +230,7 @@ module.exports = {
           { name: '📄 Reason', value: unmuteLog.reason ?? 'No reason' },
         ]);
 
-      await VoiceUnmuteLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceUnmuteLogger.send({ embeds: [embed] });
     }
 
     // If the member being deafen by a moderator.
@@ -268,7 +266,7 @@ module.exports = {
           { name: '📄 Reason', value: deafenLog.reason ?? 'No reason' },
         ]);
 
-      await VoiceDeafenLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceDeafenLogger.send({ embeds: [embed] });
     }
 
     // If the member being undeafen by a moderator.
@@ -304,7 +302,7 @@ module.exports = {
           { name: '📄 Reason', value: deafenLog.reason ?? 'No reason' },
         ]);
 
-      await VoiceDeafenLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceDeafenLogger.send({ embeds: [embed] });
     }
 
     // IF the member is streaming using "Screen Share"
@@ -332,7 +330,7 @@ module.exports = {
           },
         ]);
 
-      await VoiceStreamLogger.send({ embeds: [embed] }).catch(console.error);
+      await VoiceStreamLogger.send({ embeds: [embed] });
     }
   },
 };

@@ -64,7 +64,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+      await ThreadLogger.send({ embeds: [embed] });
     }
 
     if (oldThread.archived !== newThread.archived) {
@@ -87,7 +87,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+      await ThreadLogger.send({ embeds: [embed] });
     }
 
     if (oldThread.locked !== newThread.locked) {
@@ -108,7 +108,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+      await ThreadLogger.send({ embeds: [embed] });
     }
 
     if (oldThread.parentId !== newThread.parentId) {
@@ -139,7 +139,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+      await ThreadLogger.send({ embeds: [embed] });
     }
 
     if (oldThread.rateLimitPerUser !== newThread.rateLimitPerUser) {
@@ -160,7 +160,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+      await ThreadLogger.send({ embeds: [embed] });
     }
 
     if (oldThread.autoArchiveDuration !== newThread.autoArchiveDuration) {
@@ -188,7 +188,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+      await ThreadLogger.send({ embeds: [embed] });
     }
   },
 };

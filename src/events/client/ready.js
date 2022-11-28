@@ -8,9 +8,7 @@ module.exports = {
    *
    * @param {import('discord.js').Client} client
    */
-  async execute(client) {
-    console.log(`Logged in as ${client.user.tag}!`);
-
+  execute(client) {
     return client.user.setActivity('/help', { type: ActivityType.Playing });
   },
 };

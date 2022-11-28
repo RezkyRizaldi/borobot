@@ -10,8 +10,6 @@ module.exports = {
    * @param {Error} err
    */
   async execute(channel, err) {
-    console.error(err);
-
     if (!channel) return;
 
     const { client, guild } = channel;
@@ -26,6 +24,6 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    return channel.send({ embeds: [embed] }).catch(console.error);
+    await channel.send({ embeds: [embed] });
   },
 };

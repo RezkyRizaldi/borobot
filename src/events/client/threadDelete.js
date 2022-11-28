@@ -61,6 +61,6 @@ module.exports = {
         { name: '📄 Reason', value: deleteLog.reason ?? 'No reason' },
       ]);
 
-    return ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+    return ThreadLogger.send({ embeds: [embed] });
   },
 };

@@ -51,6 +51,6 @@ module.exports = {
         { name: '📄 Reason', value: createLog.reason ?? 'No reason' },
       ]);
 
-    return RoleLogger.send({ embeds: [embed] }).catch(console.error);
+    return RoleLogger.send({ embeds: [embed] });
   },
 };

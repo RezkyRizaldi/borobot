@@ -58,6 +58,6 @@ module.exports = {
         { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
       ]);
 
-    return StickerLogger.send({ embeds: [embed] }).catch(console.error);
+    return StickerLogger.send({ embeds: [embed] });
   },
 };

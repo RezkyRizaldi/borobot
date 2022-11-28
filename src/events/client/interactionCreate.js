@@ -39,8 +39,6 @@ module.exports = {
         }
 
         await command.execute(interaction).catch(async (err) => {
-          if (typeof err !== 'string') console.error(err);
-
           await interaction.editReply({
             content:
               typeof err === 'string'
@@ -55,8 +53,6 @@ module.exports = {
         if (!component) return;
 
         await component.execute(interaction).catch(async (err) => {
-          if (typeof err !== 'string') console.error(err);
-
           await interaction.editReply({
             content:
               typeof err === 'string'
@@ -75,8 +71,6 @@ module.exports = {
         }
 
         await autocomplete.autocomplete(interaction).catch(async (err) => {
-          if (typeof err !== 'string') console.error(err);
-
           await interaction.editReply({
             content:
               typeof err === 'string'
@@ -95,8 +89,6 @@ module.exports = {
         }
 
         await modal.execute(interaction).catch(async (err) => {
-          if (typeof err !== 'string') console.error(err);
-
           await interaction.editReply({
             content:
               typeof err === 'string'

@@ -47,23 +47,14 @@ module.exports = (client) => {
     }
     table.setTitle(`Commands${arr.length ? ` (${arr.length})` : ''}`);
 
-    console.log(table.toString());
-
     const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
-    console.log('Started refreshing application (/) commands.');
-
-    await rest
-      .put(
-        Routes.applicationGuildCommands(
-          process.env.CLIENT_ID,
-          process.env.GUILD_ID,
-        ),
-        { body: commandArray.sort((a, b) => a.name.localeCompare(b.name)) },
-      )
-      .then(() =>
-        console.log('Successfully reloaded application (/) commands.'),
-      )
-      .catch(console.error);
+    await rest.put(
+      Routes.applicationGuildCommands(
+        process.env.CLIENT_ID,
+        process.env.GUILD_ID,
+      ),
+      { body: commandArray.sort((a, b) => a.name.localeCompare(b.name)) },
+    );
   };
 };

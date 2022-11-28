@@ -62,7 +62,7 @@ module.exports = {
 
     const messages = await channel.messages.fetch();
 
-    if (!messages.size) `${channel} doesn't have any message.`;
+    if (!messages.size) throw `${channel} doesn't have any message.`;
 
     if (!messages.first().deletable) {
       throw "You don't have appropiate permissions to delete messages.";
@@ -74,7 +74,7 @@ module.exports = {
     const filteredMessages = new Collection();
 
     switch (true) {
-      case !!member && !!role:
+      case member !== null && role !== null:
         {
           const membersWithRole = guild.members.cache
             .filter((m) => m.roles.cache.has(role.id))
@@ -85,8 +85,9 @@ module.exports = {
               message.author.id === member.id ||
               (membersWithRole.includes(message.author.id) && amount > i)
             ) {
-              filteredMessages.set(message.id, message);
               i++;
+
+              return filteredMessages.set(message.id, message);
             }
           });
 
@@ -96,12 +97,13 @@ module.exports = {
         }
         break;
 
-      case !!member:
+      case member !== null:
         {
           messages.filter((message) => {
             if (message.author.id === member.id && amount > i) {
-              filteredMessages.set(message.id, message);
               i++;
+
+              return filteredMessages.set(message.id, message);
             }
           });
 
@@ -111,7 +113,7 @@ module.exports = {
         }
         break;
 
-      case !!role:
+      case role !== null:
         {
           const membersWithRole = guild.members.cache
             .filter((m) => m.roles.cache.has(role.id))
@@ -119,8 +121,9 @@ module.exports = {
 
           messages.filter((message) => {
             if (membersWithRole.includes(message.author.id) && amount > i) {
-              filteredMessages.set(message.id, message);
               i++;
+
+              return filteredMessages.set(message.id, message);
             }
           });
 
@@ -148,7 +151,7 @@ module.exports = {
       .setAuthor({ name: `🗑️ ${pluralize('Message', msgs.size)} Deleted` });
 
     switch (true) {
-      case !!member && !!role: {
+      case member !== null && role !== null: {
         const groupedMessages = groupMessageByAuthor(msgs);
 
         embed.setDescription(
@@ -170,7 +173,7 @@ module.exports = {
         return interaction.editReply({ embeds: [embed] });
       }
 
-      case !!member:
+      case member !== null:
         embed.setDescription(
           `Deleted ${count({ total: msgs.size, data: 'message' })}${
             msgs.first().author
@@ -181,7 +184,7 @@ module.exports = {
 
         return interaction.editReply({ embeds: [embed] });
 
-      case !!role: {
+      case role !== null: {
         const groupedMessages = groupMessageByAuthor(msgs);
 
         embed.setDescription(

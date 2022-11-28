@@ -908,7 +908,7 @@ module.exports = {
                 },
               } = await axios
                 .get(`${baseURL}/artifacts/${paramCase(nameQuery)}`)
-                .catch(async () => {
+                .catch(() => {
                   throw `No artifact found with name ${inlineCode(nameQuery)}.`;
                 });
 
@@ -1017,7 +1017,7 @@ module.exports = {
                 },
               } = await axios
                 .get(`${baseURL}/characters/${getFormattedParam(nameQuery)}`)
-                .catch(async () => {
+                .catch(() => {
                   throw `No character found with name ${inlineCode(
                     nameQuery,
                   )}.`;
@@ -1305,7 +1305,7 @@ module.exports = {
                 },
               } = await axios
                 .get(`${baseURL}/weapons/${paramCase(nameQuery)}`)
-                .catch(async () => {
+                .catch(() => {
                   throw `No weapon found with name ${inlineCode(nameQuery)}.`;
                 });
 
@@ -1376,7 +1376,7 @@ module.exports = {
               },
             } = await axios
               .get(`https://api.github.com/users/${username}`)
-              .catch(async () => {
+              .catch(() => {
                 throw `No user found with username ${inlineCode(username)}.`;
               });
 
@@ -2440,7 +2440,7 @@ module.exports = {
             case 'channel': {
               const id = options.getString('id', true);
 
-              const item = await holodex.getChannel(id).catch(async () => {
+              const item = await holodex.getChannel(id).catch(() => {
                 throw `No channel found with ID ${inlineCode(
                   id,
                 )} or maybe the data isn't available yet.`;
@@ -2654,13 +2654,11 @@ module.exports = {
                 return pagination.render();
               }
 
-              const item = await holodex
-                .getChannel(channelID)
-                .catch(async () => {
-                  throw `No channel found with ID ${inlineCode(
-                    channelID,
-                  )} or maybe the data isn't available yet.`;
-                });
+              const item = await holodex.getChannel(channelID).catch(() => {
+                throw `No channel found with ID ${inlineCode(
+                  channelID,
+                )} or maybe the data isn't available yet.`;
+              });
 
               const {
                 description,
@@ -3214,7 +3212,7 @@ module.exports = {
           .get(
             `https://api.lolhuman.xyz/api/stalkig/${cleanUsername}?apikey=${process.env.LOLHUMAN_API_KEY}`,
           )
-          .catch(async () => {
+          .catch(() => {
             throw `No user found with username ${cleanUsername}.`;
           });
 
@@ -3280,7 +3278,7 @@ module.exports = {
           },
         } = await axios
           .get(`https://registry.npmjs.com/${nameQuery}`)
-          .catch(async () => {
+          .catch(() => {
             throw `No package found with name ${inlineCode(nameQuery)}.`;
           });
 
@@ -3460,7 +3458,7 @@ module.exports = {
                 },
               ]);
 
-            return interaction.editReply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
           },
         );
       }

@@ -245,7 +245,7 @@ module.exports = {
       });
 
     const musicChannel = guild.channels.cache.find(
-      (channel) => channel.id == process.env.CHANNEL_MUSIC_COMMAND_ID,
+      (channel) => channel.id === process.env.CHANNEL_MUSIC_COMMAND_ID,
     );
 
     if (!musicChannel) throw 'Cannot find a music text channel.';
@@ -259,7 +259,7 @@ module.exports = {
     }
 
     if (
-      !!guild.members.me?.voice.channel &&
+      guild.members.me?.voice.channel !== null &&
       guild.members.me?.voice.channelId !== voiceChannel.id
     ) {
       throw `Already playing music in ${guild.members.me.voice.channel}.`;
@@ -363,7 +363,21 @@ module.exports = {
 
         const message = await interaction.editReply({ embeds: [embed] });
 
+        /**
+         *
+         * @param {import('discord.js').Message} msg
+         * @returns {Boolean} Boolean value of the filtered interaction.
+         */
+        const filter = (msg) =>
+          Array.from(
+            { length: searchResults.length },
+            (_, i) => `${i + 1}`,
+          ).includes(msg.content);
+
         let time = 15000;
+
+        /** @type {NodeJS.Timer|null} */
+        let interval = null;
         const checkMessage = () => {
           switch (true) {
             case time <= 0:
@@ -394,18 +408,7 @@ module.exports = {
           }
         };
 
-        const interval = setInterval(async () => await checkMessage(), 1000);
-
-        /**
-         *
-         * @param {import('discord.js').Message} msg
-         * @returns {Boolean} Boolean value of the filtered interaction.
-         */
-        const filter = (msg) =>
-          Array.from(
-            { length: searchResults.length },
-            (_, i) => `${i + 1}`,
-          ).includes(msg.content);
+        interval = setInterval(async () => await checkMessage(), 1000);
 
         return textChannel
           .awaitMessages({
@@ -422,8 +425,7 @@ module.exports = {
             );
 
             await messages.first().delete();
-          })
-          .catch(() => console.log('No one use the command.'));
+          });
       }
     }
 
@@ -671,36 +673,47 @@ module.exports = {
                     embeds: [embed],
                   });
 
-                  const interval = setInterval(async () => {
-                    if (queue.currentTime === queue.songs[0].duration) {
-                      clearInterval(interval);
+                  /** @type {NodeJS.Timer|null} */
+                  let interval = null;
+                  const checkMessage = async () => {
+                    switch (true) {
+                      case queue.currentTime === queue.songs[0].duration:
+                        clearInterval(interval);
+                        break;
+
+                      default:
+                        embed.setDescription(
+                          `${
+                            queue.songs[0].name
+                              ? inlineCode(queue.songs[0].name)
+                              : 'Queue'
+                          }${
+                            queue.songs[0].user
+                              ? `\nRequested by: ${queue.songs[0].user}`
+                              : ''
+                          }\n${queue.formattedCurrentTime} - [${progressbar
+                            .splitBar(
+                              queue.songs[0].duration || 10,
+                              queue.currentTime,
+                              12,
+                            )
+                            .slice(0, -1)
+                            .toString()}]${
+                            queue.songs[0].formattedDuration
+                              ? ` - ${queue.songs[0].formattedDuration}`
+                              : ''
+                          }`,
+                        );
+
+                        await message.edit({ embeds: [embed] });
+                        break;
                     }
+                  };
 
-                    embed.setDescription(
-                      `${
-                        queue.songs[0].name
-                          ? inlineCode(queue.songs[0].name)
-                          : 'Queue'
-                      }${
-                        queue.songs[0].user
-                          ? `\nRequested by: ${queue.songs[0].user}`
-                          : ''
-                      }\n${queue.formattedCurrentTime} - [${progressbar
-                        .splitBar(
-                          queue.songs[0].duration || 10,
-                          queue.currentTime,
-                          12,
-                        )
-                        .slice(0, -1)
-                        .toString()}]${
-                        queue.songs[0].formattedDuration
-                          ? ` - ${queue.songs[0].formattedDuration}`
-                          : ''
-                      }`,
-                    );
-
-                    await message.edit({ embeds: [embed] });
-                  }, 1000);
+                  interval = setInterval(
+                    async () => await checkMessage(),
+                    1000,
+                  );
                 }
                 break;
 

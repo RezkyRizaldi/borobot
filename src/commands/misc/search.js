@@ -706,7 +706,7 @@ module.exports = {
                     term,
                   )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(async () => {
+                .catch(() => {
                   throw `No definition found with term ${inlineCode(term)}.`;
                 });
 
@@ -735,19 +735,17 @@ module.exports = {
                           info ? `\n\n${bold('• Info')}\n${info}` : ''
                         }\n\n${bold('• Example')}\n${contoh
                           .map((item) => {
-                            switch (true) {
-                              case item.includes('~'):
-                                return `- ${item.replace(
+                            return item.includes('~')
+                              ? `- ${item.replace(
                                   '~',
                                   bold(nama.split('.').join('')),
-                                )}`;
-
-                              case item.includes('--'):
-                                return `- ${item.replace(
+                                )}`
+                              : item.includes('--')
+                              ? `- ${item.replace(
                                   '--',
                                   bold(nama.split('.').join('')),
-                                )}`;
-                            }
+                                )}`
+                              : item;
                           })
                           .join('\n')}`,
                       }),
@@ -831,19 +829,17 @@ module.exports = {
                     info ? `\n\n${bold('• Info')}\n${info}` : ''
                   }\n\n${bold('• Example')}\n${contoh
                     .map((item) => {
-                      switch (true) {
-                        case item.includes('~'):
-                          return `- ${item.replace(
+                      return item.includes('~')
+                        ? `- ${item.replace(
                             '~',
                             bold(result[0].nama.split('.').join('')),
-                          )}`;
-
-                        case item.includes('--'):
-                          return `- ${item.replace(
+                          )}`
+                        : item.includes('--')
+                        ? `- ${item.replace(
                             '--',
                             bold(result[0].nama.split('.').join('')),
-                          )}`;
-                      }
+                          )}`
+                        : result[0].nama;
                     })
                     .join('\n')}`,
                 }),
@@ -1023,7 +1019,7 @@ module.exports = {
                     term,
                   )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(async () => {
+                .catch(() => {
                   throw `No definition found with term ${inlineCode(term)}.`;
                 });
 
@@ -1467,7 +1463,7 @@ module.exports = {
                 .get(
                   `${baseURL}/nhentai/${tag}?apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(async () => {
+                .catch(() => {
                   throw `No doujin found with tag ${inlineCode(tag)}.`;
                 });
 
@@ -1526,7 +1522,7 @@ module.exports = {
                 .get(
                   `${baseURL}/nhentaisearch?query=${query}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(async () => {
+                .catch(() => {
                   throw `No doujin found with query ${inlineCode(query)}.`;
                 });
 

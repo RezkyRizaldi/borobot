@@ -79,7 +79,18 @@ module.exports = {
 
         const message = await interaction.editReply({ embeds: [embed] });
 
+        /**
+         *
+         * @param {import('discord.js').Message} msg
+         * @returns Boolean value of the filtered interaction.
+         */
+        const filter = (msg) =>
+          msg.content.toLowerCase() === jawaban.toLowerCase();
+
         let time = 15000;
+
+        /** @type {NodeJS.Timer|null} */
+        let interval = null;
         const checkMessage = () => {
           switch (true) {
             case time <= 0:
@@ -111,15 +122,7 @@ module.exports = {
           }
         };
 
-        const interval = setInterval(async () => await checkMessage(), 1000);
-
-        /**
-         *
-         * @param {import('discord.js').Message} msg
-         * @returns Boolean value of the filtered interaction.
-         */
-        const filter = (msg) =>
-          msg.content.toLowerCase() === jawaban.toLowerCase();
+        interval = setInterval(async () => await checkMessage(), 1000);
 
         return channel
           .awaitMessages({
@@ -130,8 +133,7 @@ module.exports = {
           })
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
-          )
-          .catch(() => console.log('No one use the command.'));
+          );
       }
 
       case 'caklontong': {
@@ -150,7 +152,18 @@ module.exports = {
 
         const message = await interaction.editReply({ embeds: [embed] });
 
+        /**
+         *
+         * @param {import('discord.js').Message} msg
+         * @returns Boolean value of the filtered interaction.
+         */
+        const filter = (msg) =>
+          msg.content.toLowerCase() === answer.toLowerCase();
+
         let time = 60000;
+
+        /** @type {NodeJS.Timer|null} */
+        let interval = null;
         const checkMessage = () => {
           switch (true) {
             case time <= 0:
@@ -184,15 +197,7 @@ module.exports = {
           }
         };
 
-        const interval = setInterval(async () => await checkMessage(), 1000);
-
-        /**
-         *
-         * @param {import('discord.js').Message} msg
-         * @returns Boolean value of the filtered interaction.
-         */
-        const filter = (msg) =>
-          msg.content.toLowerCase() === answer.toLowerCase();
+        interval = setInterval(async () => await checkMessage(), 1000);
 
         return channel
           .awaitMessages({
@@ -203,8 +208,7 @@ module.exports = {
           })
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
-          )
-          .catch(() => console.log('No one use the command.'));
+          );
       }
 
       case 'dadjokes': {
@@ -223,7 +227,18 @@ module.exports = {
 
         const message = await interaction.editReply({ embeds: [embed] });
 
+        /**
+         *
+         * @param {import('discord.js').Message} msg
+         * @returns Boolean value of the filtered interaction.
+         */
+        const filter = (msg) =>
+          msg.content.toLowerCase() === answer.toLowerCase();
+
         let time = 15000;
+
+        /** @type {NodeJS.Timer|null} */
+        let interval = null;
         const checkMessage = () => {
           switch (true) {
             case time <= 0:
@@ -255,15 +270,7 @@ module.exports = {
           }
         };
 
-        const interval = setInterval(async () => await checkMessage(), 1000);
-
-        /**
-         *
-         * @param {import('discord.js').Message} msg
-         * @returns Boolean value of the filtered interaction.
-         */
-        const filter = (msg) =>
-          msg.content.toLowerCase() === answer.toLowerCase();
+        interval = setInterval(async () => await checkMessage(), 1000);
 
         return channel
           .awaitMessages({
@@ -274,8 +281,7 @@ module.exports = {
           })
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
-          )
-          .catch(() => console.log('No one use the command.'));
+          );
       }
 
       case 'guessword': {
@@ -294,7 +300,18 @@ module.exports = {
 
         const message = await interaction.editReply({ embeds: [embed] });
 
+        /**
+         *
+         * @param {import('discord.js').Message} msg
+         * @returns Boolean value of the filtered interaction.
+         */
+        const filter = (msg) =>
+          msg.content.toLowerCase() === jawaban.toLowerCase();
+
         let time = 15000;
+
+        /** @type {NodeJS.Timer|null} */
+        let interval = null;
         const checkMessage = () => {
           switch (true) {
             case time <= 0:
@@ -326,15 +343,7 @@ module.exports = {
           }
         };
 
-        const interval = setInterval(async () => await checkMessage(), 1000);
-
-        /**
-         *
-         * @param {import('discord.js').Message} msg
-         * @returns Boolean value of the filtered interaction.
-         */
-        const filter = (msg) =>
-          msg.content.toLowerCase() === jawaban.toLowerCase();
+        interval = setInterval(async () => await checkMessage(), 1000);
 
         return channel
           .awaitMessages({
@@ -345,8 +354,7 @@ module.exports = {
           })
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
-          )
-          .catch(() => console.log('No one use the command.'));
+          );
       }
 
       case 'tebakgambar': {
@@ -370,7 +378,18 @@ module.exports = {
 
         const message = await interaction.editReply({ embeds: [embed] });
 
+        /**
+         *
+         * @param {import('discord.js').Message} msg
+         * @returns Boolean value of the filtered interaction.
+         */
+        const filter = (msg) =>
+          msg.content.toLowerCase() === answer.toLowerCase();
+
         let time = 30000;
+
+        /** @type {NodeJS.Timer|null} */
+        let interval = null;
         const checkMessage = () => {
           switch (true) {
             case time <= 0:
@@ -400,15 +419,7 @@ module.exports = {
           }
         };
 
-        const interval = setInterval(async () => await checkMessage(), 1000);
-
-        /**
-         *
-         * @param {import('discord.js').Message} msg
-         * @returns Boolean value of the filtered interaction.
-         */
-        const filter = (msg) =>
-          msg.content.toLowerCase() === answer.toLowerCase();
+        interval = setInterval(async () => await checkMessage(), 1000);
 
         return channel
           .awaitMessages({
@@ -419,8 +430,7 @@ module.exports = {
           })
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
-          )
-          .catch(() => console.log('No one use the command.'));
+          );
       }
 
       case 'whoami': {
@@ -439,7 +449,18 @@ module.exports = {
 
         const message = await interaction.editReply({ embeds: [embed] });
 
+        /**
+         *
+         * @param {import('discord.js').Message} msg
+         * @returns Boolean value of the filtered interaction.
+         */
+        const filter = (msg) =>
+          msg.content.toLowerCase() === answer.toLowerCase();
+
         let time = 15000;
+
+        /** @type {NodeJS.Timer|null} */
+        let interval = null;
         const checkMessage = () => {
           switch (true) {
             case time <= 0:
@@ -471,15 +492,7 @@ module.exports = {
           }
         };
 
-        const interval = setInterval(async () => await checkMessage(), 1000);
-
-        /**
-         *
-         * @param {import('discord.js').Message} msg
-         * @returns Boolean value of the filtered interaction.
-         */
-        const filter = (msg) =>
-          msg.content.toLowerCase() === answer.toLowerCase();
+        interval = setInterval(async () => await checkMessage(), 1000);
 
         return channel
           .awaitMessages({
@@ -490,8 +503,7 @@ module.exports = {
           })
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
-          )
-          .catch(() => console.log('No one use the command.'));
+          );
       }
     }
   },
