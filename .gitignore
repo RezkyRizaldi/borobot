@@ -108,3 +108,5 @@ package-lock.json
 .yarn/
 yarn.lock
 .vscode
+
+.config

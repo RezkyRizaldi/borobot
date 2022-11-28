@@ -13,6 +13,8 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 
+const keepAlive = require('./server');
+
 const {
   GuildBans,
   GuildInvites,
@@ -83,3 +85,5 @@ for (const folder of funcFolders) {
   await client.handleCommands();
   await client.login(process.env.TOKEN).catch(console.error);
 })();
+
+keepAlive();
