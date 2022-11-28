@@ -735,19 +735,17 @@ module.exports = {
                           info ? `\n\n${bold('• Info')}\n${info}` : ''
                         }\n\n${bold('• Example')}\n${contoh
                           .map((item) => {
-                            switch (true) {
-                              case item.includes('~'):
-                                return `- ${item.replace(
+                            return item.includes('~')
+                              ? `- ${item.replace(
                                   '~',
                                   bold(nama.split('.').join('')),
-                                )}`;
-
-                              case item.includes('--'):
-                                return `- ${item.replace(
+                                )}`
+                              : item.includes('--')
+                              ? `- ${item.replace(
                                   '--',
                                   bold(nama.split('.').join('')),
-                                )}`;
-                            }
+                                )}`
+                              : item;
                           })
                           .join('\n')}`,
                       }),
@@ -831,19 +829,17 @@ module.exports = {
                     info ? `\n\n${bold('• Info')}\n${info}` : ''
                   }\n\n${bold('• Example')}\n${contoh
                     .map((item) => {
-                      switch (true) {
-                        case item.includes('~'):
-                          return `- ${item.replace(
+                      return item.includes('~')
+                        ? `- ${item.replace(
                             '~',
                             bold(result[0].nama.split('.').join('')),
-                          )}`;
-
-                        case item.includes('--'):
-                          return `- ${item.replace(
+                          )}`
+                        : item.includes('--')
+                        ? `- ${item.replace(
                             '--',
                             bold(result[0].nama.split('.').join('')),
-                          )}`;
-                      }
+                          )}`
+                        : result[0].nama;
                     })
                     .join('\n')}`,
                 }),

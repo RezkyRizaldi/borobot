@@ -85,8 +85,9 @@ module.exports = {
               message.author.id === member.id ||
               (membersWithRole.includes(message.author.id) && amount > i)
             ) {
-              filteredMessages.set(message.id, message);
               i++;
+
+              return filteredMessages.set(message.id, message);
             }
           });
 
@@ -100,8 +101,9 @@ module.exports = {
         {
           messages.filter((message) => {
             if (message.author.id === member.id && amount > i) {
-              filteredMessages.set(message.id, message);
               i++;
+
+              return filteredMessages.set(message.id, message);
             }
           });
 
@@ -119,8 +121,9 @@ module.exports = {
 
           messages.filter((message) => {
             if (membersWithRole.includes(message.author.id) && amount > i) {
-              filteredMessages.set(message.id, message);
               i++;
+
+              return filteredMessages.set(message.id, message);
             }
           });
 
