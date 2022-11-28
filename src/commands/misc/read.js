@@ -85,11 +85,9 @@ module.exports = {
 
       case 'run': {
         const file = options.getAttachment('file', true);
-        const worker = createWorker();
+        const worker = await createWorker();
 
         await wait(4000);
-
-        await worker.load();
 
         await worker.loadLanguage(languages.ENG);
 
