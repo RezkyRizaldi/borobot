@@ -5,8 +5,8 @@ const { paramCase } = require('change-case');
  * @param {String} query
  * @returns {String} The formatted query param.
  */
-module.exports = (query) =>
-  query.toLowerCase().includes('itto')
+module.exports = (query) => {
+  return query.toLowerCase().includes('itto')
     ? 'arataki-itto'
     : query.toLowerCase() === 'hutao'
     ? 'hu-tao'
@@ -29,3 +29,4 @@ module.exports = (query) =>
     : query.toLowerCase() === 'yunjin'
     ? 'yun-jin'
     : paramCase(query);
+};
