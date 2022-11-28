@@ -74,7 +74,7 @@ module.exports = {
     const filteredMessages = new Collection();
 
     switch (true) {
-      case !!member && !!role:
+      case Boolean(member) && Boolean(role):
         {
           const membersWithRole = guild.members.cache
             .filter((m) => m.roles.cache.has(role.id))
@@ -96,7 +96,7 @@ module.exports = {
         }
         break;
 
-      case !!member:
+      case Boolean(member):
         {
           messages.filter((message) => {
             if (message.author.id === member.id && amount > i) {
@@ -111,7 +111,7 @@ module.exports = {
         }
         break;
 
-      case !!role:
+      case Boolean(role):
         {
           const membersWithRole = guild.members.cache
             .filter((m) => m.roles.cache.has(role.id))
@@ -148,7 +148,7 @@ module.exports = {
       .setAuthor({ name: `🗑️ ${pluralize('Message', msgs.size)} Deleted` });
 
     switch (true) {
-      case !!member && !!role: {
+      case Boolean(member) && Boolean(role): {
         const groupedMessages = groupMessageByAuthor(msgs);
 
         embed.setDescription(
@@ -170,7 +170,7 @@ module.exports = {
         return interaction.editReply({ embeds: [embed] });
       }
 
-      case !!member:
+      case Boolean(member):
         embed.setDescription(
           `Deleted ${count({ total: msgs.size, data: 'message' })}${
             msgs.first().author
@@ -181,7 +181,7 @@ module.exports = {
 
         return interaction.editReply({ embeds: [embed] });
 
-      case !!role: {
+      case Boolean(role): {
         const groupedMessages = groupMessageByAuthor(msgs);
 
         embed.setDescription(

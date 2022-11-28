@@ -259,7 +259,7 @@ module.exports = {
     }
 
     if (
-      !!guild.members.me?.voice.channel &&
+      Boolean(guild.members.me?.voice.channel) &&
       guild.members.me?.voice.channelId !== voiceChannel.id
     ) {
       throw `Already playing music in ${guild.members.me.voice.channel}.`;
@@ -417,7 +417,7 @@ module.exports = {
           .then(async (messages) => {
             await distube.play(
               voiceChannel,
-              searchResults[+messages.first().content - 1].name,
+              searchResults[Number(messages.first().content) - 1].name,
               { textChannel, member },
             );
 

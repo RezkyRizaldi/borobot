@@ -61,7 +61,7 @@ module.exports = {
     ).size;
     const onlineMemberCount = await guild.members
       .fetch({ withPresences: true })
-      .then((m) => m.filter((member) => !!member.presence).size);
+      .then((m) => m.filter((member) => Boolean(member.presence)).size);
     const boosterCount = guild.premiumSubscriptionCount;
     const emojiCount = guild.emojis.cache.size;
     const roleCount = guild.roles.cache.size;
