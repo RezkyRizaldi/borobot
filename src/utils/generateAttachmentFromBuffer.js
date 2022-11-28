@@ -6,12 +6,10 @@ const { AttachmentBuilder } = require('discord.js');
  * @returns {Promise<AttachmentBuilder>} The attachment builder.
  */
 module.exports = async ({ buffer, fileName, fileDesc }) => {
-  if (ArrayBuffer.isView(buffer)) {
-    buffer = Buffer.from(buffer, 'base64');
-  }
-
   const ext = await (await import('file-type'))
-    .fileTypeFromBuffer(buffer)
+    .fileTypeFromBuffer(
+      ArrayBuffer.isView(buffer) ? Buffer.from(buffer, 'base64') : buffer,
+    )
     .then((r) => r.ext);
 
   return new AttachmentBuilder(buffer, {
