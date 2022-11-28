@@ -185,6 +185,9 @@ module.exports = {
 
     await interaction.deferReply();
 
+    /** @type {?import('discord.js').GuildMember} */
+    const target = options.getMember('target');
+
     if (!member || !target) throw "Member doesn't exist.";
 
     const embed = new EmbedBuilder()
@@ -195,8 +198,6 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    /** @type {?import('discord.js').GuildMember} */
-    const target = options.getMember('target');
     const images = new AnimeImages();
     const neko = new nekoClient();
 

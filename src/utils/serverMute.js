@@ -14,265 +14,6 @@ const { Pagination } = require('pagination.djs');
 /**
  *
  * @param {import('discord.js').ChatInputCommandInteraction} interaction
- * @param {String} subcommand
- * @returns {Promise<import('discord.js').Message<Boolean>>} The interaction message response.
- */
-module.exports = async (interaction, subcommand) => {
-  const { client, guild, options, user } = interaction;
-
-  if (!guild) return;
-
-  /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
-  const { paginations } = client;
-
-  /** @type {import('discord.js').GuildMember} */
-  const member = options.getMember('member');
-  const channelType = options.getInteger('channel_type', true);
-
-  if (subcommand !== 'list' && !member.manageable) {
-    throw `You don't have appropiate permissions to ${
-      subcommand === 'apply' || subcommand === 'temp' ? 'mute' : 'unmute'
-    } ${member}.`;
-  }
-
-  if (subcommand !== 'list' && member.id === user.id) {
-    throw `You can't ${
-      subcommand === 'apply' || subcommand === 'temp' ? 'mute' : 'unmute'
-    } yourself.`;
-  }
-
-  switch (subcommand) {
-    case 'apply':
-      switch (channelType) {
-        case ChannelType.GuildText:
-          return applyOrRemoveRole({ interaction });
-
-        case ChannelType.GuildVoice:
-          return createVoiceMute({ interaction });
-
-        default:
-          return applyOrRemoveRole({ interaction, all: true }).then(() =>
-            createVoiceMute({ interaction, all: true }),
-          );
-      }
-
-    case 'temp':
-      switch (channelType) {
-        case ChannelType.GuildText:
-          return applyOrRemoveRole({ interaction, isTemporary: true });
-
-        case ChannelType.GuildVoice:
-          return createVoiceMute({ interaction, isTemporary: true });
-
-        default:
-          return applyOrRemoveRole({
-            interaction,
-            all: true,
-            isTemporary: true,
-          }).then(() =>
-            createVoiceMute({ interaction, all: true, isTemporary: true }),
-          );
-      }
-
-    case 'cease':
-      switch (channelType) {
-        case ChannelType.GuildText:
-          return applyOrRemoveRole({ interaction, type: 'remove' });
-
-        case ChannelType.GuildVoice:
-          return createVoiceMute({ interaction, type: 'remove' });
-
-        default:
-          return applyOrRemoveRole({
-            interaction,
-            type: 'remove',
-            all: true,
-          }).then(() =>
-            createVoiceMute({ interaction, type: 'remove', all: true }),
-          );
-      }
-
-    case 'list': {
-      const embed = new EmbedBuilder()
-        .setColor(guild.members.me?.displayHexColor ?? null)
-        .setTimestamp(Date.now())
-        .setFooter({
-          text: client.user.username,
-          iconURL: client.user.displayAvatarURL({ dynamic: true }),
-        });
-
-      const mutedRole = member.roles.cache.find(
-        (role) => role.name.toLowerCase() === 'muted',
-      );
-
-      if (!mutedRole) {
-        throw `Can't find role with name ${inlineCode('muted')}.`;
-      }
-
-      const textMutedMembers = guild.members.cache.filter(
-        (m) => m.id === mutedRole.id,
-      );
-
-      const voiceMutedMembers = guild.members.cache.filter(
-        (m) => m.voice.serverMute,
-      );
-
-      const mutedMembers = guild.members.cache.filter(
-        (m) => m.id === mutedRole.id && m.voice.serverMute,
-      );
-
-      switch (channelType) {
-        case ChannelType.GuildText: {
-          if (!textMutedMembers.size) {
-            throw 'No one muted in text channels.';
-          }
-
-          const descriptions = [...textMutedMembers.values()].map(
-            (textMutedMember, index) =>
-              `${bold(`${index + 1}.`)} ${textMutedMember} (${
-                textMutedMember.user.username
-              })`,
-          );
-
-          if (textMutedMembers.size > 10) {
-            const pagination = new Pagination(interaction, { limit: 10 })
-              .setColor(guild.members.me?.displayHexColor ?? null)
-              .setTimestamp(Date.now())
-              .setFooter({
-                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                iconURL: client.user.displayAvatarURL({ dynamic: true }),
-              })
-              .setAuthor({
-                name: `🔇 Muted Members from Text Channels (${textMutedMembers.size.toLocaleString()})`,
-              })
-              .setDescriptions(descriptions);
-
-            pagination.buttons = {
-              ...pagination.buttons,
-              extra: new ButtonBuilder()
-                .setCustomId('jump')
-                .setEmoji('↕️')
-                .setDisabled(false)
-                .setStyle(ButtonStyle.Secondary),
-            };
-
-            paginations.set(pagination.interaction.id, pagination);
-
-            return pagination.render();
-          }
-
-          embed
-            .setAuthor({
-              name: `🔇 Muted Members from Text Channels (${textMutedMembers.size.toLocaleString()})`,
-            })
-            .setDescription(descriptions.join('\n'));
-
-          return interaction.editReply({ embeds: [embed] });
-        }
-
-        case ChannelType.GuildVoice: {
-          if (!voiceMutedMembers.size) {
-            throw 'No one muted in voice channels.';
-          }
-
-          const descriptions = [...voiceMutedMembers.values()].map(
-            (voiceMutedMember, index) =>
-              `${bold(`${index + 1}.`)} ${voiceMutedMember} (${
-                voiceMutedMember.user.username
-              })`,
-          );
-
-          if (voiceMutedMembers.size > 10) {
-            const pagination = new Pagination(interaction, { limit: 10 })
-              .setColor(guild.members.me?.displayHexColor ?? null)
-              .setTimestamp(Date.now())
-              .setFooter({
-                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                iconURL: client.user.displayAvatarURL({ dynamic: true }),
-              })
-              .setAuthor({
-                name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size.toLocaleString()})`,
-              })
-              .setDescriptions(descriptions);
-
-            pagination.buttons = {
-              ...pagination.buttons,
-              extra: new ButtonBuilder()
-                .setCustomId('jump')
-                .setEmoji('↕️')
-                .setDisabled(false)
-                .setStyle(ButtonStyle.Secondary),
-            };
-
-            paginations.set(pagination.interaction.id, pagination);
-
-            return pagination.render();
-          }
-
-          embed
-            .setAuthor({
-              name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size.toLocaleString()})`,
-            })
-            .setDescription(descriptions.join('\n'));
-
-          return interaction.editReply({ embeds: [embed] });
-        }
-
-        default: {
-          if (!mutedMembers.size) {
-            throw `No one muted in ${bold(guild)}.`;
-          }
-
-          const descriptions = [...mutedMembers.values()].map(
-            (mutedMember, index) =>
-              `${bold(`${index + 1}.`)} ${mutedMember} (${
-                mutedMember.user.username
-              })`,
-          );
-
-          if (mutedMembers.size > 10) {
-            const pagination = new Pagination(interaction, { limit: 10 })
-              .setColor(guild.members.me?.displayHexColor ?? null)
-              .setTimestamp(Date.now())
-              .setFooter({
-                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                iconURL: client.user.displayAvatarURL({ dynamic: true }),
-              })
-              .setAuthor({
-                name: `🔇 Muted Members from ${guild} (${mutedMembers.size.toLocaleString()})`,
-              })
-              .setDescriptions(descriptions);
-
-            pagination.buttons = {
-              ...pagination.buttons,
-              extra: new ButtonBuilder()
-                .setCustomId('jump')
-                .setEmoji('↕️')
-                .setDisabled(false)
-                .setStyle(ButtonStyle.Secondary),
-            };
-
-            paginations.set(pagination.interaction.id, pagination);
-
-            return pagination.render();
-          }
-
-          embed
-            .setAuthor({
-              name: `🔇 Muted Members from ${guild} (${mutedMembers.size.toLocaleString()})`,
-            })
-            .setDescription(descriptions.join('\n'));
-
-          return interaction.editReply({ embeds: [embed] });
-        }
-      }
-    }
-  }
-};
-
-/**
- *
- * @param {import('discord.js').ChatInputCommandInteraction} interaction
  * @returns {Promise<import('discord.js').Role>} The muted role.
  */
 const findOrCreateRole = async (interaction) => {
@@ -609,4 +350,263 @@ const createVoiceMute = async ({
       all ? bold(guild) : 'voice channels'
     }.`,
   });
+};
+
+/**
+ *
+ * @param {import('discord.js').ChatInputCommandInteraction} interaction
+ * @param {String} subcommand
+ * @returns {Promise<import('discord.js').Message<Boolean>>} The interaction message response.
+ */
+module.exports = async (interaction, subcommand) => {
+  const { client, guild, options, user } = interaction;
+
+  if (!guild) return;
+
+  /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
+  const { paginations } = client;
+
+  /** @type {import('discord.js').GuildMember} */
+  const member = options.getMember('member');
+  const channelType = options.getInteger('channel_type', true);
+
+  if (subcommand !== 'list' && !member.manageable) {
+    throw `You don't have appropiate permissions to ${
+      subcommand === 'apply' || subcommand === 'temp' ? 'mute' : 'unmute'
+    } ${member}.`;
+  }
+
+  if (subcommand !== 'list' && member.id === user.id) {
+    throw `You can't ${
+      subcommand === 'apply' || subcommand === 'temp' ? 'mute' : 'unmute'
+    } yourself.`;
+  }
+
+  switch (subcommand) {
+    case 'apply':
+      switch (channelType) {
+        case ChannelType.GuildText:
+          return applyOrRemoveRole({ interaction });
+
+        case ChannelType.GuildVoice:
+          return createVoiceMute({ interaction });
+
+        default:
+          return applyOrRemoveRole({ interaction, all: true }).then(() =>
+            createVoiceMute({ interaction, all: true }),
+          );
+      }
+
+    case 'temp':
+      switch (channelType) {
+        case ChannelType.GuildText:
+          return applyOrRemoveRole({ interaction, isTemporary: true });
+
+        case ChannelType.GuildVoice:
+          return createVoiceMute({ interaction, isTemporary: true });
+
+        default:
+          return applyOrRemoveRole({
+            interaction,
+            all: true,
+            isTemporary: true,
+          }).then(() =>
+            createVoiceMute({ interaction, all: true, isTemporary: true }),
+          );
+      }
+
+    case 'cease':
+      switch (channelType) {
+        case ChannelType.GuildText:
+          return applyOrRemoveRole({ interaction, type: 'remove' });
+
+        case ChannelType.GuildVoice:
+          return createVoiceMute({ interaction, type: 'remove' });
+
+        default:
+          return applyOrRemoveRole({
+            interaction,
+            type: 'remove',
+            all: true,
+          }).then(() =>
+            createVoiceMute({ interaction, type: 'remove', all: true }),
+          );
+      }
+
+    case 'list': {
+      const embed = new EmbedBuilder()
+        .setColor(guild.members.me?.displayHexColor ?? null)
+        .setTimestamp(Date.now())
+        .setFooter({
+          text: client.user.username,
+          iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        });
+
+      const mutedRole = member.roles.cache.find(
+        (role) => role.name.toLowerCase() === 'muted',
+      );
+
+      if (!mutedRole) {
+        throw `Can't find role with name ${inlineCode('muted')}.`;
+      }
+
+      const textMutedMembers = guild.members.cache.filter(
+        (m) => m.id === mutedRole.id,
+      );
+
+      const voiceMutedMembers = guild.members.cache.filter(
+        (m) => m.voice.serverMute,
+      );
+
+      const mutedMembers = guild.members.cache.filter(
+        (m) => m.id === mutedRole.id && m.voice.serverMute,
+      );
+
+      switch (channelType) {
+        case ChannelType.GuildText: {
+          if (!textMutedMembers.size) {
+            throw 'No one muted in text channels.';
+          }
+
+          const descriptions = [...textMutedMembers.values()].map(
+            (textMutedMember, index) =>
+              `${bold(`${index + 1}.`)} ${textMutedMember} (${
+                textMutedMember.user.username
+              })`,
+          );
+
+          if (textMutedMembers.size > 10) {
+            const pagination = new Pagination(interaction, { limit: 10 })
+              .setColor(guild.members.me?.displayHexColor ?? null)
+              .setTimestamp(Date.now())
+              .setFooter({
+                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                iconURL: client.user.displayAvatarURL({ dynamic: true }),
+              })
+              .setAuthor({
+                name: `🔇 Muted Members from Text Channels (${textMutedMembers.size.toLocaleString()})`,
+              })
+              .setDescriptions(descriptions);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
+
+            return pagination.render();
+          }
+
+          embed
+            .setAuthor({
+              name: `🔇 Muted Members from Text Channels (${textMutedMembers.size.toLocaleString()})`,
+            })
+            .setDescription(descriptions.join('\n'));
+
+          return interaction.editReply({ embeds: [embed] });
+        }
+
+        case ChannelType.GuildVoice: {
+          if (!voiceMutedMembers.size) {
+            throw 'No one muted in voice channels.';
+          }
+
+          const descriptions = [...voiceMutedMembers.values()].map(
+            (voiceMutedMember, index) =>
+              `${bold(`${index + 1}.`)} ${voiceMutedMember} (${
+                voiceMutedMember.user.username
+              })`,
+          );
+
+          if (voiceMutedMembers.size > 10) {
+            const pagination = new Pagination(interaction, { limit: 10 })
+              .setColor(guild.members.me?.displayHexColor ?? null)
+              .setTimestamp(Date.now())
+              .setFooter({
+                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                iconURL: client.user.displayAvatarURL({ dynamic: true }),
+              })
+              .setAuthor({
+                name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size.toLocaleString()})`,
+              })
+              .setDescriptions(descriptions);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
+
+            return pagination.render();
+          }
+
+          embed
+            .setAuthor({
+              name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size.toLocaleString()})`,
+            })
+            .setDescription(descriptions.join('\n'));
+
+          return interaction.editReply({ embeds: [embed] });
+        }
+
+        default: {
+          if (!mutedMembers.size) {
+            throw `No one muted in ${bold(guild)}.`;
+          }
+
+          const descriptions = [...mutedMembers.values()].map(
+            (mutedMember, index) =>
+              `${bold(`${index + 1}.`)} ${mutedMember} (${
+                mutedMember.user.username
+              })`,
+          );
+
+          if (mutedMembers.size > 10) {
+            const pagination = new Pagination(interaction, { limit: 10 })
+              .setColor(guild.members.me?.displayHexColor ?? null)
+              .setTimestamp(Date.now())
+              .setFooter({
+                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+                iconURL: client.user.displayAvatarURL({ dynamic: true }),
+              })
+              .setAuthor({
+                name: `🔇 Muted Members from ${guild} (${mutedMembers.size.toLocaleString()})`,
+              })
+              .setDescriptions(descriptions);
+
+            pagination.buttons = {
+              ...pagination.buttons,
+              extra: new ButtonBuilder()
+                .setCustomId('jump')
+                .setEmoji('↕️')
+                .setDisabled(false)
+                .setStyle(ButtonStyle.Secondary),
+            };
+
+            paginations.set(pagination.interaction.id, pagination);
+
+            return pagination.render();
+          }
+
+          embed
+            .setAuthor({
+              name: `🔇 Muted Members from ${guild} (${mutedMembers.size.toLocaleString()})`,
+            })
+            .setDescription(descriptions.join('\n'));
+
+          return interaction.editReply({ embeds: [embed] });
+        }
+      }
+    }
+  }
 };
