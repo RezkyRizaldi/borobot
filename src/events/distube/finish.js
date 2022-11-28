@@ -23,6 +23,6 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    return textChannel.send({ embeds: [embed] });
+    await textChannel.send({ embeds: [embed] });
   },
 };

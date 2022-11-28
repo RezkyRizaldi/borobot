@@ -9,7 +9,7 @@ const path = require('path');
  * @param {import('discord.js').Client} client
  */
 module.exports = (client) => {
-  client.handleEvents = async () => {
+  client.handleEvents = () => {
     const table = new AsciiTable('Events');
 
     table.setHeading('Name', 'Instance', 'Status');
@@ -41,11 +41,13 @@ module.exports = (client) => {
             }
 
             event.once
-              ? client.once(event.name, (...args) =>
-                  event.execute(...args, client),
+              ? client.once(
+                  event.name,
+                  async (...args) => await event.execute(...args, client),
                 )
-              : client.on(event.name, (...args) =>
-                  event.execute(...args, client),
+              : client.on(
+                  event.name,
+                  async (...args) => await event.execute(...args, client),
                 );
 
             table.addRow(
@@ -73,8 +75,9 @@ module.exports = (client) => {
               continue;
             }
 
-            client.distube.on(event.name, (...args) =>
-              event.execute(...args, client),
+            client.distube.on(
+              event.name,
+              async (...args) => await event.execute(...args, client),
             );
 
             table.addRow(

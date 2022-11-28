@@ -386,52 +386,64 @@ module.exports = async (interaction, subcommand) => {
     case 'apply':
       switch (channelType) {
         case ChannelType.GuildText:
-          return applyOrRemoveRole({ interaction });
+          await applyOrRemoveRole({ interaction });
+          break;
 
         case ChannelType.GuildVoice:
-          return createVoiceMute({ interaction });
+          await createVoiceMute({ interaction });
+          break;
 
         default:
-          return applyOrRemoveRole({ interaction, all: true }).then(() =>
-            createVoiceMute({ interaction, all: true }),
-          );
+          await applyOrRemoveRole({ interaction, all: true });
+
+          await createVoiceMute({ interaction, all: true });
+          break;
       }
+      break;
 
     case 'temp':
       switch (channelType) {
         case ChannelType.GuildText:
-          return applyOrRemoveRole({ interaction, isTemporary: true });
+          await applyOrRemoveRole({ interaction, isTemporary: true });
+          break;
 
         case ChannelType.GuildVoice:
-          return createVoiceMute({ interaction, isTemporary: true });
+          await createVoiceMute({ interaction, isTemporary: true });
+          break;
 
         default:
-          return applyOrRemoveRole({
+          await applyOrRemoveRole({
             interaction,
             all: true,
             isTemporary: true,
-          }).then(() =>
-            createVoiceMute({ interaction, all: true, isTemporary: true }),
-          );
+          });
+
+          await createVoiceMute({ interaction, all: true, isTemporary: true });
+          break;
       }
+      break;
 
     case 'cease':
       switch (channelType) {
         case ChannelType.GuildText:
-          return applyOrRemoveRole({ interaction, type: 'remove' });
+          await applyOrRemoveRole({ interaction, type: 'remove' });
+          break;
 
         case ChannelType.GuildVoice:
-          return createVoiceMute({ interaction, type: 'remove' });
+          await createVoiceMute({ interaction, type: 'remove' });
+          break;
 
         default:
-          return applyOrRemoveRole({
+          await applyOrRemoveRole({
             interaction,
             type: 'remove',
             all: true,
-          }).then(() =>
-            createVoiceMute({ interaction, type: 'remove', all: true }),
-          );
+          });
+
+          await createVoiceMute({ interaction, type: 'remove', all: true });
+          break;
       }
+      break;
 
     case 'list': {
       const embed = new EmbedBuilder()

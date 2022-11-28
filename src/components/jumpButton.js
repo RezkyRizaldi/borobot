@@ -28,6 +28,6 @@ module.exports = {
         ),
       );
 
-    return interaction.showModal(modal);
+    await interaction.showModal(modal);
   },
 };

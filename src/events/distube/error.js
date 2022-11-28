@@ -24,6 +24,6 @@ module.exports = {
         iconURL: client.user.displayAvatarURL({ dynamic: true }),
       });
 
-    return channel.send({ embeds: [embed] });
+    await channel.send({ embeds: [embed] });
   },
 };

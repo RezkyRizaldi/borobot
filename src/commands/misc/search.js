@@ -706,7 +706,7 @@ module.exports = {
                     term,
                   )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(async () => {
+                .catch(() => {
                   throw `No definition found with term ${inlineCode(term)}.`;
                 });
 
@@ -1023,7 +1023,7 @@ module.exports = {
                     term,
                   )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(async () => {
+                .catch(() => {
                   throw `No definition found with term ${inlineCode(term)}.`;
                 });
 
@@ -1467,7 +1467,7 @@ module.exports = {
                 .get(
                   `${baseURL}/nhentai/${tag}?apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(async () => {
+                .catch(() => {
                   throw `No doujin found with tag ${inlineCode(tag)}.`;
                 });
 
@@ -1526,7 +1526,7 @@ module.exports = {
                 .get(
                   `${baseURL}/nhentaisearch?query=${query}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(async () => {
+                .catch(() => {
                   throw `No doujin found with query ${inlineCode(query)}.`;
                 });
 

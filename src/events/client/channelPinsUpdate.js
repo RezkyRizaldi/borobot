@@ -43,6 +43,6 @@ module.exports = {
         },
       ]);
 
-    return ChannelLogger.send({ embeds: [embed] });
+    await ChannelLogger.send({ embeds: [embed] });
   },
 };

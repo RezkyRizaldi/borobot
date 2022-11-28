@@ -189,7 +189,7 @@ module.exports = {
                 .get(
                   `${baseURL}/otakudesusearch?query=${title}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(async () => {
+                .catch(() => {
                   throw `No anime found with title ${inlineCode(title)}.`;
                 });
 
@@ -253,7 +253,7 @@ module.exports = {
                 .get(
                   `${baseURL}/kusonimesearch?query=${title}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(async () => {
+                .catch(() => {
                   throw `No anime found with title ${inlineCode(title)}.`;
                 });
 
@@ -372,7 +372,7 @@ module.exports = {
                 .get(
                   `${baseURL}/igstory/${username}?apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(async () => {
+                .catch(() => {
                   throw `No user found with username ${inlineCode(
                     username,
                   )} or its doesn't have any stories right now.`;
