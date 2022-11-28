@@ -1,10 +1,12 @@
 /**
  *
- * @param {String} str
+ * @param {String} [str]
  * @param {'facebook' | 'instagram' | 'spotify' | 'tiktok' | 'twitter' | 'youtube'} [site]
  * @returns {Boolean} Boolean value of the string with valid URL.
  */
 module.exports = (str, site) => {
+  if (!str) return;
+
   if (site) {
     return {
       facebook: /(?:(?:http|https):\/\/)?(?:www.)?facebook.com\/?gi/.test(str),
@@ -27,8 +29,5 @@ module.exports = (str, site) => {
     }[site];
   }
 
-  Boolean(new RegExp(
-    '^(https?:\\/\\/)?((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|((\\d{1,3}\\.){3}\\d{1,3}))(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*(\\?[;&a-z\\d%_.~+=-]*)?(\\#[-a-z\\d_]*)?$',
-    'i',
-  ).test(str));
+  /^(https?:\\/\\/)?((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|((\\d{1,3}\\.){3}\\d{1,3}))(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*(\\?[;&a-z\\d%_.~+=-]*)?(\\#[-a-z\\d_]*)?$/i.test(str));
 };
