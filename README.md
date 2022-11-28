@@ -3,6 +3,7 @@
 ![Borobot](/src/assets/images/borobot.jpeg)
 
 [![Build Status](https://github.com/RezkyRizaldi/borobot/actions/workflows/lint.yml/badge.svg)](https://github.com/RezkyRizaldi/borobot/actions)
+[![CodeFactor](https://www.codefactor.io/repository/github/rezkyrizaldi/borobot/badge)](https://www.codefactor.io/repository/github/rezkyrizaldi/borobot)
 [![Discord Server](https://discordapp.com/api/guilds/791708642813411358/widget.png?style=shield)](https://discord.gg/DT63KwmTKn)
 
 ## Introduction
@@ -16,6 +17,7 @@ Borobot provides you with various features, such as:
 - Moderation (ban, kick, mute, timeout, etc.)
 - Utilities (calculator, image generator, dictionary, searcher, downloader, translator, etc.)
 - Music (YouTube, Soundcloud, Spotify, etc.)
+- Games (riddle, quiz, etc.)
 - Tools (guild/member/channel/role information, guild/member/channel/role manager, etc.)
 - Automation (event logger, self-role assignment, cross-server announcements, etc.)
 - Other (Vtuber live stream information, anime & manga information, game database, and many more)
