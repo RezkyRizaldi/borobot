@@ -130,8 +130,7 @@ module.exports = {
           })
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
-          )
-          .catch(() => console.log('No one use the command.'));
+          );
       }
 
       case 'caklontong': {
@@ -203,8 +202,7 @@ module.exports = {
           })
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
-          )
-          .catch(() => console.log('No one use the command.'));
+          );
       }
 
       case 'dadjokes': {
@@ -274,8 +272,7 @@ module.exports = {
           })
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
-          )
-          .catch(() => console.log('No one use the command.'));
+          );
       }
 
       case 'guessword': {
@@ -345,8 +342,7 @@ module.exports = {
           })
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
-          )
-          .catch(() => console.log('No one use the command.'));
+          );
       }
 
       case 'tebakgambar': {
@@ -419,8 +415,7 @@ module.exports = {
           })
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
-          )
-          .catch(() => console.log('No one use the command.'));
+          );
       }
 
       case 'whoami': {
@@ -490,8 +485,7 @@ module.exports = {
           })
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
-          )
-          .catch(() => console.log('No one use the command.'));
+          );
       }
     }
   },

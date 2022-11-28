@@ -64,7 +64,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await RoleLogger.send({ embeds: [embed] }).catch(console.error);
+      await RoleLogger.send({ embeds: [embed] });
     }
 
     if (oldRole.hexColor !== newRole.hexColor) {
@@ -87,7 +87,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await RoleLogger.send({ embeds: [embed] }).catch(console.error);
+      await RoleLogger.send({ embeds: [embed] });
     }
 
     if (oldRole.hoist !== newRole.hoist) {
@@ -108,7 +108,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await RoleLogger.send({ embeds: [embed] }).catch(console.error);
+      await RoleLogger.send({ embeds: [embed] });
     }
 
     if (oldRole.mentionable !== newRole.mentionable) {
@@ -129,7 +129,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await RoleLogger.send({ embeds: [embed] }).catch(console.error);
+      await RoleLogger.send({ embeds: [embed] });
     }
 
     if (oldRole.permissions.bitfield !== newRole.permissions.bitfield) {
@@ -154,7 +154,7 @@ module.exports = {
             { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
           ]);
 
-        return RoleLogger.send({ embeds: [embed] }).catch(console.error);
+        return RoleLogger.send({ embeds: [embed] });
       }
 
       embed
@@ -204,7 +204,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      return RoleLogger.send({ embeds: [embed] }).catch(console.error);
+      return RoleLogger.send({ embeds: [embed] });
     }
   },
 };

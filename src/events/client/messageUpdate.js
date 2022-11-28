@@ -69,7 +69,7 @@ module.exports = {
           { name: '📄 Reason', value: pinLog.reason ?? 'No reason' },
         ]);
 
-      await PinLogger.send({ embeds: [embed] }).catch(console.error);
+      await PinLogger.send({ embeds: [embed] });
     }
 
     // If the message unpinned
@@ -111,7 +111,7 @@ module.exports = {
           { name: '📄 Reason', value: unpinLog.reason ?? 'No reason' },
         ]);
 
-      await UnpinLogger.send({ embeds: [embed] }).catch(console.error);
+      await UnpinLogger.send({ embeds: [embed] });
     }
 
     const MessageLogger = new WebhookClient({
@@ -129,7 +129,7 @@ module.exports = {
           )}.`,
         );
 
-      await MessageLogger.send({ embeds: [embed] }).catch(console.error);
+      await MessageLogger.send({ embeds: [embed] });
     }
 
     if (oldMessage.author.bot) return;
@@ -163,6 +163,6 @@ module.exports = {
         },
       );
 
-    return MessageLogger.send({ embeds: [embed] }).catch(console.error);
+    return MessageLogger.send({ embeds: [embed] });
   },
 };

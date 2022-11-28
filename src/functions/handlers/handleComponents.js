@@ -30,8 +30,6 @@ module.exports = (client) => {
         table.addRow(component.data.name, '✅');
         components.set(component.data.name, component);
       }
-
-      console.log(table.toString());
     }
   };
 };

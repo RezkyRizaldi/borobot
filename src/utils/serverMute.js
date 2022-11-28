@@ -447,9 +447,7 @@ const applyOrRemoveRole = async ({
             guild,
           )} for ${inlineCode(reason)}.`,
         })
-        .catch(async (err) => {
-          console.error(err);
-
+        .catch(async () => {
           await interaction.followUp({
             content: `Could not send a DM to ${member}.`,
             ephemeral: true,
@@ -478,9 +476,7 @@ const applyOrRemoveRole = async ({
               'server mute duration has passed',
             )}.`,
           })
-          .catch(async (err) => {
-            console.error(err);
-
+          .catch(async () => {
             await interaction.followUp({
               content: `Could not send a DM to ${member}.`,
               ephemeral: true,
@@ -507,9 +503,7 @@ const applyOrRemoveRole = async ({
           guild,
         )} for ${inlineCode(reason)}.`,
       })
-      .catch(async (err) => {
-        console.error(err);
-
+      .catch(async () => {
         await interaction.followUp({
           content: `Could not send a DM to ${member}.`,
           ephemeral: true,
@@ -576,9 +570,7 @@ const createVoiceMute = async ({
             guild,
           )} for ${inlineCode(reason)}.`,
         })
-        .catch(async (err) => {
-          console.error(err);
-
+        .catch(async () => {
           await interaction.followUp({
             content: `Could not send a DM to ${member}.`,
             ephemeral: true,
@@ -600,9 +592,7 @@ const createVoiceMute = async ({
               'server mute duration has passed',
             )}.`,
           })
-          .catch(async (err) => {
-            console.error(err);
-
+          .catch(async () => {
             await interaction.followUp({
               content: `Could not send a DM to ${member}.`,
               ephemeral: true,

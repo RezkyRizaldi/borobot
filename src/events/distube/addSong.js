@@ -29,6 +29,6 @@ module.exports = {
       })
       .setThumbnail(song?.thumbnail ?? null);
 
-    return textChannel.send({ embeds: [embed] }).catch(console.error);
+    return textChannel.send({ embeds: [embed] });
   },
 };

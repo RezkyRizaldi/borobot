@@ -49,7 +49,7 @@ module.exports = {
             .join('\n'),
         );
 
-      await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+      await ThreadLogger.send({ embeds: [embed] });
     }
 
     if (removedMembers.size) {
@@ -69,7 +69,7 @@ module.exports = {
             .join('\n'),
         );
 
-      await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+      await ThreadLogger.send({ embeds: [embed] });
     }
   },
 };

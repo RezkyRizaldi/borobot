@@ -43,6 +43,6 @@ module.exports = {
         },
       ]);
 
-    return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+    return ChannelLogger.send({ embeds: [embed] });
   },
 };

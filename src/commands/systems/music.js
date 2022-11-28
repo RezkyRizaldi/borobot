@@ -422,8 +422,7 @@ module.exports = {
             );
 
             await messages.first().delete();
-          })
-          .catch(() => console.log('No one use the command.'));
+          });
       }
     }
 

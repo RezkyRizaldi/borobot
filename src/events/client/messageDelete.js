@@ -44,7 +44,7 @@ module.exports = {
         )}.`,
       );
 
-      return MessageLogger.send({ embeds: [embed] }).catch(console.error);
+      return MessageLogger.send({ embeds: [embed] });
     }
 
     const deleteLog = await guild
@@ -68,6 +68,6 @@ module.exports = {
       })
       .setDescription(truncate(response, 4096));
 
-    return MessageLogger.send({ embeds: [embed] }).catch(console.error);
+    return MessageLogger.send({ embeds: [embed] });
   },
 };

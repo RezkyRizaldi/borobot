@@ -64,7 +64,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await StageLogger.send({ embeds: [embed] }).catch(console.error);
+      await StageLogger.send({ embeds: [embed] });
     }
 
     if (oldStage.topic !== newStage.topic) {
@@ -95,7 +95,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await StageLogger.send({ embeds: [embed] }).catch(console.error);
+      await StageLogger.send({ embeds: [embed] });
     }
 
     if (oldStage.privacyLevel !== newStage.privacyLevel) {
@@ -126,7 +126,7 @@ module.exports = {
           { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
         ]);
 
-      await StageLogger.send({ embeds: [embed] }).catch(console.error);
+      await StageLogger.send({ embeds: [embed] });
     }
   },
 };

@@ -67,6 +67,6 @@ module.exports = {
         { name: '📄 Reason', value: deleteLog.reason ?? 'No reason' },
       ]);
 
-    return ChannelLogger.send({ embeds: [embed] }).catch(console.error);
+    return ChannelLogger.send({ embeds: [embed] });
   },
 };

@@ -90,6 +90,5 @@ module.exports = (client) => {
     }
 
     table.setTitle(`Events ${total > 0 ? `(${total})` : ''}`);
-    console.log(table.toString());
   };
 };

@@ -50,7 +50,7 @@ module.exports = {
         },
       ]);
 
-    await LeaveLogger.send({ embeds: [leaveMessage] }).catch(console.error);
+    await LeaveLogger.send({ embeds: [leaveMessage] });
 
     // If the member kicked by a moderator
     const KickLogger = new WebhookClient({
@@ -96,7 +96,7 @@ module.exports = {
       ]);
 
     if (kickLog.target.id === user.id) {
-      await KickLogger.send({ embeds: [kickMessage] }).catch(console.error);
+      await KickLogger.send({ embeds: [kickMessage] });
     }
 
     if (user.bot) {

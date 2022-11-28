@@ -57,6 +57,6 @@ module.exports = {
         { name: '📄 Reason', value: deleteLog.reason ?? 'No reason' },
       ]);
 
-    return RoleLogger.send({ embeds: [embed] }).catch(console.error);
+    return RoleLogger.send({ embeds: [embed] });
   },
 };

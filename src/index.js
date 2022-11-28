@@ -83,7 +83,7 @@ for (const folder of funcFolders) {
   await client.handleEvents();
   await client.handleComponents();
   await client.handleCommands();
-  await client.login(process.env.TOKEN).catch(console.error);
+  await client.login(process.env.TOKEN);
 })();
 
 keepAlive();

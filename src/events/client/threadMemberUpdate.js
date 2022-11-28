@@ -47,7 +47,7 @@ module.exports = {
           },
         ]);
 
-      await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+      await ThreadLogger.send({ embeds: [embed] });
     }
 
     if (oldMember.thread && !newMember.thread) {
@@ -69,7 +69,7 @@ module.exports = {
           },
         ]);
 
-      await ThreadLogger.send({ embeds: [embed] }).catch(console.error);
+      await ThreadLogger.send({ embeds: [embed] });
     }
   },
 };

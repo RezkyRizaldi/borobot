@@ -118,9 +118,7 @@ module.exports = {
                   guild,
                 )} for ${inlineCode(reason)}.`,
               })
-              .catch(async (err) => {
-                console.error(err);
-
+              .catch(async () => {
                 await interaction.followUp({
                   content: `Could not send a DM to ${member}.`,
                 });
@@ -159,9 +157,7 @@ module.exports = {
                   'timeout',
                 )} has passed from ${bold(guild)}.`,
               })
-              .catch(async (err) => {
-                console.error(err);
-
+              .catch(async () => {
                 await interaction.followUp({
                   content: `Could not send a DM to ${member}.`,
                   ephemeral: true,

@@ -69,6 +69,6 @@ module.exports = {
         { name: '📄 Reason', value: deleteLog.reason ?? 'No reason' },
       ]);
 
-    return EmojiLogger.send({ embeds: [embed] }).catch(console.error);
+    return EmojiLogger.send({ embeds: [embed] });
   },
 };
