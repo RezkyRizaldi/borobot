@@ -62,7 +62,7 @@ module.exports = {
 
     const messages = await channel.messages.fetch();
 
-    if (!messages.size) `${channel} doesn't have any message.`;
+    if (!messages.size) throw `${channel} doesn't have any message.`;
 
     if (!messages.first().deletable) {
       throw "You don't have appropiate permissions to delete messages.";
