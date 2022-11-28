@@ -259,7 +259,7 @@ module.exports = {
     }
 
     if (
-      !!guild.members.me?.voice.channel &&
+      guild.members.me?.voice.channel !== null &&
       guild.members.me?.voice.channelId !== voiceChannel.id
     ) {
       throw `Already playing music in ${guild.members.me.voice.channel}.`;
