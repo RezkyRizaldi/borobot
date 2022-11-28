@@ -8,10 +8,10 @@ const { capitalCase } = require('change-case');
 module.exports = (str) => {
   if (str !== null) {
     switch (true) {
-      case str === 'asmr' ||
-        str === 'doom' ||
-        str === 'valorant' ||
-        str === 'pubg':
+      case str === 'asmr':
+      case str === 'doom':
+      case str === 'valorant':
+      case str === 'pubg':
         return str.toUpperCase();
 
       case str === 'dbd':
