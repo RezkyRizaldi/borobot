@@ -203,13 +203,13 @@ module.exports = {
 
           if (!bannedUser) throw "This user isn't banned.";
 
-          const u = await guild.members.unban(
+          const banUser = await guild.members.unban(
             bannedUser,
             'ban temporary duration has passed.',
           );
 
-          if (!u.bot) {
-            return u
+          if (!banUser.bot) {
+            return banUser
               .send({
                 content: `Congratulations! You have been unbanned from ${bold(
                   guild,
@@ -218,7 +218,7 @@ module.exports = {
               .catch(
                 async () =>
                   await interaction.followUp({
-                    content: `Could not send a DM to ${u}.`,
+                    content: `Could not send a DM to ${banUser}.`,
                     ephemeral: true,
                   }),
               );
@@ -237,14 +237,14 @@ module.exports = {
 
           if (!bannedUser) throw "This user isn't banned.";
 
-          const u = await guild.members.unban(bannedUser, reason);
+          const banUser = await guild.members.unban(bannedUser, reason);
 
           await interaction.editReply({
-            content: `Successfully ${bold('unbanned')} ${u.tag}.`,
+            content: `Successfully ${bold('unbanned')} ${banUser.tag}.`,
           });
 
-          if (!u.bot) {
-            return u
+          if (!banUser.bot) {
+            return banUser
               .send({
                 content: `Congratulations! You have been unbanned from ${bold(
                   guild,
@@ -253,7 +253,7 @@ module.exports = {
               .catch(
                 async () =>
                   await interaction.followUp({
-                    content: `Could not send a DM to ${u}.`,
+                    content: `Could not send a DM to ${banUser}.`,
                     ephemeral: true,
                   }),
               );
