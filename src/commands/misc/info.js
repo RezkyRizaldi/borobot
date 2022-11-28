@@ -2101,11 +2101,11 @@ module.exports = {
                       name: '🐣 Spawn',
                       value: entity.spawns
                         ? entity.spawns
-                            .map((spawn) =>
-                              !/^[A-Z|\d+]/.test(spawn)
+                            .map((spawn) => {
+                              return !/^[A-Z|\d+]/.test(spawn)
                                 ? capitalCase(spawn)
-                                : spawn,
-                            )
+                                : spawn;
+                            })
                             .join(', ')
                         : italic('Unknown'),
                     },

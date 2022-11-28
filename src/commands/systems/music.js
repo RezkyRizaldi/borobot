@@ -420,7 +420,7 @@ module.exports = {
           .then(async (messages) => {
             await distube.play(
               voiceChannel,
-              searchResults[+messages.first().content - 1].name,
+              searchResults[Number(messages.first().content) - 1].name,
               { textChannel, member },
             );
 

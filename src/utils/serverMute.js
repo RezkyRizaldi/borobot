@@ -133,7 +133,7 @@ const findOrCreateRole = async (interaction) => {
       );
     });
 
-  return new Promise((resolve) => resolve(mutedRole));
+  return Promise.resolve(mutedRole);
 };
 
 /**

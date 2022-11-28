@@ -6,8 +6,8 @@
 module.exports = (string) =>
   string
     .split(' ')
-    .map((word) =>
-      ![
+    .map((word) => {
+      return ![
         'of',
         'the',
         'and',
@@ -21,6 +21,6 @@ module.exports = (string) =>
         'but',
       ].includes(word)
         ? word.charAt(0).toUpperCase() + word.slice(1)
-        : word,
-    )
+        : word;
+    })
     .join(' ');
