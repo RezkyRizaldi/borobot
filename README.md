@@ -2,7 +2,8 @@
 
 ![Borobot](/src/assets/images/borobot.jpeg)
 
-[![Build Status](https://github.com/RezkyRizaldi/borobot/actions/workflows/lint.yml/badge.svg)](https://github.com/RezkyRizaldi/borobot/actions)
+[![CodeQL](https://github.com/RezkyRizaldi/borobot/actions/workflows/codeql.yml/badge.svg)](https://github.com/RezkyRizaldi/borobot/actions/workflows/codeql.yml)
+[![Lint](https://github.com/RezkyRizaldi/borobot/actions/workflows/lint.yml/badge.svg)](https://github.com/RezkyRizaldi/borobot/actions/workflows/lint.yml)
 [![CodeFactor](https://www.codefactor.io/repository/github/rezkyrizaldi/borobot/badge)](https://www.codefactor.io/repository/github/rezkyrizaldi/borobot)
 [![Discord Server](https://discordapp.com/api/guilds/791708642813411358/widget.png?style=shield)](https://discord.gg/DT63KwmTKn)
 
@@ -21,6 +22,10 @@ Borobot provides you with various features, such as:
 - Tools (guild/member/channel/role information, guild/member/channel/role manager, etc.)
 - Automation (event logger, self-role assignment, cross-server announcements, etc.)
 - Other (Vtuber live stream information, anime & manga information, game database, and many more)
+
+## Security Vulnerabilities
+
+Please review our [security policy](https://github.com/RezkyRizaldi/borobot/security/policy)
 
 ## Contributing
 
