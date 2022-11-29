@@ -5,7 +5,8 @@
 [![CodeQL](https://github.com/RezkyRizaldi/borobot/actions/workflows/codeql.yml/badge.svg)](https://github.com/RezkyRizaldi/borobot/actions/workflows/codeql.yml)
 [![Lint](https://github.com/RezkyRizaldi/borobot/actions/workflows/lint.yml/badge.svg)](https://github.com/RezkyRizaldi/borobot/actions/workflows/lint.yml)
 [![CodeFactor](https://www.codefactor.io/repository/github/rezkyrizaldi/borobot/badge)](https://www.codefactor.io/repository/github/rezkyrizaldi/borobot)
-[![Discord Server](https://discordapp.com/api/guilds/791708642813411358/widget.png?style=shield)](https://discord.gg/DT63KwmTKn)
+[![Codecov](https://codecov.io/gh/RezkyRizaldi/borobot/branch/main/graph/badge.svg?precision=2)](https://codecov.io/gh/RezkyRizaldi/borobot)
+[![Discord Server](https://img.shields.io/discord/791708642813411358?color=5865F2&logo=discord&logoColor=white)](https://discord.gg/DT63KwmTKn)
 
 ## Introduction
 
