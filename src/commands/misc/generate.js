@@ -1,6 +1,6 @@
 const AnimeImages = require('anime-images-api');
 const axios = require('axios');
-const { EmbedBuilder, italic, SlashCommandBuilder } = require('discord.js');
+const { italic, SlashCommandBuilder } = require('discord.js');
 const {
   Blur,
   Greyscale,
@@ -12,7 +12,11 @@ const fs = require('fs');
 const nekoClient = require('nekos.life');
 const QRCode = require('qrcode');
 
-const { isValidURL, generateAttachmentFromBuffer } = require('../../utils');
+const {
+  isValidURL,
+  generateAttachmentFromBuffer,
+  generateEmbed,
+} = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -170,10 +174,15 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { channel, client, guild, member, options } = interaction;
+    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, guild: ?import('discord.js').Guild, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { channel, guild, member, options } = interaction;
+    const embed = generateEmbed({ interaction });
+    const images = new AnimeImages();
+    const neko = new nekoClient();
 
     await interaction.deferReply();
+
+    if (!guild) throw "Guild doesn't exist.";
 
     if (!member) throw "Member doesn't exist.";
 
@@ -187,26 +196,15 @@ module.exports = {
       ? `\n${italic('eg.')} ${[...NSFWChannels.values()].join(', ')}`
       : '';
 
-    const embed = new EmbedBuilder()
-      .setColor(guild?.members.me?.displayHexColor ?? null)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      });
-
-    const images = new AnimeImages();
-    const neko = new nekoClient();
-
-    switch (options.getSubcommandGroup()) {
-      case 'filters':
-        {
+    if (options.getSubcommandGroup() !== null) {
+      return {
+        filters: () => {
           const image = options.getAttachment('image', true);
 
           embed.setAuthor({ name: '🖼️ Applied Filter Result' });
 
-          switch (options.getSubcommand()) {
-            case 'blur': {
+          return {
+            blur: async () => {
               const amount = options.getInteger('amount') ?? undefined;
 
               const img = await generateAttachmentFromBuffer({
@@ -217,10 +215,12 @@ module.exports = {
 
               embed.setImage(`attachment://${img.name}`);
 
-              return interaction.editReply({ embeds: [embed], files: [img] });
-            }
-
-            case 'greyscale': {
+              await interaction.editReply({
+                embeds: [embed],
+                files: [img],
+              });
+            },
+            greyscale: async () => {
               const img = await generateAttachmentFromBuffer({
                 buffer: await new Greyscale().getImage(image.url),
                 fileName: 'greyscale',
@@ -229,10 +229,12 @@ module.exports = {
 
               embed.setImage(`attachment://${img.name}`);
 
-              return interaction.editReply({ embeds: [embed], files: [img] });
-            }
-
-            case 'invert': {
+              await interaction.editReply({
+                embeds: [embed],
+                files: [img],
+              });
+            },
+            invert: async () => {
               const img = await generateAttachmentFromBuffer({
                 buffer: await new Invert().getImage(image.url),
                 fileName: 'invert',
@@ -241,10 +243,12 @@ module.exports = {
 
               embed.setImage(`attachment://${img.name}`);
 
-              return interaction.editReply({ embeds: [embed], files: [img] });
-            }
-
-            case 'sepia': {
+              await interaction.editReply({
+                embeds: [embed],
+                files: [img],
+              });
+            },
+            sepia: async () => {
               const img = await generateAttachmentFromBuffer({
                 buffer: await new Sepia().getImage(image.url),
                 fileName: 'sepia',
@@ -253,10 +257,12 @@ module.exports = {
 
               embed.setImage(`attachment://${img.name}`);
 
-              return interaction.editReply({ embeds: [embed], files: [img] });
-            }
-
-            case 'triggered': {
+              await interaction.editReply({
+                embeds: [embed],
+                files: [img],
+              });
+            },
+            triggered: async () => {
               const img = await generateAttachmentFromBuffer({
                 buffer: await new Triggered().getImage(image.url),
                 fileName: 'sepia',
@@ -265,15 +271,18 @@ module.exports = {
 
               embed.setImage(`attachment://${img.name}.gif`);
 
-              return interaction.editReply({ embeds: [embed], files: [img] });
-            }
-          }
-        }
-        break;
+              await interaction.editReply({
+                embeds: [embed],
+                files: [img],
+              });
+            },
+          }[options.getSubcommand()]();
+        },
+      }[options.getSubcommandGroup()]();
     }
 
-    switch (options.getSubcommand()) {
-      case 'ahegao': {
+    return {
+      ahegao: async () => {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
@@ -294,10 +303,9 @@ module.exports = {
 
         embed.setImage(`attachment://${img.name}`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
-
-      case 'armpit': {
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+      armpit: async () => {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
@@ -318,10 +326,9 @@ module.exports = {
 
         embed.setImage(`attachment://${img.name}`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
-
-      case 'boobs': {
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+      boobs: async () => {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
@@ -332,10 +339,9 @@ module.exports = {
 
         embed.setImage(image);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'feet': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      feet: async () => {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
@@ -356,10 +362,9 @@ module.exports = {
 
         embed.setImage(`attachment://${img.name}`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
-
-      case 'femdom': {
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+      femdom: async () => {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
@@ -380,10 +385,9 @@ module.exports = {
 
         embed.setImage(`attachment://${img.name}`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
-
-      case 'hentai': {
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+      hentai: async () => {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
@@ -395,10 +399,9 @@ module.exports = {
 
         embed.setImage(image);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'kemono': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      kemono: async () => {
         const endpoints = ['neko', 'nekoGif', 'foxGirl'];
 
         /** @type {{ url: String }} */
@@ -408,10 +411,9 @@ module.exports = {
 
         embed.setImage(url);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'lesbian': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      lesbian: async () => {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
@@ -422,10 +424,9 @@ module.exports = {
 
         embed.setImage(image);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'shortlink': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      shortlink: async () => {
         const url = options.getString('url', true);
 
         if (!isValidURL(url)) throw 'Please provide a valid URL.';
@@ -441,10 +442,9 @@ module.exports = {
           .setAuthor({ name: '🔗 Shortened URL Result' })
           .setDescription(`Here's your generated shorten URL: ${result}.`);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'qrcode': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      qrcode: async () => {
         const content = options.getString('content', true);
 
         const url = await QRCode.toDataURL(content, { version: 10 });
@@ -468,9 +468,8 @@ module.exports = {
         await interaction.editReply({ embeds: [embed], files: [img] });
 
         return fs.unlinkSync(imagePath);
-      }
-
-      case 'wakipai': {
+      },
+      wakipai: async () => {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
@@ -491,10 +490,9 @@ module.exports = {
 
         embed.setImage(`attachment://${img.name}`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
-
-      case 'yaoi': {
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+      yaoi: async () => {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
@@ -515,10 +513,9 @@ module.exports = {
 
         embed.setImage(`attachment://${img.name}`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
-
-      case 'yuri': {
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+      yuri: async () => {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
@@ -539,8 +536,8 @@ module.exports = {
 
         embed.setImage(`attachment://${img.name}`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
-    }
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+    }[options.getSubcommand()]();
   },
 };

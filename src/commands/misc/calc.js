@@ -1,15 +1,8 @@
-const {
-  bold,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-  inlineCode,
-  SlashCommandBuilder,
-} = require('discord.js');
+const { bold, inlineCode, SlashCommandBuilder } = require('discord.js');
 const mexp = require('math-expression-evaluator');
-const { Pagination } = require('pagination.djs');
 
 const { math } = require('../../constants');
+const { generateEmbed, generatePagination } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -38,67 +31,35 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, guild, options } = interaction;
-
-    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
-    const { paginations } = client;
+    const { options } = interaction;
 
     await interaction.deferReply();
 
-    switch (options.getSubcommand()) {
-      case 'list': {
+    return {
+      list: async () => {
         const symbols = Object.values(math);
 
         const responses = symbols.map(
-          ({ description, example, result, symbol }, index) =>
-            `${bold(`${index + 1}.`)} ${inlineCode(symbol)} ${description}${
+          ({ description, example, result, symbol }, i) =>
+            `${bold(`${i + 1}.`)} ${inlineCode(symbol)} ${description}${
               example ? ` ${inlineCode(`eg. ${example}`)}` : ''
             }${result ? ` returns ${inlineCode(result)}` : ''}`,
         );
 
-        const pagination = new Pagination(interaction, { limit: 10 })
-          .setColor(guild?.members.me?.displayHexColor ?? null)
-          .setTimestamp(Date.now())
-          .setFooter({
-            text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-            iconURL: client.user.displayAvatarURL({ dynamic: true }),
-          })
+        await generatePagination({ interaction, limit: 10 })
           .setAuthor({
             name: `➗ Supported Math Symbol Lists (${symbols.length.toLocaleString()})`,
           })
-          .setDescriptions(responses);
-
-        pagination.buttons = {
-          ...pagination.buttons,
-          extra: new ButtonBuilder()
-            .setCustomId('jump')
-            .setEmoji('↕️')
-            .setDisabled(false)
-            .setStyle(ButtonStyle.Secondary),
-        };
-
-        paginations.set(pagination.interaction.id, pagination);
-
-        return pagination.render();
-      }
-
-      case 'run': {
+          .setDescriptions(responses)
+          .render();
+      },
+      run: async () => {
         const operation = options.getString('operation', true);
 
-        const embed = new EmbedBuilder()
-          .setColor(guild?.members.me?.displayHexColor ?? null)
-          .setTimestamp(Date.now())
-          .setFooter({
-            text: client.user.username,
-            iconURL: client.user.displayAvatarURL({ dynamic: true }),
-          })
+        const embed = generateEmbed({ interaction })
           .setAuthor({ name: '🧮 Calculation Result' })
           .setFields([
-            {
-              name: '🔢 Operation',
-              value: operation,
-              inline: true,
-            },
+            { name: '🔢 Operation', value: operation, inline: true },
             {
               name: '🔢 Result',
               value: `${mexp.eval(operation)}`,
@@ -106,8 +67,8 @@ module.exports = {
             },
           ]);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-    }
+        await interaction.editReply({ embeds: [embed] });
+      },
+    }[options.getSubcommand()]();
   },
 };

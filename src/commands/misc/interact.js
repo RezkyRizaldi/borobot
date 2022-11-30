@@ -1,8 +1,9 @@
 const AnimeImages = require('anime-images-api');
 const axios = require('axios');
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const nekoClient = require('nekos.life');
-const { generateAttachmentFromBuffer } = require('../../utils');
+
+const { generateAttachmentFromBuffer, generateEmbed } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -180,8 +181,8 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ client: import('discord.js').Client<true>, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { client, member, options } = interaction;
+    /** @type {{ member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { member, options } = interaction;
 
     await interaction.deferReply();
 
@@ -190,19 +191,13 @@ module.exports = {
 
     if (!member || !target) throw "Member doesn't exist.";
 
-    const embed = new EmbedBuilder()
-      .setColor(target.displayHexColor)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      });
+    const embed = generateEmbed({ interaction, type: 'target', target });
 
     const images = new AnimeImages();
     const neko = new nekoClient();
 
-    switch (options.getSubcommand()) {
-      case 'bite': {
+    return {
+      bite: async () => {
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
           `https://api.lolhuman.xyz/api/random/bite?apikey=${process.env.LOLHUMAN_API_KEY}`,
@@ -219,10 +214,9 @@ module.exports = {
           .setImage(`attachment://${img.name}`)
           .setDescription(`${member} has hugged ${target}!`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
-
-      case 'blush': {
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+      blush: async () => {
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
           `https://api.lolhuman.xyz/api/random/blush?apikey=${process.env.LOLHUMAN_API_KEY}`,
@@ -239,10 +233,9 @@ module.exports = {
           .setImage(`attachment://${img.name}`)
           .setDescription(`${member} has hugged ${target}!`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
-
-      case 'bonk': {
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+      bonk: async () => {
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
           `https://api.lolhuman.xyz/api/random/bonk?apikey=${process.env.LOLHUMAN_API_KEY}`,
@@ -259,10 +252,9 @@ module.exports = {
           .setImage(`attachment://${img.name}`)
           .setDescription(`${member} has hugged ${target}!`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
-
-      case 'cuddle': {
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+      cuddle: async () => {
         const { url } = await neko.cuddle();
 
         /** @type {{ image: String }} */
@@ -272,18 +264,16 @@ module.exports = {
 
         embed.setImage(cuddle).setDescription(`${member} cuddles ${target}!`);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'feed': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      feed: async () => {
         const { url } = await neko.feed();
 
         embed.setImage(url).setDescription(`${member} feeding ${target}!`);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'hug': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      hug: async () => {
         const { url } = await neko.hug();
 
         /** @type {{ image: String }} */
@@ -293,10 +283,9 @@ module.exports = {
 
         embed.setImage(hug).setDescription(`${member} has hugged ${target}!`);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'lick': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      lick: async () => {
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
           `https://api.lolhuman.xyz/api/random/lick?apikey=${process.env.LOLHUMAN_API_KEY}`,
@@ -313,10 +302,9 @@ module.exports = {
           .setImage(`attachment://${img.name}`)
           .setDescription(`${member} has hugged ${target}!`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
-
-      case 'kill': {
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+      kill: async () => {
         /** @type {{ image: String }} */
         const { image } = await images.sfw.kill();
 
@@ -324,10 +312,9 @@ module.exports = {
           .setImage(image)
           .setDescription(`${target} has been killed by ${member}!`);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'kiss': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      kiss: async () => {
         const { url } = await neko.kiss();
 
         /** @type {{ image: String }} */
@@ -337,10 +324,9 @@ module.exports = {
 
         embed.setImage(kiss).setDescription(`${member} is kissing ${target}!`);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'pat': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      pat: async () => {
         const { url } = await neko.pat();
 
         /** @type {{ image: String }} */
@@ -352,10 +338,9 @@ module.exports = {
           .setImage(pat)
           .setDescription(`${member} is giving a pat for ${target}!`);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'punch': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      punch: async () => {
         /** @type {{ image: String }} */
         const { image } = await images.sfw.punch();
 
@@ -363,10 +348,9 @@ module.exports = {
           .setImage(image)
           .setDescription(`${member} has punched ${target}!`);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'slap': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      slap: async () => {
         const { url } = await neko.slap();
 
         /** @type {{ image: String }} */
@@ -376,27 +360,24 @@ module.exports = {
 
         embed.setImage(slap).setDescription(`${member} has slapped ${target}!`);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'smug': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      smug: async () => {
         const { url } = await neko.smug();
 
         embed.setImage(url).setDescription(`${member} smugged ${target}!`);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'tickle': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      tickle: async () => {
         const { url } = await neko.tickle();
 
         embed.setImage(url);
         embed.setDescription(`${member} tickled ${target}!`);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'wink': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      wink: async () => {
         /** @type {{ image: String }} */
         const { image } = await images.sfw.wink();
 
@@ -404,8 +385,8 @@ module.exports = {
           .setImage(image)
           .setDescription(`${member} is giving a wink for ${target}!`);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-    }
+        await interaction.editReply({ embeds: [embed] });
+      },
+    }[options.getSubcommand()]();
   },
 };

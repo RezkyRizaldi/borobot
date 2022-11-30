@@ -7,9 +7,6 @@ const {
 } = require('change-case');
 const {
   bold,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
   hyperlink,
   inlineCode,
   italic,
@@ -28,7 +25,6 @@ const {
 const moment = require('moment');
 const minecraftData = require('minecraft-data');
 const wait = require('node:timers/promises').setTimeout;
-const { Pagination } = require('pagination.djs');
 const { stringify } = require('roman-numerals-convert');
 const weather = require('weather-js');
 
@@ -43,6 +39,8 @@ const {
 const {
   applyKeywordColor,
   count,
+  generateEmbed,
+  generatePagination,
   getFormattedMinecraftName,
   getWikiaURL,
   getFormattedParam,
@@ -380,28 +378,18 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, guild, options } = interaction;
-
-    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
-    const { paginations } = client;
+    const { client, options } = interaction;
+    const embed = generateEmbed({ interaction });
 
     await interaction.deferReply();
 
-    const embed = new EmbedBuilder()
-      .setColor(guild?.members.me?.displayHexColor ?? null)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      });
-
-    switch (options.getSubcommandGroup()) {
-      case 'covid':
-        {
+    if (options.getSubcommandGroup() !== null) {
+      return {
+        covid: () => {
           const baseURL = 'https://covid19.mathdro.id/api';
 
-          switch (options.getSubcommand()) {
-            case 'latest': {
+          return {
+            latest: async () => {
               /** @type {{ data: import('../../constants/types').CovidLatest[] }} */
               const { data } = await axios.get(
                 `${baseURL}/daily/${moment(Date.now())
@@ -419,18 +407,10 @@ module.exports = {
                     lastUpdate,
                     provinceState,
                   },
-                  index,
-                  array,
+                  i,
+                  arr,
                 ) =>
-                  new EmbedBuilder()
-                    .setColor(guild?.members.me?.displayHexColor ?? null)
-                    .setTimestamp(Date.now())
-                    .setFooter({
-                      text: `${client.user.username} | Page ${index + 1} of ${
-                        array.length
-                      }`,
-                      iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                    })
+                  generateEmbed({ interaction, loop: true, i, arr })
                     .setThumbnail(`${baseURL}/og`)
                     .setAuthor({ name: '🦠 Covid-19 Latest Cases' })
                     .setFields([
@@ -473,57 +453,26 @@ module.exports = {
                     ]),
               );
 
-              const pagination = new Pagination(interaction).setEmbeds(embeds);
-
-              pagination.buttons = {
-                ...pagination.buttons,
-                extra: new ButtonBuilder()
-                  .setCustomId('jump')
-                  .setEmoji('↕️')
-                  .setDisabled(false)
-                  .setStyle(ButtonStyle.Secondary),
-              };
-
-              paginations.set(pagination.interaction.id, pagination);
-
-              return pagination.render();
-            }
-
-            case 'list': {
+              await generatePagination({ interaction })
+                .setEmbeds(embeds)
+                .render();
+            },
+            list: async () => {
               /** @type {{ data: { countries: import('../../constants/types').CovidCountry[] } }} */
               const {
                 data: { countries },
               } = await axios.get(`${baseURL}/countries`);
 
               const responses = countries.map(
-                ({ name }, index) => `${bold(`${index + 1}.`)} ${name}`,
+                ({ name }, i) => `${bold(`${i + 1}.`)} ${name}`,
               );
 
-              const pagination = new Pagination(interaction, { limit: 10 })
-                .setColor(guild?.members.me?.displayHexColor ?? null)
-                .setTimestamp(Date.now())
-                .setFooter({
-                  text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                  iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                })
+              await generatePagination({ interaction, limit: 10 })
                 .setAuthor({ name: '🌏 Covid-19 Country Lists' })
-                .setDescriptions(responses);
-
-              pagination.buttons = {
-                ...pagination.buttons,
-                extra: new ButtonBuilder()
-                  .setCustomId('jump')
-                  .setEmoji('↕️')
-                  .setDisabled(false)
-                  .setStyle(ButtonStyle.Secondary),
-              };
-
-              paginations.set(pagination.interaction.id, pagination);
-
-              return pagination.render();
-            }
-
-            case 'country': {
+                .setDescriptions(responses)
+                .render();
+            },
+            country: async () => {
               const name = options.getString('name');
 
               if (!name) {
@@ -542,20 +491,10 @@ module.exports = {
                       lastUpdate,
                       provinceState,
                     },
-                    index,
-                    array,
+                    i,
+                    arr,
                   ) =>
-                    new EmbedBuilder()
-                      .setColor(guild?.members.me?.displayHexColor ?? null)
-                      .setTimestamp(Date.now())
-                      .setFooter({
-                        text: `${client.user.username} | Page ${index + 1} of ${
-                          array.length
-                        }`,
-                        iconURL: client.user.displayAvatarURL({
-                          dynamic: true,
-                        }),
-                      })
+                    generateEmbed({ interaction, loop: true, i, arr })
                       .setThumbnail(
                         `${baseURL}/countries/${encodeURIComponent(
                           countryRegion,
@@ -586,7 +525,10 @@ module.exports = {
                         },
                         {
                           name: '✅ Confirmed',
-                          value: `${count({ total: confirmed, data: 'case' })}${
+                          value: `${count({
+                            total: confirmed,
+                            data: 'case',
+                          })}${
                             cases28Days
                               ? ` (${count({
                                   total: cases28Days,
@@ -621,22 +563,9 @@ module.exports = {
                       ]),
                 );
 
-                const pagination = new Pagination(interaction).setEmbeds(
-                  embeds,
-                );
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                return pagination.render();
+                return await generatePagination({ interaction })
+                  .setEmbeds(embeds)
+                  .render();
               }
 
               /** @type {{ data: { countries: import('../../constants/types').CovidCountry[] } }} */
@@ -734,7 +663,7 @@ module.exports = {
                     },
                   ]);
 
-                return interaction.editReply({ embeds: [embed] });
+                return await interaction.editReply({ embeds: [embed] });
               }
 
               await wait(4000);
@@ -752,18 +681,10 @@ module.exports = {
                     lastUpdate,
                     provinceState,
                   },
-                  index,
-                  array,
+                  i,
+                  arr,
                 ) =>
-                  new EmbedBuilder()
-                    .setColor(guild?.members.me?.displayHexColor ?? null)
-                    .setTimestamp(Date.now())
-                    .setFooter({
-                      text: `${client.user.username} | Page ${index + 1} of ${
-                        array.length
-                      }`,
-                      iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                    })
+                  generateEmbed({ interaction, loop: true, i, arr })
                     .setThumbnail(`${baseURL}/countries/${countryRegion}/og`)
                     .setAuthor({
                       name: `🦠 Covid-19 Confirmed Cases in ${countryRegion}`,
@@ -829,49 +750,27 @@ module.exports = {
                     ]),
               );
 
-              const pagination = new Pagination(interaction).setEmbeds(embeds);
-
-              pagination.buttons = {
-                ...pagination.buttons,
-                extra: new ButtonBuilder()
-                  .setCustomId('jump')
-                  .setEmoji('↕️')
-                  .setDisabled(false)
-                  .setStyle(ButtonStyle.Secondary),
-              };
-
-              paginations.set(pagination.interaction.id, pagination);
-
-              return pagination.render();
-            }
-          }
-        }
-        break;
-
-      case 'genshin':
-        {
+              await generatePagination({ interaction })
+                .setEmbeds(embeds)
+                .render();
+            },
+          }[options.getSubcommand()]();
+        },
+        genshin: () => {
           const baseURL = 'https://api.genshin.dev';
+          const nameQuery = options.getString('name');
 
-          switch (options.getSubcommand()) {
-            case 'artifact': {
-              const nameQuery = options.getString('name');
-
+          return {
+            artifact: async () => {
               if (!nameQuery) {
                 /** @type {{ data: String[] }} */
                 const { data } = await axios.get(`${baseURL}/artifacts`);
 
                 const responses = data.map(
-                  (item, index) =>
-                    `${bold(`${index + 1}.`)} ${capitalCase(item)}`,
+                  (item, i) => `${bold(`${i + 1}.`)} ${capitalCase(item)}`,
                 );
 
-                const pagination = new Pagination(interaction, { limit: 10 })
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
                     name: `Genshin Impact Artifact Lists (${data.length})`,
                     iconURL: getWikiaURL({
@@ -879,20 +778,8 @@ module.exports = {
                       path: 'gensin-impact',
                     }),
                   })
-                  .setDescriptions(responses);
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                return pagination.render();
+                  .setDescriptions(responses)
+                  .render();
               }
 
               /** @type {{ data: import('../../constants/types').GenshinArtifact }} */
@@ -950,11 +837,9 @@ module.exports = {
                 embed.addFields([{ name: '🎁 5-piece Bonus', value: piece5 }]);
               }
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'character': {
-              const nameQuery = options.getString('name');
+              await interaction.editReply({ embeds: [embed] });
+            },
+            character: async () => {
               const detailed = options.getBoolean('detailed') ?? false;
 
               if (!nameQuery) {
@@ -962,17 +847,10 @@ module.exports = {
                 const { data } = await axios.get(`${baseURL}/characters`);
 
                 const responses = data.map(
-                  (item, index) =>
-                    `${bold(`${index + 1}.`)} ${capitalCase(item)}`,
+                  (item, i) => `${bold(`${i + 1}.`)} ${capitalCase(item)}`,
                 );
 
-                const pagination = new Pagination(interaction, { limit: 10 })
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
                     name: `Genshin Impact Character Lists (${data.length})`,
                     iconURL: getWikiaURL({
@@ -980,20 +858,8 @@ module.exports = {
                       path: 'gensin-impact',
                     }),
                   })
-                  .setDescriptions(responses);
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                return pagination.render();
+                  .setDescriptions(responses)
+                  .render();
               }
 
               /** @type {{ data: import('../../constants/types').GenshinCharacter }} */
@@ -1081,12 +947,10 @@ module.exports = {
               }
 
               if (!detailed) {
-                return interaction.editReply({ embeds: [embed] });
+                return await interaction.editReply({ embeds: [embed] });
               }
 
-              const activeTalentEmbed = new EmbedBuilder()
-                .setColor(guild?.members.me?.displayHexColor ?? null)
-                .setTimestamp(Date.now())
+              const activeTalentEmbed = generateEmbed({ interaction })
                 .setDescription(
                   `${bold('Active Talents')}\n${skillTalents
                     .map(
@@ -1127,9 +991,7 @@ module.exports = {
                 )
                 .setAuthor({ name: `👤 ${formattedName}` });
 
-              const passiveTalentEmbed = new EmbedBuilder()
-                .setColor(guild?.members.me?.displayHexColor ?? null)
-                .setTimestamp(Date.now())
+              const passiveTalentEmbed = generateEmbed({ interaction })
                 .setDescription(
                   `${bold('Passive Talents')}\n${passiveTalents
                     .map(
@@ -1148,9 +1010,7 @@ module.exports = {
                 )
                 .setAuthor({ name: `👤 ${formattedName}` });
 
-              const constellationEmbed = new EmbedBuilder()
-                .setColor(guild?.members.me?.displayHexColor ?? null)
-                .setTimestamp(Date.now())
+              const constellationEmbed = generateEmbed({ interaction })
                 .setDescription(
                   `${bold('Constellations')}\n${constellations
                     .map(
@@ -1185,9 +1045,7 @@ module.exports = {
                     rarity: outfitRarity,
                     type,
                   }) =>
-                    new EmbedBuilder()
-                      .setColor(guild?.members.me?.displayHexColor ?? null)
-                      .setTimestamp(Date.now())
+                    generateEmbed({ interaction })
                       .setDescription(`${bold('• Outfits')}\n${outfitDesc}`)
                       .setThumbnail(
                         getWikiaURL({
@@ -1224,50 +1082,29 @@ module.exports = {
                 embeds.push(...outfitEmbed);
               }
 
-              embeds = embeds.map((emb, index, array) =>
+              embeds = embeds.map((emb, i, arr) =>
                 emb.setFooter({
-                  text: `${client.user.username} | Page ${index + 1} of ${
-                    array.length
+                  text: `${client.user.username} | Page ${i + 1} of ${
+                    arr.length
                   }`,
-                  iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                  iconURL: client.user.displayAvatarURL(),
                 }),
               );
 
-              const pagination = new Pagination(interaction).setEmbeds(embeds);
-
-              pagination.buttons = {
-                ...pagination.buttons,
-                extra: new ButtonBuilder()
-                  .setCustomId('jump')
-                  .setEmoji('↕️')
-                  .setDisabled(false)
-                  .setStyle(ButtonStyle.Secondary),
-              };
-
-              paginations.set(pagination.interaction.id, pagination);
-
-              return pagination.render();
-            }
-
-            case 'weapon': {
-              const nameQuery = options.getString('name');
-
+              await generatePagination({ interaction })
+                .setEmbeds(embeds)
+                .render();
+            },
+            weapon: async () => {
               if (!nameQuery) {
                 /** @type {{ data: String[] }} */
                 const { data } = await axios.get(`${baseURL}/weapons`);
 
                 const responses = data.map(
-                  (item, index) =>
-                    `${bold(`${index + 1}.`)} ${capitalCase(item)}`,
+                  (item, i) => `${bold(`${i + 1}.`)} ${capitalCase(item)}`,
                 );
 
-                const pagination = new Pagination(interaction, { limit: 10 })
-                  .setColor(guild.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
                     name: `Genshin Impact Weapon Lists (${data.length})`,
                     iconURL: getWikiaURL({
@@ -1275,20 +1112,8 @@ module.exports = {
                       path: 'gensin-impact',
                     }),
                   })
-                  .setDescriptions(responses);
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                return pagination.render();
+                  .setDescriptions(responses)
+                  .render();
               }
 
               /** @type {{ data: import('../../constants/types').GenshinWeapon }} */
@@ -1344,281 +1169,263 @@ module.exports = {
                   },
                 ]);
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-          }
-        }
-        break;
+              await interaction.editReply({ embeds: [embed] });
+            },
+          }[options.getSubcommand()]();
+        },
+        github: () => {
+          return {
+            user: async () => {
+              const username = options.getString('username', true);
 
-      case 'github':
-        switch (options.getSubcommand()) {
-          case 'user': {
-            const username = options.getString('username', true);
-
-            /** @type {{ data: import('../../constants/types').GithubUser }} */
-            const {
-              data: {
-                avatar_url,
-                bio,
-                blog,
-                company,
-                created_at,
-                followers,
-                following,
-                html_url,
-                location,
-                login,
-                name,
-                public_gists,
-                public_repos,
-                twitter_username,
-                type,
-              },
-            } = await axios
-              .get(`https://api.github.com/users/${username}`)
-              .catch(() => {
-                throw `No user found with username ${inlineCode(username)}.`;
-              });
-
-            embed
-              .setAuthor({
-                name: `${login}'s GitHub ${type} Account Info`,
-                url: html_url,
-                iconURL: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-              })
-              .setDescription(bio)
-              .setThumbnail(avatar_url)
-              .setFields([
-                {
-                  name: '🔤 Account Name',
-                  value: name ?? italic('Unknown'),
-                  inline: true,
-                },
-                {
-                  name: '🎊 Account Created',
-                  value: time(
-                    new Date(created_at),
-                    TimestampStyles.RelativeTime,
-                  ),
-                  inline: true,
-                },
-                {
-                  name: '📊 Stats',
-                  value: `${count({
-                    total: followers,
-                    data: 'follower',
-                  })} | ${count({
-                    total: following,
-                    data: 'following',
-                  })} | ${count({
-                    total: public_repos,
-                    data: 'public repository',
-                  })} | ${count({ total: public_gists, data: 'public gist' })}`,
-                  inline: true,
-                },
-              ]);
-
-            if (company) {
-              embed.spliceFields(2, 0, {
-                name: '🏢 Company',
-                value: company,
-                inline: true,
-              });
-            }
-
-            if (blog) {
-              embed.addFields([
-                { name: '🌐 Website', value: blog, inline: true },
-              ]);
-            }
-
-            if (twitter_username) {
-              embed.addFields([
-                {
-                  name: '👤 Twitter Account',
-                  value: hyperlink(
-                    `@${twitter_username}`,
-                    `https://twitter.com/${twitter_username}`,
-                  ),
-                  inline: true,
-                },
-              ]);
-            }
-
-            if (location) {
-              embed.addFields([{ name: '📌 Address', value: location }]);
-            }
-
-            return interaction.editReply({ embeds: [embed] });
-          }
-
-          case 'repositories': {
-            const name = options.getString('name', true);
-            const language = options.getString('language');
-            const sort = options.getString('sort');
-            const order = options.getString('order');
-
-            const query = new URLSearchParams({
-              q: `${name}${language ? `+language:${language}` : ''}`,
-            });
-
-            if (sort) query.append('sort', sort);
-
-            if (order) query.append('order', order);
-
-            /** @type {{ data: { items: import('../../constants/types').GithubRepository[] } }} */
-            const {
-              data: { items },
-            } = await axios.get(
-              `https://api.github.com/search/repositories?${query}`,
-            );
-
-            if (!items.length) {
-              throw `No repository found with name ${inlineCode(name)}.`;
-            }
-
-            const embeds = items.map(
-              (
-                {
+              /** @type {{ data: import('../../constants/types').GithubUser }} */
+              const {
+                data: {
+                  avatar_url,
+                  bio,
+                  blog,
+                  company,
                   created_at,
-                  description,
-                  forks_count,
-                  homepage,
+                  followers,
+                  following,
                   html_url,
-                  license,
-                  open_issues_count,
-                  owner,
-                  pushed_at,
-                  stargazers_count,
-                  topics,
-                  watchers_count,
+                  location,
+                  login,
+                  name,
+                  public_gists,
+                  public_repos,
+                  twitter_username,
+                  type,
                 },
-                index,
-                array,
-              ) => {
-                const newEmbed = new EmbedBuilder()
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page ${index + 1} of ${
-                      array.length
-                    }`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
-                  .setDescription(description)
-                  .setThumbnail(owner.avatar_url)
-                  .setAuthor({
-                    name: 'GitHub Repository Search Results',
-                    iconURL:
-                      'https://cdn-icons-png.flaticon.com/512/25/25231.png',
-                  })
-                  .setFields([
-                    {
-                      name: '🔤 Name',
-                      value: hyperlink(
-                        name,
-                        html_url,
-                        'Click here to view the repository.',
-                      ),
-                      inline: true,
-                    },
-                    {
-                      name: '👑 Owner',
-                      value: `${hyperlink(
-                        `@${owner.login}`,
-                        owner.html_url,
-                        'Click here to view the account.',
-                      )} (${owner.type})`,
-                      inline: true,
-                    },
-                    {
-                      name: '📆 Created At',
-                      value: time(
-                        new Date(created_at),
-                        TimestampStyles.RelativeTime,
-                      ),
-                      inline: true,
-                    },
-                    {
-                      name: '📆 Updated At',
-                      value: time(
-                        new Date(pushed_at),
-                        TimestampStyles.RelativeTime,
-                      ),
-                      inline: true,
-                    },
-                    {
-                      name: '🔤 Language',
-                      value: language ?? italic('Unknown'),
-                      inline: true,
-                    },
-                    {
-                      name: '📜 License',
-                      value: license?.name ?? italic('None'),
-                      inline: true,
-                    },
-                    {
-                      name: '📊 Stats',
-                      value: `⭐ ${count({
-                        total: stargazers_count,
-                        data: 'star',
-                      })} | 👁️ ${count({
-                        total: watchers_count,
-                        data: 'watcher',
-                      })} | 🕎 ${count({
-                        total: forks_count,
-                        data: 'fork',
-                      })} | 🪲 ${count({
-                        total: open_issues_count,
-                        data: 'issue',
-                      })}`,
-                    },
-                  ]);
+              } = await axios
+                .get(`https://api.github.com/users/${username}`)
+                .catch(() => {
+                  throw `No user found with username ${inlineCode(username)}.`;
+                });
 
-                if (homepage) {
-                  newEmbed.spliceFields(6, 0, {
-                    name: '📖 Docs',
-                    value: homepage,
+              embed
+                .setAuthor({
+                  name: `${login}'s GitHub ${type} Account Info`,
+                  url: html_url,
+                  iconURL:
+                    'https://cdn-icons-png.flaticon.com/512/25/25231.png',
+                })
+                .setDescription(bio)
+                .setThumbnail(avatar_url)
+                .setFields([
+                  {
+                    name: '🔤 Account Name',
+                    value: name ?? italic('Unknown'),
                     inline: true,
-                  });
-                }
+                  },
+                  {
+                    name: '🎊 Account Created',
+                    value: time(
+                      new Date(created_at),
+                      TimestampStyles.RelativeTime,
+                    ),
+                    inline: true,
+                  },
+                  {
+                    name: '📊 Stats',
+                    value: `${count({
+                      total: followers,
+                      data: 'follower',
+                    })} | ${count({
+                      total: following,
+                      data: 'following',
+                    })} | ${count({
+                      total: public_repos,
+                      data: 'public repository',
+                    })} | ${count({
+                      total: public_gists,
+                      data: 'public gist',
+                    })}`,
+                    inline: true,
+                  },
+                ]);
 
-                if (topics.length) {
-                  newEmbed.addFields([
-                    { name: '🗂️ Topics', value: topics.join(', ') },
-                  ]);
-                }
+              if (company) {
+                embed.spliceFields(2, 0, {
+                  name: '🏢 Company',
+                  value: company,
+                  inline: true,
+                });
+              }
 
-                return newEmbed;
-              },
-            );
+              if (blog) {
+                embed.addFields([
+                  { name: '🌐 Website', value: blog, inline: true },
+                ]);
+              }
 
-            const pagination = new Pagination(interaction).setEmbeds(embeds);
+              if (twitter_username) {
+                embed.addFields([
+                  {
+                    name: '👤 Twitter Account',
+                    value: hyperlink(
+                      `@${twitter_username}`,
+                      `https://twitter.com/${twitter_username}`,
+                    ),
+                    inline: true,
+                  },
+                ]);
+              }
 
-            pagination.buttons = {
-              ...pagination.buttons,
-              extra: new ButtonBuilder()
-                .setCustomId('jump')
-                .setEmoji('↕️')
-                .setDisabled(false)
-                .setStyle(ButtonStyle.Secondary),
-            };
+              if (location) {
+                embed.addFields([{ name: '📌 Address', value: location }]);
+              }
 
-            paginations.set(pagination.interaction.id, pagination);
+              await interaction.editReply({ embeds: [embed] });
+            },
+            repositories: async () => {
+              const name = options.getString('name', true);
+              const language = options.getString('language');
+              const sort = options.getString('sort');
+              const order = options.getString('order');
+              const query = new URLSearchParams({
+                q: `${name}${language ? `+language:${language}` : ''}`,
+              });
 
-            return pagination.render();
-          }
-        }
-        break;
+              if (sort) query.append('sort', sort);
 
-      case 'minecraft':
-        {
+              if (order) query.append('order', order);
+
+              /** @type {{ data: { items: import('../../constants/types').GithubRepository[] } }} */
+              const {
+                data: { items },
+              } = await axios.get(
+                `https://api.github.com/search/repositories?${query}`,
+              );
+
+              if (!items.length) {
+                throw `No repository found with name ${inlineCode(name)}.`;
+              }
+
+              const embeds = items.map(
+                (
+                  {
+                    created_at,
+                    description,
+                    forks_count,
+                    homepage,
+                    html_url,
+                    license,
+                    open_issues_count,
+                    owner,
+                    pushed_at,
+                    stargazers_count,
+                    topics,
+                    watchers_count,
+                  },
+                  i,
+                  arr,
+                ) => {
+                  const newEmbed = generateEmbed({
+                    interaction,
+                    loop: true,
+                    i,
+                    arr,
+                  })
+                    .setDescription(description)
+                    .setThumbnail(owner.avatar_url)
+                    .setAuthor({
+                      name: 'GitHub Repository Search Results',
+                      iconURL:
+                        'https://cdn-icons-png.flaticon.com/512/25/25231.png',
+                    })
+                    .setFields([
+                      {
+                        name: '🔤 Name',
+                        value: hyperlink(
+                          name,
+                          html_url,
+                          'Click here to view the repository.',
+                        ),
+                        inline: true,
+                      },
+                      {
+                        name: '👑 Owner',
+                        value: `${hyperlink(
+                          `@${owner.login}`,
+                          owner.html_url,
+                          'Click here to view the account.',
+                        )} (${owner.type})`,
+                        inline: true,
+                      },
+                      {
+                        name: '📆 Created At',
+                        value: time(
+                          new Date(created_at),
+                          TimestampStyles.RelativeTime,
+                        ),
+                        inline: true,
+                      },
+                      {
+                        name: '📆 Updated At',
+                        value: time(
+                          new Date(pushed_at),
+                          TimestampStyles.RelativeTime,
+                        ),
+                        inline: true,
+                      },
+                      {
+                        name: '🔤 Language',
+                        value: language ?? italic('Unknown'),
+                        inline: true,
+                      },
+                      {
+                        name: '📜 License',
+                        value: license?.name ?? italic('None'),
+                        inline: true,
+                      },
+                      {
+                        name: '📊 Stats',
+                        value: `⭐ ${count({
+                          total: stargazers_count,
+                          data: 'star',
+                        })} | 👁️ ${count({
+                          total: watchers_count,
+                          data: 'watcher',
+                        })} | 🕎 ${count({
+                          total: forks_count,
+                          data: 'fork',
+                        })} | 🪲 ${count({
+                          total: open_issues_count,
+                          data: 'issue',
+                        })}`,
+                      },
+                    ]);
+
+                  if (homepage) {
+                    newEmbed.spliceFields(6, 0, {
+                      name: '📖 Docs',
+                      value: homepage,
+                      inline: true,
+                    });
+                  }
+
+                  if (topics.length) {
+                    newEmbed.addFields([
+                      { name: '🗂️ Topics', value: topics.join(', ') },
+                    ]);
+                  }
+
+                  return newEmbed;
+                },
+              );
+
+              await generatePagination({ interaction })
+                .setEmbeds(embeds)
+                .render();
+            },
+          }[options.getSubcommand()]();
+        },
+        minecraft: () => {
           const name = options.getString('name');
-
           const mcData = minecraftData('1.19');
           const minecraftLogo =
             'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png';
-
           const minecraftEdition = `Minecraft ${
             mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
           } Edition${
@@ -1627,46 +1434,27 @@ module.exports = {
               : ''
           }`;
 
-          switch (options.getSubcommand()) {
-            case 'block': {
+          return {
+            block: async () => {
               if (!name) {
                 const filteredMcData = mcData.blocksArray.filter(
-                  (item, index, array) =>
-                    array.findIndex(
+                  (item, i, arr) =>
+                    arr.findIndex(
                       (duplicate) => duplicate.displayName === item.displayName,
-                    ) === index,
+                    ) === i,
                 );
 
                 const responses = filteredMcData.map(
-                  (item, index) =>
-                    `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  (item, i) => `${bold(`${i + 1}.`)} ${item.displayName}`,
                 );
 
-                const pagination = new Pagination(interaction, { limit: 10 })
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
                     name: `${minecraftEdition} Block Lists (${filteredMcData.length})`,
                     iconURL: minecraftLogo,
                   })
-                  .setDescriptions(responses);
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                return pagination.render();
+                  .setDescriptions(responses)
+                  .render();
               }
 
               const block = {
@@ -1703,7 +1491,7 @@ module.exports = {
                       block.material && block.material !== 'default'
                         ? capitalCase(
                             block.material.slice(
-                              block.material.indexOf('/'),
+                              block.material.iOf('/'),
                               block.material.length,
                             ),
                           )
@@ -1748,41 +1536,21 @@ module.exports = {
                   },
                 ]);
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'biome': {
+              await interaction.editReply({ embeds: [embed] });
+            },
+            biome: async () => {
               if (!name) {
                 const responses = mcData.biomesArray.map(
-                  (item, index) =>
-                    `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  (item, i) => `${bold(`${i + 1}.`)} ${item.displayName}`,
                 );
 
-                const pagination = new Pagination(interaction, { limit: 10 })
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
                     name: `${minecraftEdition} Biome Lists (${mcData.biomesArray.length})`,
                     iconURL: minecraftLogo,
                   })
-                  .setDescriptions(responses);
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                return pagination.render();
+                  .setDescriptions(responses)
+                  .render();
               }
 
               const biome = {
@@ -1852,41 +1620,21 @@ module.exports = {
                   },
                 ]);
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'effect': {
+              await interaction.editReply({ embeds: [embed] });
+            },
+            effect: async () => {
               if (!name) {
                 const responses = mcData.effectsArray.map(
-                  (item, index) =>
-                    `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  (item, i) => `${bold(`${i + 1}.`)} ${item.displayName}`,
                 );
 
-                const pagination = new Pagination(interaction, { limit: 10 })
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
                     name: `${minecraftEdition} Effect Lists (${mcData.effectsArray.length})`,
                     iconURL: minecraftLogo,
                   })
-                  .setDescriptions(responses);
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                return pagination.render();
+                  .setDescriptions(responses)
+                  .render();
               }
 
               const effect = {
@@ -1926,41 +1674,21 @@ module.exports = {
                   },
                 ]);
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'enchantment': {
+              await interaction.editReply({ embeds: [embed] });
+            },
+            enchantment: async () => {
               if (!name) {
                 const responses = mcData.enchantmentsArray.map(
-                  (item, index) =>
-                    `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  (item, i) => `${bold(`${i + 1}.`)} ${item.displayName}`,
                 );
 
-                const pagination = new Pagination(interaction, { limit: 10 })
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
                     name: `${minecraftEdition} Enchantment Lists (${mcData.enchantmentsArray.length})`,
                     iconURL: minecraftLogo,
                   })
-                  .setDescriptions(responses);
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                return pagination.render();
+                  .setDescriptions(responses)
+                  .render();
               }
 
               const enchantment = {
@@ -2020,41 +1748,21 @@ module.exports = {
                   },
                 ]);
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'entity': {
+              await interaction.editReply({ embeds: [embed] });
+            },
+            entity: async () => {
               if (!name) {
                 const responses = mcData.entitiesArray.map(
-                  (item, index) =>
-                    `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  (item, i) => `${bold(`${i + 1}.`)} ${item.displayName}`,
                 );
 
-                const pagination = new Pagination(interaction, { limit: 10 })
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
                     name: `${minecraftEdition} Entity Lists (${mcData.entitiesArray.length})`,
                     iconURL: minecraftLogo,
                   })
-                  .setDescriptions(responses);
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                await pagination.render();
+                  .setDescriptions(responses)
+                  .render();
               }
 
               const entity = {
@@ -2173,41 +1881,21 @@ module.exports = {
                   break;
               }
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'food': {
+              await interaction.editReply({ embeds: [embed] });
+            },
+            food: async () => {
               if (!name) {
                 const responses = mcData.foodsArray.map(
-                  (item, index) =>
-                    `${bold(`${index + 1}.`)} ${item.displayName}`,
+                  (item, i) => `${bold(`${i + 1}.`)} ${item.displayName}`,
                 );
 
-                const pagination = new Pagination(interaction, { limit: 10 })
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
                     name: `${minecraftEdition} Food Lists (${mcData.foodsArray.length})`,
                     iconURL: minecraftLogo,
                   })
-                  .setDescriptions(responses);
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                await pagination.render();
+                  .setDescriptions(responses)
+                  .render();
               }
 
               const food = {
@@ -2254,51 +1942,30 @@ module.exports = {
                   },
                 ]);
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-          }
-        }
-        break;
-
-      case 'vtuber':
-        {
+              await interaction.editReply({ embeds: [embed] });
+            },
+          }[options.getSubcommand()]();
+        },
+        vtuber: () => {
           const holodex = new HolodexApiClient({
             apiKey: process.env.HOLODEX_API_KEY,
           });
           const affiliations = Object.values(vtuberAffiliation);
 
-          switch (options.getSubcommand()) {
-            case 'affiliation': {
+          return {
+            affiliation: async () => {
               const affiliation = options.getString('affiliation');
               const sort = options.getString('sort');
 
               if (!affiliation) {
                 const responses = affiliations
                   .sort((a, b) => a.name.localeCompare(b.name))
-                  .map(({ name }, index) => `${bold(`${index + 1}.`)} ${name}`);
+                  .map(({ name }, i) => `${bold(`${i + 1}.`)} ${name}`);
 
-                const pagination = new Pagination(interaction, { limit: 10 })
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({ name: '🏢 VTuber Affiliation Lists' })
-                  .setDescriptions(responses);
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                return pagination.render();
+                  .setDescriptions(responses)
+                  .render();
               }
 
               const org = affiliations.find(
@@ -2323,7 +1990,7 @@ module.exports = {
                     : SortOrder.Ascending,
               });
 
-              const embeds = channels.map((item, index, array) => {
+              const embeds = channels.map((item, i, arr) => {
                 const {
                   clip_count,
                   english_name,
@@ -2339,15 +2006,7 @@ module.exports = {
                   video_count,
                 } = item.toRaw();
 
-                return new EmbedBuilder()
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page ${index + 1} of ${
-                      array.length
-                    }`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                return generateEmbed({ interaction, loop: true, i, arr })
                   .setThumbnail(photo ?? null)
                   .setAuthor({
                     name: `${
@@ -2421,23 +2080,11 @@ module.exports = {
                   ]);
               });
 
-              const pagination = new Pagination(interaction).setEmbeds(embeds);
-
-              pagination.buttons = {
-                ...pagination.buttons,
-                extra: new ButtonBuilder()
-                  .setCustomId('jump')
-                  .setEmoji('↕️')
-                  .setDisabled(false)
-                  .setStyle(ButtonStyle.Secondary),
-              };
-
-              paginations.set(pagination.interaction.id, pagination);
-
-              return pagination.render();
-            }
-
-            case 'channel': {
+              await generatePagination({ interaction })
+                .setEmbeds(embeds)
+                .render();
+            },
+            channel: async () => {
               const id = options.getString('id', true);
 
               const item = await holodex.getChannel(id).catch(() => {
@@ -2553,10 +2200,9 @@ module.exports = {
                   },
                 ]);
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'clipper': {
+              await interaction.editReply({ embeds: [embed] });
+            },
+            clipper: async () => {
               const channelID = options.getString('id');
               const sort = options.getString('sort');
 
@@ -2573,7 +2219,7 @@ module.exports = {
                   type: ChannelType.Subber,
                 });
 
-                const embeds = channels.map((item, index, array) => {
+                const embeds = channels.map((item, i, arr) => {
                   const {
                     id,
                     inactive,
@@ -2584,15 +2230,12 @@ module.exports = {
                     video_count,
                   } = item.toRaw();
 
-                  return new EmbedBuilder()
-                    .setColor(guild?.members.me?.displayHexColor ?? null)
-                    .setTimestamp(Date.now())
-                    .setFooter({
-                      text: `${client.user.username} | Page ${index + 1} of ${
-                        array.length
-                      }`,
-                      iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                    })
+                  return generateEmbed({
+                    interaction,
+                    loop: true,
+                    i,
+                    arr,
+                  })
                     .setThumbnail(photo ?? null)
                     .setAuthor({
                       name: "✂️ VTuber Clipper's YouTube Channel Lists",
@@ -2636,22 +2279,9 @@ module.exports = {
                     ]);
                 });
 
-                const pagination = new Pagination(interaction).setEmbeds(
-                  embeds,
-                );
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                return pagination.render();
+                return await generatePagination({ interaction })
+                  .setEmbeds(embeds)
+                  .render();
               }
 
               const item = await holodex.getChannel(channelID).catch(() => {
@@ -2729,10 +2359,9 @@ module.exports = {
                   },
                 ]);
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'live': {
+              await interaction.editReply({ embeds: [embed] });
+            },
+            live: async () => {
               const channelID = options.getString('id');
               const affiliation = options.getString('affiliation');
               const sort = options.getString('sort') ?? 'live_viewers';
@@ -2777,7 +2406,7 @@ module.exports = {
                   )} or maybe the channel doesn't live right now.`;
                 }
 
-                const embeds = videos.map((item, index, array) => {
+                const embeds = videos.map((item, i, arr) => {
                   const {
                     available_at,
                     channel: { english_name, name, org: aff, photo },
@@ -2789,15 +2418,12 @@ module.exports = {
                     topic_id,
                   } = item.toRaw();
 
-                  return new EmbedBuilder()
-                    .setColor(guild?.members.me?.displayHexColor ?? null)
-                    .setTimestamp(Date.now())
-                    .setFooter({
-                      text: `${client.user.username} | Page ${index + 1} of ${
-                        array.length
-                      }`,
-                      iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                    })
+                  return generateEmbed({
+                    interaction,
+                    loop: true,
+                    i,
+                    arr,
+                  })
                     .setDescription(
                       description ? truncate(description, 4096) : null,
                     )
@@ -2857,22 +2483,9 @@ module.exports = {
                     ]);
                 });
 
-                const pagination = new Pagination(interaction).setEmbeds(
-                  embeds,
-                );
-
-                pagination.buttons = {
-                  ...pagination.buttons,
-                  extra: new ButtonBuilder()
-                    .setCustomId('jump')
-                    .setEmoji('↕️')
-                    .setDisabled(false)
-                    .setStyle(ButtonStyle.Secondary),
-                };
-
-                paginations.set(pagination.interaction.id, pagination);
-
-                return pagination.render();
+                return await generatePagination({ interaction })
+                  .setEmbeds(embeds)
+                  .render();
               }
 
               const videos = await holodex.getLiveVideosByChannelId(channelID);
@@ -2960,10 +2573,10 @@ module.exports = {
                     },
                   ]);
 
-                return interaction.editReply({ embeds: [embed] });
+                return await interaction.editReply({ embeds: [embed] });
               }
 
-              const embeds = liveVideos.map((item, index, array) => {
+              const embeds = liveVideos.map((item, i, arr) => {
                 const {
                   available_at,
                   channel: { english_name, name, org: aff, photo },
@@ -2975,15 +2588,7 @@ module.exports = {
                   topic_id,
                 } = item.toRaw();
 
-                return new EmbedBuilder()
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page ${index + 1} of ${
-                      array.length
-                    }`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                return generateEmbed({ interaction, loop: true, i, arr })
                   .setDescription(
                     description ? truncate(description, 4096) : null,
                   )
@@ -3043,23 +2648,11 @@ module.exports = {
                   ]);
               });
 
-              const pagination = new Pagination(interaction).setEmbeds(embeds);
-
-              pagination.buttons = {
-                ...pagination.buttons,
-                extra: new ButtonBuilder()
-                  .setCustomId('jump')
-                  .setEmoji('↕️')
-                  .setDisabled(false)
-                  .setStyle(ButtonStyle.Secondary),
-              };
-
-              paginations.set(pagination.interaction.id, pagination);
-
-              return pagination.render();
-            }
-
-            case 'video': {
+              await generatePagination({ interaction })
+                .setEmbeds(embeds)
+                .render();
+            },
+            video: async () => {
               const channelID = options.getString('id', true);
 
               const videos = await holodex.getVideosByChannelId(
@@ -3077,7 +2670,7 @@ module.exports = {
                 )} or maybe the channel doesn't have any video.`;
               }
 
-              const embeds = videos.map((item, index, array) => {
+              const embeds = videos.map((item, i, arr) => {
                 const {
                   available_at,
                   channel: { english_name, name, org: aff, photo },
@@ -3090,15 +2683,12 @@ module.exports = {
                   title,
                 } = item.toRaw();
 
-                const newEmbed = new EmbedBuilder()
-                  .setColor(guild?.members.me?.displayHexColor ?? null)
-                  .setTimestamp(Date.now())
-                  .setFooter({
-                    text: `${client.user.username} | Page ${index + 1} of ${
-                      array.length
-                    }`,
-                    iconURL: client.user.displayAvatarURL({ dynamic: true }),
-                  })
+                const newEmbed = generateEmbed({
+                  interaction,
+                  loop: true,
+                  i,
+                  arr,
+                })
                   .setDescription(
                     description ? truncate(description, 4096) : null,
                   )
@@ -3168,28 +2758,17 @@ module.exports = {
                 return newEmbed;
               });
 
-              const pagination = new Pagination(interaction).setEmbeds(embeds);
-
-              pagination.buttons = {
-                ...pagination.buttons,
-                extra: new ButtonBuilder()
-                  .setCustomId('jump')
-                  .setEmoji('↕️')
-                  .setDisabled(false)
-                  .setStyle(ButtonStyle.Secondary),
-              };
-
-              paginations.set(pagination.interaction.id, pagination);
-
-              return pagination.render();
-            }
-          }
-        }
-        break;
+              await generatePagination({ interaction })
+                .setEmbeds(embeds)
+                .render();
+            },
+          }[options.getSubcommand()]();
+        },
+      }[options.getSubcommandGroup()]();
     }
 
-    switch (options.getSubcommand()) {
-      case 'instagram': {
+    return {
+      instagram: async () => {
         const usernameQuery = options.getString('username', true).toLowerCase();
         const cleanUsername = usernameQuery.startsWith('@')
           ? usernameQuery.replace('@', '')
@@ -3255,10 +2834,9 @@ module.exports = {
             },
           ]);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'npm': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      npm: async () => {
         const nameQuery = options.getString('name', true);
 
         /** @type {{ data: import('../../constants/types').NPMPackage }} */
@@ -3386,13 +2964,12 @@ module.exports = {
           },
         ]);
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'weather': {
+        await interaction.editReply({ embeds: [embed] });
+      },
+      weather: () => {
         const locationTarget = options.getString('location', true);
 
-        return weather.find(
+        weather.find(
           { search: locationTarget, degreeType: 'C' },
           /**
            *
@@ -3461,7 +3038,7 @@ module.exports = {
             await interaction.editReply({ embeds: [embed] });
           },
         );
-      }
-    }
+      },
+    }[options.getSubcommand()]();
   },
 };

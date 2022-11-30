@@ -10,10 +10,7 @@ module.exports = {
    * @param {import('discord.js').ModalSubmitInteraction} interaction
    */
   async execute(interaction) {
-    const message = await interaction.deferReply({
-      ephemeral: true,
-      fetchReply: true,
-    });
+    await interaction.deferReply({ ephemeral: true });
 
     const inputValue = interaction.fields.getTextInputValue('jumpInput');
 
@@ -22,7 +19,7 @@ module.exports = {
       client: { paginations },
     } = interaction;
 
-    const pagination = paginations.get(message.interaction.id);
+    const pagination = paginations.get(interaction.message.interaction.id);
 
     if (!isNumericString(inputValue)) {
       return interaction.editReply({
