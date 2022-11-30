@@ -56,35 +56,36 @@ module.exports = {
   async execute(interaction) {
     const { options } = interaction;
 
-    await interaction.deferReply();
-
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member', true);
     const nickname = options.getString('nickname', true);
     const reason = options.getString('reason') ?? 'No reason';
 
-    switch (options.getSubcommand()) {
-      case 'set':
+    await interaction.deferReply();
+
+    return {
+      set: async () => {
         if (member.nickname && member.nickname === nickname) {
           throw 'You have to specify different nickname.';
         }
 
         await member.setNickname(nickname, reason);
 
-        return interaction.editReply({
+        await interaction.editReply({
           content: `Successfully set ${member}'s nickname.`,
         });
-
-      case 'reset':
+      },
+      reset: async () => {
         if (!member.nickname) {
           throw `${member} doesn't have any nickname.`;
         }
 
         await member.setNickname(null, reason);
 
-        return interaction.editReply({
+        await interaction.editReply({
           content: `Successfully reset ${member}'s nickname.`,
         });
-    }
+      },
+    }[options.getSubcommand()]();
   },
 };

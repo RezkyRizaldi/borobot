@@ -37,8 +37,6 @@ module.exports = {
   async execute(interaction) {
     const { options } = interaction;
 
-    await interaction.deferReply();
-
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
 
@@ -46,6 +44,8 @@ module.exports = {
     const channel = options.getChannel('channel', true);
     const reason = options.getString('reason') ?? 'No reason';
     const { voice } = member;
+
+    await interaction.deferReply();
 
     if (!voice.channel) {
       throw 'This member is not connected to a voice channel.';
@@ -57,7 +57,7 @@ module.exports = {
 
     await voice.setChannel(channel, reason);
 
-    return interaction.editReply({
+    await interaction.editReply({
       content: `Successfully ${bold('moved')} ${member} to ${channel}.`,
     });
   },

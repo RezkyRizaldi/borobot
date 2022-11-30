@@ -29,12 +29,12 @@ module.exports = {
   async execute(interaction) {
     const { options } = interaction;
 
-    await interaction.deferReply();
-
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
     const reason = options.getString('reason') ?? 'No reason';
     const { voice } = member;
+
+    await interaction.deferReply();
 
     if (!voice.channel) throw `${member} is not connected to a voice channel.`;
 

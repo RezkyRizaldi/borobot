@@ -1,13 +1,12 @@
 const {
   Collection,
-  EmbedBuilder,
   PermissionFlagsBits,
   SlashCommandBuilder,
   userMention,
 } = require('discord.js');
 const pluralize = require('pluralize');
 
-const { count, groupMessageByAuthor } = require('../../utils');
+const { count, generateEmbed, groupMessageByAuthor } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -43,16 +42,11 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild | null, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { channel, client, guild, options } = interaction;
-
-    if (!guild) return;
-
-    await interaction.deferReply({ ephemeral: true });
-
-    if (!channel) throw "Channel doesn't exist.";
-
+    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, guild: ?import('discord.js').Guild | null, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { channel, guild, options } = interaction;
     const amount = options.getInteger('amount', true);
+    const messages = await channel.messages.fetch();
+    let i = 0;
 
     /** @type {?import('discord.js').GuildMember} */
     const member = options.getMember('member');
@@ -60,18 +54,20 @@ module.exports = {
     /** @type {?import('discord.js').Role} */
     const role = options.getRole('role');
 
-    const messages = await channel.messages.fetch();
+    /** @type {Collection<import('discord.js').Snowflake, import('discord.js').Message>} */
+    const filteredMessages = new Collection();
+
+    await interaction.deferReply({ ephemeral: true });
+
+    if (!guild) throw "Guild doesn't exists.";
+
+    if (!channel) throw "Channel doesn't exist.";
 
     if (!messages.size) throw `${channel} doesn't have any message.`;
 
-    if (!messages.first().deletable) {
+    if (!messages.some((msg) => msg.bulkDeletable)) {
       throw "You don't have appropiate permissions to delete messages.";
     }
-
-    let i = 0;
-
-    /** @type {Collection<import('discord.js').Snowflake, import('discord.js').Message>} */
-    const filteredMessages = new Collection();
 
     switch (true) {
       case member !== null && role !== null:
@@ -143,14 +139,9 @@ module.exports = {
 
     if (!msgs.size) throw 'No messages can be deleted.';
 
-    const embed = new EmbedBuilder()
-      .setColor(guild.members.me?.displayHexColor ?? null)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      })
-      .setAuthor({ name: `🗑️ ${pluralize('Message', msgs.size)} Deleted` });
+    const embed = generateEmbed({ interaction }).setAuthor({
+      name: `🗑️ ${pluralize('Message', msgs.size)} Deleted`,
+    });
 
     switch (true) {
       case member !== null && role !== null: {
@@ -172,7 +163,7 @@ module.exports = {
             .join('\n'),
         );
 
-        return interaction.editReply({ embeds: [embed] });
+        return await interaction.editReply({ embeds: [embed] });
       }
 
       case member !== null:
@@ -184,7 +175,7 @@ module.exports = {
           }.`,
         );
 
-        return interaction.editReply({ embeds: [embed] });
+        return await interaction.editReply({ embeds: [embed] });
 
       case role !== null: {
         const groupedMessages = groupMessageByAuthor(msgs);
@@ -205,7 +196,7 @@ module.exports = {
             .join('\n'),
         );
 
-        return interaction.editReply({ embeds: [embed] });
+        return await interaction.editReply({ embeds: [embed] });
       }
 
       default: {
@@ -213,7 +204,7 @@ module.exports = {
           `Deleted ${count({ total: msgs.size, data: 'message' })}.`,
         );
 
-        return interaction.editReply({ embeds: [embed] });
+        return await interaction.editReply({ embeds: [embed] });
       }
     }
   },

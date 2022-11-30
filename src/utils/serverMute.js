@@ -1,25 +1,23 @@
 const {
   bold,
-  ButtonBuilder,
-  ButtonStyle,
   ChannelType,
   Colors,
   inlineCode,
-  EmbedBuilder,
   OverwriteType,
 } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
-const { Pagination } = require('pagination.djs');
+
+const generateEmbed = require('./generateEmbed');
+const generatePagination = require('./generatePagination');
 
 /**
  *
  * @param {import('discord.js').ChatInputCommandInteraction} interaction
- * @returns {Promise<import('discord.js').Role>} The muted role.
  */
 const findOrCreateRole = async (interaction) => {
   const { guild } = interaction;
 
-  if (!guild) return;
+  if (!guild) throw "Guild doesn't exists.";
 
   const memberRole = guild.roles.cache.find(
     (role) => role.id === process.env.MEMBER_ROLE_ID,
@@ -96,7 +94,10 @@ const findOrCreateRole = async (interaction) => {
       (channel) =>
         channel.type !== ChannelType.GuildCategory &&
         channel.type !== ChannelType.GuildVoice &&
-        channel.type !== ChannelType.GuildStageVoice,
+        channel.type !== ChannelType.GuildStageVoice &&
+        channel.type !== ChannelType.AnnouncementThread &&
+        channel.type !== ChannelType.PrivateThread &&
+        channel.type !== ChannelType.PublicThread,
     )
     .map(async (channel) => {
       if (!channel.parent) {
@@ -139,7 +140,6 @@ const findOrCreateRole = async (interaction) => {
 /**
  *
  * @param {{ interaction: import('discord.js').ChatInputCommandInteraction, type?: String, isTemporary?: Boolean, all?: Boolean }} data
- * @returns {Promise<import('discord.js').Message<Boolean>>} The interaction message responses.
  */
 const applyOrRemoveRole = async ({
   interaction,
@@ -149,11 +149,10 @@ const applyOrRemoveRole = async ({
 }) => {
   const { guild, options } = interaction;
 
-  if (!guild) return;
+  if (!guild) throw "Guild doesn't exists.";
 
   /** @type {import('discord.js').GuildMember} */
   const member = options.getMember('member');
-  const duration = options.getInteger('duration', true);
   const reason = options.getString('reason') ?? 'No reason';
   const { roles, voice } = member;
 
@@ -170,7 +169,16 @@ const applyOrRemoveRole = async ({
 
   const role = await findOrCreateRole(interaction);
 
+  if (all && !voice.channel) {
+    await interaction.followUp({
+      content: `${member} is not connected to a voice channel.`,
+      ephemeral: true,
+    });
+  }
+
   if (type === 'apply') {
+    const duration = options.getInteger('duration', isTemporary);
+
     await roles.add(role, reason);
 
     await interaction.editReply({
@@ -188,28 +196,22 @@ const applyOrRemoveRole = async ({
             guild,
           )} for ${inlineCode(reason)}.`,
         })
-        .catch(async () => {
-          await interaction.followUp({
-            content: `Could not send a DM to ${member}.`,
-            ephemeral: true,
-          });
-        });
+        .catch(
+          async () =>
+            await interaction.followUp({
+              content: `Could not send a DM to ${member}.`,
+              ephemeral: true,
+            }),
+        );
     }
 
     if (isTemporary) {
-      if (all && !voice.serverMute) {
-        await interaction.followUp({
-          content: `${member} is not connected to a voice channel.`,
-          ephemeral: true,
-        });
-      }
-
       await wait(duration);
 
       await roles.remove(role, 'server mute temporary duration has passed.');
 
       if (!member.user.bot) {
-        return member
+        await member
           .send({
             content: `Congratulations! You have been ${bold(
               'unmuted',
@@ -217,46 +219,51 @@ const applyOrRemoveRole = async ({
               'server mute duration has passed',
             )}.`,
           })
-          .catch(async () => {
-            await interaction.followUp({
-              content: `Could not send a DM to ${member}.`,
-              ephemeral: true,
-            });
-          });
+          .catch(
+            async () =>
+              await interaction.followUp({
+                content: `Could not send a DM to ${member}.`,
+                ephemeral: true,
+              }),
+          );
       }
+
+      return;
     }
+
+    return;
   }
 
   if (!role) throw `No one is being muted in ${bold(guild)}.`;
 
   await roles.remove(role, reason);
 
-  await interaction.editReply({
-    content: `Successfully ${bold('unmuted')} ${member} from ${
-      all ? bold(guild) : 'text channels'
-    }.`,
-  });
-
   if (!member.user.bot) {
-    return member
+    await member
       .send({
         content: `Congratulations! You have been ${bold('unmuted')} from ${bold(
           guild,
         )} for ${inlineCode(reason)}.`,
       })
-      .catch(async () => {
-        await interaction.followUp({
-          content: `Could not send a DM to ${member}.`,
-          ephemeral: true,
-        });
-      });
+      .catch(
+        async () =>
+          await interaction.followUp({
+            content: `Could not send a DM to ${member}.`,
+            ephemeral: true,
+          }),
+      );
   }
+
+  await interaction.editReply({
+    content: `Successfully ${bold('unmuted')} ${member} from ${
+      all ? bold(guild) : 'text channels'
+    }.`,
+  });
 };
 
 /**
  *
  * @param {{ interaction: import('discord.js').ChatInputCommandInteraction, type?: String, isTemporary?: Boolean, all?: Boolean }} data
- * @returns {Promise<import('discord.js').Message<Boolean>>} The interaction message responses.
  */
 const createVoiceMute = async ({
   interaction,
@@ -266,22 +273,14 @@ const createVoiceMute = async ({
 }) => {
   const { guild, options } = interaction;
 
-  if (!guild) return;
+  if (!guild) throw "Guild doesn't exists.";
 
   /** @type {import('discord.js').GuildMember} */
   const member = options.getMember('member');
-  const duration = options.getInteger('duration', true);
   const reason = options.getString('reason') ?? 'No reason';
   const { voice } = member;
 
-  if (!voice.channel) {
-    if (all && !isTemporary) {
-      return interaction.followUp({
-        content: `${member} is not connected to a voice channel.`,
-        ephemeral: true,
-      });
-    }
-
+  if (!all && !voice.channel) {
     throw `${member} is not connected to a voice channel.`;
   }
 
@@ -294,6 +293,8 @@ const createVoiceMute = async ({
   }
 
   if (type === 'apply') {
+    const duration = options.getInteger('duration', isTemporary);
+
     await voice.setMute(true, reason);
 
     await interaction.editReply({
@@ -311,12 +312,13 @@ const createVoiceMute = async ({
             guild,
           )} for ${inlineCode(reason)}.`,
         })
-        .catch(async () => {
-          await interaction.followUp({
-            content: `Could not send a DM to ${member}.`,
-            ephemeral: true,
-          });
-        });
+        .catch(
+          async () =>
+            await interaction.followUp({
+              content: `Could not send a DM to ${member}.`,
+              ephemeral: true,
+            }),
+        );
     }
 
     if (isTemporary) {
@@ -325,7 +327,7 @@ const createVoiceMute = async ({
       await voice.setMute(false, 'server mute temporary duration has passed.');
 
       if (!member.user.bot) {
-        return member
+        await member
           .send({
             content: `Congratulations! You have been ${bold(
               'unmuted',
@@ -333,19 +335,22 @@ const createVoiceMute = async ({
               'server mute duration has passed',
             )}.`,
           })
-          .catch(async () => {
-            await interaction.followUp({
-              content: `Could not send a DM to ${member}.`,
-              ephemeral: true,
-            });
-          });
+          .catch(
+            async () =>
+              await interaction.followUp({
+                content: `Could not send a DM to ${member}.`,
+                ephemeral: true,
+              }),
+          );
       }
+
+      return;
     }
   }
 
   await voice.setMute(false, reason);
 
-  return interaction.editReply({
+  await interaction.editReply({
     content: `Successfully ${bold('unmuted')} ${member} from ${
       all ? bold(guild) : 'voice channels'
     }.`,
@@ -356,15 +361,11 @@ const createVoiceMute = async ({
  *
  * @param {import('discord.js').ChatInputCommandInteraction} interaction
  * @param {String} subcommand
- * @returns {Promise<import('discord.js').Message<Boolean>>} The interaction message response.
  */
 module.exports = async (interaction, subcommand) => {
-  const { client, guild, options, user } = interaction;
+  const { guild, options, user } = interaction;
 
-  if (!guild) return;
-
-  /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
-  const { paginations } = client;
+  if (!guild) throw "Guild doesn't exists.";
 
   /** @type {import('discord.js').GuildMember} */
   const member = options.getMember('member');
@@ -382,36 +383,29 @@ module.exports = async (interaction, subcommand) => {
     } yourself.`;
   }
 
-  switch (subcommand) {
-    case 'apply':
-      switch (channelType) {
-        case ChannelType.GuildText:
-          await applyOrRemoveRole({ interaction });
-          break;
-
-        case ChannelType.GuildVoice:
-          await createVoiceMute({ interaction });
-          break;
-
-        default:
+  await {
+    apply: async () => {
+      const type = {
+        [ChannelType.GuildText]: async () =>
+          await applyOrRemoveRole({ interaction }),
+        [ChannelType.GuildVoice]: async () =>
+          await createVoiceMute({ interaction }),
+        default: async () => {
           await applyOrRemoveRole({ interaction, all: true });
 
           await createVoiceMute({ interaction, all: true });
-          break;
-      }
-      break;
+        },
+      };
 
-    case 'temp':
-      switch (channelType) {
-        case ChannelType.GuildText:
-          await applyOrRemoveRole({ interaction, isTemporary: true });
-          break;
-
-        case ChannelType.GuildVoice:
-          await createVoiceMute({ interaction, isTemporary: true });
-          break;
-
-        default:
+      await (type[channelType] || type['default'])();
+    },
+    temp: async () => {
+      const type = {
+        [ChannelType.GuildText]: async () =>
+          await applyOrRemoveRole({ interaction, isTemporary: true }),
+        [ChannelType.GuildVoice]: async () =>
+          await createVoiceMute({ interaction, isTemporary: true }),
+        default: async () => {
           await applyOrRemoveRole({
             interaction,
             all: true,
@@ -419,21 +413,18 @@ module.exports = async (interaction, subcommand) => {
           });
 
           await createVoiceMute({ interaction, all: true, isTemporary: true });
-          break;
-      }
-      break;
+        },
+      };
 
-    case 'cease':
-      switch (channelType) {
-        case ChannelType.GuildText:
-          await applyOrRemoveRole({ interaction, type: 'remove' });
-          break;
-
-        case ChannelType.GuildVoice:
-          await createVoiceMute({ interaction, type: 'remove' });
-          break;
-
-        default:
+      await (type[channelType] || type['default'])();
+    },
+    cease: async () => {
+      const type = {
+        [ChannelType.GuildText]: async () =>
+          await applyOrRemoveRole({ interaction, type: 'remove' }),
+        [ChannelType.GuildVoice]: async () =>
+          await createVoiceMute({ interaction, type: 'remove' }),
+        default: async () => {
           await applyOrRemoveRole({
             interaction,
             type: 'remove',
@@ -441,20 +432,14 @@ module.exports = async (interaction, subcommand) => {
           });
 
           await createVoiceMute({ interaction, type: 'remove', all: true });
-          break;
-      }
-      break;
+        },
+      };
 
-    case 'list': {
-      const embed = new EmbedBuilder()
-        .setColor(guild.members.me?.displayHexColor ?? null)
-        .setTimestamp(Date.now())
-        .setFooter({
-          text: client.user.username,
-          iconURL: client.user.displayAvatarURL({ dynamic: true }),
-        });
-
-      const mutedRole = member.roles.cache.find(
+      await (type[channelType] || type['default'])();
+    },
+    list: async () => {
+      const embed = generateEmbed({ interaction });
+      const mutedRole = guild.roles.cache.find(
         (role) => role.name.toLowerCase() === 'muted',
       );
 
@@ -465,53 +450,32 @@ module.exports = async (interaction, subcommand) => {
       const textMutedMembers = guild.members.cache.filter(
         (m) => m.id === mutedRole.id,
       );
-
       const voiceMutedMembers = guild.members.cache.filter(
         (m) => m.voice.serverMute,
       );
-
       const mutedMembers = guild.members.cache.filter(
         (m) => m.id === mutedRole.id && m.voice.serverMute,
       );
-
-      switch (channelType) {
-        case ChannelType.GuildText: {
+      const type = {
+        [ChannelType.GuildText]: async () => {
           if (!textMutedMembers.size) {
             throw 'No one muted in text channels.';
           }
 
           const descriptions = [...textMutedMembers.values()].map(
-            (textMutedMember, index) =>
-              `${bold(`${index + 1}.`)} ${textMutedMember} (${
+            (textMutedMember, i) =>
+              `${bold(`${i + 1}.`)} ${textMutedMember} (${
                 textMutedMember.user.username
               })`,
           );
 
           if (textMutedMembers.size > 10) {
-            const pagination = new Pagination(interaction, { limit: 10 })
-              .setColor(guild.members.me?.displayHexColor ?? null)
-              .setTimestamp(Date.now())
-              .setFooter({
-                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                iconURL: client.user.displayAvatarURL({ dynamic: true }),
-              })
+            return await generatePagination({ interaction, limit: 10 })
               .setAuthor({
                 name: `🔇 Muted Members from Text Channels (${textMutedMembers.size.toLocaleString()})`,
               })
-              .setDescriptions(descriptions);
-
-            pagination.buttons = {
-              ...pagination.buttons,
-              extra: new ButtonBuilder()
-                .setCustomId('jump')
-                .setEmoji('↕️')
-                .setDisabled(false)
-                .setStyle(ButtonStyle.Secondary),
-            };
-
-            paginations.set(pagination.interaction.id, pagination);
-
-            return pagination.render();
+              .setDescriptions(descriptions)
+              .render();
           }
 
           embed
@@ -520,46 +484,27 @@ module.exports = async (interaction, subcommand) => {
             })
             .setDescription(descriptions.join('\n'));
 
-          return interaction.editReply({ embeds: [embed] });
-        }
-
-        case ChannelType.GuildVoice: {
+          return await interaction.editReply({ embeds: [embed] });
+        },
+        [ChannelType.GuildVoice]: async () => {
           if (!voiceMutedMembers.size) {
             throw 'No one muted in voice channels.';
           }
 
           const descriptions = [...voiceMutedMembers.values()].map(
-            (voiceMutedMember, index) =>
-              `${bold(`${index + 1}.`)} ${voiceMutedMember} (${
+            (voiceMutedMember, i) =>
+              `${bold(`${i + 1}.`)} ${voiceMutedMember} (${
                 voiceMutedMember.user.username
               })`,
           );
 
           if (voiceMutedMembers.size > 10) {
-            const pagination = new Pagination(interaction, { limit: 10 })
-              .setColor(guild.members.me?.displayHexColor ?? null)
-              .setTimestamp(Date.now())
-              .setFooter({
-                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                iconURL: client.user.displayAvatarURL({ dynamic: true }),
-              })
+            return await generatePagination({ interaction, limit: 10 })
               .setAuthor({
                 name: `🔇 Muted Members from Voice Channels (${voiceMutedMembers.size.toLocaleString()})`,
               })
-              .setDescriptions(descriptions);
-
-            pagination.buttons = {
-              ...pagination.buttons,
-              extra: new ButtonBuilder()
-                .setCustomId('jump')
-                .setEmoji('↕️')
-                .setDisabled(false)
-                .setStyle(ButtonStyle.Secondary),
-            };
-
-            paginations.set(pagination.interaction.id, pagination);
-
-            return pagination.render();
+              .setDescriptions(descriptions)
+              .render();
           }
 
           embed
@@ -568,46 +513,27 @@ module.exports = async (interaction, subcommand) => {
             })
             .setDescription(descriptions.join('\n'));
 
-          return interaction.editReply({ embeds: [embed] });
-        }
-
-        default: {
+          return await interaction.editReply({ embeds: [embed] });
+        },
+        default: async () => {
           if (!mutedMembers.size) {
             throw `No one muted in ${bold(guild)}.`;
           }
 
           const descriptions = [...mutedMembers.values()].map(
-            (mutedMember, index) =>
-              `${bold(`${index + 1}.`)} ${mutedMember} (${
+            (mutedMember, i) =>
+              `${bold(`${i + 1}.`)} ${mutedMember} (${
                 mutedMember.user.username
               })`,
           );
 
           if (mutedMembers.size > 10) {
-            const pagination = new Pagination(interaction, { limit: 10 })
-              .setColor(guild.members.me?.displayHexColor ?? null)
-              .setTimestamp(Date.now())
-              .setFooter({
-                text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                iconURL: client.user.displayAvatarURL({ dynamic: true }),
-              })
+            return await generatePagination({ interaction, limit: 10 })
               .setAuthor({
                 name: `🔇 Muted Members from ${guild} (${mutedMembers.size.toLocaleString()})`,
               })
-              .setDescriptions(descriptions);
-
-            pagination.buttons = {
-              ...pagination.buttons,
-              extra: new ButtonBuilder()
-                .setCustomId('jump')
-                .setEmoji('↕️')
-                .setDisabled(false)
-                .setStyle(ButtonStyle.Secondary),
-            };
-
-            paginations.set(pagination.interaction.id, pagination);
-
-            return pagination.render();
+              .setDescriptions(descriptions)
+              .render();
           }
 
           embed
@@ -616,9 +542,11 @@ module.exports = async (interaction, subcommand) => {
             })
             .setDescription(descriptions.join('\n'));
 
-          return interaction.editReply({ embeds: [embed] });
-        }
-      }
-    }
-  }
+          return await interaction.editReply({ embeds: [embed] });
+        },
+      };
+
+      await (type[channelType] || type['default'])();
+    },
+  }[subcommand]();
 };

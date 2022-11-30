@@ -30,11 +30,13 @@ module.exports = {
   async execute(interaction) {
     const { guild, options, user } = interaction;
 
-    await interaction.deferReply();
-
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
     const reason = options.getString('reason') ?? 'No reason';
+
+    await interaction.deferReply();
+
+    if (!guild) throw "Guild doesn't exists.";
 
     if (!member.kickable) {
       throw `You don't have appropiate permissions to kick ${member}.`;
@@ -49,7 +51,7 @@ module.exports = {
     });
 
     if (!member.user.bot) {
-      return member
+      return await member
         .send({
           content: `You have been kicked from ${bold(guild)} for ${inlineCode(
             reason,

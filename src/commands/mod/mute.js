@@ -109,6 +109,6 @@ module.exports = {
 
     await interaction.deferReply();
 
-    return serverMute(interaction, options.getSubcommand());
+    await serverMute(interaction, options.getSubcommand());
   },
 };

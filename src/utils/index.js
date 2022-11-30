@@ -19,6 +19,8 @@ const applyVerificationLevel = require('./applyVerificationLevel');
 const applyVideoQualityMode = require('./applyVideoQualityMode');
 const count = require('./count');
 const generateAttachmentFromBuffer = require('./generateAttachmentFromBuffer');
+const generateEmbed = require('./generateEmbed');
+const generatePagination = require('./generatePagination');
 const getFormattedMinecraftName = require('./getFormattedMinecraftName');
 const getFormattedParam = require('./getFormattedParam');
 const getImageReadLocale = require('./getImageReadLocale');
@@ -58,6 +60,8 @@ module.exports = {
   applyVideoQualityMode,
   count,
   generateAttachmentFromBuffer,
+  generateEmbed,
+  generatePagination,
   getFormattedMinecraftName,
   getFormattedParam,
   getImageReadLocale,

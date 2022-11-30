@@ -1,10 +1,10 @@
 const AnimeImages = require('anime-images-api');
 const axios = require('axios');
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const nekoClient = require('nekos.life');
 
 const { waifuChoices } = require('../../constants');
-const { generateAttachmentFromBuffer } = require('../../utils');
+const { generateAttachmentFromBuffer, generateEmbed } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -28,7 +28,6 @@ module.exports = {
             .addChoices(...waifuChoices),
         ),
     ),
-
   type: 'Chat Input',
 
   /**
@@ -36,26 +35,18 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ client: import('discord.js').Client<true>, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { client, member, options } = interaction;
+    /** @type {{ member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { member, options } = interaction;
+    const embed = generateEmbed({ interaction, type: 'member' });
+    const images = new AnimeImages();
+    const neko = new nekoClient();
 
     await interaction.deferReply();
 
     if (!member) throw "Member doesn't exist.";
 
-    const embed = new EmbedBuilder()
-      .setColor(member.displayHexColor)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      });
-
-    const images = new AnimeImages();
-    const neko = new nekoClient();
-
-    switch (options.getSubcommand()) {
-      case 'loli': {
+    return {
+      loli: async () => {
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
           `https://api.lolhuman.xyz/api/random/loli?apikey=${process.env.LOLHUMAN_API_KEY}`,
@@ -71,14 +62,13 @@ module.exports = {
         embed
           .setAuthor({
             name: `${member.user.username} Got a Loli`,
-            iconURL: member.displayAvatarURL({ dynamic: true }),
+            iconURL: member.displayAvatarURL(),
           })
           .setImage(`attachment://${img.name}`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
-
-      case 'milf': {
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+      milf: async () => {
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
           `https://api.lolhuman.xyz/api/random/nsfw/milf?apikey=${process.env.LOLHUMAN_API_KEY}`,
@@ -94,66 +84,59 @@ module.exports = {
         embed
           .setAuthor({
             name: `${member.user.username} Got a Milf`,
-            iconURL: member.displayAvatarURL({ dynamic: true }),
+            iconURL: member.displayAvatarURL(),
           })
           .setImage(`attachment://${img.name}`);
 
-        return interaction.editReply({ embeds: [embed], files: [img] });
-      }
+        await interaction.editReply({ embeds: [embed], files: [img] });
+      },
+      waifu: () =>
+        ({
+          image: async () => {
+            /** @type {{ data: { url: String } }} */
+            const {
+              data: { url },
+            } = await axios.get('https://api.waifu.pics/sfw/waifu');
 
-      case 'waifu':
-        {
-          const type = options.getString('type', true);
-
-          switch (type) {
-            case 'image': {
-              /** @type {{ data: { url: String } }} */
-              const {
-                data: { url },
-              } = await axios.get('https://api.waifu.pics/sfw/waifu');
-
-              embed
-                .setAuthor({
-                  name: `${member.user.username} Got a Waifu`,
-                  iconURL: member.displayAvatarURL({ dynamic: true }),
-                })
-                .setImage(url);
-
-              return interaction.editReply({ embeds: [embed] });
-            }
-
-            case 'pfp': {
-              const { url } = await neko.avatar();
-
-              /** @type {{ image: String }} */
-              const { image } = await images.sfw.waifu();
-              const imgArr = [url, image];
-              const pfp = imgArr[Math.floor(Math.random() * imgArr.length)];
-
-              embed.setAuthor({
+            embed
+              .setAuthor({
                 name: `${member.user.username} Got a Waifu`,
-                iconURL: member.displayAvatarURL({ dynamic: true }),
-              });
-              embed.setImage(pfp);
+                iconURL: member.displayAvatarURL(),
+              })
+              .setImage(url);
 
-              return interaction.editReply({ embeds: [embed] });
-            }
+            await interaction.editReply({ embeds: [embed] });
+          },
+          pfp: async () => {
+            const { url } = await neko.avatar();
 
-            case 'wallpaper': {
-              const { url } = await neko.wallpaper();
+            /** @type {{ image: String }} */
+            const { image } = await images.sfw.waifu();
+            const imgArr = [url, image];
+            const pfp = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-              embed
-                .setAuthor({
-                  name: `${member.user.username} Got a Waifu`,
-                  iconURL: member.displayAvatarURL({ dynamic: true }),
-                })
-                .setImage(url);
+            embed
+              .setAuthor({
+                name: `${member.user.username} Got a Waifu`,
+                iconURL: member.displayAvatarURL(),
+              })
+              .setImage(pfp);
 
-              return interaction.editReply({ embeds: [embed] });
-            }
-          }
-        }
-        break;
-    }
+            await interaction.editReply({ embeds: [embed] });
+          },
+          wallpaper: async () => {
+            const { url } = await neko.wallpaper();
+
+            embed
+              .setAuthor({
+                name: `${member.user.username} Got a Waifu`,
+                iconURL: member.displayAvatarURL(),
+              })
+              .setImage(url);
+
+            await interaction.editReply({ embeds: [embed] });
+          },
+        }[options.getString('type', true)]()),
+    }[options.getSubcommand()]();
   },
 };
