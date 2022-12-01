@@ -27,10 +27,10 @@ module.exports = {
       .setAuthor({ name: `🖐️ Goodbye. Thanks for being with ${guild}` })
       .setDescription(`It's been a long time, ${member}!`)
       .setColor(member.displayHexColor)
-      .setThumbnail(member.displayAvatarURL({ dynamic: true }))
+      .setThumbnail(member.displayAvatarURL())
       .setFooter({
         text: client.user.tag,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       })
       .setTimestamp(Date.now())
       .setFields([
@@ -70,11 +70,11 @@ module.exports = {
       .setColor(member.displayHexColor)
       .setAuthor({
         name: 'Member Kicked',
-        iconURL: member.displayAvatarURL({ dynamic: true }),
+        iconURL: member.displayAvatarURL(),
       })
       .setFooter({
         text: client.user.tag,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       })
       .setTimestamp(Date.now())
       .setFields([

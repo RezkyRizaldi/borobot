@@ -44,7 +44,7 @@ module.exports = {
 
     await voice.setDeaf(false, reason);
 
-    return interaction.editReply({
+    await interaction.editReply({
       content: `Successfully ${bold('undeafen')} ${member}.`,
     });
   },

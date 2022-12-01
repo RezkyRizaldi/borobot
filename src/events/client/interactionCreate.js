@@ -23,7 +23,7 @@ module.exports = {
     ) {
       await interaction.deferReply({ ephemeral: true });
 
-      return interaction.editReply({
+      return await interaction.editReply({
         content: `You don't have appropiate permissions to use slash command in ${channel}`,
       });
     }
@@ -33,69 +33,73 @@ module.exports = {
         const command = commands.get(interaction.commandName);
 
         if (!command) {
-          return interaction.reply({
+          return await interaction.reply({
             content: 'Command not found',
           });
         }
 
-        await command.execute(interaction).catch(async (err) => {
-          await interaction.editReply({
-            content:
-              typeof err === 'string'
-                ? err
-                : 'There was an error while executing this command!',
-          });
-        });
+        await command.execute(interaction).catch(
+          async (err) =>
+            await interaction.editReply({
+              content:
+                typeof err === 'string'
+                  ? err
+                  : 'There was an error while executing this command!',
+            }),
+        );
       },
       [InteractionType.MessageComponent]: async () => {
         const component = components.get(interaction.customId);
 
         if (!component) return;
 
-        await component.execute(interaction).catch(async (err) => {
-          await interaction.editReply({
-            content:
-              typeof err === 'string'
-                ? err
-                : 'There was an error while executing this command!',
-          });
-        });
+        await component.execute(interaction).catch(
+          async (err) =>
+            await interaction.editReply({
+              content:
+                typeof err === 'string'
+                  ? err
+                  : 'There was an error while executing this command!',
+            }),
+        );
       },
       [InteractionType.ApplicationCommandAutocomplete]: async () => {
         const autocomplete = commands.get(interaction.commandName);
 
         if (!autocomplete) {
-          return interaction.reply({
+          return await interaction.reply({
             content: 'Autocomplete not found',
           });
         }
 
-        await autocomplete.autocomplete(interaction).catch(async (err) => {
-          await interaction.editReply({
-            content:
-              typeof err === 'string'
-                ? err
-                : 'There was an error while executing this command!',
-          });
-        });
+        await autocomplete.autocomplete(interaction).catch(
+          async (err) =>
+            await interaction.editReply({
+              content:
+                typeof err === 'string'
+                  ? err
+                  : 'There was an error while executing this command!',
+            }),
+        );
       },
       [InteractionType.ModalSubmit]: async () => {
         const modal = components.get(interaction.customId);
 
         if (!modal) {
-          return interaction.reply({
+          return await interaction.reply({
             content: 'Modal not found',
           });
         }
 
-        await modal.execute(interaction).catch(async (err) => {
-          await interaction.editReply({
-            content:
-              typeof err === 'string'
-                ? err
-                : 'There was an error while executing this command!',
-          });
-        });
+        await modal.execute(interaction).catch(
+          async (err) =>
+            await interaction.editReply({
+              content:
+                typeof err === 'string'
+                  ? err
+                  : 'There was an error while executing this command!',
+            }),
+        );
       },
     }[interaction.type]();
   },

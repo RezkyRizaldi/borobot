@@ -31,14 +31,14 @@ module.exports = {
 
     const message = new EmbedBuilder()
       .setDescription(`${user.tag} has been unbanned by ${UnbanLog.executor}.`)
-      .setColor(guild.members.me?.displayHexColor ?? null)
+      .setColor(guild.members.me?.displayColor ?? null)
       .setAuthor({
         name: 'Member Unbanned',
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       })
       .setFooter({
         text: client.user.tag,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       })
       .setTimestamp(Date.now())
       .setFields([

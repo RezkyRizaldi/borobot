@@ -32,6 +32,6 @@ module.exports = ({
       text: loop
         ? `${client.user.username} | Page ${i + 1} of ${arr.length}`
         : client.user.username,
-      iconURL: client.user.displayAvatarURL({ dynamic: true }),
+      iconURL: client.user.displayAvatarURL(),
     });
 };

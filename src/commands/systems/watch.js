@@ -1,14 +1,13 @@
 const AnimeScraper = require('ctk-anime-scraper');
 const {
   ChannelType,
-  EmbedBuilder,
   hyperlink,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } = require('discord.js');
 const pluralize = require('pluralize');
 
-const { count } = require('../../utils');
+const { count, generateEmbed } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -51,48 +50,17 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, guild, options } = interaction;
+    const { client, options } = interaction;
 
     /** @type {{ discordTogether: import('discord-together').DiscordTogether<{[x: string]: string}> }} */
     const { discordTogether } = client;
 
     await interaction.deferReply();
 
-    const embed = new EmbedBuilder()
-      .setColor(guild.members.me?.displayHexColor ?? null)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      });
+    const embed = generateEmbed({ interaction });
 
-    switch (options.getSubcommand()) {
-      case 'youtube': {
-        const channel = options.getChannel('channel', true);
-
-        const { code } = await discordTogether.createTogetherCode(
-          channel.id,
-          'youtube',
-        );
-
-        embed
-          .setAuthor({
-            name: 'YouTube Watch Invite Code',
-            iconURL:
-              'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/YouTube_icon_%282013-2017%29.png/320px-YouTube_icon_%282013-2017%29.png',
-          })
-          .setDescription(
-            `Grab your invite code ${pluralize(
-              'here',
-              code,
-              `click here to watch YouTube in #${channel.name}`,
-            )}.`,
-          );
-
-        return interaction.editReply({ embeds: [embed] });
-      }
-
-      case 'anime': {
+    return {
+      anime: async () => {
         const title = options.getString('title', true);
         const episode = options.getInteger('episode') ?? 1;
 
@@ -143,8 +111,32 @@ module.exports = {
             ),
           );
 
-        return interaction.editReply({ embeds: [embed] });
-      }
-    }
+        await interaction.editReply({ embeds: [embed] });
+      },
+      youtube: async () => {
+        const channel = options.getChannel('channel', true);
+
+        const { code } = await discordTogether.createTogetherCode(
+          channel.id,
+          'youtube',
+        );
+
+        embed
+          .setAuthor({
+            name: 'YouTube Watch Invite Code',
+            iconURL:
+              'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/YouTube_icon_%282013-2017%29.png/320px-YouTube_icon_%282013-2017%29.png',
+          })
+          .setDescription(
+            `Grab your invite code ${pluralize(
+              'here',
+              code,
+              `click here to watch YouTube in #${channel.name}`,
+            )}.`,
+          );
+
+        await interaction.editReply({ embeds: [embed] });
+      },
+    }[options.getSubcommand()]();
   },
 };

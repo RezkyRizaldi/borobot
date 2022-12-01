@@ -21,7 +21,7 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setFooter({
         text: newState.client.user.username,
-        iconURL: newState.client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: newState.client.user.displayAvatarURL(),
       })
       .setTimestamp(Date.now())
       .setColor(newState.member?.displayHexColor ?? null);
@@ -36,7 +36,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Member Joined Voice Channel',
-          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+          iconURL: newState.member.displayAvatarURL(),
         })
         .setDescription(`${oldState.member} has joined to ${newState.channel}.`)
         .setFields([
@@ -75,7 +75,7 @@ module.exports = {
         embed
           .setAuthor({
             name: 'Member Disconnected from Voice Channel',
-            iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+            iconURL: newState.member.displayAvatarURL(),
           })
           .setDescription(
             `${newState.member} has disconnected from ${oldState.channel} by ${disconnectLog.executor}.`,
@@ -102,7 +102,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Member Left from Voice Channel',
-          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+          iconURL: newState.member.displayAvatarURL(),
         })
         .setDescription(`${newState.member} has left from ${oldState.channel}.`)
         .setFields([
@@ -141,7 +141,7 @@ module.exports = {
         embed
           .setAuthor({
             name: 'Member Moved from Voice Channel',
-            iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+            iconURL: newState.member.displayAvatarURL(),
           })
           .setDescription(
             `${newState.member} has been moved from ${oldState.channel} to ${newState.channel} by ${moveLog.executor}.`,
@@ -178,7 +178,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Member Muted from Voice Channel',
-          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+          iconURL: newState.member.displayAvatarURL(),
         })
         .setDescription(
           `${oldState.member} has been muted from text channels by ${muteLog.executor}.`,
@@ -214,7 +214,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Member Unmuted from Voice Channel',
-          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+          iconURL: newState.member.displayAvatarURL(),
         })
         .setDescription(
           `${newState.member} has been unmuted from text channels by ${unmuteLog.executor}.`,
@@ -250,7 +250,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Member Deafened from Voice Channel',
-          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+          iconURL: newState.member.displayAvatarURL(),
         })
         .setDescription(
           `${oldState.member} has been deafen from ${newState.channel} by ${deafenLog.executor}.`,
@@ -286,7 +286,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Member Undeafened from Voice Channel',
-          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+          iconURL: newState.member.displayAvatarURL(),
         })
         .setDescription(
           `${oldState.member} has been undeafen from ${newState.channel} by ${deafenLog.executor}.`,
@@ -315,7 +315,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Member Streaming in Voice Channel',
-          iconURL: newState.member.displayAvatarURL({ dynamic: true }),
+          iconURL: newState.member.displayAvatarURL(),
         })
         .setDescription(
           `${oldState.member} is streaming in ${newState.channel}.`,

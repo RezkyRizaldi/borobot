@@ -26,7 +26,7 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       })
       .setTimestamp(Date.now())
       .setColor(newMember.displayHexColor);
@@ -76,7 +76,7 @@ module.exports = {
       embed
         .setAuthor({
           name: `${guild.icon ? '🚀 ' : ''}Server Boosted`,
-          iconURL: guild.iconURL({ dynamic: true }) ?? undefined,
+          iconURL: guild.iconURL() ?? undefined,
         })
         .setDescription(
           `Thank you for boosting ${guild}, ${bold(newMember.displayName)}!`,
@@ -85,7 +85,7 @@ module.exports = {
       await newMember.send({ embeds: [embed] });
 
       embed
-        .setThumbnail(newMember.displayAvatarURL({ dynamic: true }))
+        .setThumbnail(newMember.displayAvatarURL())
         .setImage('attachment://nitro.png');
 
       if (!guild.systemChannel) return;
@@ -108,7 +108,7 @@ module.exports = {
         embed
           .setAuthor({
             name: 'Member Role Removed',
-            iconURL: oldMember.displayAvatarURL({ dynamic: true }),
+            iconURL: oldMember.displayAvatarURL(),
           })
           .setDescription(
             `${removedRoles
@@ -145,7 +145,7 @@ module.exports = {
         embed
           .setAuthor({
             name: 'Member Roles Added',
-            iconURL: newMember.displayAvatarURL({ dynamic: true }),
+            iconURL: newMember.displayAvatarURL(),
           })
           .setDescription(
             `${addedRoles
@@ -194,7 +194,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Member Muted from Text Channel',
-          iconURL: newMember.displayAvatarURL({ dynamic: true }),
+          iconURL: newMember.displayAvatarURL(),
         })
         .setDescription(
           `${newMember} has been muted from text channels by ${muteLog.executor}.`,
@@ -224,7 +224,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Member Unmuted from Text Channel',
-          iconURL: newMember.displayAvatarURL({ dynamic: true }),
+          iconURL: newMember.displayAvatarURL(),
         })
         .setDescription(
           `${newMember} has been unmuted from text channels by ${muteLog.executor}.`,
@@ -266,7 +266,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Member Timed Out',
-          iconURL: newMember.displayAvatarURL({ dynamic: true }),
+          iconURL: newMember.displayAvatarURL(),
         })
         .setDescription(
           `${newMember} has been timed out by ${timeoutLog.executor}.`,
@@ -316,7 +316,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Member Timeout Removed',
-          iconURL: newMember.displayAvatarURL({ dynamic: true }),
+          iconURL: newMember.displayAvatarURL(),
         })
         .setDescription(
           `${newMember} timeout has been removed by ${timeoutRemoveLog.executor}.`,
@@ -355,7 +355,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Member Nickname Changed',
-          iconURL: newMember.displayAvatarURL({ dynamic: true }),
+          iconURL: newMember.displayAvatarURL(),
         })
         .setDescription(
           `${newMember} nickname has been changed by ${nicknameLog.executor}.`,

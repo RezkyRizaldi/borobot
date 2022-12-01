@@ -1,10 +1,11 @@
 const {
-  EmbedBuilder,
   hyperlink,
   OAuth2Scopes,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } = require('discord.js');
+
+const { generateEmbed } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -18,17 +19,11 @@ module.exports = {
    * @param {import('discord.js').CommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, guild } = interaction;
+    const { client } = interaction;
 
     await interaction.deferReply();
 
-    const embed = new EmbedBuilder()
-      .setColor(guild?.members.me?.displayHexColor ?? null)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      })
+    const embed = generateEmbed({ interaction })
       .setAuthor({ name: `🔗 ${client.user.username}'s Invite Link` })
       .setDescription(
         `Here's your ${hyperlink(
@@ -40,8 +35,8 @@ module.exports = {
           'Get your invite link here',
         )} for invite me to your server!`,
       )
-      .setThumbnail(client.user.displayAvatarURL({ dynamic: true }));
+      .setThumbnail(client.user.displayAvatarURL());
 
-    return interaction.editReply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
   },
 };

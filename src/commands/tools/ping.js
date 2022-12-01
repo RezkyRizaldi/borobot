@@ -1,4 +1,6 @@
-const { EmbedBuilder, inlineCode, SlashCommandBuilder } = require('discord.js');
+const { inlineCode, SlashCommandBuilder } = require('discord.js');
+
+const { generateEmbed } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -11,25 +13,18 @@ module.exports = {
    * @param {import('discord.js').CommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, guild } = interaction;
+    const { client } = interaction;
 
     const message = await interaction.deferReply({ fetchReply: true });
 
-    const embed = new EmbedBuilder()
-      .setColor(guild?.members.me?.displayHexColor ?? null)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      })
-      .setDescription(
-        `Websocket heartbeat: ${inlineCode(
-          `${Math.round(client.ws.ping)}ms`,
-        )}\nRoundtrip latency: ${inlineCode(
-          `${message.createdTimestamp - interaction.createdTimestamp}ms`,
-        )}`,
-      );
+    const embed = generateEmbed({ interaction }).setDescription(
+      `Websocket heartbeat: ${inlineCode(
+        `${Math.round(client.ws.ping)}ms`,
+      )}\nRoundtrip latency: ${inlineCode(
+        `${message.createdTimestamp - interaction.createdTimestamp}ms`,
+      )}`,
+    );
 
-    return interaction.editReply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
   },
 };

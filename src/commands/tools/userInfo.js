@@ -4,13 +4,12 @@ const {
   ApplicationCommandType,
   bold,
   ContextMenuCommandBuilder,
-  EmbedBuilder,
   italic,
   time,
   TimestampStyles,
 } = require('discord.js');
 
-const { applyActivity, applyPresence } = require('../../utils');
+const { applyActivity, applyPresence, generateEmbed } = require('../../utils');
 
 module.exports = {
   data: new ContextMenuCommandBuilder()
@@ -30,7 +29,6 @@ module.exports = {
     await interaction.deferReply();
 
     const member = await guild.members.fetch(targetId);
-
     const userRoles = member.roles.icon
       ? `${member.roles.icon} `
       : member.roles.cache
@@ -38,13 +36,11 @@ module.exports = {
           .sort((a, b) => b.position - a.position)
           .map((role) => `${role}`)
           .join(', ') || italic('None');
-
     const userClientStatus = member.presence?.clientStatus
       ? Object.keys(member.presence.clientStatus)
           .map((status) => capitalCase(status))
           .join(', ')
       : italic('None');
-
     const userActivity =
       member.presence?.activities
         .map(
@@ -86,19 +82,13 @@ module.exports = {
         )
         .join('\n') || italic('None');
 
-    const embed = new EmbedBuilder()
+    const embed = generateEmbed({ interaction, type: 'member' })
       .setAuthor({
         name: `ℹ️ ${member.user.username}'s ${
           member.user.bot ? 'Bot' : 'User'
         } Information`,
       })
-      .setColor(member.displayHexColor)
-      .setThumbnail(member.displayAvatarURL({ dynamic: true }))
-      .setFooter({
-        text: member.client.user.username,
-        iconURL: member.client.user.displayAvatarURL({ dynamic: true }),
-      })
-      .setTimestamp(Date.now())
+      .setThumbnail(member.displayAvatarURL())
       .setFields([
         { name: '🆔 ID', value: member.user.id, inline: true },
         { name: '🏷️ Tag', value: member.user.tag, inline: true },
@@ -158,6 +148,6 @@ module.exports = {
       );
     }
 
-    return interaction.editReply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
   },
 };
