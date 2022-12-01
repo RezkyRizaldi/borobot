@@ -31,6 +31,6 @@ module.exports = {
 
     client.emit(event, member);
 
-    return interaction.editReply({ content: `Emitted ${event} event.` });
+    await interaction.editReply({ content: `Emitted ${event} event.` });
   },
 };

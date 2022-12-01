@@ -25,7 +25,7 @@ module.exports = {
       .setAuthor({ name: '🔃 Queue Added' })
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       })
       .setThumbnail(song?.thumbnail ?? null);
 

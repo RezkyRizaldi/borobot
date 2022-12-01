@@ -34,7 +34,7 @@ module.exports = {
       .setAuthor({ name: '🎶 Playing Music' })
       .setFooter({
         text: queue.client.user.username,
-        iconURL: queue.client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: queue.client.user.displayAvatarURL(),
       });
 
     const message = await queue.textChannel.send({ embeds: [embed] });

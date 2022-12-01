@@ -1,11 +1,6 @@
-const {
-  bold,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-  SlashCommandBuilder,
-} = require('discord.js');
-const { Pagination } = require('pagination.djs');
+const { bold, SlashCommandBuilder } = require('discord.js');
+
+const { generatePagination, generateEmbed } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -24,12 +19,9 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, guild, options } = interaction;
+    const { guild, options } = interaction;
 
     if (!guild) return;
-
-    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
-    const { paginations } = client;
 
     await interaction.deferReply();
 
@@ -45,46 +37,22 @@ module.exports = {
     }
 
     const descriptions = [...membersWithRole.values()].map(
-      (member, index) =>
-        `${bold(`${index + 1}.`)} ${member} (${member.user.username})`,
+      (member, ii) =>
+        `${bold(`${ii + 1}.`)} ${member} (${member.user.username})`,
     );
 
     if (membersWithRole.size > 10) {
-      const pagination = new Pagination(interaction, { limit: 10 })
-        .setColor(guild.members.me?.displayHexColor ?? null)
-        .setTimestamp(Date.now())
-        .setFooter({
-          text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-          iconURL: client.user.displayAvatarURL({ dynamic: true }),
-        })
+      return await generatePagination()
         .setAuthor({
           name: `👥 Member Lists with Role ${
             role.name
           } (${membersWithRole.size.toLocaleString()})`,
         })
-        .setDescriptions(descriptions);
-
-      pagination.buttons = {
-        ...pagination.buttons,
-        extra: new ButtonBuilder()
-          .setCustomId('jump')
-          .setEmoji('↕️')
-          .setDisabled(false)
-          .setStyle(ButtonStyle.Secondary),
-      };
-
-      paginations.set(pagination.interaction.id, pagination);
-
-      return pagination.render();
+        .setDescriptions(descriptions)
+        .render();
     }
 
-    const embed = new EmbedBuilder()
-      .setColor(guild.members.me?.displayHexColor ?? null)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      })
+    const embed = generateEmbed({ interaction })
       .setAuthor({
         name: `👥 Member Lists with Role ${
           role.name
@@ -92,6 +60,6 @@ module.exports = {
       })
       .setDescription(descriptions.join('\n'));
 
-    return interaction.editReply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
   },
 };

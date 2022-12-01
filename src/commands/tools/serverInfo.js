@@ -1,7 +1,6 @@
 const { capitalCase } = require('change-case');
 const {
   ChannelType,
-  EmbedBuilder,
   hyperlink,
   inlineCode,
   italic,
@@ -21,6 +20,7 @@ const {
   applyTier,
   applyVerificationLevel,
   count,
+  generateEmbed,
   getPreferredLocale,
 } = require('../../utils');
 
@@ -35,7 +35,7 @@ module.exports = {
    * @param {import('discord.js').CommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, guild } = interaction;
+    const { guild } = interaction;
 
     if (!guild) return;
 
@@ -84,16 +84,10 @@ module.exports = {
       )
       .join('\n');
 
-    const embed = new EmbedBuilder()
+    const embed = generateEmbed({ interaction })
       .setAuthor({ name: `ℹ️ ${guild} Server Information` })
-      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setThumbnail(guild.iconURL())
       .setDescription(guild.description ?? italic('No description'))
-      .setColor(guild.members.me?.displayHexColor ?? null)
-      .setFooter({
-        text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      })
-      .setTimestamp(Date.now())
       .setFields([
         { name: '🆔 ID', value: guild.id, inline: true },
         { name: '👑 Owner', value: userMention(guild.ownerId), inline: true },
@@ -163,7 +157,7 @@ module.exports = {
             guild.icon
               ? hyperlink(
                   'Icon URL',
-                  guild.iconURL({ dynamic: true }),
+                  guild.iconURL(),
                   'Click here to view the guild icon',
                 )
               : italic('None')
@@ -171,7 +165,7 @@ module.exports = {
             guild.banner
               ? hyperlink(
                   'Banner URL',
-                  guild.bannerURL({ dynamic: true }),
+                  guild.bannerURL(),
                   'Click here to view the guild banner',
                 )
               : italic('None')
@@ -179,7 +173,7 @@ module.exports = {
             guild.splash
               ? hyperlink(
                   'Splash URL',
-                  guild.splashURL({ dynamic: true }),
+                  guild.splashURL(),
                   'Click here to view the guild splash',
                 )
               : italic('None')
@@ -187,7 +181,7 @@ module.exports = {
             guild.discoverySplash
               ? hyperlink(
                   'Discovery Splash URL',
-                  guild.discoverySplashURL({ dynamic: true }),
+                  guild.discoverySplashURL(),
                   'Click here to view the guild discovery splash',
                 )
               : italic('None')
@@ -249,6 +243,6 @@ module.exports = {
         },
       ]);
 
-    return interaction.editReply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
   },
 };

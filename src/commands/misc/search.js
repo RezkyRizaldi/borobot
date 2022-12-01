@@ -1287,7 +1287,7 @@ module.exports = {
                   text: `${client.user.username} | Page ${i + 1} of ${
                     arr.length
                   }`,
-                  iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                  iconURL: client.user.displayAvatarURL(),
                 }),
               );
 

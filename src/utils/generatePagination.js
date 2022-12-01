@@ -14,13 +14,13 @@ module.exports = ({ interaction, limit, attachments }) => {
   const { paginations } = client;
 
   const pagination = new Pagination(interaction, { limit, attachments })
-    .setColor(guild.members.me?.displayHexColor ?? null)
+    .setColor(guild.members.me?.displayColor ?? null)
     .setTimestamp(Date.now());
 
   if (limit) {
     pagination.setFooter({
       text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-      iconURL: client.user.displayAvatarURL({ dynamic: true }),
+      iconURL: client.user.displayAvatarURL(),
     });
   }
 

@@ -1,10 +1,7 @@
 const axios = require('axios');
-const {
-  bold,
-  codeBlock,
-  EmbedBuilder,
-  SlashCommandBuilder,
-} = require('discord.js');
+const { bold, codeBlock, SlashCommandBuilder } = require('discord.js');
+
+const { generateEmbed } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -45,8 +42,8 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, client: import('discord.js').Client<true>, member: ?import('discord.js').GuildMember, guild: ?import('discord.js').Guild, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { channel, client, guild, options } = interaction;
+    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { channel, options } = interaction;
 
     await interaction.deferReply();
 
@@ -54,16 +51,10 @@ module.exports = {
 
     const baseURL = 'https://api.lolhuman.xyz/api';
 
-    const embed = new EmbedBuilder()
-      .setColor(guild?.members.me?.displayHexColor ?? null)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      });
+    const embed = generateEmbed({ interaction });
 
-    switch (options.getSubcommand()) {
-      case 'brainteaser': {
+    return {
+      brainteaser: async () => {
         /** @type {{ data: { result: import('../../constants/types').BrainTeaser } }} */
         const {
           data: {
@@ -134,9 +125,8 @@ module.exports = {
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
           );
-      }
-
-      case 'caklontong': {
+      },
+      caklontong: async () => {
         /** @type {{ data: { result: import('../../constants/types').CakLontong } }} */
         const {
           data: {
@@ -209,9 +199,8 @@ module.exports = {
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
           );
-      }
-
-      case 'dadjokes': {
+      },
+      dadjokes: async () => {
         /** @type {{ data: { result: import('../../constants/types').DadJoke } }} */
         const {
           data: {
@@ -282,9 +271,8 @@ module.exports = {
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
           );
-      }
-
-      case 'guessword': {
+      },
+      guessword: async () => {
         /** @type {{ data: { result: import('../../constants/types').GuessWord } }} */
         const {
           data: {
@@ -355,9 +343,8 @@ module.exports = {
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
           );
-      }
-
-      case 'tebakgambar': {
+      },
+      tebakgambar: async () => {
         /** @type {{ data: { result: import('../../constants/types').TebakGambar } }} */
         const {
           data: {
@@ -431,9 +418,8 @@ module.exports = {
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
           );
-      }
-
-      case 'whoami': {
+      },
+      whoami: async () => {
         /** @type {{ data: { result: import('../../constants/types').WhoAmI } }} */
         const {
           data: {
@@ -504,7 +490,7 @@ module.exports = {
           .then((messages) =>
             setTimeout(async () => await messages.first().delete(), 1000),
           );
-      }
-    }
+      },
+    }[options.getSubcommand()]();
   },
 };

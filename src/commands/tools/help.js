@@ -4,12 +4,10 @@ const {
   ApplicationCommandType,
   chatInputApplicationCommandMention,
   bold,
-  ButtonBuilder,
-  ButtonStyle,
   inlineCode,
   SlashCommandBuilder,
 } = require('discord.js');
-const { Pagination } = require('pagination.djs');
+const { generatePagination } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -32,9 +30,6 @@ module.exports = {
 
     if (!guild) return;
 
-    /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
-    const { paginations } = client;
-
     await interaction.deferReply();
 
     const command = options.getString('command');
@@ -55,16 +50,10 @@ module.exports = {
     );
 
     if (!command) {
-      const pagination = new Pagination(interaction)
-        .setColor(guild.members.me?.displayHexColor ?? null)
-        .setTimestamp(Date.now())
-        .setFooter({
-          text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-          iconURL: client.user.displayAvatarURL({ dynamic: true }),
-        })
+      return await generatePagination({ interaction })
         .setAuthor({
           name: `${client.user.username} Commands (${commands.size})`,
-          iconURL: client.user.displayAvatarURL({ dynamic: true }),
+          iconURL: client.user.displayAvatarURL(),
         })
         .setFields(
           commands.map(({ description, id, name, type }) => ({
@@ -75,20 +64,8 @@ module.exports = {
             value: description,
           })),
         )
-        .paginateFields();
-
-      pagination.buttons = {
-        ...pagination.buttons,
-        extra: new ButtonBuilder()
-          .setCustomId('jump')
-          .setEmoji('↕️')
-          .setDisabled(false)
-          .setStyle(ButtonStyle.Secondary),
-      };
-
-      paginations.set(pagination.interaction.id, pagination);
-
-      return pagination.render();
+        .paginateFields()
+        .render();
     }
 
     const cmd = commands.find(
@@ -110,38 +87,30 @@ module.exports = {
         (option) =>
           option.type === ApplicationCommandOptionType.SubcommandGroup,
       );
-
       const hasSubcommand = cmd.options.some(
         (option) => option.type === ApplicationCommandOptionType.Subcommand,
       );
-
       const hasChoices = cmd.options.some(
         (option) => option.choices !== undefined,
       );
-
       const subcommandGroups = cmd.options.filter(
         (option) =>
           option.type === ApplicationCommandOptionType.SubcommandGroup,
       );
-
       const subcommands = cmd.options.filter(
         (option) => option.type === ApplicationCommandOptionType.Subcommand,
       );
-
       const regularCommands = cmd.options.filter(
         (option) =>
           option.type !== ApplicationCommandOptionType.SubcommandGroup &&
           option.type !== ApplicationCommandOptionType.Subcommand,
       );
-
       const choices = cmd.options.filter(
         (option) => option.choices !== undefined,
       );
-
       const hasNestedSubcommandGroup = subcommandGroups.some(
         (option) => option.options !== undefined,
       );
-
       const hasNestedChoices = cmd.options.some((option) =>
         option.options?.some((opt) => opt.choices !== undefined),
       );
@@ -285,30 +254,12 @@ module.exports = {
       }
     }
 
-    const pagination = new Pagination(interaction, { limit: 1 })
-      .setColor(guild.members.me?.displayHexColor ?? null)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      })
+    await generatePagination({ interaction, limit: 1 })
       .setAuthor({
         name: `${capitalCase(cmd.name)} Command Information`,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       })
-      .setDescriptions(descriptions);
-
-    pagination.buttons = {
-      ...pagination.buttons,
-      extra: new ButtonBuilder()
-        .setCustomId('jump')
-        .setEmoji('↕️')
-        .setDisabled(false)
-        .setStyle(ButtonStyle.Secondary),
-    };
-
-    paginations.set(pagination.interaction.id, pagination);
-
-    return pagination.render();
+      .setDescriptions(descriptions)
+      .render();
   },
 };

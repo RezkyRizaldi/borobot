@@ -1159,7 +1159,7 @@ module.exports = {
             name: `${
               guild.icon ? '#️⃣ ' : ''
             }${guild} Channel Lists (${channels.size.toLocaleString()})`,
-            iconURL: guild.iconURL({ dynamic: true }) ?? undefined,
+            iconURL: guild.iconURL() ?? undefined,
           })
           .setDescriptions(descriptions)
           .render();

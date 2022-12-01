@@ -35,7 +35,7 @@ module.exports = {
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       })
       .setAuthor({ name: '🛠️ New Role Created' })
       .setDescription(

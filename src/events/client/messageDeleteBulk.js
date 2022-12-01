@@ -34,13 +34,11 @@ module.exports = {
     if (!messages.first().guild) return;
 
     const embed = new EmbedBuilder()
-      .setColor(messages.first().guild.members.me?.displayHexColor ?? null)
+      .setColor(messages.first().guild.members.me?.displayColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: messages.first().client.user.username,
-        iconURL: messages
-          .first()
-          .client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: messages.first().client.user.displayAvatarURL(),
       });
 
     if (messages.first().partial || !messages.first().author) {
@@ -132,7 +130,7 @@ module.exports = {
     embed
       .setAuthor({
         name: 'Messages Deleted',
-        iconURL: messages.first().author.displayAvatarURL({ dynamic: true }),
+        iconURL: messages.first().author.displayAvatarURL(),
       })
       .setDescription(truncate(response, 4096));
 

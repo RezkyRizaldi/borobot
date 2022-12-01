@@ -24,11 +24,11 @@ module.exports = {
     });
 
     const embed = new EmbedBuilder()
-      .setColor(guild.members.me?.displayHexColor ?? null)
+      .setColor(guild.members.me?.displayColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       })
       .setAuthor({ name: '📌 Channel Pins Edited' })
       .setDescription(`${channel} channel pins was ${bold('edited')}.`)

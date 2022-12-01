@@ -20,7 +20,7 @@ module.exports = {
       .setDescription('The queue has been finished.')
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       });
 
     await textChannel.send({ embeds: [embed] });

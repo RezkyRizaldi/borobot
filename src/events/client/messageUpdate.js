@@ -23,11 +23,11 @@ module.exports = {
     if (!oldMessage.guild) return;
 
     const embed = new EmbedBuilder()
-      .setColor(oldMessage.guild.members.me?.displayHexColor ?? null)
+      .setColor(oldMessage.guild.members.me?.displayColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: oldMessage.client.user.username,
-        iconURL: oldMessage.client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: oldMessage.client.user.displayAvatarURL(),
       });
 
     // If the message pinned
@@ -47,7 +47,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Message Pinned',
-          value: newMessage.author.displayAvatarURL({ dynamic: true }),
+          value: newMessage.author.displayAvatarURL(),
         })
         .setDescription(
           `A ${hyperlink(
@@ -89,7 +89,7 @@ module.exports = {
       embed
         .setAuthor({
           name: 'Message Unpinned',
-          value: newMessage.author.displayAvatarURL({ dynamic: true }),
+          value: newMessage.author.displayAvatarURL(),
         })
         .setDescription(
           `A ${hyperlink(
@@ -141,7 +141,7 @@ module.exports = {
     embed
       .setAuthor({
         name: 'Message Edited',
-        iconURL: oldMessage.author.displayAvatarURL({ dynamic: true }),
+        iconURL: oldMessage.author.displayAvatarURL(),
       })
       .setDescription(
         `A ${hyperlink(

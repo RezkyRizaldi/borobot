@@ -4,7 +4,6 @@ const {
   ButtonBuilder,
   ButtonStyle,
   codeBlock,
-  EmbedBuilder,
   hyperlink,
   inlineCode,
   PermissionFlagsBits,
@@ -16,7 +15,7 @@ const pluralize = require('pluralize');
 const progressbar = require('string-progressbar');
 
 const { musicSearchChoices, musicSettingChoices } = require('../../constants');
-const { applyRepeatMode, truncate } = require('../../utils');
+const { applyRepeatMode, truncate, generateEmbed } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -236,13 +235,7 @@ module.exports = {
     const { voice } = member;
     const { channel: voiceChannel } = voice;
 
-    const embed = new EmbedBuilder()
-      .setColor(guild.members.me?.displayHexColor ?? null)
-      .setTimestamp(Date.now())
-      .setFooter({
-        text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
-      });
+    const embed = generateEmbed({ interaction });
 
     const musicChannel = guild.channels.cache.find(
       (channel) => channel.id === process.env.CHANNEL_MUSIC_COMMAND_ID,
@@ -433,10 +426,10 @@ module.exports = {
 
     if (!queue) throw 'There is no playing queue now.';
 
-    switch (interaction.options.getSubcommandGroup()) {
-      case 'filters':
-        switch (options.getSubcommand()) {
-          case 'apply': {
+    return {
+      filters: () => {
+        return {
+          apply: async () => {
             const filter = options.getString('filter', true);
 
             if (!queue.filters.names.includes(filter)) {
@@ -450,7 +443,7 @@ module.exports = {
                 .setAuthor({ name: '🎚️ Music Filters Applied' })
                 .setDescription('The music filters successfully applied.');
 
-              return interaction.editReply({ embeds: [embed] });
+              return await interaction.editReply({ embeds: [embed] });
             }
 
             queue.filters.add(filter, true);
@@ -459,10 +452,9 @@ module.exports = {
               .setAuthor({ name: '🎚️ Music Filters Applied' })
               .setDescription('The music filters successfully applied.');
 
-            return interaction.editReply({ embeds: [embed] });
-          }
-
-          case 'cease': {
+            await interaction.editReply({ embeds: [embed] });
+          },
+          cease: async () => {
             const filter = options.getString('filter', true);
 
             if (!queue.filters.names.includes(filter)) {
@@ -479,10 +471,9 @@ module.exports = {
               .setAuthor({ name: '🎚️ Music Filters Ceased' })
               .setDescription('The music filters successfully ceased.');
 
-            return interaction.editReply({ embeds: [embed] });
-          }
-
-          case 'clear':
+            await interaction.editReply({ embeds: [embed] });
+          },
+          clear: async () => {
             if (!queue.filters.size) {
               throw "The queue doesn't have any filters.";
             }
@@ -493,31 +484,17 @@ module.exports = {
               .setAuthor({ name: '🎚️ Music Filters Cleared' })
               .setDescription('The music filters successfully cleared.');
 
-            return interaction.editReply({ embeds: [embed] });
-        }
-        break;
+            await interaction.editReply({ embeds: [embed] });
+          },
+        }[options.getSubcommand()]();
+      },
+      playback: () => {
+        const time = options.getInteger('time', true);
 
-      case 'playback':
-        {
-          const time = options.getInteger('time', true);
-
-          switch (options.getSubcommand()) {
-            case 'forward':
-              if (time > queue.duration || queue.currentTime > queue.duration) {
-                queue.seek(queue.beginTime);
-
-                embed
-                  .setAuthor({ name: '🕒 Queue Time Adjusted' })
-                  .setDescription(
-                    `The queue time has been set to ${inlineCode(
-                      queue.formattedCurrentTime,
-                    )}.`,
-                  );
-
-                return interaction.editReply({ embeds: [embed] });
-              }
-
-              queue.seek(queue.currentTime + time);
+        return {
+          forward: async () => {
+            if (time > queue.duration || queue.currentTime > queue.duration) {
+              queue.seek(queue.beginTime);
 
               embed
                 .setAuthor({ name: '🕒 Queue Time Adjusted' })
@@ -527,24 +504,24 @@ module.exports = {
                   )}.`,
                 );
 
-              return interaction.editReply({ embeds: [embed] });
+              return await interaction.editReply({ embeds: [embed] });
+            }
 
-            case 'seek':
-              if (time > queue.duration) {
-                queue.seek(queue.beginTime);
+            queue.seek(queue.currentTime + time);
 
-                embed
-                  .setAuthor({ name: '🕒 Queue Time Adjusted' })
-                  .setDescription(
-                    `The queue time has been set to ${inlineCode(
-                      queue.formattedCurrentTime,
-                    )}.`,
-                  );
+            embed
+              .setAuthor({ name: '🕒 Queue Time Adjusted' })
+              .setDescription(
+                `The queue time has been set to ${inlineCode(
+                  queue.formattedCurrentTime,
+                )}.`,
+              );
 
-                return interaction.editReply({ embeds: [embed] });
-              }
-
-              queue.seek(time);
+            await interaction.editReply({ embeds: [embed] });
+          },
+          seek: async () => {
+            if (time > queue.duration) {
+              queue.seek(queue.beginTime);
 
               embed
                 .setAuthor({ name: '🕒 Queue Time Adjusted' })
@@ -554,44 +531,53 @@ module.exports = {
                   )}.`,
                 );
 
-              return interaction.editReply({ embeds: [embed] });
+              return await interaction.editReply({ embeds: [embed] });
+            }
 
-            case 'rewind':
-              if (
-                time > queue.duration ||
-                queue.currentTime < queue.beginTime
-              ) {
-                queue.seek(queue.beginTime);
+            queue.seek(time);
 
-                embed
-                  .setAuthor({ name: '🕒 Queue Time Adjusted' })
-                  .setDescription(
-                    `The queue time has been set to ${inlineCode(
-                      queue.formattedCurrentTime,
-                    )}.`,
-                  );
+            embed
+              .setAuthor({ name: '🕒 Queue Time Adjusted' })
+              .setDescription(
+                `The queue time has been set to ${inlineCode(
+                  queue.formattedCurrentTime,
+                )}.`,
+              );
 
-                return interaction.editReply({ embeds: [embed] });
-              }
-
-              queue.seek(queue.currentTime - time);
+            await interaction.editReply({ embeds: [embed] });
+          },
+          rewind: async () => {
+            if (time > queue.duration || queue.currentTime < queue.beginTime) {
+              queue.seek(queue.beginTime);
 
               embed
-                .setAuthor({
-                  name: '🕒 Queue Time Adjusted',
-                })
+                .setAuthor({ name: '🕒 Queue Time Adjusted' })
                 .setDescription(
                   `The queue time has been set to ${inlineCode(
                     queue.formattedCurrentTime,
                   )}.`,
                 );
 
-              return interaction.editReply({ embeds: [embed] });
-          }
-        }
-        break;
+              return await interaction.editReply({ embeds: [embed] });
+            }
 
-      case 'settings':
+            queue.seek(queue.currentTime - time);
+
+            embed
+              .setAuthor({
+                name: '🕒 Queue Time Adjusted',
+              })
+              .setDescription(
+                `The queue time has been set to ${inlineCode(
+                  queue.formattedCurrentTime,
+                )}.`,
+              );
+
+            await interaction.editReply({ embeds: [embed] });
+          },
+        }[options.getSubcommand()]();
+      },
+      settings: async () => {
         switch (options.getSubcommand()) {
           case 'jump': {
             const position = options.getInteger('position', true);
@@ -832,11 +818,11 @@ module.exports = {
 
                 if (queue.songs.length > 10) {
                   const pagination = new Pagination(interaction, { limit: 10 })
-                    .setColor(guild.members.me?.displayHexColor ?? null)
+                    .setColor(guild.members.me?.displayColor ?? null)
                     .setTimestamp(Date.now())
                     .setFooter({
                       text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
-                      iconURL: client.user.displayAvatarURL({ dynamic: true }),
+                      iconURL: client.user.displayAvatarURL(),
                     })
                     .setAuthor({
                       name: `🔃 Music Queue (${queue.songs.length.toLocaleString()})`,
@@ -894,7 +880,7 @@ module.exports = {
             }
             break;
         }
-        break;
-    }
+      },
+    }[options.getSubcommandGroup()];
   },
 };

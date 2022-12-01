@@ -34,10 +34,10 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: `👋 Welcome to ${guild}` })
-      .setColor(guild.members.me?.displayHexColor ?? null)
+      .setColor(guild.members.me?.displayColor ?? null)
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       })
       .setTimestamp(Date.now());
 
@@ -55,7 +55,7 @@ module.exports = {
           )} member in ${guild}.`,
         )
         .setColor(member.displayHexColor)
-        .setThumbnail(member.displayAvatarURL({ dynamic: true }))
+        .setThumbnail(member.displayAvatarURL())
         .setFields([
           { name: '🆔 Member ID', value: member.user.id, inline: true },
           {
@@ -85,7 +85,7 @@ module.exports = {
         `${member} bot was ${bold('added')} by ${botLog.executor}.`,
       )
       .setColor(member.displayHexColor)
-      .setThumbnail(member.displayAvatarURL({ dynamic: true }))
+      .setThumbnail(member.displayAvatarURL())
       .setFields([
         { name: '🆔 Bot ID', value: member.user.id, inline: true },
         {

@@ -16,12 +16,12 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: '❌ An Error Encountered' })
-      .setColor(guild.members.me?.displayHexColor ?? null)
+      .setColor(guild.members.me?.displayColor ?? null)
       .setTimestamp(Date.now())
       .setDescription(err.toString().slice(0, 4096))
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       });
 
     await channel.send({ embeds: [embed] });

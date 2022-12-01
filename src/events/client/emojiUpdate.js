@@ -33,11 +33,11 @@ module.exports = {
       .then((audit) => audit.entries.first());
 
     const embed = new EmbedBuilder()
-      .setColor(guild.members.me?.displayHexColor ?? null)
+      .setColor(guild.members.me?.displayColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       })
       .setAuthor({ name: '😀 Emoji Edited' })
       .setDescription(

@@ -55,8 +55,8 @@ module.exports = {
 
     if (!channel) throw "Channel doesn't exist.";
 
-    switch (options.getSubcommand()) {
-      case 'on': {
+    return {
+      on: async () => {
         const duration = options.getInteger('duration', true);
 
         if (channel.rateLimitPerUser && channel.rateLimitPerUser > 0) {
@@ -67,23 +67,23 @@ module.exports = {
 
         await channel.setRateLimitPerUser(duration, reason);
 
-        return interaction.editReply({
+        await interaction.editReply({
           content: `Successfully ${bold(
             'turned on',
           )} slowmode in ${channel} for ${inlineCode(`${duration} seconds`)}.`,
         });
-      }
-
-      case 'off':
+      },
+      off: async () => {
         if (channel.rateLimitPerUser && channel.rateLimitPerUser === 0) {
           throw `Slowmode in ${channel} isn't being turned on.`;
         }
 
         await channel.setRateLimitPerUser(0, reason);
 
-        return interaction.editReply({
+        await interaction.editReply({
           content: `Successfully ${bold('turned off')} slowmode in ${channel}.`,
         });
-    }
+      },
+    }[options.getSubcommand()]();
   },
 };

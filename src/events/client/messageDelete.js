@@ -28,11 +28,11 @@ module.exports = {
     });
 
     const embed = new EmbedBuilder()
-      .setColor(guild.members.me?.displayHexColor ?? null)
+      .setColor(guild.members.me?.displayColor ?? null)
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       });
 
     if (message.partial || !author) {
@@ -64,7 +64,7 @@ module.exports = {
     embed
       .setAuthor({
         name: 'Message Deleted',
-        iconURL: author.displayAvatarURL({ dynamic: true }),
+        iconURL: author.displayAvatarURL(),
       })
       .setDescription(truncate(response, 4096));
 

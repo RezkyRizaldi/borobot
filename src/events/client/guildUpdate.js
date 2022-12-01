@@ -47,11 +47,11 @@ module.exports = {
       .setTimestamp(Date.now())
       .setFooter({
         text: client.user.username,
-        iconURL: client.user.displayAvatarURL({ dynamic: true }),
+        iconURL: client.user.displayAvatarURL(),
       })
       .setAuthor({
         name: `${oldGuild.icon ? '✏️ ' : ''}Server Edited`,
-        iconURL: oldGuild.iconURL({ dynamic: true }) ?? undefined,
+        iconURL: oldGuild.iconURL() ?? undefined,
       })
       .setFields([
         {
@@ -132,14 +132,14 @@ module.exports = {
           {
             name: '🕒 Before',
             value: oldGuild.banner
-              ? hyperlink('Old banner', oldGuild.bannerURL({ dynamic: true }))
+              ? hyperlink('Old banner', oldGuild.bannerURL())
               : italic('None'),
             inline: true,
           },
           {
             name: '🕒 After',
             value: newGuild.banner
-              ? hyperlink('New banner', newGuild.bannerURL({ dynamic: true }))
+              ? hyperlink('New banner', newGuild.bannerURL())
               : italic('None'),
             inline: true,
           },
@@ -242,16 +242,12 @@ module.exports = {
           0,
           {
             name: '🕒 Before',
-            value: oldGuild.icon
-              ? oldGuild.iconURL({ dynamic: true })
-              : italic('None'),
+            value: oldGuild.icon ? oldGuild.iconURL() : italic('None'),
             inline: true,
           },
           {
             name: '🕒 After',
-            value: newGuild.icon
-              ? newGuild.iconURL({ dynamic: true })
-              : italic('None'),
+            value: newGuild.icon ? newGuild.iconURL() : italic('None'),
             inline: true,
           },
         );
