@@ -44,7 +44,8 @@ module.exports = {
               content:
                 typeof err === 'string'
                   ? err
-                  : 'There was an error while executing this command!',
+                  : err.message ??
+                    'There was an error while executing this command!',
             }),
         );
       },

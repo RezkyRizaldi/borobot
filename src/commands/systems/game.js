@@ -1,4 +1,4 @@
-const axios = require('axios');
+const axios = require('axios').default;
 const { bold, codeBlock, SlashCommandBuilder } = require('discord.js');
 
 const { generateEmbed } = require('../../utils');

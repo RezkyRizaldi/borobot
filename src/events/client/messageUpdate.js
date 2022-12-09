@@ -129,7 +129,7 @@ module.exports = {
           )}.`,
         );
 
-      await MessageLogger.send({ embeds: [embed] });
+      return await MessageLogger.send({ embeds: [embed] });
     }
 
     if (oldMessage.author.bot) return;

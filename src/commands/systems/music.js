@@ -1,4 +1,4 @@
-const axios = require('axios');
+const axios = require('axios').default;
 const {
   bold,
   ButtonBuilder,
@@ -266,7 +266,7 @@ module.exports = {
       case 'lyrics': {
         const title = options.getString('title', true);
 
-        /** @type {{ data: { result: String } }} */
+        /** @type {{ data: { result: String|undefined } }} */
         const {
           data: { result },
         } = await axios
@@ -278,6 +278,10 @@ module.exports = {
           .catch(() => {
             throw `No lyrics found with music title ${inlineCode(title)}.`;
           });
+
+        if (!result) {
+          throw `No lyrics found with music title ${inlineCode(title)}.`;
+        }
 
         embed.setDescription(truncate(result, 4096));
 

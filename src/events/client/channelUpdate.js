@@ -33,13 +33,6 @@ module.exports = {
       token: process.env.CHANNEL_EDIT_WEBHOOK_TOKEN,
     });
 
-    const editLog = await guild
-      .fetchAuditLogs({
-        limit: 1,
-        type: AuditLogEvent.ChannelUpdate,
-      })
-      .then((audit) => audit.entries.first());
-
     const embed = new EmbedBuilder()
       .setColor(guild.members.me?.displayColor ?? null)
       .setTimestamp(Date.now())
@@ -54,6 +47,13 @@ module.exports = {
       });
 
     if (oldChannel.name !== newChannel.name) {
+      const editLog = await guild
+        .fetchAuditLogs({
+          limit: 1,
+          type: AuditLogEvent.ChannelUpdate,
+        })
+        .then((audit) => audit.entries.first());
+
       embed
         .setDescription(
           `${oldChannel} channel's name was ${bold('edited')} by ${
@@ -77,6 +77,13 @@ module.exports = {
     }
 
     if (oldChannel.nsfw !== newChannel.nsfw) {
+      const editLog = await guild
+        .fetchAuditLogs({
+          limit: 1,
+          type: AuditLogEvent.ChannelUpdate,
+        })
+        .then((audit) => audit.entries.first());
+
       embed
         .setDescription(
           `${oldChannel} channel's nsfw state was ${bold(
@@ -100,9 +107,7 @@ module.exports = {
     if (oldChannel.parentId !== newChannel.parentId) {
       embed
         .setDescription(
-          `${oldChannel} channel's category was ${bold('edited')} by ${
-            editLog.executor
-          }.`,
+          `${oldChannel} channel's category was ${bold('edited')}.`,
         )
         .setFields([
           {
@@ -122,13 +127,20 @@ module.exports = {
               TimestampStyles.RelativeTime,
             ),
           },
-          { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
+          { name: '📄 Reason', value: 'No reason' },
         ]);
 
       await ChannelLogger.send({ embeds: [embed] });
     }
 
     if (oldChannel.userLimit !== newChannel.userLimit) {
+      const editLog = await guild
+        .fetchAuditLogs({
+          limit: 1,
+          type: AuditLogEvent.ChannelUpdate,
+        })
+        .then((audit) => audit.entries.first());
+
       embed
         .setDescription(
           `${oldChannel} channel's user limit was ${bold('edited')} by ${
@@ -160,6 +172,13 @@ module.exports = {
     }
 
     if (oldChannel.topic !== newChannel.topic) {
+      const editLog = await guild
+        .fetchAuditLogs({
+          limit: 1,
+          type: AuditLogEvent.ChannelUpdate,
+        })
+        .then((audit) => audit.entries.first());
+
       embed
         .setDescription(
           `${oldChannel} channel's topic was ${bold('edited')} by ${
@@ -270,7 +289,10 @@ module.exports = {
               TimestampStyles.RelativeTime,
             ),
           },
-          { name: '📄 Reason', value: editLog.reason ?? 'No reason' },
+          {
+            name: '📄 Reason',
+            value: permissionCreateLog.reason ?? 'No reason',
+          },
         ]);
 
       await ChannelLogger.send({ embeds: [embed] });

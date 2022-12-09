@@ -1,5 +1,5 @@
 const AnimeImages = require('anime-images-api');
-const axios = require('axios');
+const axios = require('axios').default;
 const { SlashCommandBuilder } = require('discord.js');
 const nekoClient = require('nekos.life');
 

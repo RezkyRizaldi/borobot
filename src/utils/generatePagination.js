@@ -5,7 +5,7 @@ const { Pagination } = require('pagination.djs');
  *
  * @param {{ interaction: import('discord.js').ChatInputCommandInteraction, limit: Number|undefined, attachments: import('discord.js').AttachmentBuilder[]|undefined }}
  */
-module.exports = ({ interaction, limit, attachments }) => {
+module.exports = ({ interaction, limit = 5, attachments }) => {
   const { client, guild } = interaction;
 
   if (!guild) throw "Guild doesn't exists.";
