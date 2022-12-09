@@ -274,7 +274,9 @@ module.exports = {
               await guildChannel.setName(name, reason);
 
               await interaction.editReply({
-                content: `Successfully ${bold('modified')} ${guildChannel}.`,
+                content: `Successfully ${bold(
+                  'modified',
+                )} ${guildChannel}'s channel name.`,
               });
             },
             nsfw: async () => {
@@ -291,7 +293,9 @@ module.exports = {
               await channel.setNSFW(nsfw, reason);
 
               await interaction.editReply({
-                content: `Successfully ${bold('modified')} ${channel}.`,
+                content: `Successfully ${bold(
+                  'modified',
+                )} ${channel}'s channel NSFW state.`,
               });
             },
             position: async () => {
@@ -319,7 +323,9 @@ module.exports = {
               });
 
               await interaction.editReply({
-                content: `Successfully ${bold('modified')} ${guildChannel}.`,
+                content: `Successfully ${bold(
+                  'modified',
+                )} ${guildChannel}'s channel position.`,
               });
             },
             topic: async () => {
@@ -334,7 +340,9 @@ module.exports = {
               await channel.setTopic(topic, reason);
 
               await interaction.editReply({
-                content: `Successfully ${bold('modified')} ${channel}.`,
+                content: `Successfully ${bold(
+                  'modified',
+                )} ${channel}'s channel topic.`,
               });
             },
           }[options.getSubcommand()]();
