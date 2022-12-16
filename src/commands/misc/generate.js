@@ -325,7 +325,7 @@ module.exports = {
 
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
-          `https://api.lolhuman.xyz/api/random/nsfw/animearmpits?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          `https://api.lolhuman.xyz/api/random/nsfw/armpits?apikey=${process.env.LOLHUMAN_API_KEY}`,
           { responseType: 'arraybuffer' },
         );
 
@@ -346,6 +346,7 @@ module.exports = {
           throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
         }
 
+        /** @type {{ image: String }} */
         const { image } = await images.nsfw.boobs();
 
         embed.setImage(image);
@@ -361,7 +362,7 @@ module.exports = {
 
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
-          `https://api.lolhuman.xyz/api/random/nsfw/animefeets?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          `https://api.lolhuman.xyz/api/random/nsfw/feets?apikey=${process.env.LOLHUMAN_API_KEY}`,
           { responseType: 'arraybuffer' },
         );
 
@@ -461,9 +462,13 @@ module.exports = {
         const url = await QRCode.toDataURL(content, { version: 10 });
 
         const buffer = Buffer.from(url.split(';base64,').pop(), 'base64');
-        const imagePath = './src/assets/images/qrcode.png';
+        const imagePath = './src/assets/images';
 
-        fs.writeFileSync(imagePath, buffer, { encoding: 'base64' });
+        if (!fs.existsSync(imagePath)) fs.mkdirSync(imagePath);
+
+        fs.writeFileSync(`${imagePath}/qrcode.png`, buffer, {
+          encoding: 'base64',
+        });
 
         const img = await generateAttachmentFromBuffer({
           buffer,
@@ -535,7 +540,7 @@ module.exports = {
 
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
-          `https://api.lolhuman.xyz/api/random2/yuri?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          `https://api.lolhuman.xyz/api/random2/eroyuri?apikey=${process.env.LOLHUMAN_API_KEY}`,
           { responseType: 'arraybuffer' },
         );
 
