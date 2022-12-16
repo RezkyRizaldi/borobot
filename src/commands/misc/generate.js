@@ -39,8 +39,8 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
-        .setName('feet')
-        .setDescription('🦶 Generate a random anime feet image.'),
+        .setName('feets')
+        .setDescription('🦶 Generate a random anime feets image.'),
     )
     .addSubcommand((subcommand) =>
       subcommand
@@ -353,7 +353,7 @@ module.exports = {
 
         await interaction.editReply({ embeds: [embed] });
       },
-      feet: async () => {
+      feets: async () => {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
