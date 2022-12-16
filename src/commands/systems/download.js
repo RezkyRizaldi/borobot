@@ -153,7 +153,6 @@ module.exports = {
     await interaction.deferReply();
 
     const baseURL = 'https://api.lolhuman.xyz/api';
-
     const embed = generateEmbed({ interaction });
 
     return {
@@ -176,9 +175,14 @@ module.exports = {
             } = await axios
               .get(
                 `${baseURL}/otakudesusearch?query=${title}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
               )
-              .catch(() => {
-                throw `No anime found with title ${inlineCode(title)}.`;
+              .catch((err) => {
+                if (err.response?.status === 404) {
+                  throw `No anime found with title ${inlineCode(title)}.`;
+                }
+
+                throw err;
               });
 
             const responses = downloads.map(
@@ -220,9 +224,14 @@ module.exports = {
             } = await axios
               .get(
                 `${baseURL}/kusonimesearch?query=${title}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
               )
-              .catch(() => {
-                throw `No anime found with title ${inlineCode(title)}.`;
+              .catch((err) => {
+                if (err.response?.status === 404) {
+                  throw `No anime found with title ${inlineCode(title)}.`;
+                }
+
+                throw err;
               });
 
             const response = `${bold(t)}\n${Object.entries(link_dl)
@@ -257,6 +266,7 @@ module.exports = {
           data: { result },
         } = await axios.get(
           `${baseURL}/facebook?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
         );
 
         embed
@@ -290,6 +300,7 @@ module.exports = {
               },
             } = await axios.get(
               `${baseURL}/instagram2?url=${query}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+              { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
             );
 
             embed
@@ -334,11 +345,15 @@ module.exports = {
             } = await axios
               .get(
                 `${baseURL}/igstory/${username}?apikey=${process.env.LOLHUMAN_API_KEY}`,
+                { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
               )
-              .catch(() => {
-                throw `No user found with username ${inlineCode(
-                  username,
-                )} or its doesn't have any stories right now.`;
+              .catch((err) => {
+                if (err.response?.status === 404) {
+                  throw `No user found with username ${inlineCode(
+                    username,
+                  )} or its doesn't have any stories right now.`;
+                }
+                throw err;
               });
 
             const URLs = result.map(
@@ -394,6 +409,7 @@ module.exports = {
           },
         } = await axios.get(
           `${baseURL}/spotify?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
         );
 
         embed
@@ -483,6 +499,7 @@ module.exports = {
               },
             } = await axios.get(
               `${baseURL}/tiktok?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+              { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
             );
 
             embed
@@ -547,6 +564,7 @@ module.exports = {
               },
             } = await axios.get(
               `${baseURL}/twitterimage?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+              { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
             );
 
             embed
@@ -594,6 +612,7 @@ module.exports = {
               },
             } = await axios.get(
               `${baseURL}/twitter2?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+              { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
             );
 
             embed
@@ -659,6 +678,7 @@ module.exports = {
               },
             } = await axios.get(
               `${baseURL}/ytaudio2?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+              { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
             );
 
             embed
@@ -688,13 +708,14 @@ module.exports = {
               },
             } = await axios.get(
               `${baseURL}/ytreels?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+              { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
             );
 
             embed
               .setAuthor({
                 name: 'YouTube Shorts Downloader Result',
                 iconURL:
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/YouTube_icon_%282013-2017%29.png/320px-YouTube_icon_%282013-2017%29.png',
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Youtube_shorts_icon.svg/256px-Youtube_shorts_icon.svg.png',
               })
               .setThumbnail(thumbnail)
               .setFields([
@@ -728,6 +749,7 @@ module.exports = {
               },
             } = await axios.get(
               `${baseURL}/ytvideo?url=${url}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+              { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
             );
 
             embed

@@ -39,8 +39,8 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
-        .setName('feet')
-        .setDescription('🦶 Generate a random anime feet image.'),
+        .setName('feets')
+        .setDescription('🦶 Generate a random anime feets image.'),
     )
     .addSubcommand((subcommand) =>
       subcommand
@@ -199,7 +199,18 @@ module.exports = {
     if (options.getSubcommandGroup() !== null) {
       return {
         filters: () => {
-          const image = options.getAttachment('image', true);
+          const attachment = options.getAttachment('image', true);
+          const supportedMIMETypes = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/bmp',
+          ];
+
+          if (!supportedMIMETypes.includes(attachment.contentType)) {
+            throw 'Please upload an image file type.';
+          }
 
           embed.setAuthor({ name: '🖼️ Applied Filter Result' });
 
@@ -208,7 +219,7 @@ module.exports = {
               const amount = options.getInteger('amount') ?? undefined;
 
               const img = await generateAttachmentFromBuffer({
-                buffer: await new Blur().getImage(image.url, amount),
+                buffer: await new Blur().getImage(attachment.url, amount),
                 fileName: 'blur',
                 fileDesc: 'Blurred Image',
               });
@@ -222,7 +233,7 @@ module.exports = {
             },
             greyscale: async () => {
               const img = await generateAttachmentFromBuffer({
-                buffer: await new Greyscale().getImage(image.url),
+                buffer: await new Greyscale().getImage(attachment.url),
                 fileName: 'greyscale',
                 fileDesc: 'Greyscaled image',
               });
@@ -236,7 +247,7 @@ module.exports = {
             },
             invert: async () => {
               const img = await generateAttachmentFromBuffer({
-                buffer: await new Invert().getImage(image.url),
+                buffer: await new Invert().getImage(attachment.url),
                 fileName: 'invert',
                 fileDesc: 'Invertd image',
               });
@@ -250,7 +261,7 @@ module.exports = {
             },
             sepia: async () => {
               const img = await generateAttachmentFromBuffer({
-                buffer: await new Sepia().getImage(image.url),
+                buffer: await new Sepia().getImage(attachment.url),
                 fileName: 'sepia',
                 fileDesc: 'Sepia Image',
               });
@@ -264,7 +275,7 @@ module.exports = {
             },
             triggered: async () => {
               const img = await generateAttachmentFromBuffer({
-                buffer: await new Triggered().getImage(image.url),
+                buffer: await new Triggered().getImage(attachment.url),
                 fileName: 'sepia',
                 fileDesc: 'Sepia Image',
               });
@@ -314,7 +325,7 @@ module.exports = {
 
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
-          `https://api.lolhuman.xyz/api/random/nsfw/animearmpits?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          `https://api.lolhuman.xyz/api/random/nsfw/armpits?apikey=${process.env.LOLHUMAN_API_KEY}`,
           { responseType: 'arraybuffer' },
         );
 
@@ -335,13 +346,14 @@ module.exports = {
           throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
         }
 
+        /** @type {{ image: String }} */
         const { image } = await images.nsfw.boobs();
 
         embed.setImage(image);
 
         await interaction.editReply({ embeds: [embed] });
       },
-      feet: async () => {
+      feets: async () => {
         if (!channel) throw "Channel doesn't exist.";
 
         if (!channel.nsfw) {
@@ -350,7 +362,7 @@ module.exports = {
 
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
-          `https://api.lolhuman.xyz/api/random/nsfw/animefeets?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          `https://api.lolhuman.xyz/api/random/nsfw/feets?apikey=${process.env.LOLHUMAN_API_KEY}`,
           { responseType: 'arraybuffer' },
         );
 
@@ -450,9 +462,13 @@ module.exports = {
         const url = await QRCode.toDataURL(content, { version: 10 });
 
         const buffer = Buffer.from(url.split(';base64,').pop(), 'base64');
-        const imagePath = './src/assets/images/qrcode.png';
+        const imagePath = './src/assets/images';
 
-        fs.writeFileSync(imagePath, buffer, { encoding: 'base64' });
+        if (!fs.existsSync(imagePath)) fs.mkdirSync(imagePath);
+
+        fs.writeFileSync(`${imagePath}/qrcode.png`, buffer, {
+          encoding: 'base64',
+        });
 
         const img = await generateAttachmentFromBuffer({
           buffer,
@@ -524,7 +540,7 @@ module.exports = {
 
         /** @type {{ data: ArrayBuffer }} */
         const { data: buffer } = await axios.get(
-          `https://api.lolhuman.xyz/api/random2/yuri?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          `https://api.lolhuman.xyz/api/random2/eroyuri?apikey=${process.env.LOLHUMAN_API_KEY}`,
           { responseType: 'arraybuffer' },
         );
 

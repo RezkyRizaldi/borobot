@@ -764,7 +764,9 @@ module.exports = {
             artifact: async () => {
               if (!nameQuery) {
                 /** @type {{ data: String[] }} */
-                const { data } = await axios.get(`${baseURL}/artifacts`);
+                const { data } = await axios.get(`${baseURL}/artifacts`, {
+                  headers: { 'Accept-Encoding': 'gzip,deflate,compress' },
+                });
 
                 const responses = data.map(
                   (item, i) => `${bold(`${i + 1}.`)} ${capitalCase(item)}`,
@@ -794,9 +796,17 @@ module.exports = {
                   name,
                 },
               } = await axios
-                .get(`${baseURL}/artifacts/${paramCase(nameQuery)}`)
-                .catch(() => {
-                  throw `No artifact found with name ${inlineCode(nameQuery)}.`;
+                .get(`${baseURL}/artifacts/${paramCase(nameQuery)}`, {
+                  headers: { 'Accept-Encoding': 'gzip,deflate,compress' },
+                })
+                .catch((err) => {
+                  if (err.response?.status === 404) {
+                    throw `No artifact found with name ${inlineCode(
+                      nameQuery,
+                    )}.`;
+                  }
+
+                  throw err;
                 });
 
               embed
@@ -844,7 +854,9 @@ module.exports = {
 
               if (!nameQuery) {
                 /** @type {{ data: String[] }} */
-                const { data } = await axios.get(`${baseURL}/characters`);
+                const { data } = await axios.get(`${baseURL}/characters`, {
+                  headers: { 'Accept-Encoding': 'gzip,deflate,compress' },
+                });
 
                 const responses = data.map(
                   (item, i) => `${bold(`${i + 1}.`)} ${capitalCase(item)}`,
@@ -882,11 +894,17 @@ module.exports = {
                   specialDish,
                 },
               } = await axios
-                .get(`${baseURL}/characters/${getFormattedParam(nameQuery)}`)
-                .catch(() => {
-                  throw `No character found with name ${inlineCode(
-                    nameQuery,
-                  )}.`;
+                .get(`${baseURL}/characters/${getFormattedParam(nameQuery)}`, {
+                  headers: { 'Accept-Encoding': 'gzip,deflate,compress' },
+                })
+                .catch((err) => {
+                  if (err.response?.status === 404) {
+                    throw `No character found with name ${inlineCode(
+                      nameQuery,
+                    )}.`;
+                  }
+
+                  throw err;
                 });
 
               const formattedName = name !== 'Ayato' ? name : 'Kamisato Ayata';
@@ -1098,7 +1116,9 @@ module.exports = {
             weapon: async () => {
               if (!nameQuery) {
                 /** @type {{ data: String[] }} */
-                const { data } = await axios.get(`${baseURL}/weapons`);
+                const { data } = await axios.get(`${baseURL}/weapons`, {
+                  headers: { 'Accept-Encoding': 'gzip,deflate,compress' },
+                });
 
                 const responses = data.map(
                   (item, i) => `${bold(`${i + 1}.`)} ${capitalCase(item)}`,
@@ -1129,9 +1149,15 @@ module.exports = {
                   passiveDesc,
                 },
               } = await axios
-                .get(`${baseURL}/weapons/${paramCase(nameQuery)}`)
-                .catch(() => {
-                  throw `No weapon found with name ${inlineCode(nameQuery)}.`;
+                .get(`${baseURL}/weapons/${paramCase(nameQuery)}`, {
+                  headers: { 'Accept-Encoding': 'gzip,deflate,compress' },
+                })
+                .catch((err) => {
+                  if (err.response?.status === 404) {
+                    throw `No weapon found with name ${inlineCode(nameQuery)}.`;
+                  }
+
+                  throw err;
                 });
 
               embed
@@ -1199,8 +1225,14 @@ module.exports = {
                 },
               } = await axios
                 .get(`https://api.github.com/users/${username}`)
-                .catch(() => {
-                  throw `No user found with username ${inlineCode(username)}.`;
+                .catch((err) => {
+                  if (err.response?.status === 404) {
+                    throw `No user found with username ${inlineCode(
+                      username,
+                    )}.`;
+                  }
+
+                  throw err;
                 });
 
               embed
@@ -2790,9 +2822,14 @@ module.exports = {
         } = await axios
           .get(
             `https://api.lolhuman.xyz/api/stalkig/${cleanUsername}?apikey=${process.env.LOLHUMAN_API_KEY}`,
+            { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
           )
-          .catch(() => {
-            throw `No user found with username ${cleanUsername}.`;
+          .catch((err) => {
+            if (err.response?.status === 404) {
+              throw `No user found with username ${cleanUsername}.`;
+            }
+
+            throw err;
           });
 
         embed
@@ -2856,8 +2893,12 @@ module.exports = {
           },
         } = await axios
           .get(`https://registry.npmjs.com/${nameQuery}`)
-          .catch(() => {
-            throw `No package found with name ${inlineCode(nameQuery)}.`;
+          .catch((err) => {
+            if (err.response?.status === 404) {
+              throw `No package found with name ${inlineCode(nameQuery)}.`;
+            }
+
+            throw err;
           });
 
         let maintainerArr = maintainers.map(

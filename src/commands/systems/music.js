@@ -274,9 +274,14 @@ module.exports = {
             `https://api.lolhuman.xyz/api/lirik?query=${encodeURIComponent(
               title,
             )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+            { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
           )
-          .catch(() => {
-            throw `No lyrics found with music title ${inlineCode(title)}.`;
+          .catch((err) => {
+            if (err.response?.status === 404) {
+              throw `No lyrics found with music title ${inlineCode(title)}.`;
+            }
+
+            throw err;
           });
 
         if (!result) {
