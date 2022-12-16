@@ -199,7 +199,18 @@ module.exports = {
     if (options.getSubcommandGroup() !== null) {
       return {
         filters: () => {
-          const image = options.getAttachment('image', true);
+          const attachment = options.getAttachment('image', true);
+          const supportedMIMETypes = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/bmp',
+          ];
+
+          if (!supportedMIMETypes.includes(attachment.contentType)) {
+            throw 'Please upload an image file type.';
+          }
 
           embed.setAuthor({ name: '🖼️ Applied Filter Result' });
 
@@ -208,7 +219,7 @@ module.exports = {
               const amount = options.getInteger('amount') ?? undefined;
 
               const img = await generateAttachmentFromBuffer({
-                buffer: await new Blur().getImage(image.url, amount),
+                buffer: await new Blur().getImage(attachment.url, amount),
                 fileName: 'blur',
                 fileDesc: 'Blurred Image',
               });
@@ -222,7 +233,7 @@ module.exports = {
             },
             greyscale: async () => {
               const img = await generateAttachmentFromBuffer({
-                buffer: await new Greyscale().getImage(image.url),
+                buffer: await new Greyscale().getImage(attachment.url),
                 fileName: 'greyscale',
                 fileDesc: 'Greyscaled image',
               });
@@ -236,7 +247,7 @@ module.exports = {
             },
             invert: async () => {
               const img = await generateAttachmentFromBuffer({
-                buffer: await new Invert().getImage(image.url),
+                buffer: await new Invert().getImage(attachment.url),
                 fileName: 'invert',
                 fileDesc: 'Invertd image',
               });
@@ -250,7 +261,7 @@ module.exports = {
             },
             sepia: async () => {
               const img = await generateAttachmentFromBuffer({
-                buffer: await new Sepia().getImage(image.url),
+                buffer: await new Sepia().getImage(attachment.url),
                 fileName: 'sepia',
                 fileDesc: 'Sepia Image',
               });
@@ -264,7 +275,7 @@ module.exports = {
             },
             triggered: async () => {
               const img = await generateAttachmentFromBuffer({
-                buffer: await new Triggered().getImage(image.url),
+                buffer: await new Triggered().getImage(attachment.url),
                 fileName: 'sepia',
                 fileDesc: 'Sepia Image',
               });
