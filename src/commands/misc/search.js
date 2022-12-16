@@ -974,6 +974,7 @@ module.exports = {
                 data: { result },
               } = await axios.get(
                 `${baseURL}/doujindesulatest?apikey=${process.env.LOLHUMAN_API_KEY}`,
+                { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
               );
 
               const embeds = result.map(

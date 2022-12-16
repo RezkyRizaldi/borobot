@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { AttachmentBuilder, SlashCommandBuilder } = require('discord.js');
 const { Configuration, OpenAIApi } = require('openai');
 
 const { generateEmbed } = require('../../utils');
@@ -39,6 +39,11 @@ module.exports = {
       text: async () => {
         const prompt = options.getString('prompt', true);
 
+        const attachment = new AttachmentBuilder(
+          './src/assets/images/openai-logo.png',
+          { name: 'openai-logo.png' },
+        );
+
         const {
           data: {
             choices: [{ text }],
@@ -48,12 +53,17 @@ module.exports = {
           prompt,
         });
 
-        embed.setAuthor({ name: '🤖 AI Search Result' }).setFields([
-          { name: '🔠 Prompt', value: prompt },
-          { name: '🔠 Completion', value: text },
-        ]);
+        embed
+          .setAuthor({
+            name: 'AI Search Result',
+            iconURL: 'attachment://openai-logo.png',
+          })
+          .setFields([
+            { name: '🔠 Prompt', value: prompt },
+            { name: '🔠 Completion', value: text },
+          ]);
 
-        await interaction.editReply({ embeds: [embed] });
+        await interaction.editReply({ embeds: [embed], files: [attachment] });
       },
     }[options.getSubcommand()]();
   },

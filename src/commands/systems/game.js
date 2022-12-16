@@ -50,7 +50,6 @@ module.exports = {
     if (!channel) throw "Channel doesn't exist.";
 
     const baseURL = 'https://api.lolhuman.xyz/api';
-
     const embed = generateEmbed({ interaction });
 
     return {
@@ -62,6 +61,7 @@ module.exports = {
           },
         } = await axios.get(
           `${baseURL}/tebak/asahotak?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
         );
 
         embed
@@ -134,6 +134,7 @@ module.exports = {
           },
         } = await axios.get(
           `${baseURL}/tebak/caklontong2?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
         );
 
         embed
@@ -208,6 +209,7 @@ module.exports = {
           },
         } = await axios.get(
           `${baseURL}/tebak/jenaka?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
         );
 
         embed
@@ -280,6 +282,7 @@ module.exports = {
           },
         } = await axios.get(
           `${baseURL}/tebak/kata?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
         );
 
         embed
@@ -352,6 +355,7 @@ module.exports = {
           },
         } = await axios.get(
           `${baseURL}/tebak/gambar?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
         );
 
         embed
@@ -427,6 +431,7 @@ module.exports = {
           },
         } = await axios.get(
           `${baseURL}/tebak/siapaaku?apikey=${process.env.LOLHUMAN_API_KEY}`,
+          { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
         );
 
         embed

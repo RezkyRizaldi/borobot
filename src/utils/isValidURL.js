@@ -7,7 +7,7 @@
 module.exports = (str, site) => {
   if (site) {
     return {
-      facebook: /(?:(?:http|https):\/\/)?(?:www\.)?facebook\.com\/?gi/.test(
+      facebook: /(?:(?:http|https):\/\/)?(?:www|web|m\.)?facebook.com\/?/.test(
         str,
       ),
       instagram:

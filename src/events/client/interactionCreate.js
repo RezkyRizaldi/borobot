@@ -38,16 +38,17 @@ module.exports = {
           });
         }
 
-        await command.execute(interaction).catch(
-          async (err) =>
-            await interaction.editReply({
-              content:
-                typeof err === 'string'
-                  ? err
-                  : err.message ??
-                    'There was an error while executing this command!',
-            }),
-        );
+        await command.execute(interaction).catch(async (err) => {
+          if (typeof err === 'object' && !Object.keys(err).length) return;
+
+          await interaction.editReply({
+            content:
+              typeof err === 'string'
+                ? err
+                : err.message ??
+                  'There was an error while executing this command!',
+          });
+        });
       },
       [InteractionType.MessageComponent]: async () => {
         const component = components.get(interaction.customId);
