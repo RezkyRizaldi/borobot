@@ -3,7 +3,7 @@ const { Pagination } = require('pagination.djs');
 
 /**
  *
- * @param {{ interaction: import('discord.js').ChatInputCommandInteraction, limit: Number|undefined, attachments: import('discord.js').AttachmentBuilder[]|undefined }}
+ * @param {{ interaction: import('discord.js').ChatInputCommandInteraction, limit: Number|undefined, attachments: (import('discord.js').AttachmentBuilder | import('discord.js').Attachment | import('discord.js').BufferResolvable | import('stream').Stream | import('discord.js').JSONEncodable<import('discord.js').APIAttachment> | import('discord.js').AttachmentPayload)[]|undefined }}
  */
 module.exports = ({ interaction, limit = 5, attachments }) => {
   const { client, guild } = interaction;
