@@ -8,7 +8,7 @@ const {
 } = require('discord.js');
 
 const { timeoutChoices } = require('../../constants');
-const { generatePagination, generateEmbed } = require('../../utils');
+const { generateEmbed, generatePagination } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
