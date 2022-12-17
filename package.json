@@ -46,6 +46,7 @@
     "canvas": "^2.10.2",
     "change-case": "^4.1.2",
     "color-convert": "^2.0.1",
+    "convert": "^4.9.0",
     "ctk-anime-scraper": "^3.5.0",
     "discord-api-types": "^0.37.23",
     "discord-image-generation": "^1.4.15",
@@ -76,7 +77,7 @@
     "ytdl-core": "^4.11.2"
   },
   "devDependencies": {
-    "eslint": "^8.29.0",
+    "eslint": "^8.30.0",
     "husky": "^8.0.2",
     "lint-staged": "^13.1.0",
     "nodemon": "^2.0.20",
