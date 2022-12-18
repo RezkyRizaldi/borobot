@@ -9,6 +9,28 @@ module.exports = {
     .setDescription('🤖 AI Command.')
     .addSubcommand((subcommand) =>
       subcommand
+        .setName('grammar')
+        .setDescription('🔤 Run a grammar correction with OpenAI.')
+        .addStringOption((option) =>
+          option
+            .setName('prompt')
+            .setDescription('❓ The command to generate.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('image')
+        .setDescription('🖼️ Generate Image with OpenAI.')
+        .addStringOption((option) =>
+          option
+            .setName('prompt')
+            .setDescription('❓ The command to generate.')
+            .setRequired(true),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
         .setName('text')
         .setDescription('🔠 Generate Text with OpenAI.')
         .addStringOption((option) =>
@@ -18,6 +40,7 @@ module.exports = {
             .setRequired(true),
         ),
     ),
+
   type: 'Chat Input',
 
   /**
@@ -34,23 +57,72 @@ module.exports = {
       apiKey: process.env.OPENAI_API_KEY,
     });
     const openai = new OpenAIApi(configuration);
+    const attachment = new AttachmentBuilder(
+      './src/assets/images/openai-logo.png',
+      { name: 'openai-logo.png' },
+    );
+    const prompt = options.getString('prompt', true);
 
     return {
-      text: async () => {
-        const prompt = options.getString('prompt', true);
-
-        const attachment = new AttachmentBuilder(
-          './src/assets/images/openai-logo.png',
-          { name: 'openai-logo.png' },
-        );
-
+      grammar: async () => {
         const {
           data: {
             choices: [{ text }],
           },
         } = await openai.createCompletion({
-          model: 'text-davinci-002',
+          model: 'text-davinci-003',
           prompt,
+          temperature: 0,
+          max_tokens: 60,
+          top_p: 1.0,
+          frequency_penalty: 0.0,
+          presence_penalty: 0.0,
+        });
+
+        embed
+          .setAuthor({
+            name: 'AI Search Result',
+            iconURL: 'attachment://openai-logo.png',
+          })
+          .setFields([
+            { name: '🔠 Prompt', value: prompt },
+            { name: '🔠 Completion', value: text },
+          ]);
+
+        await interaction.editReply({ embeds: [embed], files: [attachment] });
+      },
+      image: async () => {
+        const {
+          data: { data },
+        } = await openai.createImage({ prompt });
+
+        if (!data[0].url) {
+          throw 'No image can be found.';
+        }
+
+        embed
+          .setAuthor({
+            name: 'AI Search Result',
+            iconURL: 'attachment://openai-logo.png',
+          })
+          .setImage(data[0].url)
+          .setFields([{ name: '🔠 Prompt', value: prompt }]);
+
+        await interaction.editReply({ embeds: [embed], files: [attachment] });
+      },
+      text: async () => {
+        const {
+          data: {
+            choices: [{ text }],
+          },
+        } = await openai.createCompletion({
+          model: 'text-davinci-003',
+          prompt,
+          temperature: 0,
+          max_tokens: 60,
+          top_p: 1.0,
+          frequency_penalty: 0.0,
+          presence_penalty: 0.0,
         });
 
         embed

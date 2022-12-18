@@ -7,7 +7,7 @@ const {
 const wait = require('node:timers/promises').setTimeout;
 
 const { banChoices, banTempChoices } = require('../../constants');
-const { generatePagination, generateEmbed } = require('../../utils');
+const { generateEmbed, generatePagination } = require('../../utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

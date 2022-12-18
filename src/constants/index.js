@@ -34,6 +34,7 @@ const {
   waifuChoices,
   youtubeDownloadTypeChoices,
 } = require('./slashCommandOptionChoices');
+const { units } = require('./units');
 const { vtuberAffiliation } = require('./vtuberData');
 
 module.exports = {
@@ -67,6 +68,7 @@ module.exports = {
   tiktokDownloadTypeChoices,
   timeoutChoices,
   twitterDownloadTypeChoices,
+  units,
   vtuberAffiliation,
   vtuberVideoSortingChoices: vtuberVideoSorting,
   vtuberStreamSortingChoices: [...vtuberVideoSorting, ...vtuberStreamSorting],
