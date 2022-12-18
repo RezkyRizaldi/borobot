@@ -75,7 +75,7 @@ module.exports = {
         }
 
         /** @type {Number} */
-        const result = convert(360, fromUnit).to(toUnit);
+        const result = convert(amount, fromUnit).to(toUnit);
 
         embed
           .setAuthor({
