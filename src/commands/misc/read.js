@@ -7,7 +7,7 @@ const {
   generateEmbed,
   generatePagination,
   getImageReadLocale,
-} = require('../../utils');
+} = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

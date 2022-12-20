@@ -35,7 +35,7 @@ const {
   vtuberAffiliation,
   vtuberStreamSortingChoices,
   vtuberVideoSortingChoices,
-} = require('../../constants');
+} = require('@/constants');
 const {
   applyKeywordColor,
   count,
@@ -46,7 +46,7 @@ const {
   getFormattedParam,
   transformCase,
   truncate,
-} = require('../../utils');
+} = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -390,7 +390,7 @@ module.exports = {
 
           return {
             latest: async () => {
-              /** @type {{ data: import('../../constants/types').CovidLatest[] }} */
+              /** @type {{ data: import('@/constants/types').CovidLatest[] }} */
               const { data } = await axios.get(
                 `${baseURL}/daily/${moment(Date.now())
                   .subtract(2, 'd')
@@ -458,7 +458,7 @@ module.exports = {
                 .render();
             },
             list: async () => {
-              /** @type {{ data: { countries: import('../../constants/types').CovidCountry[] } }} */
+              /** @type {{ data: { countries: import('@/constants/types').CovidCountry[] } }} */
               const {
                 data: { countries },
               } = await axios.get(`${baseURL}/countries`);
@@ -476,7 +476,7 @@ module.exports = {
               const name = options.getString('name');
 
               if (!name) {
-                /** @type {{ data: import('../../constants/types').CovidConfirmed[] }} */
+                /** @type {{ data: import('@/constants/types').CovidConfirmed[] }} */
                 const { data } = await axios.get(`${baseURL}/confirmed`);
 
                 const embeds = data.map(
@@ -568,7 +568,7 @@ module.exports = {
                   .render();
               }
 
-              /** @type {{ data: { countries: import('../../constants/types').CovidCountry[] } }} */
+              /** @type {{ data: { countries: import('@/constants/types').CovidCountry[] } }} */
               const {
                 data: { countries },
               } = await axios.get(`${baseURL}/countries`);
@@ -581,7 +581,7 @@ module.exports = {
                 throw `No information found in ${inlineCode(name)}.`;
               }
 
-              /** @type {{ data: import('../../constants/types').CovidConfirmed[] }} */
+              /** @type {{ data: import('@/constants/types').CovidConfirmed[] }} */
               const { data } = await axios.get(
                 `${baseURL}/countries/${country}/confirmed`,
               );
@@ -784,7 +784,7 @@ module.exports = {
                   .render();
               }
 
-              /** @type {{ data: import('../../constants/types').GenshinArtifact }} */
+              /** @type {{ data: import('@/constants/types').GenshinArtifact }} */
               const {
                 data: {
                   '1-piece_bonus': piece1,
@@ -874,7 +874,7 @@ module.exports = {
                   .render();
               }
 
-              /** @type {{ data: import('../../constants/types').GenshinCharacter }} */
+              /** @type {{ data: import('@/constants/types').GenshinCharacter }} */
               const {
                 data: {
                   affiliation,
@@ -1136,7 +1136,7 @@ module.exports = {
                   .render();
               }
 
-              /** @type {{ data: import('../../constants/types').GenshinWeapon }} */
+              /** @type {{ data: import('@/constants/types').GenshinWeapon }} */
               const {
                 data: {
                   baseAttack,
@@ -1204,7 +1204,7 @@ module.exports = {
             user: async () => {
               const username = options.getString('username', true);
 
-              /** @type {{ data: import('../../constants/types').GithubUser }} */
+              /** @type {{ data: import('@/constants/types').GithubUser }} */
               const {
                 data: {
                   avatar_url,
@@ -1323,7 +1323,7 @@ module.exports = {
 
               if (order) query.append('order', order);
 
-              /** @type {{ data: { items: import('../../constants/types').GithubRepository[] } }} */
+              /** @type {{ data: { items: import('@/constants/types').GithubRepository[] } }} */
               const {
                 data: { items },
               } = await axios.get(
@@ -2806,7 +2806,7 @@ module.exports = {
           ? usernameQuery.replace('@', '')
           : usernameQuery;
 
-        /** @type {{ data: { result: import('../../constants/types').InstagramInfo } }} */
+        /** @type {{ data: { result: import('@/constants/types').InstagramInfo } }} */
         const {
           data: {
             result: {
@@ -2876,7 +2876,7 @@ module.exports = {
       npm: async () => {
         const nameQuery = options.getString('name', true);
 
-        /** @type {{ data: import('../../constants/types').NPMPackage }} */
+        /** @type {{ data: import('@/constants/types').NPMPackage }} */
         const {
           data: {
             author,
@@ -3015,7 +3015,7 @@ module.exports = {
           /**
            *
            * @param {Error} err
-           * @param {import('../../constants/types').Weather[]} result
+           * @param {import('@/constants/types').Weather[]} result
            */
           async (err, result) => {
             if (err) throw err;

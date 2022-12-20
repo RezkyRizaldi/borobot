@@ -1,8 +1,8 @@
 const { bold, inlineCode, SlashCommandBuilder } = require('discord.js');
 const mexp = require('math-expression-evaluator');
 
-const { math } = require('../../constants');
-const { generateEmbed, generatePagination } = require('../../utils');
+const { math } = require('@/constants');
+const { generateEmbed, generatePagination } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

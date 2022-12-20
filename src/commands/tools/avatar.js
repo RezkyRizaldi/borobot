@@ -4,7 +4,7 @@ const {
   hyperlink,
 } = require('discord.js');
 
-const { generateEmbed } = require('../../utils');
+const { generateEmbed } = require('@/utils');
 
 module.exports = {
   data: new ContextMenuCommandBuilder()

@@ -9,7 +9,7 @@ const {
   WebhookClient,
 } = require('discord.js');
 
-const { applyMessageType, truncate } = require('../../utils');
+const { applyMessageType, truncate } = require('@/utils');
 
 module.exports = {
   name: Events.MessageUpdate,

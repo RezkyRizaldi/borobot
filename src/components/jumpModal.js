@@ -1,6 +1,6 @@
 const { bold, inlineCode } = require('discord.js');
 
-const { isNumericString } = require('../utils');
+const { isNumericString } = require('@/utils');
 
 module.exports = {
   data: { name: 'jumpModal' },

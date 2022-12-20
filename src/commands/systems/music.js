@@ -14,8 +14,8 @@ const { Pagination } = require('pagination.djs');
 const pluralize = require('pluralize');
 const progressbar = require('string-progressbar');
 
-const { musicSearchChoices, musicSettingChoices } = require('../../constants');
-const { applyRepeatMode, truncate, generateEmbed } = require('../../utils');
+const { musicSearchChoices, musicSettingChoices } = require('@/constants');
+const { applyRepeatMode, truncate, generateEmbed } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

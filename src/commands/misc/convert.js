@@ -1,8 +1,8 @@
 const { convert } = require('convert');
 const { bold, codeBlock, SlashCommandBuilder } = require('discord.js');
 
-const { units } = require('../../constants');
-const { generateEmbed, generatePagination } = require('../../utils');
+const { units } = require('@/constants');
+const { generateEmbed, generatePagination } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

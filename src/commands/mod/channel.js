@@ -16,14 +16,14 @@ const {
 const ordinal = require('ordinal');
 const pluralize = require('pluralize');
 
-const { channelCreateChoices, channelType } = require('../../constants');
+const { channelCreateChoices, channelType } = require('@/constants');
 const {
   applyThreadAutoArchiveDuration,
   applyVideoQualityMode,
   count,
   generateEmbed,
   generatePagination,
-} = require('../../utils');
+} = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

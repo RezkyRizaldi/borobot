@@ -17,7 +17,7 @@ const {
   applyNSFWLevel,
   applyVerificationLevel,
   getPreferredLocale,
-} = require('../../utils');
+} = require('@/utils');
 
 module.exports = {
   name: Events.GuildUpdate,

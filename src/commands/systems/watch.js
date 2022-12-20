@@ -7,7 +7,7 @@ const {
 } = require('discord.js');
 const pluralize = require('pluralize');
 
-const { count, generateEmbed } = require('../../utils');
+const { count, generateEmbed } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -66,12 +66,12 @@ module.exports = {
 
         const Gogoanime = new AnimeScraper.Gogoanime();
 
-        /** @type {import('../../constants/types').GogoAnimeSearch[]} */
+        /** @type {import('@/constants/types').GogoAnimeSearch[]} */
         const results = await Gogoanime.search(title);
 
         if (!results.length) throw `No result found for ${title}`;
 
-        /** @type {import('../../constants/types').GogoAnimeFetch} */
+        /** @type {import('@/constants/types').GogoAnimeFetch} */
         const { episodeCount, name, slug } = await Gogoanime.fetchAnime(
           results[0].link,
         );
@@ -83,7 +83,7 @@ module.exports = {
           })}.`;
         }
 
-        /** @type {import('../../constants/types').GogoAnimeEpisode} */
+        /** @type {import('@/constants/types').GogoAnimeEpisode} */
         const { id, name: animeName } = await Gogoanime.getEpisodes(
           slug,
           episode,

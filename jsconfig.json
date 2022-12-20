@@ -1,0 +1,55 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ESNext",
+    "baseUrl": "./",
+    "paths": {
+      "@/assets/*": [
+        "./src/assets/*"
+      ],
+      "@/assets": [
+        "./src/assets"
+      ],
+      "@/commands/*": [
+        "./src/commands/*"
+      ],
+      "@/commands": [
+        "./src/commands"
+      ],
+      "@/components/*": [
+        "./src/components/*"
+      ],
+      "@/components": [
+        "./src/components"
+      ],
+      "@/constants/*": [
+        "./src/constants/*"
+      ],
+      "@/constants": [
+        "./src/constants"
+      ],
+      "@/events/*": [
+        "./src/events/*"
+      ],
+      "@/events": [
+        "./src/events"
+      ],
+      "@/handlers/*": [
+        "./src/functions/handlers/*"
+      ],
+      "@/handlers": [
+        "./src/functions/handlers"
+      ],
+      "@/utils/*": [
+        "./src/utils/*"
+      ],
+      "@/utils": [
+        "./src/utils"
+      ],
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "**/node_modules/*"
+  ]
+}

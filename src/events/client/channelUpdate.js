@@ -15,7 +15,7 @@ const {
 } = require('discord.js');
 const pluralize = require('pluralize');
 
-const { channelType } = require('../../constants');
+const { channelType } = require('@/constants');
 
 module.exports = {
   name: Events.ChannelUpdate,

@@ -9,7 +9,7 @@ const {
   TimestampStyles,
 } = require('discord.js');
 
-const { applyActivity, applyPresence, generateEmbed } = require('../../utils');
+const { applyActivity, applyPresence, generateEmbed } = require('@/utils');
 
 module.exports = {
   data: new ContextMenuCommandBuilder()

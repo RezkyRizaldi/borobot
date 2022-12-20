@@ -2,13 +2,13 @@ const { translate } = require('@vitalets/google-translate-api');
 const { bold, SlashCommandBuilder } = require('discord.js');
 const wait = require('node:timers/promises').setTimeout;
 
-const { languages } = require('../../constants');
+const { languages } = require('@/constants');
 const {
   generatePagination,
   getLanguage,
   getTranslateFlag,
   generateEmbed,
-} = require('../../utils');
+} = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

@@ -23,7 +23,7 @@ const {
   mangaSearchTypeChoices,
   newsCountries,
   searchSortingChoices,
-} = require('../../constants');
+} = require('@/constants');
 const {
   count,
   generateAttachmentFromBuffer,
@@ -32,7 +32,7 @@ const {
   isAlphabeticLetter,
   isNumericString,
   truncate,
-} = require('../../utils');
+} = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -405,7 +405,7 @@ module.exports = {
 
               if (statusQuery) query.append('status', statusQuery);
 
-              /** @type {{ data: { data: import('../../constants/types').AnimeInfo[] } }} */
+              /** @type {{ data: { data: import('@/constants/types').AnimeInfo[] } }} */
               const {
                 data: { data },
               } = await axios.get(`https://api.jikan.moe/v4/anime?${query}`);
@@ -576,7 +576,7 @@ module.exports = {
 
               if (name) query.append('q', encodeURIComponent(name));
 
-              /** @type {{ data: { data: import('../../constants/types').AnimeCharacter[] } }} */
+              /** @type {{ data: { data: import('@/constants/types').AnimeCharacter[] } }} */
               const {
                 data: { data },
               } = await axios.get(
@@ -642,7 +642,7 @@ module.exports = {
 
           return {
             kbbi: async () => {
-              /** @type {{ data: { result: import('../../constants/types').KBBI[] } }} */
+              /** @type {{ data: { result: import('@/constants/types').KBBI[] } }} */
               const {
                 data: { result },
               } = await axios
@@ -809,7 +809,7 @@ module.exports = {
             urban: async () => {
               const query = new URLSearchParams({ term });
 
-              /** @type {{ data: { list: import('../../constants/types').UrbanDictionary[] } }} */
+              /** @type {{ data: { list: import('@/constants/types').UrbanDictionary[] } }} */
               const {
                 data: { list },
               } = await axios.get(
@@ -872,7 +872,7 @@ module.exports = {
               });
               const baseURL = 'https://developer.mozilla.org';
 
-              /** @type {{ data: { documents: import('../../constants/types').MDNDocument[], suggestions: import('../../constants/types').MDNSuggestion[] } }} */
+              /** @type {{ data: { documents: import('@/constants/types').MDNDocument[], suggestions: import('@/constants/types').MDNSuggestion[] } }} */
               const {
                 data: { documents, suggestions },
               } = await axios.get(`${baseURL}/api/v1/search?${query}`);
@@ -890,7 +890,7 @@ module.exports = {
                       : 'es',
                 });
 
-                /** @type {{ data: { documents: import('../../constants/types').MDNDocument[] } }} */
+                /** @type {{ data: { documents: import('@/constants/types').MDNDocument[] } }} */
                 const {
                   data: { documents: docs },
                 } = await axios.get(`${baseURL}/api/v1/search?${newQuery}`);
@@ -969,7 +969,7 @@ module.exports = {
 
           return {
             latest: async () => {
-              /** @type {{ data: { result: import('../../constants/types').DoujindesuLatest[] } }} */
+              /** @type {{ data: { result: import('@/constants/types').DoujindesuLatest[] } }} */
               const {
                 data: { result },
               } = await axios.get(
@@ -1006,7 +1006,7 @@ module.exports = {
             query: async () => {
               const query = options.getString('query', true);
 
-              /** @type {{ data: { result: import('../../constants/types').Doujindesu[] } }} */
+              /** @type {{ data: { result: import('@/constants/types').Doujindesu[] } }} */
               const {
                 data: { result },
               } = await axios
@@ -1162,7 +1162,7 @@ module.exports = {
                 throw `No country available with name ${inlineCode(name)}.`;
               }
 
-              /** @type {{ articles: import('../../constants/types').News[] }} */
+              /** @type {{ articles: import('@/constants/types').News[] }} */
               const { articles } = await newsapi.v2.topHeadlines({
                 country: Object.keys(newsCountries).find(
                   (key) =>
@@ -1254,7 +1254,7 @@ module.exports = {
 
               if (!isNumericString(tag)) throw 'Please enter a number.';
 
-              /** @type {{ data: { result: import('../../constants/types').NHentai } }} */
+              /** @type {{ data: { result: import('@/constants/types').NHentai } }} */
               const {
                 data: {
                   result: { image, tags, title_native },
@@ -1302,7 +1302,7 @@ module.exports = {
             query: async () => {
               const query = options.getString('query', true);
 
-              /** @type {{ data: { result: import('../../constants/types').NHentaiSearch[] } }} */
+              /** @type {{ data: { result: import('@/constants/types').NHentaiSearch[] } }} */
               const {
                 data: { result },
               } = await axios
@@ -1386,7 +1386,7 @@ module.exports = {
           query.append('letter', letter);
         }
 
-        /** @type {{ data: { data: import('../../constants/types').MangaInfo[] } }} */
+        /** @type {{ data: { data: import('@/constants/types').MangaInfo[] } }} */
         const {
           data: { data },
         } = await axios.get(`https://api.jikan.moe/v4/manga?${query}`);
