@@ -5,7 +5,7 @@ const {
   SlashCommandBuilder,
 } = require('discord.js');
 
-const { slowmodeChoices } = require('../../constants');
+const { slowmodeChoices } = require('@/constants');
 
 module.exports = {
   data: new SlashCommandBuilder()

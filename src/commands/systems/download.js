@@ -14,14 +14,14 @@ const {
   tiktokDownloadTypeChoices,
   twitterDownloadTypeChoices,
   youtubeDownloadTypeChoices,
-} = require('../../constants');
+} = require('@/constants');
 const {
   generateAttachmentFromBuffer,
   generateEmbed,
   generatePagination,
   isValidURL,
   truncate,
-} = require('../../utils');
+} = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -167,7 +167,7 @@ module.exports = {
 
         return {
           otakudesu: async () => {
-            /** @type {{ data: { result: { link_dl: import('../../constants/types').Otakudesu[] } } }} */
+            /** @type {{ data: { result: { link_dl: import('@/constants/types').Otakudesu[] } } }} */
             const {
               data: {
                 result: { link_dl: downloads },
@@ -216,7 +216,7 @@ module.exports = {
               { name: 'kusonime-logo.png' },
             );
 
-            /** @type {{ data: { result: import('../../constants/types').Kusonime } }} */
+            /** @type {{ data: { result: import('@/constants/types').Kusonime } }} */
             const {
               data: {
                 result: { title: t, link_dl },
@@ -289,7 +289,7 @@ module.exports = {
               throw 'Please provide a valid Instagram URL.';
             }
 
-            /** @type {{ data: { result: import('../../constants/types').Instagram } }} */
+            /** @type {{ data: { result: import('@/constants/types').Instagram } }} */
             const {
               data: {
                 result: {
@@ -395,7 +395,7 @@ module.exports = {
           throw 'Please provide a valid Spotify URL.';
         }
 
-        /** @type {{ data: { result: import('../../constants/types').Spotify } }} */
+        /** @type {{ data: { result: import('@/constants/types').Spotify } }} */
         const {
           data: {
             result: {
@@ -486,7 +486,7 @@ module.exports = {
             await interaction.editReply({ files: [video] });
           },
           videoNoWatermark: async () => {
-            /** @type {{ data: { result: import('../../constants/types').TikTok } }} */
+            /** @type {{ data: { result: import('@/constants/types').TikTok } }} */
             const {
               data: {
                 result: {
@@ -552,7 +552,7 @@ module.exports = {
 
         return {
           image: async () => {
-            /** @type {{ data: { result: import('../../constants/types').TwitterImage } }} */
+            /** @type {{ data: { result: import('@/constants/types').TwitterImage } }} */
             const {
               data: {
                 result: {
@@ -599,7 +599,7 @@ module.exports = {
             await interaction.editReply({ embeds: [embed] });
           },
           video: async () => {
-            /** @type {{ data: { result: import('../../constants/types').TwitterVideo } }} */
+            /** @type {{ data: { result: import('@/constants/types').TwitterVideo } }} */
             const {
               data: {
                 result: {
@@ -671,7 +671,7 @@ module.exports = {
 
         return {
           audio: async () => {
-            /** @type {{ data: { result: import('../../constants/types').YouTubeAudio } }} */
+            /** @type {{ data: { result: import('@/constants/types').YouTubeAudio } }} */
             const {
               data: {
                 result: { link, size, thumbnail, title },
@@ -701,7 +701,7 @@ module.exports = {
             await interaction.editReply({ embeds: [embed] });
           },
           shorts: async () => {
-            /** @type {{ data: { result: import('../../constants/types').YouTubeShorts } }} */
+            /** @type {{ data: { result: import('@/constants/types').YouTubeShorts } }} */
             const {
               data: {
                 result: { link, size, thumbnail, title },
@@ -731,7 +731,7 @@ module.exports = {
             await interaction.editReply({ embeds: [embed] });
           },
           video: async () => {
-            /** @type {{ data: { result: import('../../constants/types').YouTubeVideo } }} */
+            /** @type {{ data: { result: import('@/constants/types').YouTubeVideo } }} */
             const {
               data: {
                 result: {

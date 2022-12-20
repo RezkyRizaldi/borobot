@@ -2,7 +2,7 @@ const { EmbedBuilder, inlineCode } = require('discord.js');
 const { Events: DistubeEvents } = require('distube');
 const progressbar = require('string-progressbar');
 
-const { applyRepeatMode } = require('../../utils');
+const { applyRepeatMode } = require('@/utils');
 
 module.exports = {
   name: DistubeEvents.PLAY_SONG,

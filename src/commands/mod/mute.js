@@ -1,7 +1,7 @@
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
-const { serverMuteChoices, serverMuteTempChoices } = require('../../constants');
-const { serverMute } = require('../../utils');
+const { serverMuteChoices, serverMuteTempChoices } = require('@/constants');
+const { serverMute } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

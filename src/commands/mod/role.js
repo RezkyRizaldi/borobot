@@ -17,14 +17,14 @@ const pluralize = require('pluralize');
 const {
   roleModifyPermissionTypeChoices,
   rolePermissionChoices,
-} = require('../../constants');
+} = require('@/constants');
 const {
   applyHexColor,
   applyPermission,
   count,
   generateEmbed,
   generatePagination,
-} = require('../../utils');
+} = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

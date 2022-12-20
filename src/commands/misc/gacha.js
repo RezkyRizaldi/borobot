@@ -3,8 +3,8 @@ const axios = require('axios').default;
 const { SlashCommandBuilder } = require('discord.js');
 const nekoClient = require('nekos.life');
 
-const { waifuChoices } = require('../../constants');
-const { generateAttachmentFromBuffer, generateEmbed } = require('../../utils');
+const { waifuChoices } = require('@/constants');
+const { generateAttachmentFromBuffer, generateEmbed } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

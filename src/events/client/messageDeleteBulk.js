@@ -16,7 +16,7 @@ const {
   groupMessageByAuthor,
   groupMessageByType,
   truncate,
-} = require('../../utils');
+} = require('@/utils');
 
 module.exports = {
   name: Events.MessageBulkDelete,

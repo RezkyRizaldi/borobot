@@ -10,7 +10,7 @@ const {
   WebhookClient,
 } = require('discord.js');
 
-const { applyThreadAutoArchiveDuration } = require('../../utils');
+const { applyThreadAutoArchiveDuration } = require('@/utils');
 
 module.exports = {
   name: Events.ThreadCreate,

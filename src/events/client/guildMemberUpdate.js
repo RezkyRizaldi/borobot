@@ -10,7 +10,7 @@ const {
   WebhookClient,
 } = require('discord.js');
 
-const { applyText } = require('../../utils');
+const { applyText } = require('@/utils');
 
 module.exports = {
   name: 'guildMemberUpdate',

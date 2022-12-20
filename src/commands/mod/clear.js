@@ -6,7 +6,7 @@ const {
 } = require('discord.js');
 const pluralize = require('pluralize');
 
-const { count, generateEmbed, groupMessageByAuthor } = require('../../utils');
+const { count, generateEmbed, groupMessageByAuthor } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

@@ -1,4 +1,4 @@
-const { languages } = require('../constants');
+const { languages } = require('@/constants');
 
 /**
  *

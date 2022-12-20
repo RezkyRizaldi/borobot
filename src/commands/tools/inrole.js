@@ -1,6 +1,6 @@
 const { bold, SlashCommandBuilder } = require('discord.js');
 
-const { generateEmbed, generatePagination } = require('../../utils');
+const { generateEmbed, generatePagination } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -33,16 +33,15 @@ module.exports = {
     );
 
     if (!membersWithRole.size) {
-      throw `There is no member with role ${role}`;
+      throw `There is no member with role ${role}.`;
     }
 
     const descriptions = [...membersWithRole.values()].map(
-      (member, ii) =>
-        `${bold(`${ii + 1}.`)} ${member} (${member.user.username})`,
+      (member, i) => `${bold(`${i + 1}.`)} ${member} (${member.user.username})`,
     );
 
     if (membersWithRole.size > 10) {
-      return await generatePagination()
+      return await generatePagination({ interaction, limit: 10 })
         .setAuthor({
           name: `👥 Member Lists with Role ${
             role.name

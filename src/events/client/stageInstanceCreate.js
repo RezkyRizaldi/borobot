@@ -8,7 +8,7 @@ const {
   WebhookClient,
 } = require('discord.js');
 
-const { applyStagePrivacyLevel } = require('../../utils');
+const { applyStagePrivacyLevel } = require('@/utils');
 
 module.exports = {
   name: Events.StageInstanceCreate,

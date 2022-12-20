@@ -9,7 +9,7 @@ const {
   WebhookClient,
 } = require('discord.js');
 
-const { applyStickerFormat, applyStickerType } = require('../../utils');
+const { applyStickerFormat, applyStickerType } = require('@/utils');
 
 module.exports = {
   name: Events.GuildStickerCreate,

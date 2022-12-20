@@ -1,0 +1,56 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "NodeNext",
+    "target": "ESNext",
+    "baseUrl": "./src",
+    "paths": {
+      "@/assets/*": [
+        "assets/*"
+      ],
+      "@/assets": [
+        "assets"
+      ],
+      "@/commands/*": [
+        "commands/*"
+      ],
+      "@/commands": [
+        "commands"
+      ],
+      "@/components/*": [
+        "components/*"
+      ],
+      "@/components": [
+        "components"
+      ],
+      "@/constants/*": [
+        "constants/*"
+      ],
+      "@/constants": [
+        "constants"
+      ],
+      "@/events/*": [
+        "events/*"
+      ],
+      "@/events": [
+        "events"
+      ],
+      "@/handlers/*": [
+        "functions/handlers/*"
+      ],
+      "@/handlers": [
+        "functions/handlers"
+      ],
+      "@/utils/*": [
+        "utils/*"
+      ],
+      "@/utils": [
+        "utils"
+      ],
+    },
+  },
+  "exclude": [
+    "node_modules",
+    "**/node_modules/*"
+  ]
+}

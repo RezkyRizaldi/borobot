@@ -7,7 +7,7 @@ const {
   inlineCode,
   SlashCommandBuilder,
 } = require('discord.js');
-const { generatePagination } = require('../../utils');
+const { generatePagination } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

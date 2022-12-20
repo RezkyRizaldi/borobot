@@ -1,7 +1,7 @@
 const axios = require('axios').default;
 const { bold, codeBlock, SlashCommandBuilder } = require('discord.js');
 
-const { generateEmbed } = require('../../utils');
+const { generateEmbed } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -54,7 +54,7 @@ module.exports = {
 
     return {
       brainteaser: async () => {
-        /** @type {{ data: { result: import('../../constants/types').BrainTeaser } }} */
+        /** @type {{ data: { result: import('@/constants/types').BrainTeaser } }} */
         const {
           data: {
             result: { pertanyaan, jawaban },
@@ -127,7 +127,7 @@ module.exports = {
           );
       },
       caklontong: async () => {
-        /** @type {{ data: { result: import('../../constants/types').CakLontong } }} */
+        /** @type {{ data: { result: import('@/constants/types').CakLontong } }} */
         const {
           data: {
             result: { answer, information, question },
@@ -202,7 +202,7 @@ module.exports = {
           );
       },
       dadjokes: async () => {
-        /** @type {{ data: { result: import('../../constants/types').DadJoke } }} */
+        /** @type {{ data: { result: import('@/constants/types').DadJoke } }} */
         const {
           data: {
             result: { answer, question },
@@ -275,7 +275,7 @@ module.exports = {
           );
       },
       guessword: async () => {
-        /** @type {{ data: { result: import('../../constants/types').GuessWord } }} */
+        /** @type {{ data: { result: import('@/constants/types').GuessWord } }} */
         const {
           data: {
             result: { jawaban, pertanyaan },
@@ -348,7 +348,7 @@ module.exports = {
           );
       },
       tebakgambar: async () => {
-        /** @type {{ data: { result: import('../../constants/types').TebakGambar } }} */
+        /** @type {{ data: { result: import('@/constants/types').TebakGambar } }} */
         const {
           data: {
             result: { answer, image },
@@ -424,7 +424,7 @@ module.exports = {
           );
       },
       whoami: async () => {
-        /** @type {{ data: { result: import('../../constants/types').WhoAmI } }} */
+        /** @type {{ data: { result: import('@/constants/types').WhoAmI } }} */
         const {
           data: {
             result: { answer, question },

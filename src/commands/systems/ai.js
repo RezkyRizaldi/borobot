@@ -1,7 +1,7 @@
 const { AttachmentBuilder, SlashCommandBuilder } = require('discord.js');
 const { Configuration, OpenAIApi } = require('openai');
 
-const { generateEmbed } = require('../../utils');
+const { generateEmbed } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

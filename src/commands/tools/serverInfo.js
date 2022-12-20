@@ -22,7 +22,7 @@ const {
   count,
   generateEmbed,
   getPreferredLocale,
-} = require('../../utils');
+} = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

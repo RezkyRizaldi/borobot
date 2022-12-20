@@ -1,6 +1,6 @@
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 
-const { emitChoices } = require('../../constants');
+const { emitChoices } = require('@/constants');
 
 module.exports = {
   data: new SlashCommandBuilder()

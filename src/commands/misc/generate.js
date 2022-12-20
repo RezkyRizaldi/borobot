@@ -16,7 +16,7 @@ const {
   isValidURL,
   generateAttachmentFromBuffer,
   generateEmbed,
-} = require('../../utils');
+} = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()

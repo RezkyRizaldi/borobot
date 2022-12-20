@@ -8,7 +8,7 @@ const {
   WebhookClient,
 } = require('discord.js');
 
-const { channelType } = require('../../constants');
+const { channelType } = require('@/constants');
 
 module.exports = {
   name: Events.ChannelCreate,
