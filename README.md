@@ -16,7 +16,7 @@ A minimalist multi-purpose Discord bot. Treat you more than just friend.
 Borobot provides you with various features, such as:
 
 - Moderation (ban, kick, mute, timeout, etc.)
-- Utilities (calculator, image generator, dictionary, searcher, downloader, translator, AI, etc.)
+- Utilities (calculator, image generator, dictionary, searcher, downloader, translator, converter, AI, etc.)
 - Music (YouTube, Soundcloud, Spotify, etc.)
 - Games (riddle, quiz, etc.)
 - Tools (guild/member/channel/role information, guild/member/channel/role manager, etc.)
