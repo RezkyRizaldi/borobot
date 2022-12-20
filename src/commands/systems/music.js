@@ -890,6 +890,6 @@ module.exports = {
             break;
         }
       },
-    }[options.getSubcommandGroup()];
+    }[options.getSubcommandGroup()]();
   },
 };
