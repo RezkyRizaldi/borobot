@@ -1,52 +1,53 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
+    "moduleResolution": "NodeNext",
     "target": "ESNext",
-    "baseUrl": "./",
+    "baseUrl": "./src",
     "paths": {
       "@/assets/*": [
-        "./src/assets/*"
+        "assets/*"
       ],
       "@/assets": [
-        "./src/assets"
+        "assets"
       ],
       "@/commands/*": [
-        "./src/commands/*"
+        "commands/*"
       ],
       "@/commands": [
-        "./src/commands"
+        "commands"
       ],
       "@/components/*": [
-        "./src/components/*"
+        "components/*"
       ],
       "@/components": [
-        "./src/components"
+        "components"
       ],
       "@/constants/*": [
-        "./src/constants/*"
+        "constants/*"
       ],
       "@/constants": [
-        "./src/constants"
+        "constants"
       ],
       "@/events/*": [
-        "./src/events/*"
+        "events/*"
       ],
       "@/events": [
-        "./src/events"
+        "events"
       ],
       "@/handlers/*": [
-        "./src/functions/handlers/*"
+        "functions/handlers/*"
       ],
       "@/handlers": [
-        "./src/functions/handlers"
+        "functions/handlers"
       ],
       "@/utils/*": [
-        "./src/utils/*"
+        "utils/*"
       ],
       "@/utils": [
-        "./src/utils"
+        "utils"
       ],
-    }
+    },
   },
   "exclude": [
     "node_modules",
