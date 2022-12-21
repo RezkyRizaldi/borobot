@@ -1,6 +1,6 @@
 {
   "name": "borobot",
-  "version": "1.38.0",
+  "version": "1.39.0",
   "description": "A simple Discord Bot build with Discord.js",
   "displayName": "Borobot",
   "bugs": {
@@ -69,6 +69,7 @@
     "math-expression-evaluator": "^1.4.0",
     "minecraft-data": "^3.20.0",
     "moment": "^2.29.4",
+    "mongoose": "^6.8.1",
     "nekos.life": "^3.0.0",
     "newsapi": "^2.4.1",
     "openai": "^3.1.0",
@@ -115,6 +116,10 @@
     "@/events": "./src/events",
     "@/handlers/*": "./src/functions/handlers/*",
     "@/handlers": "./src/functions/handlers",
+    "@/lang/*": "./src/lang/*",
+    "@/lang": "./src/lang",
+    "@/schemas/*": "./src/schemas/*",
+    "@/schemas": "./src/schemas",
     "@/utils/*": "./src/utils/*",
     "@/utils": "./src/utils"
   }

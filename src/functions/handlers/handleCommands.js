@@ -4,11 +4,10 @@ const path = require('path');
 
 /**
  *
- * @param {import('discord.js').Client} client
+ * @param {import('@/constants/types').Client} client
  */
 module.exports = (client) => {
   client.handleCommands = async () => {
-    /** @type {{ commands: import('discord.js').Collection<String, { data: import('discord.js').SlashCommandBuilder, type: String, execute(): Promise<void> }>, commandArray: import('discord.js').RESTPostAPIChatInputApplicationCommandsJSONBody[] }} */
     const { commands, commandArray } = client;
     const commandPath = path.join(__dirname, '..', '..', 'commands');
     const commandFolders = fs.readdirSync(commandPath);
@@ -22,7 +21,7 @@ module.exports = (client) => {
       for (const file of commandFiles) {
         const filePath = path.join(commandSubPath, file);
 
-        /** @type {{ data: import('discord.js').SlashCommandBuilder, type: String, execute(): Promise<void> }} */
+        /** @type {import('@/constants/types').Command} */
         const command = require(filePath);
 
         commands.set(command.data.name, command);

@@ -12,6 +12,7 @@ const {
 const { DisTube } = require('distube');
 require('dotenv').config();
 const fs = require('fs');
+const mongoose = require('mongoose');
 const path = require('path');
 
 const keepAlive = require('./server');
@@ -31,8 +32,7 @@ const {
 const { Channel, GuildMember, Message, Reaction, ThreadMember, User } =
   Partials;
 
-/** @type {{ commands: import('discord.js').Collection, components: import('discord.js').Collection, paginations: import('discord.js').Collection, distube: import('distube').DisTube, discordTogether: import('discord-together').DiscordTogether<{[x: string]: string}>, handleEvents(): void, handleComponents(): void, handleCommands(): Promise<void> }} */
-
+/** @type {import('@/constants/types').Client} */
 const client = new Client({
   intents: [
     GuildBans,
@@ -52,8 +52,8 @@ const client = new Client({
 client.commands = new Collection();
 client.components = new Collection();
 client.paginations = new Collection();
+client.languages = new Collection();
 client.commandArray = [];
-
 client.distube = new DisTube(client, {
   emitNewSongOnly: true,
   emitAddSongWhenCreatingQueue: false,
@@ -64,7 +64,6 @@ client.distube = new DisTube(client, {
     new YtDlpPlugin({ update: false }),
   ],
 });
-
 client.discordTogether = new DiscordTogether(client);
 
 const funcPath = path.join(__dirname, 'functions');
@@ -80,14 +79,13 @@ for (const folder of funcFolders) {
   }
 }
 
+client.handleEvents();
+client.handleComponents();
+
 (async () => {
-  client.handleEvents();
-
-  client.handleComponents();
-
   await client.handleCommands();
-
   await client.login(process.env.TOKEN);
-})();
+  await mongoose.set('strictQuery', true).connect(process.env.MONGODB_URI);
+})().catch(console.error);
 
 keepAlive();

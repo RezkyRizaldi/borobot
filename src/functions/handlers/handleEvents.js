@@ -1,9 +1,10 @@
 const fs = require('fs');
+const { connection } = require('mongoose');
 const path = require('path');
 
 /**
  *
- * @param {import('discord.js').Client} client
+ * @param {import('@/constants/types').Client} client
  */
 module.exports = (client) => {
   client.handleEvents = () => {
@@ -20,6 +21,8 @@ module.exports = (client) => {
         case 'client':
           for (const file of eventFiles) {
             const filePath = path.join(eventSubPath, file);
+
+            /** @type {import('@/constants/types').Event} */
             const event = require(filePath);
 
             event.once
@@ -38,6 +41,8 @@ module.exports = (client) => {
         case 'distube':
           for (const file of eventFiles) {
             const filePath = path.join(eventSubPath, file);
+
+            /** @type {import('@/constants/types').Event} */
             const event = require(filePath);
 
             client.distube.on(
@@ -46,6 +51,25 @@ module.exports = (client) => {
             );
           }
 
+          break;
+
+        case 'mongo':
+          for (const file of eventFiles) {
+            const filePath = path.join(eventSubPath, file);
+
+            /** @type {import('@/constants/types').Event} */
+            const event = require(filePath);
+
+            event.once
+              ? connection.once(
+                  event.name,
+                  async (...args) => await event.execute(...args, client),
+                )
+              : connection.on(
+                  event.name,
+                  async (...args) => await event.execute(...args, client),
+                );
+          }
           break;
       }
     }

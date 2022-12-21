@@ -41,6 +41,18 @@
       "@/handlers": [
         "functions/handlers"
       ],
+      "@/lang/*": [
+        "lang/*"
+      ],
+      "@/lang": [
+        "lang"
+      ],
+      "@/schemas/*": [
+        "schemas/*"
+      ],
+      "@/schemas": [
+        "schemas"
+      ],
       "@/utils/*": [
         "utils/*"
       ],
