@@ -1,3 +1,4 @@
+const AsciiTable = require('ascii-table');
 const { connection } = require('mongoose');
 
 const { loadFiles } = require('@/utils');
@@ -10,33 +11,58 @@ module.exports = (client) => {
   client.handleEvents = async () => {
     const files = await loadFiles('events');
 
-    files.forEach((file) => {
-      /** @type {import('@/constants/types').Event} */
-      const event = require(file);
+    const table = new AsciiTable()
+      .setTitle(`Events${files.length ? ` (${files.length})` : ''}`)
+      .setHeading('#', 'Name', 'Category', 'Status');
 
-      const execute = async (...args) => await event.execute(...args, client);
+    files
+      .sort((a, b) => a.split('/').at(-1).localeCompare(b.split('/').at(-1)))
+      .forEach((file, i) => {
+        /** @type {import('@/constants/types').Event} */
+        const event = require(file);
 
-      if (file.includes('/client/')) {
-        event.rest
-          ? event.once
-            ? client.rest.once(event.name, execute)
-            : client.rest.on(event.name, execute)
-          : event.once
-          ? client.once(event.name, execute)
-          : client.on(event.name, execute);
-      }
+        const execute = async (...args) => await event.execute(...args, client);
 
-      if (file.includes('/distube/')) {
-        event.once
-          ? client.distube.once(event.name, execute)
-          : client.distube.on(event.name, execute);
-      }
+        if (file.includes('/client/')) {
+          table.addRow(
+            `${i + 1}.`,
+            event?.name ?? file,
+            file.split('/').at(-2),
+            event?.name ? '✅' : '❌ -> Undefined event name.',
+          );
 
-      if (file.includes('/mongo/')) {
-        event.once
-          ? connection.once(event.name, execute)
-          : connection.on(event.name, execute);
-      }
-    });
+          event.once
+            ? client.once(event?.name, execute)
+            : client.on(event?.name, execute);
+        }
+
+        if (file.includes('/distube/')) {
+          table.addRow(
+            `${i + 1}.`,
+            event?.name ?? file,
+            file.split('/').at(-2),
+            event?.name ? '✅' : '❌ -> Undefined event name.',
+          );
+
+          event.once
+            ? client.distube.once(event?.name, execute)
+            : client.distube.on(event?.name, execute);
+        }
+
+        if (file.includes('/mongo/')) {
+          table.addRow(
+            `${i + 1}.`,
+            event?.name ?? file,
+            file.split('/').at(-2),
+            event?.name ? '✅' : '❌ -> Undefined event name.',
+          );
+
+          event.once
+            ? connection.once(event?.name, execute)
+            : connection.on(event?.name, execute);
+        }
+      });
+
+    console.log(table.toString());
   };
 };

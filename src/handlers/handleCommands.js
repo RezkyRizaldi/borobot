@@ -1,3 +1,5 @@
+const AsciiTable = require('ascii-table');
+const chalk = require('chalk');
 const { REST, Routes } = require('discord.js');
 
 const { loadFiles } = require('@/utils');
@@ -12,22 +14,51 @@ module.exports = (client) => {
 
     const files = await loadFiles('commands');
 
-    files.forEach((file) => {
-      /** @type {import('@/constants/types').Command} */
-      const command = require(file);
+    const table = new AsciiTable()
+      .setTitle(`Commands${files.length ? ` (${files.length})` : ''}`)
+      .setHeading('#', 'Name', 'Category', 'Type', 'Status');
 
-      commands.set(command.data.name, command);
-      commandArray.push(command.data.toJSON());
-    });
+    files
+      .sort((a, b) => a.split('/').at(-1).localeCompare(b.split('/').at(-1)))
+      .forEach((file, i) => {
+        /** @type {import('@/constants/types').Command} */
+        const command = require(file);
+
+        table.addRow(
+          `${i + 1}.`,
+          command?.data.name ?? file,
+          file.split('/').at(-2),
+          command?.type ?? 'None',
+          command?.data.name ? '✅' : '❌ -> Undefined command name.',
+        );
+
+        commands.set(command?.data.name, command);
+        commandArray.push(command?.data.toJSON());
+      });
+
+    console.log(table.toString());
 
     const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
-    await rest.put(
-      Routes.applicationGuildCommands(
-        process.env.CLIENT_ID,
-        process.env.GUILD_ID,
-      ),
-      { body: commandArray.sort((a, b) => a.name.localeCompare(b.name)) },
+    console.log(
+      chalk.blue('[info]', 'Started refreshing application (/) commands...'),
     );
+
+    await rest
+      .put(
+        Routes.applicationGuildCommands(
+          process.env.CLIENT_ID,
+          process.env.GUILD_ID,
+        ),
+        { body: commandArray.sort((a, b) => a.name.localeCompare(b.name)) },
+      )
+      .then(() =>
+        console.log(
+          chalk.green(
+            '[success]',
+            'Successfully reloaded application (/) commands!',
+          ),
+        ),
+      );
   };
 };

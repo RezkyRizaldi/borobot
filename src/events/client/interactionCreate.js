@@ -1,3 +1,4 @@
+const chalk = require('chalk');
 const { Events, InteractionType } = require('discord.js');
 
 module.exports = {
@@ -41,6 +42,8 @@ module.exports = {
         await command.execute(interaction).catch(async (err) => {
           if (typeof err === 'object' && !Object.keys(err).length) return;
 
+          if (err.message) console.error(chalk.red(`[error] ${err.message}`));
+
           await interaction.editReply({
             content:
               typeof err === 'string'
@@ -55,15 +58,16 @@ module.exports = {
 
         if (!component) return;
 
-        await component.execute(interaction).catch(
-          async (err) =>
-            await interaction.editReply({
-              content:
-                typeof err === 'string'
-                  ? err
-                  : 'There was an error while executing this command!',
-            }),
-        );
+        await component.execute(interaction).catch(async (err) => {
+          if (err.message) console.error(chalk.red(`[error] ${err.message}`));
+
+          await interaction.editReply({
+            content:
+              typeof err === 'string'
+                ? err
+                : 'There was an error while executing this command!',
+          });
+        });
       },
       [InteractionType.ApplicationCommandAutocomplete]: async () => {
         const autocomplete = commands.get(interaction.commandName);
@@ -74,15 +78,16 @@ module.exports = {
           });
         }
 
-        await autocomplete.autocomplete(interaction).catch(
-          async (err) =>
-            await interaction.editReply({
-              content:
-                typeof err === 'string'
-                  ? err
-                  : 'There was an error while executing this command!',
-            }),
-        );
+        await autocomplete.autocomplete(interaction).catch(async (err) => {
+          if (err.message) console.error(chalk.red(`[error] ${err.message}`));
+
+          await interaction.editReply({
+            content:
+              typeof err === 'string'
+                ? err
+                : 'There was an error while executing this command!',
+          });
+        });
       },
       [InteractionType.ModalSubmit]: async () => {
         const modal = components.get(interaction.customId);
@@ -93,15 +98,16 @@ module.exports = {
           });
         }
 
-        await modal.execute(interaction).catch(
-          async (err) =>
-            await interaction.editReply({
-              content:
-                typeof err === 'string'
-                  ? err
-                  : 'There was an error while executing this command!',
-            }),
-        );
+        await modal.execute(interaction).catch(async (err) => {
+          if (err.message) console.error(chalk.red(`[error] ${err.message}`));
+
+          await interaction.editReply({
+            content:
+              typeof err === 'string'
+                ? err
+                : 'There was an error while executing this command!',
+          });
+        });
       },
     }[interaction.type]();
   },

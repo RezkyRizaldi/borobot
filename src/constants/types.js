@@ -1146,22 +1146,22 @@
 
 /**
  * @typedef {Object} Command
- * @property {import('discord.js').SlashCommandBuilder} data
- * @property {String} type
- * @property {(interaction: import('discord.js').ChatInputCommandInteraction) => Promise<void>} execute
+ * @property {import('discord.js').SlashCommandBuilder} [data]
+ * @property {String} [type]
+ * @property {(interaction: import('discord.js').ChatInputCommandInteraction) => Promise<void>} [execute]
  */
 
 /**
  * @typedef {Object} Component
- * @property {{ name: String }} data
- * @property {(interaction: import('discord.js').RepliableInteraction) => Promise<void>} execute
+ * @property {{ name?: String }} [data]
+ * @property {(interaction: import('discord.js').RepliableInteraction) => Promise<void>} [execute]
  */
 
 /**
  * @typedef {Object} Event
- * @property {String} name
+ * @property {String} [name]
  * @property {Boolean} [once]
- * @property {(...args) => Promise<void>} execute
+ * @property {(...args) => Promise<void>} [execute]
  */
 
 /**
