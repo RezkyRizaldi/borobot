@@ -11,11 +11,10 @@ const {
 } = require('discord.js');
 const { DisTube } = require('distube');
 require('dotenv').config();
-const fs = require('fs');
 const mongoose = require('mongoose');
-const path = require('path');
 
 const keepAlive = require('./server');
+const { loadFiles } = require('@/utils');
 
 const {
   GuildBans,
@@ -61,28 +60,21 @@ client.distube = new DisTube(client, {
   plugins: [
     new SpotifyPlugin({ emitEventsAfterFetching: true }),
     new SoundCloudPlugin(),
-    new YtDlpPlugin({ update: false }),
+    new YtDlpPlugin(),
   ],
 });
 client.discordTogether = new DiscordTogether(client);
 
-const funcPath = path.join(__dirname, 'functions');
-const funcFolders = fs.readdirSync(funcPath);
-for (const folder of funcFolders) {
-  const funcSubPath = path.join(funcPath, folder);
-  const funcFiles = fs
-    .readdirSync(funcSubPath)
-    .filter((file) => file.endsWith('.js'));
-  for (const file of funcFiles) {
-    const filePath = path.join(funcSubPath, file);
-    require(filePath)(client);
-  }
-}
+const initHandlers = async () => {
+  const files = await loadFiles('handlers');
 
-client.handleEvents();
-client.handleComponents();
+  files.forEach((file) => require(file)(client));
+};
 
 (async () => {
+  await initHandlers(client);
+  await client.handleEvents();
+  await client.handleComponents();
   await client.handleCommands();
   await client.login(process.env.TOKEN);
   await mongoose.set('strictQuery', true).connect(process.env.MONGODB_URI);

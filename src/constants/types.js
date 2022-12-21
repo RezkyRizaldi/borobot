@@ -1161,7 +1161,7 @@
  * @typedef {Object} Event
  * @property {String} name
  * @property {Boolean} [once]
- * @property {(any) => Promise<void>|void} execute
+ * @property {(...args) => Promise<void>} execute
  */
 
 /**
@@ -1177,9 +1177,9 @@
  * @property {import('discord.js').RESTPostAPIChatInputApplicationCommandsJSONBody[]} commandArray
  * @property {import('distube').DisTube} distube
  * @property {import('discord-together').DiscordTogether<{[x: string]: string}>} discordTogether
- * @property {() => void} handleLanguage
- * @property {() => void} handleEvents
- * @property {() => void} handleComponents
+ * @property {() => Promise<void>} handleLanguage
+ * @property {() => Promise<void>} handleEvents
+ * @property {() => Promise<void>} handleComponents
  * @property {() => Promise<void>} handleCommands
  */
 

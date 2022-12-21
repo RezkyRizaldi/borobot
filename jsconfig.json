@@ -36,10 +36,10 @@
         "events"
       ],
       "@/handlers/*": [
-        "functions/handlers/*"
+        "handlers/*"
       ],
       "@/handlers": [
-        "functions/handlers"
+        "handlers"
       ],
       "@/lang/*": [
         "lang/*"
