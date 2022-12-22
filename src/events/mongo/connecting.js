@@ -1,6 +1,8 @@
+const chalk = require('chalk');
+
 module.exports = {
   name: 'connecting',
   execute() {
-    console.log('Connecting Database...');
+    console.log(chalk.blue('[info] Connecting Database...'));
   },
 };

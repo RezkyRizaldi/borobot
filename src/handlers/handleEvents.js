@@ -20,6 +20,7 @@ module.exports = (client) => {
       .forEach((file, i) => {
         /** @type {import('@/constants/types').Event} */
         const event = require(file);
+        const category = file.split('/').at(-2);
 
         const execute = async (...args) => await event.execute(...args, client);
 
@@ -27,7 +28,7 @@ module.exports = (client) => {
           table.addRow(
             `${i + 1}.`,
             event?.name ?? file,
-            file.split('/').at(-2),
+            category,
             event?.name ? '✅' : '❌ -> Undefined event name.',
           );
 
@@ -40,7 +41,7 @@ module.exports = (client) => {
           table.addRow(
             `${i + 1}.`,
             event?.name ?? file,
-            file.split('/').at(-2),
+            category,
             event?.name ? '✅' : '❌ -> Undefined event name.',
           );
 
@@ -53,7 +54,7 @@ module.exports = (client) => {
           table.addRow(
             `${i + 1}.`,
             event?.name ?? file,
-            file.split('/').at(-2),
+            category,
             event?.name ? '✅' : '❌ -> Undefined event name.',
           );
 

@@ -1,4 +1,3 @@
-/** @type {{ [name: String]: String }} */
 const languages = {
   auto: 'Automatic',
   af: 'Afrikaans',

@@ -1,6 +1,8 @@
+const chalk = require('chalk');
+
 module.exports = {
   name: 'err',
   execute(err) {
-    console.error(`Database Error: ${err.message}`);
+    console.error(chalk.red(`[error] ${err.message}`));
   },
 };

@@ -50,7 +50,7 @@ module.exports = (client) => {
           process.env.CLIENT_ID,
           process.env.GUILD_ID,
         ),
-        { body: commandArray.sort((a, b) => a.name.localeCompare(b.name)) },
+        { body: commandArray },
       )
       .then(() =>
         console.log(
