@@ -27,6 +27,11 @@ module.exports = {
             .setName('file')
             .setDescription('🖼️ The image file to read.')
             .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('language')
+            .setDescription('🌐 The language code to be used.'),
         ),
     ),
   type: 'Chat Input',
@@ -58,13 +63,24 @@ module.exports = {
       },
       run: async () => {
         const file = options.getAttachment('file', true);
+        const language =
+          options.getString('language').toLowerCase() ?? languages.ENG;
+
+        if (
+          !Object.keys(languages)
+            .map((key) => key.toLowerCase())
+            .includes(language)
+        ) {
+          throw `${language} isn't a supported language code.`;
+        }
+
         const worker = await createWorker();
 
         await wait(4000);
 
-        await worker.loadLanguage(languages.ENG);
+        await worker.loadLanguage(language);
 
-        await worker.initialize(languages.ENG);
+        await worker.initialize(language);
 
         const {
           data: { confidence, text },
@@ -91,7 +107,7 @@ module.exports = {
               inline: true,
             },
             {
-              name: `🔠 Detected Text (${getImageReadLocale(languages.ENG)})`,
+              name: `🔠 Detected Text (${getImageReadLocale(language)})`,
               value: text,
             },
           ]);
