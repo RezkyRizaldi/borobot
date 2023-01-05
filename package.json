@@ -86,7 +86,7 @@
   "optionalDependencies": {
     "bufferutil": "^4.0.7",
     "erlpack": "^0.1.4",
-    "utf-8-validate": "^5.0.10",
+    "utf-8-validate": "^6.0.0",
     "zlib-sync": "^0.1.7"
   },
   "devDependencies": {
