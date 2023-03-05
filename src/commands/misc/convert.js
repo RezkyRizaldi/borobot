@@ -1,9 +1,15 @@
 const { convert } = require('convert');
 const CC = require('currency-converter-lt');
-const { bold, codeBlock, SlashCommandBuilder } = require('discord.js');
+const {
+  bold,
+  codeBlock,
+  SlashCommandBuilder,
+  hyperlink,
+} = require('discord.js');
+const { changeLanguage, t } = require('i18next');
 
 const { units } = require('@/constants');
-const { generateEmbed, generatePagination } = require('@/utils');
+const { count, generateEmbed, generatePagination } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -86,10 +92,13 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
-    const embed = generateEmbed({ interaction });
+    const { locale, options } = interaction;
 
     await interaction.deferReply();
+
+    await changeLanguage(locale);
+
+    const embed = generateEmbed({ interaction });
 
     return {
       currency: () => {
@@ -107,7 +116,9 @@ module.exports = {
 
             await generatePagination({ interaction, limit: 10 })
               .setAuthor({
-                name: `💲 Currency Lists (${currencies.length.toLocaleString()})`,
+                name: t('command.convert.subcommandGroup.currency.pagination', {
+                  total: count(currencies),
+                }),
               })
               .setDescriptions(responses)
               .render();
@@ -124,20 +135,24 @@ module.exports = {
             );
 
             if (!fromCurrency || !toCurrency) {
-              throw 'Please provide a valid unit.';
+              throw t('global.error.currency', {
+                link: hyperlink(
+                  t('misc.currency'),
+                  `https://${locale
+                    .split('-')
+                    .shift()}.wikipedia.org/wiki/ISO_4217`,
+                ),
+              });
             }
 
             const result = await currencyConverter
               .from(fromCurrency)
               .to(toCurrency)
-              .amount(amount)
-              .setDecimalComma(true)
-              .setupRatesCache({ isRatesCaching: true })
-              .convert();
+              .convert(amount);
 
             embed
               .setAuthor({
-                name: '💲 Currency Conversion Result',
+                name: t('command.convert.subcommandGroup.currency.embed'),
               })
               .setDescription(
                 codeBlock(
@@ -154,11 +169,13 @@ module.exports = {
           list: async () => {
             const responses = units
               .sort((a, b) => a.localeCompare(b))
-              .map((unit, i) => `${bold(`${i + 1}.`)} - ${unit}`);
+              .map((unit, i) => `${bold(`${i + 1}.`)} ${unit}`);
 
             await generatePagination({ interaction, limit: 10 })
               .setAuthor({
-                name: `📄 SI Unit Lists (${units.length.toLocaleString()})`,
+                name: t('command.convert.subcommandGroup.unit.pagination', {
+                  total: count(units),
+                }),
               })
               .setDescriptions(responses)
               .render();
@@ -175,7 +192,14 @@ module.exports = {
             );
 
             if (!fromUnit || !toUnit) {
-              throw 'Please provide a valid unit.';
+              throw t('global.error.unit', {
+                link: hyperlink(
+                  t('misc.unit'),
+                  `https://${locale
+                    .split('-')
+                    .shift()}.wikipedia.org/wiki/International_System_of_Units`,
+                ),
+              });
             }
 
             /** @type {Number} */
@@ -183,7 +207,7 @@ module.exports = {
 
             embed
               .setAuthor({
-                name: '♾️ Unit Conversion Result',
+                name: t('command.convert.subcommandGroup.unit.embed'),
               })
               .setDescription(
                 codeBlock(`${amount} ${fromUnit} = ${result} ${toUnit}`),

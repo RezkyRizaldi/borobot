@@ -2,6 +2,7 @@ require('module-alias/register');
 const { SoundCloudPlugin } = require('@distube/soundcloud');
 const { SpotifyPlugin } = require('@distube/spotify');
 const { YtDlpPlugin } = require('@distube/yt-dlp');
+const chalk = require('chalk');
 const { DiscordTogether } = require('discord-together');
 const {
   Client,
@@ -11,7 +12,7 @@ const {
 } = require('discord.js');
 const { DisTube } = require('distube');
 require('dotenv').config();
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
 
 const keepAlive = require('./server');
 const { loadFiles } = require('@/utils');
@@ -51,7 +52,6 @@ const client = new Client({
 client.commands = new Collection();
 client.components = new Collection();
 client.paginations = new Collection();
-client.languages = new Collection();
 client.commandArray = [];
 client.distube = new DisTube(client, {
   emitNewSongOnly: true,
@@ -73,11 +73,12 @@ const initHandlers = async () => {
 
 (async () => {
   await initHandlers(client);
+  await client.handleLanguage();
   await client.handleEvents();
   await client.handleComponents();
   await client.handleCommands();
   await client.login(process.env.TOKEN);
-  await mongoose.set('strictQuery', true).connect(process.env.MONGODB_URI);
-})().catch(console.error);
+  // await mongoose.set('strictQuery', true).connect(process.env.MONGODB_URI);
+})().catch((err) => console.error(chalk.red(`[error] ${err}`)));
 
 keepAlive();

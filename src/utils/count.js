@@ -2,8 +2,13 @@ const pluralize = require('pluralize');
 
 /**
  *
- * @param {{ total: Number|String, data: String }}
+ * @param {any[]|Number|String} total
+ * @param {String} [data]
  * @returns {String} Total count of a data.
  */
-module.exports = ({ total, data }) =>
-  `${Number(total).toLocaleString()} ${pluralize(data, Number(total))}`;
+module.exports = (total, data) =>
+  `${
+    Array.isArray(total)
+      ? total.length.toLocaleString()
+      : Number(total).toLocaleString()
+  }${data ? ` ${pluralize(data, Number(total))}` : ''}`;

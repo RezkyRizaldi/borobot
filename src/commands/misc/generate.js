@@ -1,5 +1,5 @@
 const AnimeImages = require('anime-images-api');
-const axios = require('axios').default;
+const axios = require('axios');
 const { italic, SlashCommandBuilder } = require('discord.js');
 const {
   Blur,
@@ -9,9 +9,11 @@ const {
   Triggered,
 } = require('discord-image-generation');
 const fs = require('fs');
+const { changeLanguage, t } = require('i18next');
 const nekoClient = require('nekos.life');
 const QRCode = require('qrcode');
 
+const { supportedMIMETypes } = require('@/constants');
 const {
   isValidURL,
   generateAttachmentFromBuffer,
@@ -174,17 +176,20 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, guild: ?import('discord.js').Guild, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { channel, guild, member, options } = interaction;
-    const embed = generateEmbed({ interaction });
+    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, guild: ?import('discord.js').Guild, locale: import('discord.js').Locale, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { channel, guild, locale, member, options } = interaction;
     const images = new AnimeImages();
     const neko = new nekoClient();
 
     await interaction.deferReply();
 
-    if (!guild) throw "Guild doesn't exist.";
+    await changeLanguage(locale);
 
-    if (!member) throw "Member doesn't exist.";
+    const embed = generateEmbed({ interaction });
+
+    if (!guild) throw t('global.error.guild');
+
+    if (!member) throw t('global.error.member');
 
     /** @type {{ channels: { cache: import('discord.js').Collection<String, import('discord.js').BaseGuildTextChannel> } */
     const {
@@ -193,26 +198,21 @@ module.exports = {
 
     const NSFWChannels = baseGuildTextChannels.filter((ch) => ch.nsfw);
     const NSFWResponse = NSFWChannels.size
-      ? `\n${italic('eg.')} ${[...NSFWChannels.values()].join(', ')}`
+      ? `\n${italic(t('misc.eg'))} ${[...NSFWChannels.values()].join(', ')}`
       : '';
 
     if (options.getSubcommandGroup() !== null) {
       return {
         filters: () => {
           const attachment = options.getAttachment('image', true);
-          const supportedMIMETypes = [
-            'image/jpeg',
-            'image/jpg',
-            'image/png',
-            'image/gif',
-            'image/bmp',
-          ];
 
           if (!supportedMIMETypes.includes(attachment.contentType)) {
-            throw 'Please upload an image file type.';
+            throw t('global.error.mime');
           }
 
-          embed.setAuthor({ name: '🖼️ Applied Filter Result' });
+          embed.setAuthor({
+            name: t('command.generate.subcommandGroup.filters.embed'),
+          });
 
           return {
             blur: async () => {
@@ -226,10 +226,7 @@ module.exports = {
 
               embed.setImage(`attachment://${img.name}`);
 
-              await interaction.editReply({
-                embeds: [embed],
-                files: [img],
-              });
+              await interaction.editReply({ embeds: [embed], files: [img] });
             },
             greyscale: async () => {
               const img = await generateAttachmentFromBuffer({
@@ -240,10 +237,7 @@ module.exports = {
 
               embed.setImage(`attachment://${img.name}`);
 
-              await interaction.editReply({
-                embeds: [embed],
-                files: [img],
-              });
+              await interaction.editReply({ embeds: [embed], files: [img] });
             },
             invert: async () => {
               const img = await generateAttachmentFromBuffer({
@@ -254,10 +248,7 @@ module.exports = {
 
               embed.setImage(`attachment://${img.name}`);
 
-              await interaction.editReply({
-                embeds: [embed],
-                files: [img],
-              });
+              await interaction.editReply({ embeds: [embed], files: [img] });
             },
             sepia: async () => {
               const img = await generateAttachmentFromBuffer({
@@ -268,10 +259,7 @@ module.exports = {
 
               embed.setImage(`attachment://${img.name}`);
 
-              await interaction.editReply({
-                embeds: [embed],
-                files: [img],
-              });
+              await interaction.editReply({ embeds: [embed], files: [img] });
             },
             triggered: async () => {
               const img = await generateAttachmentFromBuffer({
@@ -282,10 +270,7 @@ module.exports = {
 
               embed.setImage(`attachment://${img.name}.gif`);
 
-              await interaction.editReply({
-                embeds: [embed],
-                files: [img],
-              });
+              await interaction.editReply({ embeds: [embed], files: [img] });
             },
           }[options.getSubcommand()]();
         },
@@ -294,10 +279,10 @@ module.exports = {
 
     return {
       ahegao: async () => {
-        if (!channel) throw "Channel doesn't exist.";
+        if (!channel) throw t('global.error.channel.notFound');
 
         if (!channel.nsfw) {
-          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+          throw t('global.error.nsfw', { NSFWChannel: NSFWResponse });
         }
 
         /** @type {{ data: ArrayBuffer }} */
@@ -317,10 +302,10 @@ module.exports = {
         await interaction.editReply({ embeds: [embed], files: [img] });
       },
       armpit: async () => {
-        if (!channel) throw "Channel doesn't exist.";
+        if (!channel) throw t('global.error.channel.notFound');
 
         if (!channel.nsfw) {
-          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+          throw t('global.error.nsfw', { NSFWChannel: NSFWResponse });
         }
 
         /** @type {{ data: ArrayBuffer }} */
@@ -340,10 +325,10 @@ module.exports = {
         await interaction.editReply({ embeds: [embed], files: [img] });
       },
       boobs: async () => {
-        if (!channel) throw "Channel doesn't exist.";
+        if (!channel) throw t('global.error.channel.notFound');
 
         if (!channel.nsfw) {
-          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+          throw t('global.error.nsfw', { NSFWChannel: NSFWResponse });
         }
 
         /** @type {{ image: String }} */
@@ -354,10 +339,10 @@ module.exports = {
         await interaction.editReply({ embeds: [embed] });
       },
       feets: async () => {
-        if (!channel) throw "Channel doesn't exist.";
+        if (!channel) throw t('global.error.channel.notFound');
 
         if (!channel.nsfw) {
-          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+          throw t('global.error.nsfw', { NSFWChannel: NSFWResponse });
         }
 
         /** @type {{ data: ArrayBuffer }} */
@@ -377,10 +362,10 @@ module.exports = {
         await interaction.editReply({ embeds: [embed], files: [img] });
       },
       femdom: async () => {
-        if (!channel) throw "Channel doesn't exist.";
+        if (!channel) throw t('global.error.channel.notFound');
 
         if (!channel.nsfw) {
-          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+          throw t('global.error.nsfw', { NSFWChannel: NSFWResponse });
         }
 
         /** @type {{ data: ArrayBuffer }} */
@@ -400,10 +385,10 @@ module.exports = {
         await interaction.editReply({ embeds: [embed], files: [img] });
       },
       hentai: async () => {
-        if (!channel) throw "Channel doesn't exist.";
+        if (!channel) throw t('global.error.channel.notFound');
 
         if (!channel.nsfw) {
-          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+          throw t('global.error.nsfw', { NSFWChannel: NSFWResponse });
         }
 
         /** @type {{ image: String }} */
@@ -426,10 +411,10 @@ module.exports = {
         await interaction.editReply({ embeds: [embed] });
       },
       lesbian: async () => {
-        if (!channel) throw "Channel doesn't exist.";
+        if (!channel) throw t('global.error.channel.notFound');
 
         if (!channel.nsfw) {
-          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+          throw t('global.error.nsfw', { NSFWChannel: NSFWResponse });
         }
 
         const { image } = await images.nsfw.lesbian();
@@ -441,7 +426,7 @@ module.exports = {
       shortlink: async () => {
         const url = options.getString('url', true);
 
-        if (!isValidURL(url)) throw 'Please provide a valid URL.';
+        if (!isValidURL(url)) throw t('global.error.url');
 
         /** @type {{ data: { result: String } }} */
         const {
@@ -451,8 +436,15 @@ module.exports = {
         );
 
         embed
-          .setAuthor({ name: '🔗 Shortened URL Result' })
-          .setDescription(`Here's your generated shorten URL: ${result}.`);
+          .setAuthor({
+            name: t('command.generate.subccommand.shortlink.embed.author'),
+          })
+          .setDescription(
+            t(
+              'command.generate.subccommand.shortlink.embed.description',
+              result,
+            ),
+          );
 
         await interaction.editReply({ embeds: [embed] });
       },
@@ -477,8 +469,12 @@ module.exports = {
         });
 
         embed
-          .setAuthor({ name: '🖼️ QR Code Result' })
-          .setDescription("Here's your generated QR Code.")
+          .setAuthor({
+            name: t('command.generate.subccommand.qrcode.embed.author'),
+          })
+          .setDescription(
+            t('command.generate.subccommand.qrcode.embed.description'),
+          )
           .setImage(`attachment://${img.name}`);
 
         await interaction.editReply({ embeds: [embed], files: [img] });
@@ -486,10 +482,10 @@ module.exports = {
         return fs.unlinkSync(imagePath);
       },
       wakipai: async () => {
-        if (!channel) throw "Channel doesn't exist.";
+        if (!channel) throw t('global.error.channel.notFound');
 
         if (!channel.nsfw) {
-          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+          throw t('global.error.nsfw', { NSFWChannel: NSFWResponse });
         }
 
         /** @type {{ data: ArrayBuffer }} */
@@ -509,10 +505,10 @@ module.exports = {
         await interaction.editReply({ embeds: [embed], files: [img] });
       },
       yaoi: async () => {
-        if (!channel) throw "Channel doesn't exist.";
+        if (!channel) throw t('global.error.channel.notFound');
 
         if (!channel.nsfw) {
-          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+          throw t('global.error.nsfw', { NSFWChannel: NSFWResponse });
         }
 
         /** @type {{ data: ArrayBuffer }} */
@@ -532,10 +528,10 @@ module.exports = {
         await interaction.editReply({ embeds: [embed], files: [img] });
       },
       yuri: async () => {
-        if (!channel) throw "Channel doesn't exist.";
+        if (!channel) throw t('global.error.channel.notFound');
 
         if (!channel.nsfw) {
-          throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+          throw t('global.error.nsfw', { NSFWChannel: NSFWResponse });
         }
 
         /** @type {{ data: ArrayBuffer }} */

@@ -13,8 +13,8 @@ const {
   TimestampStyles,
   userMention,
 } = require('discord.js');
+const { changeLanguage, t } = require('i18next');
 const ordinal = require('ordinal');
-const pluralize = require('pluralize');
 
 const { channelCreateChoices, channelType } = require('@/constants');
 const {
@@ -218,18 +218,21 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ guild: ?import('discord.js').Guild, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { guild, member, options } = interaction;
-    const reason = options.getString('reason') ?? 'No reason';
+    /** @type {{ guild: ?import('discord.js').Guild, locale: import('discord.js').Locale, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { guild, locale, member, options } = interaction;
+
+    await interaction.deferReply();
+
+    await changeLanguage(locale);
+
+    const reason = options.getString('reason') ?? t('misc.noReason');
     const isMissingPermissions = !member.permissions.has(
       PermissionFlagsBits.ManageChannels,
     );
 
-    await interaction.deferReply();
+    if (!guild) throw t('global.error.guild');
 
-    if (!guild) throw "Guild doesn't exists.";
-
-    if (!member) throw "Member doesn't exists.";
+    if (!member) throw t('global.error.member');
 
     if (options.getSubcommandGroup() !== null) {
       return {
@@ -238,7 +241,9 @@ module.exports = {
           const guildChannel = options.getChannel('channel', true);
 
           if (isMissingPermissions || !guildChannel.manageable) {
-            throw `You don't have appropiate permissions to modify ${guildChannel} channel.`;
+            throw t('global.error.channel.perm.modify', {
+              channel: guildChannel,
+            });
           }
 
           return {
@@ -247,36 +252,42 @@ module.exports = {
               const parent = options.getChannel('category', true);
 
               if (guildChannel.type === parent.type) {
-                throw `Can't modify ${guildChannel} channel's category since it is a category channel.`;
+                throw t('global.error.channel.category.exact', {
+                  channel: guildChannel,
+                });
               }
 
               if (guildChannel.parent && guildChannel.parent === parent) {
-                throw `${guildChannel} is already in ${guildChannel.parent} category channel.`;
+                throw t('global.error.channel.category.exists', {
+                  channel: guildChannel,
+                  parent: guildChannel.parent,
+                });
               }
 
               await guildChannel.setParent(parent, { reason });
 
               await interaction.editReply({
-                content: `Successfully ${bold(
-                  'modified',
-                )} ${guildChannel} channel's category to ${
-                  guildChannel.parent
-                }.`,
+                content: t('global.success.channel.category', {
+                  status: bold(t('misc.modify')),
+                  channel: guildChannel,
+                  parent: guildChannel.parent,
+                }),
               });
             },
             name: async () => {
               const name = options.getString('name', true);
 
               if (name.toLowerCase() === guildChannel.name.toLowerCase()) {
-                throw 'You have to specify a different name to modify.';
+                throw t('global.error.channel.name');
               }
 
               await guildChannel.setName(name, reason);
 
               await interaction.editReply({
-                content: `Successfully ${bold(
-                  'modified',
-                )} ${guildChannel}'s channel name.`,
+                content: t('global.success.channel.name', {
+                  status: bold(t('misc.modify')),
+                  channel: guildChannel,
+                }),
               });
             },
             nsfw: async () => {
@@ -285,17 +296,19 @@ module.exports = {
               const nsfw = options.getBoolean('nsfw', true);
 
               if (nsfw === channel.nsfw) {
-                throw `${channel} nsfw is already being turned ${
-                  channel.nsfw ? 'on' : 'off'
-                }.`;
+                throw t('global.error.channel.nsfw', {
+                  channel,
+                  state: bold(channel.nsfw ? t('misc.on') : t('misc.off')),
+                });
               }
 
               await channel.setNSFW(nsfw, reason);
 
               await interaction.editReply({
-                content: `Successfully ${bold(
-                  'modified',
-                )} ${channel}'s channel NSFW state.`,
+                content: t('global.success.channel.nsfw', {
+                  status: bold(t('misc.modify')),
+                  channel,
+                }),
               });
             },
             position: async () => {
@@ -303,7 +316,10 @@ module.exports = {
               const targetChannel = options.getChannel('position', true);
 
               if (guildChannel.type !== targetChannel.type) {
-                throw `${guildChannel} isn't in the same type with ${targetChannel}.`;
+                throw t('global.error.channel.type', {
+                  channel: guildChannel,
+                  target: targetChannel,
+                });
               }
 
               if (
@@ -311,11 +327,14 @@ module.exports = {
                 targetChannel.parent &&
                 guildChannel.parent !== targetChannel.parent
               ) {
-                throw `${guildChannel} isn't in the same category with ${targetChannel}.`;
+                throw t('global.error.channel.category.same', {
+                  channel: guildChannel,
+                  target: targetChannel,
+                });
               }
 
               if (guildChannel.position === targetChannel.position) {
-                throw 'You have to specify a different position to modify.';
+                throw t('global.error.channel.position');
               }
 
               await guildChannel.setPosition(targetChannel.position, {
@@ -323,9 +342,10 @@ module.exports = {
               });
 
               await interaction.editReply({
-                content: `Successfully ${bold(
-                  'modified',
-                )} ${guildChannel}'s channel position.`,
+                content: t('global.success.channel.position', {
+                  status: bold(t('misc.modify')),
+                  channel: guildChannel,
+                }),
               });
             },
             topic: async () => {
@@ -334,15 +354,16 @@ module.exports = {
               const topic = options.getString('topic', true);
 
               if (channel.topic && topic === channel.topic) {
-                throw 'You have to specify a different topic to modify.';
+                throw t('global.error.channel.topic');
               }
 
               await channel.setTopic(topic, reason);
 
               await interaction.editReply({
-                content: `Successfully ${bold(
-                  'modified',
-                )} ${channel}'s channel topic.`,
+                content: t('global.success.channel.topic', {
+                  status: bold(t('misc.modify')),
+                  channel,
+                }),
               });
             },
           }[options.getSubcommand()]();
@@ -360,7 +381,7 @@ module.exports = {
         const topic = options.getString('topic') ?? undefined;
 
         if (isMissingPermissions) {
-          throw "You don't have appropiate permissions to create a channel.";
+          throw t('global.error.channel.perm.create');
         }
 
         const mutedRole = guild.roles.cache.find(
@@ -368,7 +389,7 @@ module.exports = {
         );
 
         if (!mutedRole) {
-          throw `Can't find role with name ${inlineCode('muted')}.`;
+          throw t('global.error.role', { role: inlineCode('muted') });
         }
 
         /** @type {import('discord.js').GuildChannel} */
@@ -391,18 +412,18 @@ module.exports = {
               SendMessagesInThreads: false,
               Speak: false,
             },
-            { type: OverwriteType.Role, reason: 'servermute command setup.' },
+            { type: OverwriteType.Role, reason: t('misc.setup.servermute') },
           );
 
           return await interaction.editReply({
-            content: `${ch} created successfully.`,
+            content: t('global.success.channel.create', { channel: ch }),
           });
         }
 
         await ch.lockPermissions();
 
         return await interaction.editReply({
-          content: `${ch} created successfully.`,
+          content: t('global.success.channel.create', { channel: ch }),
         });
       },
       delete: async () => {
@@ -410,13 +431,15 @@ module.exports = {
         const guildChannel = options.getChannel('channel', true);
 
         if (isMissingPermissions || !guildChannel.deletable) {
-          throw `You don't have appropiate permissions to delete ${guildChannel} channel.`;
+          throw t('global.error.channel.perm.delete', {
+            channel: guildChannel,
+          });
         }
 
         await guildChannel.delete(reason);
 
         await interaction.editReply({
-          content: 'Channel deleted successfully.',
+          content: t('global.error.channel.delete'),
         });
       },
       info: async () => {
@@ -440,26 +463,25 @@ module.exports = {
 
         /** @type {import('discord.js').ForumChannel} */
         const forumChannel = options.getChannel('channel', true);
-        const channelTopic = baseGuildTextChannel.topic ?? italic('No topic');
-        const isNSFW = baseGuildTextChannel.nsfw ? 'Yes' : 'No';
+        const channelTopic =
+          baseGuildTextChannel.topic ?? italic(t('misc.noTopic'));
+        const isNSFW = baseGuildTextChannel.nsfw ? t('misc.yes') : t('misc.no');
         const bitrate = `${baseGuildVoiceChannel.bitrate / 1000}kbps`;
-        const memberCount = count({
-          total: guildChannel.members.size,
-          data: 'member',
-        });
+        const memberCount = count(guildChannel.members.size, 'member');
         const userLimitVoiceBasedChannel =
           baseGuildVoiceChannel.userLimit > 0
-            ? pluralize('user', baseGuildVoiceChannel.userLimit, true)
-            : 'Unlimited';
+            ? count(baseGuildVoiceChannel.userLimit, 'user')
+            : t('misc.unlimited');
         const slowmode = inlineCode(
           `${
             baseGuildTextChannel.rateLimitPerUser &&
             baseGuildTextChannel.rateLimitPerUser > 0
-              ? `${baseGuildTextChannel.rateLimitPerUser} seconds`
-              : 'Off'
+              ? `${baseGuildTextChannel.rateLimitPerUser} ${t('misc.seconds')}`
+              : t('misc.off2')
           }`,
         );
-        const regionOverride = baseGuildVoiceChannel.rtcRegion ?? 'Automatic';
+        const regionOverride =
+          baseGuildVoiceChannel.rtcRegion ?? t('misc.auto');
         const permissionOverwrites = guildChannel.permissionOverwrites.cache;
         const permissionOverwritesList = permissionOverwrites
           .map((permission) => {
@@ -474,7 +496,7 @@ module.exports = {
                 : userMention(permission.id)
             }\n${
               allowedPermissions.length
-                ? `Allowed: ${allowedPermissions
+                ? `${t('misc.allowed')}: ${allowedPermissions
                     .map((allowedPermission) =>
                       inlineCode(capitalCase(allowedPermission)),
                     )
@@ -482,7 +504,7 @@ module.exports = {
                 : ''
             }${
               deniedPermissions.length
-                ? `Denied: ${deniedPermissions
+                ? `${t('misc.denied')}: ${deniedPermissions
                     .map((deniedPermission) =>
                       inlineCode(capitalCase(deniedPermission)),
                     )
@@ -494,18 +516,21 @@ module.exports = {
 
         const embed = generateEmbed({ interaction })
           .setAuthor({
-            name: `ℹ️ ${guildChannel.name}'s Channel Information`,
+            name: t('command.channel.subcommand.info.embed.author', {
+              channel: guildChannel.name,
+            }),
           })
           .setFields([
             {
-              name: '📆 Created At',
+              name: t('command.channel.subcommand.info.embed.field.createdAt'),
               value: time(guildChannel.createdAt, TimestampStyles.RelativeTime),
               inline: true,
             },
             {
-              name: '🔣 Type',
-              value: channelType.find((t) => guildChannel.type === t.value)
-                .name,
+              name: t('command.channel.subcommand.info.embed.field.type'),
+              value: channelType.find(
+                (type) => guildChannel.type === type.value,
+              ).name,
               inline: true,
             },
           ]);
@@ -552,23 +577,27 @@ module.exports = {
           const archivedAnnouncementThreads = archivedThreads.filter(
             (thread) => thread.type === ChannelType.AnnouncementThread,
           );
-          const threadList = `👁️ ${publicThreads.size.toLocaleString()} Public ${
+          const threadList = `👁️ ${count(publicThreads.size)} ${t(
+            'misc.public',
+          )} ${
             activeThreads.size || archivedThreads.size
               ? `(${
                   activePublicThreads.size
-                    ? `${activePublicThreads.size.toLocaleString()} active`
+                    ? `${count(activePublicThreads.size)} ${t('misc.active')}`
                     : ''
                 }${activeThreads.size && archivedThreads.size ? ', ' : ''}${
                   archivedPublicThreads.size
-                    ? `${archivedPublicThreads.size.toLocaleString()} archived`
+                    ? `${count(archivedPublicThreads.size)} ${t(
+                        'misc.archived',
+                      )}`
                     : ''
                 })`
               : ''
-          } | 🔒 ${privateThreads.size.toLocaleString()} Private ${
+          } | 🔒 ${count(privateThreads.size)} ${t('misc.private')} ${
             activePrivateThreads.size || archivedPrivateThreads.size
               ? `(${
                   activePrivateThreads.size
-                    ? `${activePrivateThreads.size.toLocaleString()} active`
+                    ? `${count(activePrivateThreads.size)} ${t('misc.active')}`
                     : ''
                 }${
                   activePrivateThreads.size && archivedPrivateThreads.size
@@ -576,7 +605,9 @@ module.exports = {
                     : ''
                 }${
                   archivedPrivateThreads.size
-                    ? `${archivedPrivateThreads.size.toLocaleString()} archived`
+                    ? `${count(archivedPrivateThreads.size)} ${t(
+                        'misc.archived',
+                      )}`
                     : ''
                 })`
               : ''
@@ -584,7 +615,9 @@ module.exports = {
             activeAnnouncementThreads.size || archivedAnnouncementThreads.size
               ? `(${
                   activeAnnouncementThreads.size
-                    ? `${activeAnnouncementThreads.size.toLocaleString()} active`
+                    ? `${count(activeAnnouncementThreads.size)} ${t(
+                        'misc.active',
+                      )}`
                     : ''
                 }${
                   activeAnnouncementThreads.size &&
@@ -593,13 +626,15 @@ module.exports = {
                     : ''
                 }${
                   archivedAnnouncementThreads.size
-                    ? `${archivedAnnouncementThreads.size.toLocaleString()} archived`
+                    ? `${count(archivedAnnouncementThreads.size)} ${t(
+                        'misc.archived',
+                      )}`
                     : ''
                 })`
               : ''
           }${
             baseGuildTextChannel.defaultAutoArchiveDuration
-              ? `\nInactivity duration: ${inlineCode(
+              ? `\n${t('misc.inactivity')}: ${inlineCode(
                   applyThreadAutoArchiveDuration(
                     baseGuildTextChannel.defaultAutoArchiveDuration,
                   ),
@@ -609,7 +644,7 @@ module.exports = {
 
           embed
             .spliceFields(1, 0, {
-              name: '📁 Category',
+              name: t('command.channel.subcommand.info.embed.field.category'),
               value: guildChannel.parent
                 ? `${guildChannel.parent}`
                 : italic('None'),
@@ -619,62 +654,82 @@ module.exports = {
               guildChannel.parent ? 3 : 2,
               0,
               {
-                name: '🔢 Position',
+                name: t('command.channel.subcommand.info.embed.field.position'),
                 value: `${ordinal(guildChannel.position + 1)}${
                   guildChannel.type !== ChannelType.GuildCategory &&
                   guildChannel.parent
-                    ? ` in ${guildChannel.parent}`
+                    ? ` ${t('misc.in')} ${guildChannel.parent}`
                     : ''
                 }`,
                 inline: true,
               },
-              { name: '🗣️ Topic', value: channelTopic, inline: true },
               {
-                name: '💬 Message Count',
-                value: count({ total: messageCount, data: 'message' }),
+                name: t('command.channel.subcommand.info.embed.field.topic'),
+                value: channelTopic,
                 inline: true,
               },
               {
-                name: '📌 Pinned Message Count',
-                value: count({
-                  total: pinnedMessageCount,
-                  data: 'pinned message',
-                }),
+                name: t('command.channel.subcommand.info.embed.field.message'),
+                value: count(messageCount, 'message'),
+                inline: true,
+              },
+              {
+                name: t('command.channel.subcommand.info.embed.field.pinned'),
+                value: count(pinnedMessageCount, 'pinned message'),
                 inline: true,
               },
             )
             .spliceFields(
               7,
               0,
-              { name: '⚠️ NSFW', value: isNSFW, inline: true },
-              { name: '🐌 Slowmode', value: slowmode, inline: true },
               {
-                name: '➕ Extra',
-                value: `${
-                  guild.rulesChannelId &&
-                  guildChannel.id === guild.rulesChannelId
-                    ? 'Rules'
-                    : guild.publicUpdatesChannelId &&
-                      guildChannel.id === guild.publicUpdatesChannelId
-                    ? 'Public Updates'
-                    : guild.systemChannelId &&
-                      guildChannel.id === guild.systemChannelId
-                    ? 'System'
-                    : 'Widget'
-                } Channel`,
+                name: t('command.channel.subcommand.info.embed.field.nsfw'),
+                value: isNSFW,
                 inline: true,
               },
-              { name: '💭 Threads', value: threadList },
               {
-                name: '🔐 Permissions',
+                name: t('command.channel.subcommand.info.embed.field.slowmode'),
+                value: slowmode,
+                inline: true,
+              },
+              {
+                name: t(
+                  'command.channel.subcommand.info.embed.field.extra.name',
+                ),
+                value: t(
+                  'command.channel.subcommand.info.embed.field.extra.value',
+                  {
+                    type:
+                      guild.rulesChannelId &&
+                      guildChannel.id === guild.rulesChannelId
+                        ? t('misc.rules')
+                        : guild.publicUpdatesChannelId &&
+                          guildChannel.id === guild.publicUpdatesChannelId
+                        ? t('misc.publicUpdates')
+                        : guild.systemChannelId &&
+                          guildChannel.id === guild.systemChannelId
+                        ? t('misc.system')
+                        : t('misc.widget'),
+                  },
+                ),
+                inline: true,
+              },
+              {
+                name: t('command.channel.subcommand.info.embed.field.threads'),
+                value: threadList,
+              },
+              {
+                name: t(
+                  'command.channel.subcommand.info.embed.field.permissions',
+                ),
                 value: `${
                   guildChannel.permissionsLocked && guildChannel.parent
-                    ? `Synced with ${guildChannel.parent}`
+                    ? `${t('misc.synced')} ${guildChannel.parent}`
                     : ''
                 }\n${
                   permissionOverwrites.size
                     ? permissionOverwritesList
-                    : italic('None')
+                    : italic(t('misc.none'))
                 }`,
               },
             );
@@ -694,17 +749,19 @@ module.exports = {
               1,
               0,
               {
-                name: '👤 Created By',
+                name: t(
+                  'command.channel.subcommand.info.embed.field.createdBy',
+                ),
                 value: threadChannel.ownerId
                   ? userMention(threadChannel.ownerId)
-                  : italic('Unknown'),
+                  : italic(t('misc.unknown')),
                 inline: true,
               },
               {
-                name: '#️⃣ Channel',
+                name: t('command.channel.subcommand.info.embed.field.channel'),
                 value: threadChannel.parent
                   ? `${threadChannel.parent}`
-                  : italic('None'),
+                  : italic(t('misc.none')),
                 inline: true,
               },
             )
@@ -712,49 +769,56 @@ module.exports = {
               threadChannel.parent ? 4 : 3,
               0,
               {
-                name: '👥 Member Count in Thread',
-                value: count({ total: memberCount, data: 'member' }),
+                name: t(
+                  'command.channel.subcommand.info.embed.field.memberThread',
+                ),
+                value: count(memberCount, 'member'),
                 inline: true,
               },
               {
-                name: '💬 Message Count',
-                value: count({ total: messageCount, data: 'message' }),
+                name: t('command.channel.subcommand.info.embed.field.message'),
+                value: count(messageCount, 'message'),
                 inline: true,
               },
               {
-                name: '📌 Pinned Message Count',
-                value: count({
-                  total: pinnedMessageCount,
-                  data: 'pinned message',
-                }),
+                name: t('command.channel.subcommand.info.embed.field.pinned'),
+                value: count(pinnedMessageCount, 'pinned message'),
                 inline: true,
               },
               {
-                name: '📊 Status',
+                name: t('command.channel.subcommand.info.embed.field.status'),
                 value: threadChannel.archived
-                  ? `${threadChannel.locked ? 'Locked at' : 'Closed at'} ${
+                  ? `${
+                      threadChannel.locked ? t('misc.locked') : t('misc.closed')
+                    } ${
                       threadChannel.archivedAt
                         ? time(
                             threadChannel.archivedAt,
                             TimestampStyles.RelativeTime,
                           )
-                        : italic('Unknown')
+                        : italic(t('misc.unknown'))
                     }`
-                  : 'Active',
+                  : t('misc.active2'),
                 inline: true,
               },
               {
-                name: '🕒 Inactivity Duration',
+                name: t(
+                  'command.channel.subcommand.info.embed.field.inactivity',
+                ),
                 value: threadChannel.autoArchiveDuration
                   ? inlineCode(
                       applyThreadAutoArchiveDuration(
                         threadChannel.autoArchiveDuration,
                       ),
                     )
-                  : italic('Unknown'),
+                  : italic(t('misc.unknown')),
                 inline: true,
               },
-              { name: '🐌 Slowmode', value: slowmode, inline: true },
+              {
+                name: t('command.channel.subcommand.info.embed.field.slowmode'),
+                value: slowmode,
+                inline: true,
+              },
             );
 
           return await interaction.editReply({ embeds: [embed] });
@@ -768,50 +832,66 @@ module.exports = {
 
             embed
               .spliceFields(1, 0, {
-                name: '📁 Category',
+                name: t('command.channel.subcommand.info.embed.field.category'),
                 value: voiceChannel.parent
                   ? `${voiceChannel.parent}`
-                  : italic('None'),
+                  : italic(t('misc.none')),
                 inline: true,
               })
               .spliceFields(
                 voiceChannel.parent ? 3 : 2,
                 0,
                 {
-                  name: '🔢 Position',
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.position',
+                  ),
                   value: `${ordinal(voiceChannel.position + 1)}${
                     voiceChannel.type !== ChannelType.GuildCategory &&
                     voiceChannel.parent
-                      ? ` in ${voiceChannel.parent}`
+                      ? ` ${t('misc.in')} ${voiceChannel.parent}`
                       : ''
                   }`,
                   inline: true,
                 },
                 {
-                  name: '👥 Member Count in Voice',
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.memberVoice',
+                  ),
                   value: memberCount,
                   inline: true,
                 },
                 {
-                  name: '💬 Message Count in Voice',
-                  value: count({ total: messageCount, data: 'message' }),
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.messageVoice',
+                  ),
+                  value: count(messageCount, 'message'),
                   inline: true,
                 },
-                { name: '⚡ Bitrate', value: bitrate, inline: true },
                 {
-                  name: '👥 User Limit',
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.bitrate',
+                  ),
+                  value: bitrate,
+                  inline: true,
+                },
+                {
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.userLimit',
+                  ),
                   value: userLimitVoiceBasedChannel,
                   inline: true,
                 },
                 {
-                  name: '🎥 Video Quality',
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.videoQuality',
+                  ),
                   value: voiceChannel.videoQualityMode
                     ? applyVideoQualityMode(voiceChannel.videoQualityMode)
-                    : 'Auto',
+                    : t('misc.auto2'),
                   inline: true,
                 },
                 {
-                  name: '🌐 Region Override',
+                  name: t('command.channel.subcommand.info.embed.field.region'),
                   value: regionOverride,
                   inline: true,
                 },
@@ -819,14 +899,26 @@ module.exports = {
               .spliceFields(
                 8,
                 0,
-                { name: '⚠️ NSFW', value: isNSFW, inline: true },
-                { name: '🐌 Slowmode', value: slowmode, inline: true },
+                {
+                  name: t('command.channel.subcommand.info.embed.field.nsfw'),
+                  value: isNSFW,
+                  inline: true,
+                },
+                {
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.slowmode',
+                  ),
+                  value: slowmode,
+                  inline: true,
+                },
               );
 
             if (guild.afkChannelId && voiceChannel.id === guild.afkChannelId) {
               embed.spliceFields(10, 0, {
-                name: '➕ Extra',
-                value: 'AFK Channel',
+                name: t(
+                  'command.channel.subcommand.info.embed.field.extra.name',
+                ),
+                value: t('misc.afk'),
                 inline: true,
               });
             }
@@ -837,15 +929,17 @@ module.exports = {
                 : 10,
               0,
               {
-                name: '🔐 Permissions',
+                name: t(
+                  'command.channel.subcommand.info.embed.field.permissions',
+                ),
                 value: `${
                   voiceChannel.permissionsLocked && voiceChannel.parent
-                    ? `Synced with ${voiceChannel.parent}`
+                    ? `${t('misc.synced')} ${voiceChannel.parent}`
                     : ''
                 }\n${
                   permissionOverwrites.size
                     ? permissionOverwritesList
-                    : italic('None')
+                    : italic(t('misc.none'))
                 }`,
               },
             );
@@ -860,32 +954,38 @@ module.exports = {
                 3,
                 0,
                 {
-                  name: '🔢 Position',
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.position',
+                  ),
                   value: `${ordinal(categoryChannel.position + 1)}${
                     categoryChannel.type !== ChannelType.GuildCategory &&
                     categoryChannel.parent
-                      ? ` in ${categoryChannel.parent}`
+                      ? ` ${t('misc.in')} ${categoryChannel.parent}`
                       : ''
                   }`,
                   inline: true,
                 },
                 {
-                  name: '#️⃣ Channels',
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.channels',
+                  ),
                   value: childChannels.size
                     ? childChannels.map((child) => `${child}`).join(', ')
-                    : italic('None'),
+                    : italic(t('misc.none')),
                 },
               )
               .spliceFields(5, 0, {
-                name: '🔐 Permissions',
+                name: t(
+                  'command.channel.subcommand.info.embed.field.permissions',
+                ),
                 value: `${
                   categoryChannel.permissionsLocked && categoryChannel.parent
-                    ? `Synced with ${categoryChannel.parent}`
+                    ? `${t('misc.synced')} ${categoryChannel.parent}`
                     : ''
                 }\n${
                   permissionOverwrites.size
                     ? permissionOverwritesList
-                    : italic('None')
+                    : italic(t('misc.none'))
                 }`,
               });
 
@@ -897,51 +997,65 @@ module.exports = {
           [ChannelType.GuildStageVoice]: async () => {
             embed
               .spliceFields(1, 0, {
-                name: '📁 Category',
+                name: t('command.channel.subcommand.info.embed.field.category'),
                 value: baseGuildVoiceChannel.parent
                   ? `${baseGuildVoiceChannel.parent}`
-                  : italic('None'),
+                  : italic(t('misc.none')),
                 inline: true,
               })
               .spliceFields(
                 baseGuildVoiceChannel.parent ? 3 : 2,
                 0,
                 {
-                  name: '🔢 Position',
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.position',
+                  ),
                   value: `${ordinal(baseGuildVoiceChannel.position + 1)}${
                     baseGuildVoiceChannel.type !== ChannelType.GuildCategory &&
                     baseGuildVoiceChannel.parent
-                      ? ` in ${baseGuildVoiceChannel.parent}`
+                      ? ` ${t('misc.in')} ${baseGuildVoiceChannel.parent}`
                       : ''
                   }`,
                   inline: true,
                 },
                 {
-                  name: '👥 Member Count in Stage',
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.memberStage',
+                  ),
                   value: memberCount,
                   inline: true,
                 },
-                { name: '⚡ Bitrate', value: bitrate, inline: true },
                 {
-                  name: '👥 User Limit',
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.bitrate',
+                  ),
+                  value: bitrate,
+                  inline: true,
+                },
+                {
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.userLimit',
+                  ),
                   value: userLimitVoiceBasedChannel,
                   inline: true,
                 },
                 {
-                  name: '🌐 Region Override',
+                  name: t('command.channel.subcommand.info.embed.field.region'),
                   value: regionOverride,
                   inline: true,
                 },
                 {
-                  name: '🔐 Permissions',
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.permissions',
+                  ),
                   value: `${
                     baseGuildVoiceChannel.permissionsLocked
-                      ? `Synced with ${baseGuildVoiceChannel.parent}`
+                      ? `${t('misc.synced')} ${baseGuildVoiceChannel.parent}`
                       : ''
                   }\n${
                     permissionOverwrites.size
                       ? permissionOverwritesList
-                      : italic('None')
+                      : italic(t('misc.none'))
                   }`,
                 },
               );
@@ -992,23 +1106,29 @@ module.exports = {
             const archivedAnnouncementThreads = archivedThreads.filter(
               (thread) => thread.type === ChannelType.AnnouncementThread,
             );
-            const threadList = `👁️ ${publicThreads.size.toLocaleString()} Public ${
+            const threadList = `👁️ ${count(publicThreads.size)} ${t(
+              'misc.public',
+            )} ${
               activeThreads.size || archivedThreads.size
                 ? `(${
                     activePublicThreads.size
-                      ? `${activePublicThreads.size.toLocaleString()} active`
+                      ? `${count(activePublicThreads.size)} ${t('misc.active')}`
                       : ''
                   }${activeThreads.size && archivedThreads.size ? ', ' : ''}${
                     archivedPublicThreads.size
-                      ? `${archivedPublicThreads.size.toLocaleString()} archived`
+                      ? `${count(archivedPublicThreads.size)} ${t(
+                          'misc.archived',
+                        )}`
                       : ''
                   })`
                 : ''
-            } | 🔒 ${privateThreads.size.toLocaleString()} Private ${
+            } | 🔒 ${count(privateThreads.size)} ${t('misc.private')} ${
               activePrivateThreads.size || archivedPrivateThreads.size
                 ? `(${
                     activePrivateThreads.size
-                      ? `${activePrivateThreads.size.toLocaleString()} active`
+                      ? `${count(activePrivateThreads.size)} ${t(
+                          'misc.active',
+                        )}`
                       : ''
                   }${
                     activePrivateThreads.size && archivedPrivateThreads.size
@@ -1016,15 +1136,19 @@ module.exports = {
                       : ''
                   }${
                     archivedPrivateThreads.size
-                      ? `${archivedPrivateThreads.size.toLocaleString()} archived`
+                      ? `${count(archivedPrivateThreads.size)} ${t(
+                          'misc.archived',
+                        )}`
                       : ''
                   })`
                 : ''
-            } | 📣 ${announcementThreads.size} Announcement ${
+            } | 📣 ${announcementThreads.size} ${t('misc.announcement')} ${
               activeAnnouncementThreads.size || archivedAnnouncementThreads.size
                 ? `(${
                     activeAnnouncementThreads.size
-                      ? `${activeAnnouncementThreads.size.toLocaleString()} active`
+                      ? `${count(activeAnnouncementThreads.size)} ${t(
+                          'misc.active',
+                        )}`
                       : ''
                   }${
                     activeAnnouncementThreads.size &&
@@ -1033,13 +1157,15 @@ module.exports = {
                       : ''
                   }${
                     archivedAnnouncementThreads.size
-                      ? `${archivedAnnouncementThreads.size.toLocaleString()} archived`
+                      ? `${count(archivedAnnouncementThreads.size)} ${t(
+                          'misc.archived',
+                        )}`
                       : ''
                   })`
                 : ''
             }${
               baseGuildTextChannel.defaultAutoArchiveDuration
-                ? `\nInactivity duration: ${inlineCode(
+                ? `\n${t('misc.inactivity')}: ${inlineCode(
                     applyThreadAutoArchiveDuration(
                       baseGuildTextChannel.defaultAutoArchiveDuration,
                     ),
@@ -1049,51 +1175,66 @@ module.exports = {
 
             embed
               .spliceFields(1, 0, {
-                name: '📁 Category',
+                name: t('command.channel.subcommand.info.embed.field.category'),
                 value: forumChannel.parent
                   ? `${forumChannel.parent}`
-                  : italic('None'),
+                  : italic(t('misc.none')),
                 inline: true,
               })
               .spliceFields(
                 forumChannel.parent ? 3 : 2,
                 0,
                 {
-                  name: '🔢 Position',
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.position',
+                  ),
                   value: `${ordinal(forumChannel.position + 1)}${
                     forumChannel.type !== ChannelType.GuildCategory &&
                     forumChannel.parent
-                      ? ` in ${forumChannel.parent}`
+                      ? ` ${t('misc.in')} ${forumChannel.parent}`
                       : ''
                   }`,
                   inline: true,
                 },
                 {
-                  name: '📋 Post Guidelines',
+                  name: t('command.channel.subcommand.info.embed.field.post'),
                   value: channelTopic,
                   inline: true,
                 },
                 {
-                  name: '😀 Default Reaction Emoji',
+                  name: t('command.channel.subcommand.info.embed.field.emoji'),
                   value: forumChannel.defaultReactionEmoji
                     ? forumChannel.defaultReactionEmoji.id
                       ? formatEmoji(forumChannel.defaultReactionEmoji.id)
-                      : forumChannel.defaultReactionEmoji.name ?? italic('None')
-                    : italic('None'),
+                      : forumChannel.defaultReactionEmoji.name ??
+                        italic(t('misc.none'))
+                    : italic(t('misc.none')),
                   inline: true,
                 },
               )
               .spliceFields(
                 6,
                 0,
-                { name: '⚠️ NSFW', value: isNSFW, inline: true },
-                { name: '🐌 Slowmode', value: slowmode, inline: true },
                 {
-                  name: '🏷️ Tags',
+                  name: t('command.channel.subcommand.info.embed.field.nsfw'),
+                  value: isNSFW,
+                  inline: true,
+                },
+                {
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.slowmode',
+                  ),
+                  value: slowmode,
+                  inline: true,
+                },
+                {
+                  name: t('command.channel.subcommand.info.embed.field.tags'),
                   value: forumChannel.availableTags.length
                     ? `${
                         moderatorOnlyTags.length
-                          ? `${bold('• Moderator Only')}\n${moderatorOnlyTags
+                          ? `${bold(
+                              `• ${t('misc.modOnly')}`,
+                            )}\n${moderatorOnlyTags
                               .map(
                                 (tag) =>
                                   `${
@@ -1108,7 +1249,7 @@ module.exports = {
                           : ''
                       }${
                         allMembertags.length
-                          ? `${bold('• All Member')}\n${allMembertags
+                          ? `${bold(`• ${t('misc.members')}`)}\n${allMembertags
                               .map(
                                 (tag) =>
                                   `${
@@ -1122,29 +1263,35 @@ module.exports = {
                               .join(', ')}`
                           : ''
                       }`
-                    : italic('None'),
+                    : italic(t('misc.none')),
                 },
                 {
-                  name: '💭 Threads',
-                  value: `${threadList}\nSlowmode: ${inlineCode(
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.threads',
+                  ),
+                  value: `${threadList}\n${t('misc.slowmode')}: ${inlineCode(
                     `${
                       forumChannel.defaultThreadRateLimitPerUser &&
                       forumChannel.defaultThreadRateLimitPerUser > 0
-                        ? `${forumChannel.defaultThreadRateLimitPerUser} seconds`
-                        : 'Off'
+                        ? `${forumChannel.defaultThreadRateLimitPerUser} ${t(
+                            'misc.seconds',
+                          )}`
+                        : t('misc.off2')
                     }`,
                   )}`,
                 },
                 {
-                  name: '🔐 Permissions',
+                  name: t(
+                    'command.channel.subcommand.info.embed.field.permissions',
+                  ),
                   value: `${
                     forumChannel.permissionsLocked && forumChannel.parent
-                      ? `Synced with ${forumChannel.parent}`
+                      ? `${t('misc.synced')} ${forumChannel.parent}`
                       : ''
                   }\n${
                     permissionOverwrites.size
                       ? permissionOverwritesList
-                      : italic('None')
+                      : italic(t('misc.none'))
                   }`,
                 },
               );
@@ -1156,7 +1303,9 @@ module.exports = {
       list: async () => {
         const channels = await guild.channels.fetch();
 
-        if (!channels.size) throw `${bold(guild)} doesn't have any channels.`;
+        if (!channels.size) {
+          throw t('global.error.channels', { guild: bold(guild) });
+        }
 
         const descriptions = [...channels.values()]
           .sort((a, b) => b.type - a.type)
@@ -1164,9 +1313,10 @@ module.exports = {
 
         await generatePagination({ interaction, limit: 10 })
           .setAuthor({
-            name: `${
-              guild.icon ? '#️⃣ ' : ''
-            }${guild} Channel Lists (${channels.size.toLocaleString()})`,
+            name: t('command.channel.subcommand.list.pagination', {
+              guild: `${guild.icon ? '#️⃣ ' : ''}${guild}`,
+              total: count(channels.size),
+            }),
             iconURL: guild.iconURL() ?? undefined,
           })
           .setDescriptions(descriptions)

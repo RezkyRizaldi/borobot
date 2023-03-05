@@ -1,4 +1,5 @@
 const { ButtonBuilder, ButtonStyle } = require('discord.js');
+const { t } = require('i18next');
 const { Pagination } = require('pagination.djs');
 
 /**
@@ -6,11 +7,11 @@ const { Pagination } = require('pagination.djs');
  * @param {{ interaction: import('discord.js').ChatInputCommandInteraction, limit: Number|undefined, attachments: (import('discord.js').AttachmentBuilder | import('discord.js').Attachment | import('discord.js').BufferResolvable | import('stream').Stream | import('discord.js').JSONEncodable<import('discord.js').APIAttachment> | import('discord.js').AttachmentPayload)[]|undefined }}
  */
 module.exports = ({ interaction, limit = 5, attachments }) => {
+  /** @type {{ client: import('@/constants/types').Client, guild: ?import('discord.js').Guild }} */
   const { client, guild } = interaction;
 
-  if (!guild) throw "Guild doesn't exists.";
+  if (!guild) throw t('global.error.guild');
 
-  /** @type {{ paginations: import('discord.js').Collection<String, import('pagination.djs').Pagination> }} */
   const { paginations } = client;
 
   const pagination = new Pagination(interaction, { limit, attachments })
@@ -19,7 +20,9 @@ module.exports = ({ interaction, limit = 5, attachments }) => {
 
   if (limit) {
     pagination.setFooter({
-      text: `${client.user.username} | Page {pageNumber} of {totalPages}`,
+      text: t('global.pagination.footer', {
+        botUsername: client.user.username,
+      }),
       iconURL: client.user.displayAvatarURL(),
     });
   }

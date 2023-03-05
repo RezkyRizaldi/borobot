@@ -1,4 +1,5 @@
 const { EmbedBuilder } = require('@discordjs/builders');
+const { t } = require('i18next');
 
 /**
  *
@@ -15,9 +16,9 @@ module.exports = ({
   /** @type {{ client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild, member: ?import('discord.js').GuildMember }} */
   const { client, guild, member } = interaction;
 
-  if (!guild) throw "Guld doesn't exist.";
+  if (!guild) throw t('global.error.guild');
 
-  if (!member) throw "Member doesn't exist.";
+  if (!member) throw t('global.error.member');
 
   return new EmbedBuilder()
     .setColor(
@@ -30,7 +31,11 @@ module.exports = ({
     .setTimestamp(Date.now())
     .setFooter({
       text: loop
-        ? `${client.user.username} | Page ${i + 1} of ${arr.length}`
+        ? t('global.embed.footer', {
+            botUsername: client.user.username,
+            pageNumber: i + 1,
+            totalPages: arr.length,
+          })
         : client.user.username,
       iconURL: client.user.displayAvatarURL(),
     });

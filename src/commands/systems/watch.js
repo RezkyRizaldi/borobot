@@ -77,10 +77,7 @@ module.exports = {
         );
 
         if (episode > Number(episodeCount)) {
-          throw `${name} only have ${count({
-            total: episodeCount,
-            data: 'episode',
-          })}.`;
+          throw `${name} only have ${count(episodeCount, 'episode')}.`;
         }
 
         /** @type {import('@/constants/types').GogoAnimeEpisode} */

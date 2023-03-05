@@ -1,6 +1,7 @@
 const AnimeImages = require('anime-images-api');
-const axios = require('axios').default;
+const axios = require('axios');
 const { SlashCommandBuilder } = require('discord.js');
+const { changeLanguage, t } = require('i18next');
 const nekoClient = require('nekos.life');
 
 const { generateAttachmentFromBuffer, generateEmbed } = require('@/utils');
@@ -181,20 +182,19 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { member, options } = interaction;
+    /** @type {{ locale: import('discord.js').Locale, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { locale, member, options } = interaction;
+    const target = options.getMember('target');
+    const images = new AnimeImages();
+    const neko = new nekoClient();
 
     await interaction.deferReply();
 
-    /** @type {?import('discord.js').GuildMember} */
-    const target = options.getMember('target');
+    await changeLanguage(locale);
 
-    if (!member || !target) throw "Member doesn't exist.";
+    if (!member) throw t('global.error.member');
 
     const embed = generateEmbed({ interaction, type: 'target', target });
-
-    const images = new AnimeImages();
-    const neko = new nekoClient();
 
     return {
       bite: async () => {
@@ -212,7 +212,9 @@ module.exports = {
 
         embed
           .setImage(`attachment://${img.name}`)
-          .setDescription(`${member} has hugged ${target}!`);
+          .setDescription(
+            t('command.interact.subcommand.bite', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed], files: [img] });
       },
@@ -231,7 +233,9 @@ module.exports = {
 
         embed
           .setImage(`attachment://${img.name}`)
-          .setDescription(`${member} has hugged ${target}!`);
+          .setDescription(
+            t('command.interact.subcommand.blush', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed], files: [img] });
       },
@@ -250,7 +254,9 @@ module.exports = {
 
         embed
           .setImage(`attachment://${img.name}`)
-          .setDescription(`${member} has hugged ${target}!`);
+          .setDescription(
+            t('command.interact.subcommand.bonk', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed], files: [img] });
       },
@@ -262,14 +268,22 @@ module.exports = {
         const imgArr = [url, image];
         const cuddle = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-        embed.setImage(cuddle).setDescription(`${member} cuddles ${target}!`);
+        embed
+          .setImage(cuddle)
+          .setDescription(
+            t('command.interact.subcommand.cuddle', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed] });
       },
       feed: async () => {
         const { url } = await neko.feed();
 
-        embed.setImage(url).setDescription(`${member} feeding ${target}!`);
+        embed
+          .setImage(url)
+          .setDescription(
+            t('command.interact.subcommand.feed', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed] });
       },
@@ -281,7 +295,11 @@ module.exports = {
         const imgArr = [url, image];
         const hug = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-        embed.setImage(hug).setDescription(`${member} has hugged ${target}!`);
+        embed
+          .setImage(hug)
+          .setDescription(
+            t('command.interact.subcommand.hug', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed] });
       },
@@ -300,7 +318,9 @@ module.exports = {
 
         embed
           .setImage(`attachment://${img.name}`)
-          .setDescription(`${member} has hugged ${target}!`);
+          .setDescription(
+            t('command.interact.subcommand.lick', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed], files: [img] });
       },
@@ -310,7 +330,9 @@ module.exports = {
 
         embed
           .setImage(image)
-          .setDescription(`${target} has been killed by ${member}!`);
+          .setDescription(
+            t('command.interact.subcommand.kill', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed] });
       },
@@ -322,7 +344,11 @@ module.exports = {
         const imgArr = [url, image];
         const kiss = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-        embed.setImage(kiss).setDescription(`${member} is kissing ${target}!`);
+        embed
+          .setImage(kiss)
+          .setDescription(
+            t('command.interact.subcommand.kiss', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed] });
       },
@@ -336,7 +362,9 @@ module.exports = {
 
         embed
           .setImage(pat)
-          .setDescription(`${member} is giving a pat for ${target}!`);
+          .setDescription(
+            t('command.interact.subcommand.pat', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed] });
       },
@@ -346,7 +374,9 @@ module.exports = {
 
         embed
           .setImage(image)
-          .setDescription(`${member} has punched ${target}!`);
+          .setDescription(
+            t('command.interact.subcommand.punch', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed] });
       },
@@ -358,14 +388,22 @@ module.exports = {
         const imgArr = [url, image];
         const slap = imgArr[Math.floor(Math.random() * imgArr.length)];
 
-        embed.setImage(slap).setDescription(`${member} has slapped ${target}!`);
+        embed
+          .setImage(slap)
+          .setDescription(
+            t('command.interact.subcommand.slap', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed] });
       },
       smug: async () => {
         const { url } = await neko.smug();
 
-        embed.setImage(url).setDescription(`${member} smugged ${target}!`);
+        embed
+          .setImage(url)
+          .setDescription(
+            t('command.interact.subcommand.smug', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed] });
       },
@@ -373,7 +411,9 @@ module.exports = {
         const { url } = await neko.tickle();
 
         embed.setImage(url);
-        embed.setDescription(`${member} tickled ${target}!`);
+        embed.setDescription(
+          t('command.interact.subcommand.tickle', { member, target }),
+        );
 
         await interaction.editReply({ embeds: [embed] });
       },
@@ -383,7 +423,9 @@ module.exports = {
 
         embed
           .setImage(image)
-          .setDescription(`${member} is giving a wink for ${target}!`);
+          .setDescription(
+            t('command.interact.subcommand.wink', { member, target }),
+          );
 
         await interaction.editReply({ embeds: [embed] });
       },

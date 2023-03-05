@@ -111,24 +111,22 @@ module.exports = {
                 })`
               : ''
           }`,
-          value: `${count({ total: onlineMemberCount, data: 'Online' })}${
-            boosterCount
-              ? ` | ${count({ total: boosterCount, data: 'Booster' })}`
-              : ''
+          value: `${count(onlineMemberCount, 'Online')}${
+            boosterCount ? ` | ${count(boosterCount, 'Booster')}` : ''
           }`,
           inline: true,
         },
         {
           name: '😀 Emoji & Sticker',
-          value: `${count({ total: emojiCount, data: 'Emoji' })} | ${count({
-            total: stickerCount,
-            data: 'Sticker',
-          })}`,
+          value: `${count(emojiCount, 'Emoji')} | ${count(
+            stickerCount,
+            'Sticker',
+          )}`,
           inline: true,
         },
         {
           name: '🛠️ Roles',
-          value: count({ total: roleCount, data: 'Role' }),
+          value: count(roleCount, 'Role'),
           inline: true,
         },
         {
@@ -221,7 +219,15 @@ module.exports = {
               ? ` (${guild.channels.channelCountWithoutThreads.toLocaleString()})`
               : ''
           }`,
-          value: `📁 ${categoryChannelCount.toLocaleString()} Category | #️⃣ ${textChannelCount.toLocaleString()} Text | 🔊 ${voiceChannelCount.toLocaleString()} Voice | 🎤 ${stageChannelCount.toLocaleString()} Stage | 📣 ${announcementChannelCount.toLocaleString()} Announcement | 🗯️ ${forumChannelCount.toLocaleString()} Forum\nRules Channel: ${
+          value: `📁 ${count(categoryChannelCount)} Category | #️⃣ ${count(
+            textChannelCount,
+          )} Text | 🔊 ${count(voiceChannelCount)} Voice | 🎤 ${count(
+            stageChannelCount,
+          )} Stage | 📣 ${count(
+            announcementChannelCount,
+          )} Announcement | 🗯️ ${count(
+            forumChannelCount,
+          )} Forum\nRules Channel: ${
             guild.rulesChannel ?? italic('None')
           }\nSystem Channel: ${
             guild.systemChannel ?? italic('None')

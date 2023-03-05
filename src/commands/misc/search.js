@@ -1,4 +1,4 @@
-const axios = require('axios').default;
+const axios = require('axios');
 const { capitalCase, snakeCase } = require('change-case');
 const {
   AttachmentBuilder,
@@ -6,11 +6,11 @@ const {
   hyperlink,
   inlineCode,
   italic,
-  Locale,
   SlashCommandBuilder,
   time,
   TimestampStyles,
 } = require('discord.js');
+const { changeLanguage, t } = require('i18next');
 const NewsAPI = require('newsapi');
 
 const {
@@ -344,10 +344,14 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { channel, client, guild, options } = interaction;
+    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild, locale: import('discord.js').Locale, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { channel, client, guild, locale, options } = interaction;
 
-    if (!guild) return;
+    await interaction.deferReply();
+
+    await changeLanguage(locale);
+
+    if (!guild) throw t('global.error.guild');
 
     /** @type {{ channels: { cache: import('discord.js').Collection<String, import('discord.js').BaseGuildTextChannel> } */
     const {
@@ -356,12 +360,10 @@ module.exports = {
 
     const NSFWChannels = baseGuildTextChannels.filter((ch) => ch.nsfw);
     const NSFWResponse = NSFWChannels.size
-      ? `\n${italic('eg.')} ${[...NSFWChannels.values()].join(', ')}`
+      ? `\n${italic(t('misc.eg'))} ${[...NSFWChannels.values()].join(', ')}`
       : '';
 
     const embed = generateEmbed({ interaction });
-
-    await interaction.deferReply();
 
     if (options.getSubcommandGroup() !== null) {
       return {
@@ -379,7 +381,7 @@ module.exports = {
 
           if (letter) {
             if (!isAlphabeticLetter(letter)) {
-              throw 'You have to specify an alphabetic character.';
+              throw t('global.error.letter');
             }
 
             query.append('letter', letter);
@@ -411,9 +413,10 @@ module.exports = {
               } = await axios.get(`https://api.jikan.moe/v4/anime?${query}`);
 
               if (!data.length) {
-                throw `No anime found with title ${inlineCode(
-                  titleQuery,
-                )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.${NSFWResponse}`;
+                throw t('global.error.nsfwAnime', {
+                  title: inlineCode(titleQuery),
+                  NSFWchannel: NSFWResponse,
+                });
               }
 
               const embeds = data.map(
@@ -448,33 +451,41 @@ module.exports = {
                 ) =>
                   generateEmbed({ interaction, loop: true, i, arr })
                     .setAuthor({
-                      name: 'Anime Search Results',
+                      name: t(
+                        'command.search.subcommandGroup.anime.info.embed.author',
+                      ),
                       iconURL:
                         'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
                     })
                     .setThumbnail(jpg.image_url ?? webp.image_url)
                     .setFields([
                       {
-                        name: '🔤 Title',
+                        name: t(
+                          'command.search.subcommandGroup.anime.info.embed.field.title',
+                        ),
                         value: hyperlink(title, url),
                         inline: true,
                       },
                       {
-                        name: '🔠 Type',
-                        value: type ?? italic('Unknown'),
+                        name: t(
+                          'command.search.subcommandGroup.anime.info.embed.field.type',
+                        ),
+                        value: type ?? italic(t('misc.unknown')),
                         inline: true,
                       },
                       {
-                        name: '🎬 Episode',
+                        name: t(
+                          'command.search.subcommandGroup.anime.info.embed.field.episode',
+                        ),
                         value: `${
-                          episodes
-                            ? count({ total: episodes, data: 'episode' })
-                            : '??? episodes'
+                          episodes ? count(episodes, 'episode') : '??? episodes'
                         } (${duration})`,
                         inline: true,
                       },
                       {
-                        name: '📊 Stats',
+                        name: t(
+                          'command.search.subcommandGroup.anime.info.embed.field.stats',
+                        ),
                         value:
                           score ||
                           scored_by ||
@@ -484,50 +495,59 @@ module.exports = {
                           rating
                             ? `${score ? `⭐ ${score}` : ''}${
                                 scored_by
-                                  ? ` (by ${count({
-                                      total: scored_by,
-                                      data: 'user',
-                                    })})`
+                                  ? ` (by ${count(scored_by, 'user')})`
                                   : ''
-                              }${
-                                members
-                                  ? ` | 👥 ${members.toLocaleString()}`
-                                  : ''
-                              }${rank ? ` | #️⃣ #${rank}` : ''}${
-                                favorites ? ` | ❤️ ${favorites}` : ''
-                              }${rating ? ` | 🔞 ${rating}` : ''}`
-                            : italic('None'),
-                        inline: true,
-                      },
-                      { name: '⌛ Status', value: status, inline: true },
-                      {
-                        name: '📆 Aired',
-                        value: aired.string ?? italic('Unknown'),
+                              }${members ? ` | 👥 ${count(members)}` : ''}${
+                                rank ? ` | #️⃣ #${rank}` : ''
+                              }${favorites ? ` | ❤️ ${favorites}` : ''}${
+                                rating ? ` | 🔞 ${rating}` : ''
+                              }`
+                            : italic(t('misc.none')),
                         inline: true,
                       },
                       {
-                        name: '📆 Premiered',
+                        name: t(
+                          'command.search.subcommandGroup.anime.info.embed.field.status',
+                        ),
+                        value: status,
+                        inline: true,
+                      },
+                      {
+                        name: t(
+                          'command.search.subcommandGroup.anime.info.embed.field.aired',
+                        ),
+                        value: aired.string ?? italic(t('misc.unknown')),
+                        inline: true,
+                      },
+                      {
+                        name: t(
+                          'command.search.subcommandGroup.anime.info.embed.field.premiered',
+                        ),
                         value:
                           season || year
                             ? `${season ? capitalCase(season) : ''} ${
                                 year ?? ''
                               }`
-                            : italic('Unknown'),
+                            : italic(t('misc.unknown')),
                         inline: true,
                       },
                       {
-                        name: '🏢 Studios',
+                        name: t(
+                          'command.search.subcommandGroup.anime.info.embed.field.studios',
+                        ),
                         value: studios.length
                           ? studios
                               .map((studio) =>
                                 hyperlink(studio.name, studio.url),
                               )
                               .join(', ')
-                          : italic('Unknown'),
+                          : italic(t('misc.unknown')),
                         inline: true,
                       },
                       {
-                        name: '🔠 Genres',
+                        name: t(
+                          'command.search.subcommandGroup.anime.info.embed.field.genres',
+                        ),
                         value:
                           genres.length ||
                           explicit_genres.length ||
@@ -543,11 +563,13 @@ module.exports = {
                                   hyperlink(genre.name, genre.url),
                                 )
                                 .join(', ')
-                            : italic('Unknown'),
+                            : italic(t('misc.unknown')),
                         inline: true,
                       },
                       {
-                        name: '💫 Synopsis',
+                        name: t(
+                          'command.search.subcommandGroup.anime.info.embed.field.synopsis',
+                        ),
                         value: synopsis
                           ? synopsis.includes('[Written by MAL Rewrite]')
                             ? truncate(
@@ -558,11 +580,13 @@ module.exports = {
                                 1024,
                               )
                             : truncate(synopsis, 1024)
-                          : italic('No available'),
+                          : italic(t('misc.noAvailable')),
                       },
                       {
-                        name: '🎞️ Trailer',
-                        value: trailer.url ?? italic('No available'),
+                        name: t(
+                          'command.search.subcommandGroup.anime.info.embed.field.trailer',
+                        ),
+                        value: trailer.url ?? italic(t('misc.noAvailable')),
                       },
                     ]),
               );
@@ -584,7 +608,9 @@ module.exports = {
               );
 
               if (!data.length) {
-                throw `No anime character found with name ${inlineCode(name)}`;
+                throw t('global.error.animeCharacter', {
+                  character: inlineCode(name),
+                });
               }
 
               const embeds = data.map(
@@ -605,27 +631,35 @@ module.exports = {
                       truncate(about?.replace(/\n\n\n/g, '\n\n'), 4096),
                     )
                     .setAuthor({
-                      name: 'Anime Character Search Results',
+                      name: t(
+                        'command.search.subcommandGroup.anime.character.embed.author',
+                      ),
                       iconURL:
                         'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
                     })
                     .setThumbnail(jpg.image_url ?? webp.image_url)
                     .setFields([
                       {
-                        name: '🔤 Name',
+                        name: t(
+                          'command.search.subcommandGroup.anime.character.field.name',
+                        ),
                         value: hyperlink(`${name} (${name_kanji})`, url),
                         inline: true,
                       },
                       {
-                        name: '🔤 Nickname',
+                        name: t(
+                          'command.search.subcommandGroup.anime.character.field.nickname',
+                        ),
                         value: nicknames.length
                           ? nicknames.join(', ')
-                          : italic('None'),
+                          : italic(t('misc.none')),
                         inline: true,
                       },
                       {
-                        name: '❤️ Favorite',
-                        value: count({ total: favorites, data: 'favorite' }),
+                        name: t(
+                          'command.search.subcommandGroup.anime.character.field.favorite',
+                        ),
+                        value: count(favorites, 'favorite'),
                         inline: true,
                       },
                     ]),
@@ -651,8 +685,14 @@ module.exports = {
                     term,
                   )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(() => {
-                  throw `No definition found with term ${inlineCode(term)}.`;
+                .catch((err) => {
+                  if (err.response?.status === 404) {
+                    throw t('global.error.definition', {
+                      term: inlineCode(term),
+                    });
+                  }
+
+                  throw err;
                 });
 
               if (result.length > 1) {
@@ -671,16 +711,19 @@ module.exports = {
                   ) => {
                     const meanings = makna.map(
                       ({ contoh, info, kelas, submakna }, index, array) => ({
-                        name: `❓ Meaning${
-                          array.length > 1 ? `${index + 1}` : ''
-                        }`,
-                        value: `${bold('• Part of Speech')}\n${kelas
+                        name: t(
+                          'command.search.subcommandGroup.dictionary.kbbi.embed.field.meaning',
+                          { num: array.length > 1 ? ` ${index + 1}` : '' },
+                        ),
+                        value: `${bold(`• ${t('misc.partOfSpeech')}`)}\n${kelas
                           .map(({ nama: partOfSpeech }) => partOfSpeech)
-                          .join(', ')}\n\n${bold('• Submeaning')}\n${submakna
-                          .map((item) => `- ${item}`)
-                          .join('\n')}${
-                          info ? `\n\n${bold('• Info')}\n${info}` : ''
-                        }\n\n${bold('• Example')}\n${contoh
+                          .join(', ')}\n\n${bold(
+                          `• ${t('misc.submeaning')}`,
+                        )}\n${submakna.map((item) => `- ${item}`).join('\n')}${
+                          info
+                            ? `\n\n${bold(`• ${t('misc.info')}`)}\n${info}`
+                            : ''
+                        }\n\n${bold(`• ${t('misc.example')}`)}\n${contoh
                           .map((item) => {
                             return item.includes('~')
                               ? `- ${item.replace(
@@ -699,37 +742,51 @@ module.exports = {
                     );
 
                     return generateEmbed({ interaction, loop: true, i, arr })
-                      .setAuthor({ name: '📖 KBBI Search Result' })
+                      .setAuthor({
+                        name: t(
+                          'command.search.subcommandGroup.dictionary.kbbi.embed.author',
+                        ),
+                      })
                       .setFields([
                         {
-                          name: '🗣️ Spelling',
+                          name: t(
+                            'command.search.subcommandGroup.dictionary.kbbi.embed.field.spelling',
+                          ),
                           value: nama,
                           inline: true,
                         },
                         {
-                          name: '🔤 Root',
+                          name: t(
+                            'command.search.subcommandGroup.dictionary.kbbi.embed.field.root',
+                          ),
                           value: kata_dasar.length
                             ? kata_dasar.join(', ')
-                            : italic('None'),
+                            : italic(t('misc.none')),
                           inline: true,
                         },
                         {
-                          name: '🗣️ Pronunciation',
-                          value: pelafalan || italic('Unknown'),
+                          name: t(
+                            'command.search.subcommandGroup.dictionary.kbbi.embed.field.pronunciation',
+                          ),
+                          value: pelafalan || italic(t('misc.unknown')),
                           inline: true,
                         },
                         {
-                          name: '🔤 Nonstandard form',
+                          name: t(
+                            'command.search.subcommandGroup.dictionary.kbbi.embed.field.nonstandard',
+                          ),
                           value: bentuk_tidak_baku.length
                             ? bentuk_tidak_baku.join(', ')
-                            : italic('None'),
+                            : italic(t('misc.none')),
                           inline: true,
                         },
                         {
-                          name: '🔤 Variant',
+                          name: t(
+                            'command.search.subcommandGroup.dictionary.kbbi.embed.field.variant',
+                          ),
                           value: varian.length
                             ? varian.join(', ')
-                            : italic('None'),
+                            : italic(t('misc.none')),
                           inline: true,
                         },
                         ...meanings,
@@ -743,15 +800,18 @@ module.exports = {
               }
 
               const meanings = result[0].makna.map(
-                ({ contoh, info, kelas, submakna }, index, arr) => ({
-                  name: `❓ Meaning${arr.length > 1 ? `${index + 1}` : ''}`,
-                  value: `${bold('• Part of Speech')}\n${kelas
+                ({ contoh, info, kelas, submakna }, i, arr) => ({
+                  name: t(
+                    'command.search.subcommandGroup.dictionary.kbbi.embed.field.meaning',
+                    { num: arr.length > 1 ? ` ${i + 1}` : '' },
+                  ),
+                  value: `${bold(`• ${t('misc.partOfSpeech')}`)}\n${kelas
                     .map(({ nama }) => nama)
-                    .join(', ')}\n\n${bold('• Submeaning')}\n${submakna
-                    .map((item) => `- ${item}`)
-                    .join('\n')}${
-                    info ? `\n\n${bold('• Info')}\n${info}` : ''
-                  }\n\n${bold('• Example')}\n${contoh
+                    .join(', ')}\n\n${bold(
+                    `• ${t('misc.submeaning')}`,
+                  )}\n${submakna.map((item) => `- ${item}`).join('\n')}${
+                    info ? `\n\n${bold(`• ${t('misc.info')}`)}\n${info}` : ''
+                  }\n\n${bold(`• ${t('misc.example')}`)}\n${contoh
                     .map((item) => {
                       return item.includes('~')
                         ? `- ${item.replace(
@@ -769,40 +829,56 @@ module.exports = {
                 }),
               );
 
-              embed.setAuthor({ name: '📖 KBBI Search Result' }).setFields([
-                {
-                  name: '🗣️ Spelling',
-                  value: result[0].nama,
-                  inline: true,
-                },
-                {
-                  name: '🔤 Root',
-                  value: result[0].kata_dasar.length
-                    ? result[0].kata_dasar.join(', ')
-                    : italic('None'),
-                  inline: true,
-                },
-                {
-                  name: '🗣️ Pronunciation',
-                  value: result[0].pelafalan || italic('Unknown'),
-                  inline: true,
-                },
-                {
-                  name: '🔤 Nonstandard form',
-                  value: result[0].bentuk_tidak_baku.length
-                    ? result[0].bentuk_tidak_baku.join(', ')
-                    : italic('None'),
-                  inline: true,
-                },
-                {
-                  name: '🔤 Variant',
-                  value: result[0].varian.length
-                    ? result[0].varian.join(', ')
-                    : italic('None'),
-                  inline: true,
-                },
-                ...meanings,
-              ]);
+              embed
+                .setAuthor({
+                  name: t(
+                    'command.search.subcommandGroup.dictionary.kbbi.embed.author',
+                  ),
+                })
+                .setFields([
+                  {
+                    name: t(
+                      'command.search.subcommandGroup.dictionary.kbbi.embed.field.spelling',
+                    ),
+                    value: result[0].nama,
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.search.subcommandGroup.dictionary.kbbi.embed.field.root',
+                    ),
+                    value: result[0].kata_dasar.length
+                      ? result[0].kata_dasar.join(', ')
+                      : italic(t('misc.none')),
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.search.subcommandGroup.dictionary.kbbi.embed.field.pronunciation',
+                    ),
+                    value: result[0].pelafalan || italic(t('misc.unknown')),
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.search.subcommandGroup.dictionary.kbbi.embed.field.nonstandard',
+                    ),
+                    value: result[0].bentuk_tidak_baku.length
+                      ? result[0].bentuk_tidak_baku.join(', ')
+                      : italic(t('misc.none')),
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.search.subcommandGroup.dictionary.kbbi.embed.field.variant',
+                    ),
+                    value: result[0].varian.length
+                      ? result[0].varian.join(', ')
+                      : italic(t('misc.none')),
+                    inline: true,
+                  },
+                  ...meanings,
+                ]);
 
               await interaction.editReply({ embeds: [embed] });
             },
@@ -817,7 +893,7 @@ module.exports = {
               );
 
               if (!list.length) {
-                throw `No result found for ${inlineCode(term)}.`;
+                throw t('global.error.noResult', { res: inlineCode(term) });
               }
 
               const {
@@ -832,7 +908,7 @@ module.exports = {
               } = list[Math.floor(Math.random() * list.length)];
 
               const formattedCite = `\n${italic(
-                `by ${author} — ${time(
+                `${t('misc.by')} ${author} — ${time(
                   new Date(written_on),
                   TimestampStyles.RelativeTime,
                 )}`,
@@ -847,29 +923,33 @@ module.exports = {
                 })
                 .setFields([
                   {
-                    name: '🔤 Definition',
+                    name: t(
+                      'command.search.subcommandGroup.dictionary.urban.embed.definition',
+                    ),
                     value: `${truncate(
                       definition,
                       1024 - formattedCite.length - 3,
                     )}${formattedCite}`,
                   },
-                  { name: '🔤 Example', value: truncate(example, 1024) },
                   {
-                    name: '⭐ Rating',
-                    value: `${thumbs_up.toLocaleString()} 👍 | ${thumbs_down.toLocaleString()} 👎`,
+                    name: t(
+                      'command.search.subcommandGroup.dictionary.urban.embed.example',
+                    ),
+                    value: truncate(example, 1024),
+                  },
+                  {
+                    name: t(
+                      'command.search.subcommandGroup.dictionary.urban.embed.rating',
+                    ),
+                    value: `${count(thumbs_up)} 👍 | ${count(thumbs_down)} 👎`,
                   },
                 ]);
 
               await interaction.editReply({ embeds: [embed] });
             },
             mdn: async () => {
-              const query = new URLSearchParams({
-                q: term,
-                locale:
-                  guild.preferredLocale !== Locale.SpanishES
-                    ? guild.preferredLocale
-                    : 'es',
-              });
+              const code = locale.split('-').shift();
+              const query = new URLSearchParams({ q: term, locale: code });
               const baseURL = 'https://developer.mozilla.org';
 
               /** @type {{ data: { documents: import('@/constants/types').MDNDocument[], suggestions: import('@/constants/types').MDNSuggestion[] } }} */
@@ -879,15 +959,12 @@ module.exports = {
 
               if (!documents.length) {
                 if (!suggestions.length) {
-                  throw `No result found for ${inlineCode(term)}.`;
+                  throw t('global.error.noResult', { res: inlineCode(term) });
                 }
 
                 const newQuery = new URLSearchParams({
                   q: suggestions[0].text,
-                  locale:
-                    guild.preferredLocale !== Locale.SpanishES
-                      ? guild.preferredLocale
-                      : 'es',
+                  locale: code,
                 });
 
                 /** @type {{ data: { documents: import('@/constants/types').MDNDocument[] } }} */
@@ -898,15 +975,17 @@ module.exports = {
                 const fields = docs.map(({ mdn_url, summary, title }) => ({
                   name: title,
                   value: `${summary}\n${hyperlink(
-                    'View Documentation',
+                    t('misc.docs'),
                     `${baseURL}${mdn_url}`,
-                    'Click here to view the documentation.',
+                    t('misc.click.docs'),
                   )}`,
                 }));
 
                 embed
                   .setAuthor({
-                    name: 'Documentation Search Results',
+                    name: t(
+                      'command.search.subcommandGroup.dictionary.mdn.embed',
+                    ),
                     iconURL:
                       'https://pbs.twimg.com/profile_images/1511434207079407618/AwzUxnVf_400x400.png',
                   })
@@ -918,14 +997,20 @@ module.exports = {
               const fields = documents.map(({ mdn_url, summary, title }) => ({
                 name: title,
                 value: `${summary}\n${hyperlink(
-                  'View Documentation',
+                  t('misc.docs'),
                   `${baseURL}${mdn_url}`,
-                  'Click here to view the documentation.',
+                  t('misc.click.docs'),
                 )}`,
               }));
 
               embed
-                .setAuthor({ name: '📖 Documentation Search Results' })
+                .setAuthor({
+                  name: t(
+                    'command.search.subcommandGroup.dictionary.mdn.embed',
+                  ),
+                  iconURL:
+                    'https://pbs.twimg.com/profile_images/1511434207079407618/AwzUxnVf_400x400.png',
+                })
                 .setFields(fields);
 
               await interaction.editReply({ embeds: [embed] });
@@ -940,8 +1025,14 @@ module.exports = {
                     term,
                   )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(() => {
-                  throw `No definition found with term ${inlineCode(term)}.`;
+                .catch((err) => {
+                  if (err.response?.status === 404) {
+                    throw t('global.error.definition', {
+                      term: inlineCode(term),
+                    });
+                  }
+
+                  throw err;
                 });
 
               embed
@@ -964,7 +1055,7 @@ module.exports = {
           );
 
           if (!channel.nsfw) {
-            throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+            throw t('global.error.nsfw', { NSFWchannel: NSFWResponse });
           }
 
           return {
@@ -981,18 +1072,34 @@ module.exports = {
                 ({ episode, link, thumbnail, title, type }, i, arr) =>
                   generateEmbed({ interaction, loop: true, i, arr })
                     .setAuthor({
-                      name: 'Doujin Search Result',
+                      name: t(
+                        'command.search.subcommandGroup.doujindesu.embed.author',
+                      ),
                       iconURL: 'attachment://doujindesu.png',
                     })
                     .setThumbnail(thumbnail)
                     .setFields([
                       {
-                        name: '🔤 Title',
+                        name: t(
+                          'command.search.subcommandGroup.doujindesu.embed.field.title',
+                        ),
                         value: hyperlink(title, link),
                         inline: true,
                       },
-                      { name: '📄 Chapter', value: episode, inline: true },
-                      { name: '🔣 Type', value: type, inline: true },
+                      {
+                        name: t(
+                          'command.search.subcommandGroup.doujindesu.embed.field.chapter',
+                        ),
+                        value: episode,
+                        inline: true,
+                      },
+                      {
+                        name: t(
+                          'command.search.subcommandGroup.doujindesu.embed.field.type',
+                        ),
+                        value: type,
+                        inline: true,
+                      },
                     ]),
               );
 
@@ -1016,24 +1123,36 @@ module.exports = {
                   )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
                 .catch(() => {
-                  throw `No doujin found with query ${inlineCode(query)}.`;
+                  throw t('global.error.doujin.query', {
+                    doujin: inlineCode(query),
+                  });
                 });
 
               const embeds = result.map(
                 ({ link, thumbnail, title, type }, i, arr) =>
                   generateEmbed({ interaction, loop: true, i, arr })
                     .setAuthor({
-                      name: 'Doujin Search Result',
+                      name: t(
+                        'command.search.subcommandGroup.doujindesu.embed.author',
+                      ),
                       iconURL: 'attachment://doujindesu.png',
                     })
                     .setThumbnail(thumbnail)
                     .setFields([
                       {
-                        name: '🔤 Title',
+                        name: t(
+                          'command.search.subcommandGroup.doujindesu.embed.field.title',
+                        ),
                         value: hyperlink(title, link),
                         inline: true,
                       },
-                      { name: '🔣 Type', value: type, inline: true },
+                      {
+                        name: t(
+                          'command.search.subcommandGroup.doujindesu.embed.field.type',
+                        ),
+                        value: type,
+                        inline: true,
+                      },
                     ]),
               );
 
@@ -1051,10 +1170,10 @@ module.exports = {
 
           return {
             danbooru: async () => {
-              if (!channel) throw "Channel doesn't exist.";
+              if (!channel) throw t('global.error.channel.notFound');
 
               if (!channel.nsfw) {
-                throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+                throw t('global.error.nsfw', { NSFWchannel: NSFWResponse });
               }
 
               /** @type {{ data: ArrayBuffer }} */
@@ -1065,8 +1184,12 @@ module.exports = {
                   )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                   { responseType: 'arraybuffer' },
                 )
-                .catch(() => {
-                  throw `No image found with query ${inlineCode(query)}.`;
+                .catch((err) => {
+                  if (err.response?.status === 404) {
+                    throw t('global.error.image', { image: inlineCode(query) });
+                  }
+
+                  throw err;
                 });
 
               const img = await generateAttachmentFromBuffer({
@@ -1077,7 +1200,9 @@ module.exports = {
 
               embed
                 .setAuthor({
-                  name: 'Danbooru Search Result',
+                  name: t(
+                    'command.search.subcommandGroup.image.danbooru.embed',
+                  ),
                   iconURL: 'https://avatars.githubusercontent.com/u/57931572',
                 })
                 .setImage(`attachment://${img.name}`);
@@ -1088,15 +1213,23 @@ module.exports = {
               /** @type {{ data: { result: String[] } }} */
               const {
                 data: { result },
-              } = await axios.get(
-                `https://api.lolhuman.xyz/api/gimage2?query=${encodeURIComponent(
-                  query,
-                )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
-              );
+              } = await axios
+                .get(
+                  `https://api.lolhuman.xyz/api/gimage2?query=${encodeURIComponent(
+                    query,
+                  )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
+                )
+                .catch((err) => {
+                  if (err.response?.status === 404) {
+                    throw t('global.error.image', { image: inlineCode(query) });
+                  }
+
+                  throw err;
+                });
 
               await generatePagination({ interaction, limit: 1 })
                 .setAuthor({
-                  name: 'Google Search Result',
+                  name: t('command.search.subcommandGroup.image.google.embed'),
                   iconURL:
                     'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/480px-Google_%22G%22_Logo.svg.png',
                 })
@@ -1104,10 +1237,10 @@ module.exports = {
                 .render();
             },
             konachan: async () => {
-              if (!channel) throw "Channel doesn't exist.";
+              if (!channel) throw t('global.error.channel.notFound');
 
               if (!channel.nsfw) {
-                throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+                throw t('global.error.nsfw', { NSFWchannel: NSFWResponse });
               }
 
               /** @type {{ data: ArrayBuffer }} */
@@ -1118,8 +1251,12 @@ module.exports = {
                   )}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                   { responseType: 'arraybuffer' },
                 )
-                .catch(() => {
-                  throw `No image found with query ${inlineCode(query)}.`;
+                .catch((err) => {
+                  if (err.response?.status === 404) {
+                    throw t('global.error.image', { image: inlineCode(query) });
+                  }
+
+                  throw err;
                 });
 
               const img = await generateAttachmentFromBuffer({
@@ -1129,7 +1266,11 @@ module.exports = {
               });
 
               embed
-                .setAuthor({ name: '🌐 Konachan Search Result' })
+                .setAuthor({
+                  name: t(
+                    'command.search.subcommandGroup.image.konachan.embed',
+                  ),
+                })
                 .setImage(`attachment://${img.name}`);
 
               await interaction.editReply({ embeds: [embed], files: [img] });
@@ -1146,7 +1287,10 @@ module.exports = {
 
               await generatePagination({ interaction, limit: 10 })
                 .setAuthor({
-                  name: `🌐 News Country Lists (${countries.length.toLocaleString()})`,
+                  name: t(
+                    'command.search.subcommandGroup.news.list.pagination',
+                    { total: count(countries) },
+                  ),
                 })
                 .setDescriptions(responses)
                 .render();
@@ -1159,7 +1303,9 @@ module.exports = {
               );
 
               if (!country) {
-                throw `No country available with name ${inlineCode(name)}.`;
+                throw t('global.error.newsCountry', {
+                  country: inlineCode(name),
+                });
               }
 
               /** @type {{ articles: import('@/constants/types').News[] }} */
@@ -1171,7 +1317,9 @@ module.exports = {
               });
 
               if (!articles.length) {
-                throw `No news found in ${inlineCode(country)}.`;
+                throw t('global.error.news', {
+                  country: inlineCode(country),
+                });
               }
 
               const embeds = articles.map(
@@ -1201,20 +1349,31 @@ module.exports = {
                       ),
                     )
                     .setThumbnail(urlToImage)
-                    .setAuthor({ name: `📰 ${country} News Lists` })
+                    .setAuthor({
+                      name: t(
+                        'command.search.subcommandGroup.news.country.embed.author',
+                        { country },
+                      ),
+                    })
                     .setFields([
                       {
-                        name: '🔤 Headline',
+                        name: t(
+                          'command.search.subcommandGroup.news.country.embed.field.headline',
+                        ),
                         value: hyperlink(title, url),
                         inline: true,
                       },
                       {
-                        name: '🔤 Subheadline',
-                        value: description ?? italic('None'),
+                        name: t(
+                          'command.search.subcommandGroup.news.country.embed.field.subheadline',
+                        ),
+                        value: description ?? italic(t('misc.none')),
                         inline: true,
                       },
                       {
-                        name: '📆 Published At',
+                        name: t(
+                          'command.search.subcommandGroup.news.country.embed.field.published',
+                        ),
                         value: time(
                           new Date(publishedAt),
                           TimestampStyles.RelativeTime,
@@ -1222,11 +1381,19 @@ module.exports = {
                         inline: true,
                       },
                       {
-                        name: '✒️ Author',
-                        value: author ?? italic('Unknown'),
+                        name: t(
+                          'command.search.subcommandGroup.news.country.embed.field.author',
+                        ),
+                        value: author ?? italic(t('misc.unknown')),
                         inline: true,
                       },
-                      { name: '🔢 Source', value: source.name, inline: true },
+                      {
+                        name: t(
+                          'command.search.subcommandGroup.news.country.embed.field.source',
+                        ),
+                        value: source.name,
+                        inline: true,
+                      },
                     ]),
               );
 
@@ -1244,15 +1411,17 @@ module.exports = {
             { name: 'nhentai-logo.png' },
           );
 
+          if (!channel) throw t('global.error.channel.notFound');
+
           if (!channel.nsfw) {
-            throw `Please use this command in a NSFW Channel.${NSFWResponse}`;
+            throw t('global.error.nsfw', { NSFWchannel: NSFWResponse });
           }
 
           return {
             tag: async () => {
               const tag = options.getString('tag', true);
 
-              if (!isNumericString(tag)) throw 'Please enter a number.';
+              if (!isNumericString(tag)) throw t('global.error.numeric');
 
               /** @type {{ data: { result: import('@/constants/types').NHentai } }} */
               const {
@@ -1264,7 +1433,7 @@ module.exports = {
                   `${baseURL}/nhentai/${tag}?apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
                 .catch(() => {
-                  throw `No doujin found with tag ${inlineCode(tag)}.`;
+                  throw t('global.error.doujin.tag', { tag: inlineCode(tag) });
                 });
 
               embed
@@ -1285,9 +1454,11 @@ module.exports = {
 
               const embeds = [embed, ...imagesEmbed].map((emb, i, arr) =>
                 emb.setFooter({
-                  text: `${client.user.username} | Page ${i + 1} of ${
-                    arr.length
-                  }`,
+                  text: t('global.embed.footer', {
+                    botUsernmae: client.user.username,
+                    pageNumber: i + 1,
+                    totalPages: arr.length,
+                  }),
                   iconURL: client.user.displayAvatarURL(),
                 }),
               );
@@ -1309,19 +1480,29 @@ module.exports = {
                 .get(
                   `${baseURL}/nhentaisearch?query=${query}&apikey=${process.env.LOLHUMAN_API_KEY}`,
                 )
-                .catch(() => {
-                  throw `No doujin found with query ${inlineCode(query)}.`;
+                .catch((err) => {
+                  if (err.response?.status === 404) {
+                    throw t('global.error.doujin.query', {
+                      doujin: inlineCode(query),
+                    });
+                  }
+
+                  throw err;
                 });
 
               const embeds = result.map(({ id, page, title_native }, i, arr) =>
                 generateEmbed({ interaction, loop: true, i, arr })
                   .setAuthor({
-                    name: 'Doujin Search Result',
+                    name: t(
+                      'command.search.subcommandGroup.nhentai.embed.author',
+                    ),
                     iconURL: 'attachment://nhentai-logo.png',
                   })
                   .setFields([
                     {
-                      name: '🔤 Title',
+                      name: t(
+                        'command.search.subcommandGroup.nhentai.embed.field.title',
+                      ),
                       value: hyperlink(
                         title_native,
                         `https://nhentai.net/g/${id}`,
@@ -1329,8 +1510,10 @@ module.exports = {
                       inline: true,
                     },
                     {
-                      name: '📄 Total Page',
-                      value: count({ total: page, data: 'page' }),
+                      name: t(
+                        'command.search.subcommandGroup.nhentai.embed.field.page',
+                      ),
+                      value: count(page, 'page'),
                       inline: true,
                     },
                   ]),
@@ -1380,7 +1563,7 @@ module.exports = {
 
         if (letter) {
           if (!isAlphabeticLetter(letter)) {
-            throw 'You have to specify an alphabetic character.';
+            throw t('global.error.alphabetic');
           }
 
           query.append('letter', letter);
@@ -1392,9 +1575,10 @@ module.exports = {
         } = await axios.get(`https://api.jikan.moe/v4/manga?${query}`);
 
         if (!data.length) {
-          throw `No manga found with title ${inlineCode(
-            titleQuery,
-          )} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.${NSFWResponse}`;
+          throw t('global.error.nsfwManga', {
+            title: inlineCode(titleQuery),
+            NSFWchannel: NSFWResponse,
+          });
         }
 
         const embeds = data.map(
@@ -1428,83 +1612,84 @@ module.exports = {
             generateEmbed({ interaction, loop: true, i, arr })
               .setThumbnail(jpg.image_url ?? webp.image_url)
               .setAuthor({
-                name: 'Manga Search Results',
+                name: t('command.search.subcommand.manga.embed.author'),
                 iconURL:
                   'https://upload.wikimedia.org/wikipedia/commons/7/7a/MyAnimeList_Logo.png',
               })
               .setFields([
                 {
-                  name: '🔤 Title',
+                  name: t('command.search.subcommand.manga.embed.field.title'),
                   value: hyperlink(title, url),
                   inline: true,
                 },
                 {
-                  name: '🔠 Type',
-                  value: type ?? italic('Unknown'),
+                  name: t('command.search.subcommand.manga.embed.field.type'),
+                  value: type ?? italic(t('misc.unknown')),
                   inline: true,
                 },
                 {
-                  name: '📚 Volume & Chapter',
+                  name: t(
+                    'command.search.subcommand.manga.embed.field.volumeChapter',
+                  ),
                   value: `${
-                    volumes
-                      ? count({ total: volumes, data: 'volume' })
-                      : '??? volumes'
-                  } ${
-                    chapters ? count({ total: chapters, data: 'chapter' }) : ''
-                  }`,
+                    volumes ? count(volumes, 'volume') : '??? volumes'
+                  } ${chapters ? count(chapters, 'chapter') : ''}`,
                   inline: true,
                 },
                 {
-                  name: '📊 Stats',
+                  name: t('command.search.subcommand.manga.embed.field.stats'),
                   value:
                     score || scored_by || members || rank || favorites || rating
                       ? `${score ? `⭐ ${score}` : ''}${
                           scored_by
-                            ? ` (by ${count({
-                                total: scored_by,
-                                data: 'user',
-                              })})`
+                            ? ` (${t('misc.by')} ${count(scored_by, 'user')})`
                             : ''
-                        }${members ? ` | 👥 ${members.toLocaleString()}` : ''}${
+                        }${members ? ` | 👥 ${count(members)}` : ''}${
                           rank ? ` | #️⃣ #${rank}` : ''
                         }${favorites ? ` | ❤️ ${favorites}` : ''}${
                           rating ? ` | 🔞 ${rating}` : ''
                         }`
-                      : italic('None'),
+                      : italic(t('misc.none')),
                   inline: true,
                 },
                 {
-                  name: '⌛ Status',
-                  value: status ?? italic('Unknown'),
+                  name: t('command.search.subcommand.manga.embed.field.status'),
+                  value: status ?? italic(t('misc.unknown')),
                   inline: true,
                 },
                 {
-                  name: '📆 Published',
-                  value: published.string ?? italic('Unknown'),
+                  name: t(
+                    'command.search.subcommand.manga.embed.field.published',
+                  ),
+                  value: published.string ?? italic(t('misc.unknown')),
                   inline: true,
                 },
                 {
-                  name: '📝 Authors',
+                  name: t(
+                    'command.search.subcommand.manga.embed.field.auhtors',
+                  ),
                   value: authors.length
                     ? authors
                         .map((author) => hyperlink(author.name, author.url))
                         .join(', ')
-                    : italic('Unknown'),
+                    : italic(t('misc.unknown')),
                   inline: true,
                 },
                 {
-                  name: '📰 Serializations',
+                  name: t(
+                    'command.search.subcommand.manga.embed.field.serializations',
+                  ),
                   value: serializations.length
                     ? serializations
                         .map((serialization) =>
                           hyperlink(serialization.name, serialization.url),
                         )
                         .join(', ')
-                    : italic('Unknown'),
+                    : italic(t('misc.unknown')),
                   inline: true,
                 },
                 {
-                  name: '🔠 Genres',
+                  name: t('command.search.subcommand.manga.embed.field.genres'),
                   value:
                     genres.length ||
                     explicit_genres.length ||
@@ -1518,11 +1703,13 @@ module.exports = {
                         ]
                           .map((genre) => hyperlink(genre.name, genre.url))
                           .join(', ')
-                      : italic('Unknown'),
+                      : italic(t('misc.unknown')),
                   inline: true,
                 },
                 {
-                  name: '💫 Synopsis',
+                  name: t(
+                    'command.search.subcommand.manga.embed.field.synopsis',
+                  ),
                   value: synopsis
                     ? synopsis.includes('[Written by MAL Rewrite]')
                       ? truncate(
@@ -1530,7 +1717,7 @@ module.exports = {
                           1024,
                         )
                       : truncate(synopsis, 1024)
-                    : italic('No available'),
+                    : italic(t('misc.noAvailable')),
                 },
               ]),
         );

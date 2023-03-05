@@ -1,26 +1,46 @@
 const { bold, inlineCode, SlashCommandBuilder } = require('discord.js');
-const mexp = require('math-expression-evaluator');
+const { changeLanguage, t } = require('i18next');
+const Mexp = require('math-expression-evaluator');
 
 const { math } = require('@/constants');
-const { generateEmbed, generatePagination } = require('@/utils');
+const { count, generateEmbed, generatePagination } = require('@/utils');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('calc')
     .setDescription('🧮 Calculator command.')
+    .setDescriptionLocalizations({
+      'es-ES': t('command.calc.description', { lng: 'es-ES' }),
+    })
     .addSubcommand((subcommand) =>
       subcommand
         .setName('list')
-        .setDescription('➗ View supported math symbols.'),
+        .setDescription('➗ Displays supported math symbols.')
+        .setDescriptionLocalizations({
+          'es-ES': t('command.calc.subcommand.list.description', {
+            lng: 'es-ES',
+          }),
+        }),
     )
     .addSubcommand((subcommand) =>
       subcommand
         .setName('run')
-        .setDescription('🧮 calculate a math operation.')
+        .setDescription('🧮 Calculate a math operation.')
+        .setDescriptionLocalizations({
+          'es-ES': t('command.calc.subcommand.run.description', {
+            lng: 'es-ES',
+          }),
+        })
         .addStringOption((option) =>
           option
             .setName('operation')
-            .setDescription('🔢 The operation to calculate.')
+            .setDescription('🔢 The operation to be calculated.')
+            .setDescriptionLocalizations({
+              'es-ES': t(
+                'command.calc.subcommand.run.option.operation.description',
+                { lng: 'es-ES' },
+              ),
+            })
             .setRequired(true),
         ),
     ),
@@ -31,37 +51,49 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { locale, options } = interaction;
 
     await interaction.deferReply();
 
+    await changeLanguage(locale);
+
     return {
       list: async () => {
-        const symbols = Object.values(math);
+        const symbols = Object.entries(math).map(([k, v]) => ({
+          ...v,
+          description: t(`global.constant.math.${k}`),
+        }));
 
         const responses = symbols.map(
           ({ description, example, result, symbol }, i) =>
             `${bold(`${i + 1}.`)} ${inlineCode(symbol)} ${description}${
-              example ? ` ${inlineCode(`eg. ${example}`)}` : ''
-            }${result ? ` returns ${inlineCode(result)}` : ''}`,
+              example ? ` ${inlineCode(`${t('misc.eg')} ${example}`)}` : ''
+            }${result ? ` ${t('misc.returns')} ${inlineCode(result)}` : ''}`,
         );
 
         await generatePagination({ interaction, limit: 10 })
           .setAuthor({
-            name: `➗ Supported Math Symbol Lists (${symbols.length.toLocaleString()})`,
+            name: t('command.calc.pagination', {
+              total: count(symbols),
+            }),
           })
           .setDescriptions(responses)
           .render();
       },
       run: async () => {
         const operation = options.getString('operation', true);
+        const mexp = new Mexp();
 
         const embed = generateEmbed({ interaction })
-          .setAuthor({ name: '🧮 Calculation Result' })
+          .setAuthor({ name: t('command.calc.embed.author') })
           .setFields([
-            { name: '🔢 Operation', value: operation, inline: true },
             {
-              name: '🔢 Result',
+              name: t('command.calc.embed.field.operation'),
+              value: operation,
+              inline: true,
+            },
+            {
+              name: t('command.calc.embed.field.result'),
               value: `${mexp.eval(operation)}`,
               inline: true,
             },
