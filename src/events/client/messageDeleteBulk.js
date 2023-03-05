@@ -9,10 +9,10 @@ const {
   userMention,
   WebhookClient,
 } = require('discord.js');
-const pluralize = require('pluralize');
 
 const {
   applyMessageType,
+  count,
   groupMessageByAuthor,
   groupMessageByType,
   truncate,
@@ -76,11 +76,9 @@ module.exports = {
       const response = `${groupedMessages
         .flatMap(
           (arrMessage) =>
-            `${arrMessage
-              .reduce((acc, curr) => acc + curr.length, 0)
-              .toLocaleString()} ${pluralize(
-              'message',
+            `${count(
               arrMessage.reduce((acc, curr) => acc + curr.length, 0),
+              'message',
             )} from ${userMention(arrMessage[0][0].author.id)} was ${bold(
               'deleted',
             )} by ${bulkDeleteLog.executor} in ${channelMention(

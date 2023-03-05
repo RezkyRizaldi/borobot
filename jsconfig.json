@@ -36,10 +36,22 @@
         "events"
       ],
       "@/handlers/*": [
-        "functions/handlers/*"
+        "handlers/*"
       ],
       "@/handlers": [
-        "functions/handlers"
+        "handlers"
+      ],
+      "@/lang/*": [
+        "lang/*"
+      ],
+      "@/lang": [
+        "lang"
+      ],
+      "@/schemas/*": [
+        "schemas/*"
+      ],
+      "@/schemas": [
+        "schemas"
       ],
       "@/utils/*": [
         "utils/*"

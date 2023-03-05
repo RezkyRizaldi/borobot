@@ -3,6 +3,7 @@ const {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } = require('discord.js');
+const { changeLanguage, t } = require('i18next');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -27,23 +28,28 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
-
-    /** @type {import('discord.js').GuildMember} */
-    const member = options.getMember('member');
-    const reason = options.getString('reason') ?? 'No reason';
-    const { voice } = member;
+    const { locale, options } = interaction;
 
     await interaction.deferReply();
 
-    if (!voice.channel) throw `${member} is not connected to a voice channel.`;
+    await changeLanguage(locale);
 
-    if (voice.serverDeaf) throw `${member} is already being deafen.`;
+    /** @type {import('discord.js').GuildMember} */
+    const member = options.getMember('member');
+    const reason = options.getString('reason') ?? t('misc.noReason');
+    const { voice } = member;
+
+    if (!voice.channel) throw t('global.error.channel.connect', { member });
+
+    if (voice.serverDeaf) throw t('global.error.deafen', { member });
 
     await voice.setDeaf(true, reason);
 
     await interaction.editReply({
-      content: `Successfully ${bold('deafen')} ${member}.`,
+      content: t('global.success.deafen', {
+        status: bold(t('misc.deafen')),
+        member,
+      }),
     });
   },
 };

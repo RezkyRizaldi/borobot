@@ -4,6 +4,7 @@ const {
   SlashCommandBuilder,
   userMention,
 } = require('discord.js');
+const { changeLanguage, t } = require('i18next');
 const pluralize = require('pluralize');
 
 const { count, generateEmbed, groupMessageByAuthor } = require('@/utils');
@@ -42,8 +43,9 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, guild: ?import('discord.js').Guild | null, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { channel, guild, options } = interaction;
+    /** @type {{ channel: ?import('discord.js').BaseGuildTextChannel, guild: ?import('discord.js').Guild, locale: import('discord.js').Locale, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { channel, guild, locale, options } = interaction;
+
     const amount = options.getInteger('amount', true);
     const messages = await channel.messages.fetch();
     let i = 0;
@@ -54,19 +56,21 @@ module.exports = {
     /** @type {?import('discord.js').Role} */
     const role = options.getRole('role');
 
-    /** @type {Collection<import('discord.js').Snowflake, import('discord.js').Message>} */
+    /** @type {Collection<String, import('discord.js').Message<true>>} */
     const filteredMessages = new Collection();
 
     await interaction.deferReply({ ephemeral: true });
 
-    if (!guild) throw "Guild doesn't exists.";
+    await changeLanguage(locale);
 
-    if (!channel) throw "Channel doesn't exist.";
+    if (!guild) throw t('global.error.guild');
 
-    if (!messages.size) throw `${channel} doesn't have any message.`;
+    if (!channel) throw t('global.error.channel.notFound');
+
+    if (!messages.size) throw t('global.error.message.notFound', { channel });
 
     if (!messages.some((msg) => msg.bulkDeletable)) {
-      throw "You don't have appropiate permissions to delete messages.";
+      throw t('global.error.message.perm');
     }
 
     switch (true) {
@@ -88,7 +92,7 @@ module.exports = {
           });
 
           if (!filteredMessages.size) {
-            throw `members with role ${role} doesn't have any message in ${channel}.`;
+            throw t('global.error.message.role', { role, channel });
           }
         }
         break;
@@ -105,7 +109,7 @@ module.exports = {
           });
 
           if (!filteredMessages.size) {
-            throw `${member} doesn't have any message in ${channel}.`;
+            throw t('global.error.message.member', { member, channel });
           }
         }
         break;
@@ -126,7 +130,7 @@ module.exports = {
           });
 
           if (!filteredMessages.size) {
-            throw `members with role ${role} doesn't have any message in ${channel}.`;
+            throw t('global.error.message.role', { role, channel });
           }
         }
         break;
@@ -137,7 +141,7 @@ module.exports = {
       true,
     );
 
-    if (!msgs.size) throw 'No messages can be deleted.';
+    if (!msgs.size) throw t('global.error.messages');
 
     const embed = generateEmbed({ interaction }).setAuthor({
       name: `🗑️ ${pluralize('Message', msgs.size)} Deleted`,
@@ -151,11 +155,8 @@ module.exports = {
           groupedMessages
             .map(
               (arrMessage, index, array) =>
-                `Deleted ${count({
-                  total: array[index].length,
-                  data: 'message',
-                })}${
-                  arrMessage[index]?.author
+                `Deleted ${count(array[index], 'message')}${
+                  arrMessage[index].author
                     ? ` from ${userMention(arrMessage[index].author.id)}`
                     : ''
                 }.`,
@@ -168,7 +169,7 @@ module.exports = {
 
       case member !== null:
         embed.setDescription(
-          `Deleted ${count({ total: msgs.size, data: 'message' })}${
+          `Deleted ${count(msgs.size, 'message')}${
             msgs.first().author
               ? ` from ${userMention(msgs.first().author.id)}`
               : ''
@@ -184,10 +185,7 @@ module.exports = {
           groupedMessages
             .map(
               (arrMessage, index, array) =>
-                `Deleted ${count({
-                  total: array[index].length,
-                  data: 'message',
-                })}${
+                `Deleted ${count(array[index], 'message')}${
                   arrMessage[index].author
                     ? ` from ${userMention(arrMessage[index].author.id)}`
                     : ''
@@ -200,9 +198,7 @@ module.exports = {
       }
 
       default: {
-        embed.setDescription(
-          `Deleted ${count({ total: msgs.size, data: 'message' })}.`,
-        );
+        embed.setDescription(`Deleted ${count(msgs.size, 'message')}.`);
 
         return await interaction.editReply({ embeds: [embed] });
       }

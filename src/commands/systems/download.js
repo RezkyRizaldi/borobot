@@ -1,4 +1,4 @@
-const axios = require('axios').default;
+const axios = require('axios');
 const {
   AttachmentBuilder,
   bold,
@@ -16,6 +16,7 @@ const {
   youtubeDownloadTypeChoices,
 } = require('@/constants');
 const {
+  count,
   generateAttachmentFromBuffer,
   generateEmbed,
   generatePagination,
@@ -769,7 +770,9 @@ module.exports = {
                 },
                 {
                   name: '📊 Video Stats',
-                  value: `Duration: ${duration}\nViews: ${view.toLocaleString()}\nLikes: ${like.toLocaleString()}\nDislikes: ${dislike.toLocaleString()}`,
+                  value: `Duration: ${duration}\nViews: ${count(
+                    view,
+                  )}\nLikes: ${count(like)}\nDislikes: ${count(dislike)}`,
                   inline: true,
                 },
                 {

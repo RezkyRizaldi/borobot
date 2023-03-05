@@ -604,7 +604,7 @@ module.exports = {
               name: '👤 Highest Member Count',
               value: `${highestMemberCount} ${
                 memberCountValueComparison > 0
-                  ? `(+${memberCountValueComparison.toLocaleString()})`
+                  ? `(+${count(memberCountValueComparison)})`
                   : ''
               }`,
               inline: true,
@@ -652,7 +652,7 @@ module.exports = {
             },
             {
               name: '👤 Member Count',
-              value: count({ total: role.members.size, data: 'member' }),
+              value: count(role.members.size, 'member'),
               inline: true,
             },
             {

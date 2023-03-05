@@ -28,8 +28,8 @@ module.exports = {
     /** @type {import('discord.js').Role} */
     const role = options.getRole('role', true);
 
-    const membersWithRole = guild.members.cache.filter((member) =>
-      member.roles.cache.has(role.id),
+    const membersWithRole = guild.members.cache.filter(
+      (member) => !member.user.bot && member.roles.cache.has(role.id),
     );
 
     if (!membersWithRole.size) {

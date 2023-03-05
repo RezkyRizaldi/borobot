@@ -1,9 +1,11 @@
 const { bold, hyperlink, SlashCommandBuilder } = require('discord.js');
+const { changeLanguage, t } = require('i18next');
 const wait = require('node:timers/promises').setTimeout;
-const { createWorker } = require('tesseract.js');
-const languages = require('tesseract.js/src/constants/languages');
+const { createWorker, languages } = require('tesseract.js');
 
+const { supportedMIMETypes } = require('@/constants');
 const {
+  count,
   generateEmbed,
   generatePagination,
   getImageReadLocale,
@@ -27,6 +29,11 @@ module.exports = {
             .setName('file')
             .setDescription('🖼️ The image file to read.')
             .setRequired(true),
+        )
+        .addStringOption((option) =>
+          option
+            .setName('language')
+            .setDescription('🌐 The language code to be used.'),
         ),
     ),
   type: 'Chat Input',
@@ -36,35 +43,53 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { locale, options } = interaction;
 
     await interaction.deferReply();
+
+    await changeLanguage(locale);
 
     return {
       list: async () => {
         const locales = Object.values(languages);
 
         const responses = locales.map(
-          (locale, i) =>
-            `${bold(`${i + 1}. ${locale}`)} - ${getImageReadLocale(locale)}`,
+          (l, i) => `${bold(`${i + 1}. ${l}`)} - ${getImageReadLocale(l)}`,
         );
 
         await generatePagination({ interaction, limit: 10 })
           .setAuthor({
-            name: `🌐 Image Reader Locale Lists (${locales.length.toLocaleString()})`,
+            name: t('command.read.subcommand.list', { total: count(locales) }),
           })
           .setDescriptions(responses)
           .render();
       },
       run: async () => {
         const file = options.getAttachment('file', true);
+
+        /** @type {String} */
+        const language =
+          options.getString('language').toLowerCase() ?? languages.ENG;
+
+        if (!supportedMIMETypes.includes(file.contentType)) {
+          throw t('global.error.mime');
+        }
+
+        if (
+          !Object.keys(languages)
+            .map((key) => key.toLowerCase())
+            .includes(language)
+        ) {
+          throw t('global.error.language', { language });
+        }
+
         const worker = await createWorker();
 
         await wait(4000);
 
-        await worker.loadLanguage(languages.ENG);
+        await worker.loadLanguage(language);
 
-        await worker.initialize(languages.ENG);
+        await worker.initialize(language);
 
         const {
           data: { confidence, text },
@@ -74,24 +99,26 @@ module.exports = {
 
         const embed = generateEmbed({ interaction })
           .setThumbnail(file.url)
-          .setAuthor({ name: '🖨️ Detection Result' })
+          .setAuthor({ name: t('command.read.subcommand.run.embed.author') })
           .setFields([
             {
-              name: '📄 File',
+              name: t('command.read.subcommand.run.embed.field.file'),
               value: hyperlink(
                 file.name ?? file.url,
                 file.url,
-                file.description ?? 'Click here to view the image file.',
+                file.description ?? t('misc.click.image'),
               ),
               inline: true,
             },
             {
-              name: '🎯 Accuracy Rate',
+              name: t('command.read.subcommand.run.embed.field.confidence'),
               value: `${Math.floor(confidence)}%`,
               inline: true,
             },
             {
-              name: `🔠 Detected Text (${getImageReadLocale(languages.ENG)})`,
+              name: t('command.read.subcommand.run.embed.field.text', {
+                locale: getImageReadLocale(language),
+              }),
               value: text,
             },
           ]);

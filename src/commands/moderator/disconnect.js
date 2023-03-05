@@ -3,6 +3,7 @@ const {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } = require('discord.js');
+const { changeLanguage, t } = require('i18next');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -27,21 +28,26 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { locale, options } = interaction;
+
+    await changeLanguage(locale);
 
     /** @type {import('discord.js').GuildMember} */
     const member = options.getMember('member');
-    const reason = options.getString('reason') ?? 'No reason';
+    const reason = options.getString('reason') ?? t('misc.noReason');
     const { voice } = member;
 
     await interaction.deferReply();
 
-    if (!voice.channel) throw `${member} is not connected to a voice channel.`;
+    if (!voice.channel) throw t('global.error.channel.connect', { member });
 
     await voice.disconnect(reason);
 
     await interaction.editReply({
-      content: `Successfully ${bold('disconnected')} ${member}.`,
+      content: t('global.success.disconnect', {
+        status: bold(t('misc.disconnect')),
+        member,
+      }),
     });
   },
 };

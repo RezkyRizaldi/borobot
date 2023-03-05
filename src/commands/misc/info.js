@@ -1,4 +1,4 @@
-const axios = require('axios').default;
+const axios = require('axios');
 const {
   capitalCase,
   paramCase,
@@ -22,6 +22,7 @@ const {
   VideoSearchType,
   VideoStatus,
 } = require('holodex.js');
+const { changeLanguage, t } = require('i18next');
 const moment = require('moment');
 const minecraftData = require('minecraft-data');
 const wait = require('node:timers/promises').setTimeout;
@@ -29,6 +30,7 @@ const { stringify } = require('roman-numerals-convert');
 const weather = require('weather-js');
 
 const {
+  availableLocales,
   extraMcData,
   githubRepoSortingTypeChoices,
   searchSortingChoices,
@@ -190,22 +192,22 @@ module.exports = {
         .setDescription('🟫 Get information about Minecraft.')
         .addSubcommand((subcommand) =>
           subcommand
-            .setName('block')
-            .setDescription('🟫 Get Minecraft block information.')
-            .addStringOption((option) =>
-              option
-                .setName('name')
-                .setDescription('🔠 The Minecraft block name search query.'),
-            ),
-        )
-        .addSubcommand((subcommand) =>
-          subcommand
             .setName('biome')
             .setDescription('🌄 Get Minecraft biome information.')
             .addStringOption((option) =>
               option
                 .setName('name')
                 .setDescription('🔠 The Minecraft biome name search query.'),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('block')
+            .setDescription('🟫 Get Minecraft block information.')
+            .addStringOption((option) =>
+              option
+                .setName('name')
+                .setDescription('🔠 The Minecraft block name search query.'),
             ),
         )
         .addSubcommand((subcommand) =>
@@ -378,10 +380,14 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { client, options } = interaction;
-    const embed = generateEmbed({ interaction });
+    const { client, locale, options } = interaction;
+    const code = locale.split('-').shift();
 
     await interaction.deferReply();
+
+    await changeLanguage(locale);
+
+    const embed = generateEmbed({ interaction });
 
     if (options.getSubcommandGroup() !== null) {
       return {
@@ -389,89 +395,6 @@ module.exports = {
           const baseURL = 'https://covid19.mathdro.id/api';
 
           return {
-            latest: async () => {
-              /** @type {{ data: import('@/constants/types').CovidLatest[] }} */
-              const { data } = await axios.get(
-                `${baseURL}/daily/${moment(Date.now())
-                  .subtract(2, 'd')
-                  .format('M-DD-YYYY')}`,
-              );
-
-              const embeds = data.map(
-                (
-                  {
-                    caseFatalityRatio,
-                    confirmed,
-                    countryRegion,
-                    deaths,
-                    lastUpdate,
-                    provinceState,
-                  },
-                  i,
-                  arr,
-                ) =>
-                  generateEmbed({ interaction, loop: true, i, arr })
-                    .setThumbnail(`${baseURL}/og`)
-                    .setAuthor({ name: '🦠 Covid-19 Latest Cases' })
-                    .setFields([
-                      {
-                        name: '🌏 Country',
-                        value: countryRegion,
-                        inline: true,
-                      },
-                      {
-                        name: '🗾 Province/State',
-                        value:
-                          !provinceState || provinceState === 'Unknown'
-                            ? italic('Unknown')
-                            : provinceState,
-                        inline: true,
-                      },
-                      {
-                        name: '📆 Last Updated',
-                        value: time(
-                          new Date(lastUpdate),
-                          TimestampStyles.RelativeTime,
-                        ),
-                        inline: true,
-                      },
-                      {
-                        name: '✅ Confirmed',
-                        value: count({ total: confirmed, data: 'case' }),
-                        inline: true,
-                      },
-                      {
-                        name: '☠️ Deaths',
-                        value: count({ total: deaths, data: 'death' }),
-                        inline: true,
-                      },
-                      {
-                        name: '⚖️ Case Fatality Ratio',
-                        value: Number(caseFatalityRatio).toFixed(2),
-                        inline: true,
-                      },
-                    ]),
-              );
-
-              await generatePagination({ interaction })
-                .setEmbeds(embeds)
-                .render();
-            },
-            list: async () => {
-              /** @type {{ data: { countries: import('@/constants/types').CovidCountry[] } }} */
-              const {
-                data: { countries },
-              } = await axios.get(`${baseURL}/countries`);
-
-              const responses = countries.map(
-                ({ name }, i) => `${bold(`${i + 1}.`)} ${name}`,
-              );
-
-              await generatePagination({ interaction, limit: 10 })
-                .setAuthor({ name: '🌏 Covid-19 Country Lists' })
-                .setDescriptions(responses)
-                .render();
-            },
             country: async () => {
               const name = options.getString('name');
 
@@ -500,23 +423,33 @@ module.exports = {
                           countryRegion,
                         )}/og`,
                       )
-                      .setAuthor({ name: '🦠 Covid-19 Confirmed Cases' })
+                      .setAuthor({
+                        name: t(
+                          'command.info.subcommandGroup.covid.country.embed.author.many',
+                        ),
+                      })
                       .setFields([
                         {
-                          name: '🌏 Country',
+                          name: t(
+                            'command.info.subcommandGroup.covid.country.embed.field.country',
+                          ),
                           value: countryRegion,
                           inline: true,
                         },
                         {
-                          name: '🗾 Province/State',
+                          name: t(
+                            'command.info.subcommandGroup.covid.country.embed.field.state',
+                          ),
                           value:
                             !provinceState || provinceState === 'Unknown'
-                              ? italic('Unknown')
+                              ? italic(t('misc.unknown'))
                               : provinceState,
                           inline: true,
                         },
                         {
-                          name: '📆 Last Updated',
+                          name: t(
+                            'command.info.subcommandGroup.covid.country.embed.field.lastUpdated',
+                          ),
                           value: time(
                             new Date(lastUpdate),
                             TimestampStyles.RelativeTime,
@@ -524,40 +457,34 @@ module.exports = {
                           inline: true,
                         },
                         {
-                          name: '✅ Confirmed',
-                          value: `${count({
-                            total: confirmed,
-                            data: 'case',
-                          })}${
+                          name: t(
+                            'command.info.subcommandGroup.covid.country.embed.field.confirmed',
+                          ),
+                          value: `${count(confirmed, 'case')}${
                             cases28Days
-                              ? ` (${count({
-                                  total: cases28Days,
-                                  data: 'case',
-                                })}/month)`
+                              ? ` (${count(cases28Days, 'case')}/month)`
                               : ''
                           }`,
                           inline: true,
                         },
                         {
-                          name: '☠️ Deaths',
-                          value: `${count({ total: deaths, data: 'death' })}${
+                          name: t(
+                            'command.info.subcommandGroup.covid.country.embed.field.deaths',
+                          ),
+                          value: `${count(deaths, 'death')}${
                             deaths28Days
-                              ? ` (${count({
-                                  total: deaths28Days,
-                                  data: 'death',
-                                })}/month)`
+                              ? ` (${count(deaths28Days, 'death')}/month)`
                               : ''
                           }`,
                           inline: true,
                         },
                         {
-                          name: '📋 Incident Rate',
+                          name: t(
+                            'command.info.subcommandGroup.covid.country.embed.field.incidentRate',
+                          ),
                           value: incidentRate
-                            ? `${count({
-                                total: Math.floor(incidentRate),
-                                data: 'case',
-                              })}/day`
-                            : italic('Unknown'),
+                            ? `${count(Math.floor(incidentRate), 'case')}/day`
+                            : italic(t('misc.unknown')),
                           inline: true,
                         },
                       ]),
@@ -578,7 +505,7 @@ module.exports = {
               )?.name;
 
               if (!country) {
-                throw `No information found in ${inlineCode(name)}.`;
+                throw t('global.error.country', { country: inlineCode(name) });
               }
 
               /** @type {{ data: import('@/constants/types').CovidConfirmed[] }} */
@@ -594,20 +521,27 @@ module.exports = {
                     `${baseURL}/countries/${data[0].countryRegion}/og`,
                   )
                   .setAuthor({
-                    name: `🦠 Covid-19 Confirmed Cases in ${data[0].countryRegion}`,
+                    name: t(
+                      'command.info.subcommandGroup.covid.country.embed.author.single',
+                      { country: data[0].countryRegion },
+                    ),
                   })
                   .setFields([
                     {
-                      name: '🗾 Province/State',
+                      name: t(
+                        'command.info.subcommandGroup.covid.country.embed.field.state',
+                      ),
                       value:
                         !data[0].provinceState ||
                         data[0].provinceState === 'Unknown'
-                          ? italic('Unknown')
+                          ? italic(t('misc.unknown'))
                           : data[0].provinceState,
                       inline: true,
                     },
                     {
-                      name: '📆 Last Updated',
+                      name: t(
+                        'command.info.subcommandGroup.covid.country.embed.field.lastUpdated',
+                      ),
                       value: time(
                         new Date(data[0].lastUpdate),
                         TimestampStyles.RelativeTime,
@@ -615,50 +549,46 @@ module.exports = {
                       inline: true,
                     },
                     {
-                      name: '✅ Confirmed',
-                      value: `${count({
-                        total: data[0].confirmed,
-                        data: 'case',
-                      })}${
+                      name: t(
+                        'command.info.subcommandGroup.covid.country.embed.field.confirmed',
+                      ),
+                      value: `${count(data[0].confirmed, 'case')}${
                         data[0].cases28Days
-                          ? ` (${count({
-                              total: data[0].cases28Days,
-                              data: 'case',
-                            })}/month)`
+                          ? ` (${count(data[0].cases28Days, 'case')}/month)`
                           : ''
                       }`,
                       inline: true,
                     },
                     {
-                      name: '🔴 Active',
+                      name: t(
+                        'command.info.subcommandGroup.covid.country.embed.field.active',
+                      ),
                       value: data[0].active
-                        ? `${count({ total: data[0].active, data: 'case' })}`
-                        : italic('Unknown'),
+                        ? `${count(data[0].active, 'case')}`
+                        : italic(t('misc.unknown')),
                       inline: true,
                     },
                     {
-                      name: '☠️ Deaths',
-                      value: `${count({
-                        total: data[0].deaths,
-                        data: 'death',
-                      })}${
+                      name: t(
+                        'command.info.subcommandGroup.covid.country.embed.field.deaths',
+                      ),
+                      value: `${count(data[0].deaths, 'death')}${
                         data[0].deaths28Days
-                          ? ` (${count({
-                              total: data[0].deaths28Days,
-                              data: 'death',
-                            })}/month)`
+                          ? ` (${count(data[0].deaths28Days, 'death')}/month)`
                           : ''
                       }`,
                       inline: true,
                     },
                     {
-                      name: '📋 Incident Rate',
+                      name: t(
+                        'command.info.subcommandGroup.covid.country.embed.field.incidentRate',
+                      ),
                       value: data[0].incidentRate
-                        ? `${count({
-                            total: Math.floor(data[0].incidentRate),
-                            data: 'case',
-                          })}/day`
-                        : italic('Unknown'),
+                        ? `${count(
+                            Math.floor(data[0].incidentRate),
+                            'case',
+                          )}/day`
+                        : italic(t('misc.unknown')),
                       inline: true,
                     },
                   ]);
@@ -687,19 +617,26 @@ module.exports = {
                   generateEmbed({ interaction, loop: true, i, arr })
                     .setThumbnail(`${baseURL}/countries/${countryRegion}/og`)
                     .setAuthor({
-                      name: `🦠 Covid-19 Confirmed Cases in ${countryRegion}`,
+                      name: t(
+                        'command.info.subcommandGroup.covid.country.embed.author.single',
+                        { country: countryRegion },
+                      ),
                     })
                     .setFields([
                       {
-                        name: '🗾 Province/State',
+                        name: t(
+                          'command.info.subcommandGroup.covid.country.embed.field.state',
+                        ),
                         value:
                           !provinceState || provinceState === 'Unknown'
-                            ? italic('Unknown')
+                            ? italic(t('misc.unknown'))
                             : provinceState,
                         inline: true,
                       },
                       {
-                        name: '📆 Last Updated',
+                        name: t(
+                          'command.info.subcommandGroup.covid.country.embed.field.lastUpdated',
+                        ),
                         value: time(
                           new Date(lastUpdate),
                           TimestampStyles.RelativeTime,
@@ -707,44 +644,43 @@ module.exports = {
                         inline: true,
                       },
                       {
-                        name: '✅ Confirmed',
-                        value: `${count({ total: confirmed, data: 'case' })}${
+                        name: t(
+                          'command.info.subcommandGroup.covid.country.embed.field.confirmed',
+                        ),
+                        value: `${count(confirmed, 'case')}${
                           cases28Days
-                            ? ` (${count({
-                                total: cases28Days,
-                                data: 'case',
-                              })}/month)`
+                            ? ` (${count(cases28Days, 'case')}/month)`
                             : ''
                         }`,
                         inline: true,
                       },
                       {
-                        name: '🔴 Active',
+                        name: t(
+                          'command.info.subcommandGroup.covid.country.embed.field.active',
+                        ),
                         value: active
-                          ? `${count({ total: active, data: 'case' })}`
-                          : italic('Unknown'),
+                          ? `${count(active, 'case')}`
+                          : italic(t('misc.unknown')),
                         inline: true,
                       },
                       {
-                        name: '☠️ Deaths',
-                        value: `${count({ total: deaths, data: 'death' })}${
+                        name: t(
+                          'command.info.subcommandGroup.covid.country.embed.field.deaths',
+                        ),
+                        value: `${count(deaths, 'death')}${
                           deaths28Days
-                            ? ` (${count({
-                                total: deaths28Days,
-                                data: 'death',
-                              })}/month)`
+                            ? ` (${count(deaths28Days, 'death')}/month)`
                             : ''
                         }`,
                         inline: true,
                       },
                       {
-                        name: '📋 Incident Rate',
+                        name: t(
+                          'command.info.subcommandGroup.covid.country.embed.field.incidentRate',
+                        ),
                         value: incidentRate
-                          ? `${count({
-                              total: Math.floor(incidentRate),
-                              data: 'case',
-                            })}/day`
-                          : italic('Unknown'),
+                          ? `${count(Math.floor(incidentRate), 'case')}/day`
+                          : italic(t('misc.unknown')),
                         inline: true,
                       },
                     ]),
@@ -754,11 +690,116 @@ module.exports = {
                 .setEmbeds(embeds)
                 .render();
             },
+            latest: async () => {
+              /** @type {{ data: import('@/constants/types').CovidLatest[] }} */
+              const { data } = await axios.get(
+                `${baseURL}/daily/${moment(Date.now())
+                  .subtract(2, 'd')
+                  .format('M-DD-YYYY')}`,
+              );
+
+              const embeds = data.map(
+                (
+                  {
+                    caseFatalityRatio,
+                    confirmed,
+                    countryRegion,
+                    deaths,
+                    lastUpdate,
+                    provinceState,
+                  },
+                  i,
+                  arr,
+                ) =>
+                  generateEmbed({ interaction, loop: true, i, arr })
+                    .setThumbnail(`${baseURL}/og`)
+                    .setAuthor({
+                      name: t(
+                        'command.info.subcommandGroup.covid.latest.embed.author',
+                      ),
+                    })
+                    .setFields([
+                      {
+                        name: t(
+                          'command.info.subcommandGroup.covid.latest.embed.field.country',
+                        ),
+                        value: countryRegion,
+                        inline: true,
+                      },
+                      {
+                        name: t(
+                          'command.info.subcommandGroup.covid.latest.embed.field.state',
+                        ),
+                        value:
+                          !provinceState || provinceState === 'Unknown'
+                            ? italic(t('misc.unknown'))
+                            : provinceState,
+                        inline: true,
+                      },
+                      {
+                        name: t(
+                          'command.info.subcommandGroup.covid.latest.embed.field.lastUpdated',
+                        ),
+                        value: time(
+                          new Date(lastUpdate),
+                          TimestampStyles.RelativeTime,
+                        ),
+                        inline: true,
+                      },
+                      {
+                        name: t(
+                          'command.info.subcommandGroup.covid.latest.embed.field.confirmed',
+                        ),
+                        value: count(confirmed, 'case'),
+                        inline: true,
+                      },
+                      {
+                        name: t(
+                          'command.info.subcommandGroup.covid.latest.embed.field.deaths',
+                        ),
+                        value: count(deaths, 'death'),
+                        inline: true,
+                      },
+                      {
+                        name: t(
+                          'command.info.subcommandGroup.covid.latest.embed.field.fatality',
+                        ),
+                        value: Number(caseFatalityRatio).toFixed(2),
+                        inline: true,
+                      },
+                    ]),
+              );
+
+              await generatePagination({ interaction })
+                .setEmbeds(embeds)
+                .render();
+            },
+            list: async () => {
+              /** @type {{ data: { countries: import('@/constants/types').CovidCountry[] } }} */
+              const {
+                data: { countries },
+              } = await axios.get(`${baseURL}/countries`);
+
+              const responses = countries.map(
+                ({ name }, i) => `${bold(`${i + 1}.`)} ${name}`,
+              );
+
+              await generatePagination({ interaction, limit: 10 })
+                .setAuthor({
+                  name: t(
+                    'command.info.subcommandGroup.covid.list.pagination',
+                    { total: count(countries) },
+                  ),
+                })
+                .setDescriptions(responses)
+                .render();
+            },
           }[options.getSubcommand()]();
         },
         genshin: () => {
           const baseURL = 'https://api.genshin.dev';
           const nameQuery = options.getString('name');
+          const lang = !availableLocales.includes(code) ? 'en' : code;
 
           return {
             artifact: async () => {
@@ -774,7 +815,10 @@ module.exports = {
 
                 return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
-                    name: `Genshin Impact Artifact Lists (${data.length})`,
+                    name: t(
+                      'command.info.subcommandGroup.genshin.artifact.embed.author',
+                      { total: count(data) },
+                    ),
                     iconURL: getWikiaURL({
                       fileName: 'Genshin_Impact',
                       path: 'gensin-impact',
@@ -796,14 +840,15 @@ module.exports = {
                   name,
                 },
               } = await axios
-                .get(`${baseURL}/artifacts/${paramCase(nameQuery)}`, {
-                  headers: { 'Accept-Encoding': 'gzip,deflate,compress' },
-                })
+                .get(
+                  `${baseURL}/artifacts/${paramCase(nameQuery)}?lang=${lang}`,
+                  { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
+                )
                 .catch((err) => {
                   if (err.response?.status === 404) {
-                    throw `No artifact found with name ${inlineCode(
-                      nameQuery,
-                    )}.`;
+                    throw t('global.error.artifact', {
+                      artifact: inlineCode(nameQuery),
+                    });
                   }
 
                   throw err;
@@ -819,7 +864,9 @@ module.exports = {
                 .setAuthor({ name: `🛡️ ${name}` })
                 .setFields([
                   {
-                    name: '⭐ Rarity',
+                    name: t(
+                      'command.info.subcommandGroup.genshin.artifact.embed.field.rarity',
+                    ),
                     value:
                       max_rarity > 1
                         ? `1-${max_rarity} ⭐`
@@ -828,23 +875,58 @@ module.exports = {
                 ]);
 
               if (piece1) {
-                embed.addFields([{ name: '🎁 1-piece Bonus', value: piece1 }]);
+                embed.addFields([
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.genshin.artifact.embed.field.piece1',
+                    ),
+                    value: piece1,
+                  },
+                ]);
               }
 
               if (piece2) {
-                embed.addFields([{ name: '🎁 2-piece Bonus', value: piece2 }]);
+                embed.addFields([
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.genshin.artifact.embed.field.piece2',
+                    ),
+                    value: piece2,
+                  },
+                ]);
               }
 
               if (piece3) {
-                embed.addFields([{ name: '🎁 3-piece Bonus', value: piece3 }]);
+                embed.addFields([
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.genshin.artifact.embed.field.piece3',
+                    ),
+                    value: piece3,
+                  },
+                ]);
               }
 
               if (piece4) {
-                embed.addFields([{ name: '🎁 4-piece Bonus', value: piece4 }]);
+                embed.addFields([
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.genshin.artifact.embed.field.piece4',
+                    ),
+                    value: piece4,
+                  },
+                ]);
               }
 
               if (piece5) {
-                embed.addFields([{ name: '🎁 5-piece Bonus', value: piece5 }]);
+                embed.addFields([
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.genshin.artifact.embed.field.piece5',
+                    ),
+                    value: piece5,
+                  },
+                ]);
               }
 
               await interaction.editReply({ embeds: [embed] });
@@ -864,7 +946,10 @@ module.exports = {
 
                 return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
-                    name: `Genshin Impact Character Lists (${data.length})`,
+                    name: t(
+                      'command.info.subcommandGroup.genshin.character.embed.author',
+                      { total: count(data) },
+                    ),
                     iconURL: getWikiaURL({
                       fileName: 'Genshin_Impact',
                       path: 'gensin-impact',
@@ -894,14 +979,17 @@ module.exports = {
                   specialDish,
                 },
               } = await axios
-                .get(`${baseURL}/characters/${getFormattedParam(nameQuery)}`, {
-                  headers: { 'Accept-Encoding': 'gzip,deflate,compress' },
-                })
+                .get(
+                  `${baseURL}/characters/${getFormattedParam(
+                    nameQuery,
+                  )}?lang=${lang}`,
+                  { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
+                )
                 .catch((err) => {
                   if (err.response?.status === 404) {
-                    throw `No character found with name ${inlineCode(
-                      nameQuery,
-                    )}.`;
+                    throw t('global.error.character', {
+                      character: inlineCode(nameQuery),
+                    });
                   }
 
                   throw err;
@@ -920,19 +1008,40 @@ module.exports = {
                 .setAuthor({ name: `👤 ${formattedName}` })
                 .setFields([
                   {
-                    name: '🔤 Title',
-                    value: title || italic('None'),
-                    inline: true,
-                  },
-                  { name: '🪄 Vision', value: vision, inline: true },
-                  { name: '🗡️ Weapon', value: weapon, inline: true },
-                  {
-                    name: '🗺️ Nation',
-                    value: nation !== 'Unknown' ? nation : italic('Unknown'),
+                    name: t(
+                      'command.info.subcommandGroup.genshin.character.embed.field.title',
+                    ),
+                    value: title || italic(t('misc.none')),
                     inline: true,
                   },
                   {
-                    name: '🏰 Affiliation',
+                    name: t(
+                      'command.info.subcommandGroup.genshin.character.embed.field.vision',
+                    ),
+                    value: vision,
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.genshin.character.embed.field.weapon',
+                    ),
+                    value: weapon,
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.genshin.character.embed.field.nation',
+                    ),
+                    value:
+                      nation !== t('misc.unknown')
+                        ? nation
+                        : italic(t('misc.unknown')),
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.genshin.character.embed.field.affiliation',
+                    ),
                     value:
                       affiliation !== 'Not affilated to any Nation'
                         ? affiliation
@@ -940,19 +1049,25 @@ module.exports = {
                     inline: true,
                   },
                   {
-                    name: '⭐ Rarity',
+                    name: t(
+                      'command.info.subcommandGroup.genshin.character.embed.field.rarity',
+                    ),
                     value: '⭐'.repeat(rarity),
                     inline: true,
                   },
                   {
-                    name: '✨ Constellation',
+                    name: t(
+                      'command.info.subcommandGroup.genshin.character.embed.field.constellation',
+                    ),
                     value: constellation,
                     inline: true,
                   },
                   {
-                    name: '🎂 Birthday',
+                    name: t(
+                      'command.info.subcommandGroup.genshin.character.embed.field.birthday',
+                    ),
                     value: birthday
-                      ? moment(birthday).format('MMMM Do')
+                      ? moment(birthday).locale(lang).format('MMMM Do')
                       : italic('Unknown'),
                     inline: true,
                   },
@@ -960,7 +1075,13 @@ module.exports = {
 
               if (specialDish) {
                 embed.addFields([
-                  { name: '🍽️ Special Dish', value: specialDish, inline: true },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.genshin.character.embed.field.dish',
+                    ),
+                    value: specialDish,
+                    inline: true,
+                  },
                 ]);
               }
 
@@ -970,7 +1091,11 @@ module.exports = {
 
               const activeTalentEmbed = generateEmbed({ interaction })
                 .setDescription(
-                  `${bold('Active Talents')}\n${skillTalents
+                  `${bold(
+                    t(
+                      'command.info.subcommandGroup.genshin.character.embed.field.skillTalents',
+                    ),
+                  )}\n${skillTalents
                     .map(
                       ({
                         description: skillDesc,
@@ -990,7 +1115,11 @@ module.exports = {
                             : ''
                         }${
                           upgrades
-                            ? `\n${bold('- Attributes')}\n${upgrades
+                            ? `\n${bold(
+                                t(
+                                  'command.info.subcommandGroup.genshin.character.embed.field.attributes',
+                                ),
+                              )}\n${upgrades
                                 .map(
                                   ({ name: upName, value }) =>
                                     `${upName}: ${value}`,
@@ -1011,7 +1140,11 @@ module.exports = {
 
               const passiveTalentEmbed = generateEmbed({ interaction })
                 .setDescription(
-                  `${bold('Passive Talents')}\n${passiveTalents
+                  `${bold(
+                    t(
+                      'command.info.subcommandGroup.genshin.character.embed.field.passiveTalents',
+                    ),
+                  )}\n${passiveTalents
                     .map(
                       ({ description: skillDesc, name: skillName, unlock }) =>
                         `${bold(
@@ -1030,7 +1163,11 @@ module.exports = {
 
               const constellationEmbed = generateEmbed({ interaction })
                 .setDescription(
-                  `${bold('Constellations')}\n${constellations
+                  `${bold(
+                    t(
+                      'command.info.subcommandGroup.genshin.character.embed.field.constellations',
+                    ),
+                  )}\n${constellations
                     .map(
                       ({ description: skillDesc, name: skillName, unlock }) =>
                         `${bold(
@@ -1064,7 +1201,13 @@ module.exports = {
                     type,
                   }) =>
                     generateEmbed({ interaction })
-                      .setDescription(`${bold('• Outfits')}\n${outfitDesc}`)
+                      .setDescription(
+                        `${bold(
+                          t(
+                            'command.info.subcommandGroup.genshin.character.embed.field.outfits',
+                          ),
+                        )}\n${outfitDesc}`,
+                      )
                       .setThumbnail(
                         getWikiaURL({
                           fileName: `Character_${formattedName}_Thumb`,
@@ -1080,17 +1223,23 @@ module.exports = {
                       .setAuthor({ name: `👤 ${formattedName}` })
                       .setFields([
                         {
-                          name: '🔣 Type',
+                          name: t(
+                            'command.info.subcommandGroup.genshin.character.embed.field.type',
+                          ),
                           value: type,
                           inline: true,
                         },
                         {
-                          name: '⭐ Rarity',
+                          name: t(
+                            'command.info.subcommandGroup.genshin.character.embed.field.rarity',
+                          ),
                           value: '⭐'.repeat(outfitRarity),
                           inline: true,
                         },
                         {
-                          name: '💰 Price',
+                          name: t(
+                            'command.info.subcommandGroup.genshin.character.embed.field.price',
+                          ),
                           value: `${price} 💎`,
                           inline: true,
                         },
@@ -1102,9 +1251,11 @@ module.exports = {
 
               embeds = embeds.map((emb, i, arr) =>
                 emb.setFooter({
-                  text: `${client.user.username} | Page ${i + 1} of ${
-                    arr.length
-                  }`,
+                  text: t('global.embed.footer', {
+                    botUsername: client.user.username,
+                    pageNumber: i + 1,
+                    totalPages: arr.length,
+                  }),
                   iconURL: client.user.displayAvatarURL(),
                 }),
               );
@@ -1126,7 +1277,10 @@ module.exports = {
 
                 return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
-                    name: `Genshin Impact Weapon Lists (${data.length})`,
+                    name: t(
+                      'command.info.subcommandGroup.genshin.weapon.embed.author',
+                      { total: count(data) },
+                    ),
                     iconURL: getWikiaURL({
                       fileName: 'Genshin_Impact',
                       path: 'gensin-impact',
@@ -1149,12 +1303,15 @@ module.exports = {
                   passiveDesc,
                 },
               } = await axios
-                .get(`${baseURL}/weapons/${paramCase(nameQuery)}`, {
-                  headers: { 'Accept-Encoding': 'gzip,deflate,compress' },
-                })
+                .get(
+                  `${baseURL}/weapons/${paramCase(nameQuery)}?lang=${lang}`,
+                  { headers: { 'Accept-Encoding': 'gzip,deflate,compress' } },
+                )
                 .catch((err) => {
                   if (err.response?.status === 404) {
-                    throw `No weapon found with name ${inlineCode(nameQuery)}.`;
+                    throw t('global.error.weapon', {
+                      weapon: inlineCode(nameQuery),
+                    });
                   }
 
                   throw err;
@@ -1169,21 +1326,46 @@ module.exports = {
                 )
                 .setAuthor({ name: `🗡️ ${name}` })
                 .setFields([
-                  { name: '🔣 Type', value: type, inline: true },
                   {
-                    name: '⭐ Rarity',
+                    name: t(
+                      'command.info.subcommandGroup.genshin.weapon.embed.field.type',
+                    ),
+                    value: type,
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.genshin.weapon.embed.field.rarity',
+                    ),
                     value: '⭐'.repeat(rarity),
                     inline: true,
                   },
-                  { name: '⚔️ Base ATK', value: `${baseAttack}`, inline: true },
                   {
-                    name: '⚔️ Sub-stat Type',
-                    value: subStat !== '-' ? subStat : italic('Unknown'),
+                    name: t(
+                      'command.info.subcommandGroup.genshin.weapon.embed.field.baseAtk',
+                    ),
+                    value: `${baseAttack}`,
                     inline: true,
                   },
-                  { name: '📥 Obtaining', value: location, inline: true },
                   {
-                    name: '⚔️ Passive',
+                    name: t(
+                      'command.info.subcommandGroup.genshin.weapon.embed.field.substat',
+                    ),
+                    value:
+                      subStat !== '-' ? subStat : italic(t('misc.unknown')),
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.genshin.weapon.embed.field.obtaining',
+                    ),
+                    value: location,
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.genshin.weapon.embed.field.passive',
+                    ),
                     value:
                       passiveName !== '-'
                         ? `${bold(passiveName)}${
@@ -1191,7 +1373,7 @@ module.exports = {
                               ? ` - ${passiveDesc}`
                               : ''
                           }`
-                        : italic('None'),
+                        : italic(t('misc.none')),
                   },
                 ]);
 
@@ -1227,9 +1409,9 @@ module.exports = {
                 .get(`https://api.github.com/users/${username}`)
                 .catch((err) => {
                   if (err.response?.status === 404) {
-                    throw `No user found with username ${inlineCode(
-                      username,
-                    )}.`;
+                    throw t('global.error.githubUser', {
+                      username: inlineCode(username),
+                    });
                   }
 
                   throw err;
@@ -1237,7 +1419,10 @@ module.exports = {
 
               embed
                 .setAuthor({
-                  name: `${login}'s GitHub ${type} Account Info`,
+                  name: t(
+                    'command.info.subcommandGroup.github.user.embed.author',
+                    { login },
+                  ),
                   url: html_url,
                   iconURL:
                     'https://cdn-icons-png.flaticon.com/512/25/25231.png',
@@ -1246,12 +1431,16 @@ module.exports = {
                 .setThumbnail(avatar_url)
                 .setFields([
                   {
-                    name: '🔤 Account Name',
-                    value: name ?? italic('Unknown'),
+                    name: t(
+                      'command.info.subcommandGroup.github.user.embed.field.name',
+                    ),
+                    value: name ?? italic(t('misc.unknown')),
                     inline: true,
                   },
                   {
-                    name: '🎊 Account Created',
+                    name: t(
+                      'command.info.subcommandGroup.github.user.embed.field.created',
+                    ),
                     value: time(
                       new Date(created_at),
                       TimestampStyles.RelativeTime,
@@ -1259,27 +1448,32 @@ module.exports = {
                     inline: true,
                   },
                   {
-                    name: '📊 Stats',
-                    value: `${count({
-                      total: followers,
-                      data: 'follower',
-                    })} | ${count({
-                      total: following,
-                      data: 'following',
-                    })} | ${count({
-                      total: public_repos,
-                      data: 'public repository',
-                    })} | ${count({
-                      total: public_gists,
-                      data: 'public gist',
-                    })}`,
+                    name: t(
+                      'command.info.subcommandGroup.github.user.embed.field.stats',
+                    ),
+                    value: `${count(followers, 'follower')} | ${count(
+                      following,
+                      'following',
+                    )} | ${count(public_repos, 'public repository')} | ${count(
+                      public_gists,
+                      'public gist',
+                    )}`,
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.github.user.embed.field.type',
+                    ),
+                    value: type,
                     inline: true,
                   },
                 ]);
 
               if (company) {
                 embed.spliceFields(2, 0, {
-                  name: '🏢 Company',
+                  name: t(
+                    'command.info.subcommandGroup.github.user.embed.field.company',
+                  ),
                   value: company,
                   inline: true,
                 });
@@ -1287,14 +1481,22 @@ module.exports = {
 
               if (blog) {
                 embed.addFields([
-                  { name: '🌐 Website', value: blog, inline: true },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.github.user.embed.field.website',
+                    ),
+                    value: blog,
+                    inline: true,
+                  },
                 ]);
               }
 
               if (twitter_username) {
                 embed.addFields([
                   {
-                    name: '👤 Twitter Account',
+                    name: t(
+                      'command.info.subcommandGroup.github.user.embed.field.twitter',
+                    ),
                     value: hyperlink(
                       `@${twitter_username}`,
                       `https://twitter.com/${twitter_username}`,
@@ -1305,7 +1507,14 @@ module.exports = {
               }
 
               if (location) {
-                embed.addFields([{ name: '📌 Address', value: location }]);
+                embed.addFields([
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.github.user.embed.field.address',
+                    ),
+                    value: location,
+                  },
+                ]);
               }
 
               await interaction.editReply({ embeds: [embed] });
@@ -1331,7 +1540,7 @@ module.exports = {
               );
 
               if (!items.length) {
-                throw `No repository found with name ${inlineCode(name)}.`;
+                throw t('global.error.githubRepo', { repo: inlineCode(name) });
               }
 
               const embeds = items.map(
@@ -1362,13 +1571,17 @@ module.exports = {
                     .setDescription(description)
                     .setThumbnail(owner.avatar_url)
                     .setAuthor({
-                      name: 'GitHub Repository Search Results',
+                      name: t(
+                        'command.info.subcommandGroup.github.repository.embed.author',
+                      ),
                       iconURL:
                         'https://cdn-icons-png.flaticon.com/512/25/25231.png',
                     })
                     .setFields([
                       {
-                        name: '🔤 Name',
+                        name: t(
+                          'command.info.subcommandGroup.github.repository.embed.field.name',
+                        ),
                         value: hyperlink(
                           name,
                           html_url,
@@ -1377,7 +1590,9 @@ module.exports = {
                         inline: true,
                       },
                       {
-                        name: '👑 Owner',
+                        name: t(
+                          'command.info.subcommandGroup.github.repository.embed.field.owner',
+                        ),
                         value: `${hyperlink(
                           `@${owner.login}`,
                           owner.html_url,
@@ -1386,7 +1601,9 @@ module.exports = {
                         inline: true,
                       },
                       {
-                        name: '📆 Created At',
+                        name: t(
+                          'command.info.subcommandGroup.github.repository.embed.field.created',
+                        ),
                         value: time(
                           new Date(created_at),
                           TimestampStyles.RelativeTime,
@@ -1394,7 +1611,9 @@ module.exports = {
                         inline: true,
                       },
                       {
-                        name: '📆 Updated At',
+                        name: t(
+                          'command.info.subcommandGroup.github.repository.embed.field.updated',
+                        ),
                         value: time(
                           new Date(pushed_at),
                           TimestampStyles.RelativeTime,
@@ -1402,36 +1621,41 @@ module.exports = {
                         inline: true,
                       },
                       {
-                        name: '🔤 Language',
-                        value: language ?? italic('Unknown'),
+                        name: t(
+                          'command.info.subcommandGroup.github.repository.embed.field.language',
+                        ),
+                        value: language ?? italic(t('misc.unknown')),
                         inline: true,
                       },
                       {
-                        name: '📜 License',
-                        value: license?.name ?? italic('None'),
+                        name: t(
+                          'command.info.subcommandGroup.github.repository.embed.field.license',
+                        ),
+                        value: license?.name ?? italic(t('misc.none')),
                         inline: true,
                       },
                       {
-                        name: '📊 Stats',
-                        value: `⭐ ${count({
-                          total: stargazers_count,
-                          data: 'star',
-                        })} | 👁️ ${count({
-                          total: watchers_count,
-                          data: 'watcher',
-                        })} | 🕎 ${count({
-                          total: forks_count,
-                          data: 'fork',
-                        })} | 🪲 ${count({
-                          total: open_issues_count,
-                          data: 'issue',
-                        })}`,
+                        name: t(
+                          'command.info.subcommandGroup.github.repository.embed.field.stats',
+                        ),
+                        value: `⭐ ${count(
+                          stargazers_count,
+                          'star',
+                        )} | 👁️ ${count(
+                          watchers_count,
+                          'watcher',
+                        )} | 🕎 ${count(forks_count, 'fork')} | 🪲 ${count(
+                          open_issues_count,
+                          'issue',
+                        )}`,
                       },
                     ]);
 
                   if (homepage) {
                     newEmbed.spliceFields(6, 0, {
-                      name: '📖 Docs',
+                      name: t(
+                        'command.info.subcommandGroup.github.repository.embed.field.docs',
+                      ),
                       value: homepage,
                       inline: true,
                     });
@@ -1439,7 +1663,12 @@ module.exports = {
 
                   if (topics.length) {
                     newEmbed.addFields([
-                      { name: '🗂️ Topics', value: topics.join(', ') },
+                      {
+                        name: t(
+                          'command.info.subcommandGroup.github.repository.embed.field.topics',
+                        ),
+                        value: topics.join(', '),
+                      },
                     ]);
                   }
 
@@ -1458,15 +1687,119 @@ module.exports = {
           const mcData = minecraftData('1.19');
           const minecraftLogo =
             'https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png';
-          const minecraftEdition = `Minecraft ${
-            mcData.version.type === 'pc' ? 'Java' : 'Bedrock'
-          } Edition${
+          const minecraftEdition = `${t('misc.minecraft', {
+            type: mcData.version.type === 'pc' ? 'Java' : 'Bedrock',
+          })}${
             mcData.version.minecraftVersion
               ? ` v${mcData.version.minecraftVersion}`
               : ''
           }`;
 
           return {
+            biome: async () => {
+              if (!name) {
+                const responses = mcData.biomesArray.map(
+                  (item, i) => `${bold(`${i + 1}.`)} ${item.displayName}`,
+                );
+
+                return await generatePagination({ interaction, limit: 10 })
+                  .setAuthor({
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.biome.pagination',
+                      {
+                        edition: minecraftEdition,
+                        total: count(mcData.biomesArray),
+                      },
+                    ),
+                    iconURL: minecraftLogo,
+                  })
+                  .setDescriptions(responses)
+                  .render();
+              }
+
+              const biome = {
+                ...mcData.biomesByName[snakeCase(name)],
+                ...extraMcData.biome[snakeCase(name)],
+              };
+
+              if (!Object.keys(biome).length) {
+                throw t('global.error.minecraftBiome', {
+                  biome: inlineCode(name),
+                });
+              }
+
+              embed
+                .setDescription(biome.description)
+                .setThumbnail(
+                  getWikiaURL({
+                    fileName: `${biome?.altName ?? biome.displayName}${
+                      biome.version ? ` ${biome.version}` : ''
+                    }`,
+                    path: 'minecraft_gamepedia',
+                  }),
+                )
+                .setAuthor({ name: `🌄 ${biome.displayName}` })
+                .setFields([
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.biome.embed.temperature',
+                    ),
+                    value: `${biome.temperature}°`,
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.biome.embed.dimension',
+                    ),
+                    value: capitalCase(biome.dimension),
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.biome.embed.rainfall',
+                    ),
+                    value: `${biome.rainfall}`,
+                    inline: true,
+                  },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.biome.embed.structures',
+                    ),
+                    value: biome.structures
+                      ? biome.structures
+                          .map((structure) => capitalCase(structure))
+                          .join(', ')
+                      : italic(t('misc.none')),
+                  },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.biome.embed.blocks',
+                    ),
+                    value: biome.blocks
+                      ? biome.blocks
+                          .map((block) => capitalCase(block))
+                          .join(', ')
+                      : italic(t('misc.none')),
+                  },
+                  {
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.biome.embed.colors',
+                    ),
+                    value: biome.colors
+                      ? Object.entries(biome.colors)
+                          .map(
+                            ([key, value]) =>
+                              `${capitalCase(key)}: ${applyKeywordColor(
+                                value,
+                              )}`,
+                          )
+                          .join('\n')
+                      : italic(t('misc.unknown')),
+                  },
+                ]);
+
+              await interaction.editReply({ embeds: [embed] });
+            },
             block: async () => {
               if (!name) {
                 const filteredMcData = mcData.blocksArray.filter(
@@ -1482,7 +1815,13 @@ module.exports = {
 
                 return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
-                    name: `${minecraftEdition} Block Lists (${filteredMcData.length})`,
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.block.pagination',
+                      {
+                        edition: minecraftEdition,
+                        total: count(filteredMcData),
+                      },
+                    ),
                     iconURL: minecraftLogo,
                   })
                   .setDescriptions(responses)
@@ -1499,7 +1838,9 @@ module.exports = {
               };
 
               if (!Object.keys(block).length) {
-                throw `No block found with name ${inlineCode(name)}.`;
+                throw t('global.error.minecraftBlock', {
+                  block: inlineCode(name),
+                });
               }
 
               embed
@@ -1518,137 +1859,75 @@ module.exports = {
                 .setAuthor({ name: `🟫 ${block.displayName}` })
                 .setFields([
                   {
-                    name: '⛏️ Tool',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.block.embed.tool',
+                    ),
                     value:
                       block.material && block.material !== 'default'
                         ? capitalCase(
                             block.material.slice(
-                              block.material.iOf('/'),
+                              block.material.indexOf('/'),
                               block.material.length,
                             ),
                           )
-                        : italic('None'),
+                        : italic(t('misc.none')),
                     inline: true,
                   },
                   {
-                    name: '💪 Hardness',
-                    value: block.hardness ?? italic('None'),
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.block.embed.hardness',
+                    ),
+                    value: block.hardness
+                      ? `${block.hardness}`
+                      : italic(t('misc.none')),
                     inline: true,
                   },
                   {
-                    name: '🛡️ Blast Resistance',
-                    value: block?.resistance ?? italic('None'),
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.block.embed.resistance',
+                    ),
+                    value: block.resistance
+                      ? `${block.resistance}`
+                      : italic(t('misc.none')),
                     inline: true,
                   },
                   {
-                    name: '📦 Stackable',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.block.embed.stackable',
+                    ),
                     value:
-                      block.stackSize > 0 ? `Yes (${block.stackSize})` : 'No',
+                      block.stackSize > 0
+                        ? `${t('misc.yes')} (${count(block.stackSize)})`
+                        : t('misc.no'),
                     inline: true,
                   },
                   {
-                    name: '🥃 Transparent',
-                    value: block.transparent ? 'Yes' : 'No',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.block.embed.transparent',
+                    ),
+                    value: block.transparent ? t('misc.yes') : t('misc.no'),
                     inline: true,
                   },
                   {
-                    name: '🔦 Luminant',
-                    value: block.luminant ? 'Yes' : 'No',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.block.embed.luminant',
+                    ),
+                    value: block.luminant ? t('misc.yes') : t('misc.no'),
                     inline: true,
                   },
                   {
-                    name: '🔥 Flammable',
-                    value: block.flammable ? 'Yes' : 'No',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.block.embed.flammable',
+                    ),
+                    value: block.flammable ? t('misc.yes') : t('misc.no'),
                     inline: true,
                   },
                   {
-                    name: '🆕 Renewable',
-                    value: block.renewable ? 'Yes' : 'No',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.block.embed.renewable',
+                    ),
+                    value: block.renewable ? t('misc.yes') : t('misc.no'),
                     inline: true,
-                  },
-                ]);
-
-              await interaction.editReply({ embeds: [embed] });
-            },
-            biome: async () => {
-              if (!name) {
-                const responses = mcData.biomesArray.map(
-                  (item, i) => `${bold(`${i + 1}.`)} ${item.displayName}`,
-                );
-
-                return await generatePagination({ interaction, limit: 10 })
-                  .setAuthor({
-                    name: `${minecraftEdition} Biome Lists (${mcData.biomesArray.length})`,
-                    iconURL: minecraftLogo,
-                  })
-                  .setDescriptions(responses)
-                  .render();
-              }
-
-              const biome = {
-                ...mcData.biomesByName[snakeCase(name)],
-                ...extraMcData.biome[snakeCase(name)],
-              };
-
-              if (!Object.keys(biome).length) {
-                throw `No biome found with name ${inlineCode(name)}.`;
-              }
-
-              embed
-                .setDescription(biome.description)
-                .setThumbnail(
-                  getWikiaURL({
-                    fileName: `${biome?.altName ?? biome.displayName}${
-                      biome.version ? ` ${biome.version}` : ''
-                    }`,
-                    path: 'minecraft_gamepedia',
-                  }),
-                )
-                .setAuthor({ name: `🌄 ${biome.displayName}` })
-                .setFields([
-                  {
-                    name: '🌡️ Temperature',
-                    value: `${biome.temperature}°`,
-                    inline: true,
-                  },
-                  {
-                    name: '🕳️ Dimension',
-                    value: capitalCase(biome.dimension),
-                    inline: true,
-                  },
-                  {
-                    name: '🌧️ Rainfall',
-                    value: `${biome.rainfall}`,
-                    inline: true,
-                  },
-                  {
-                    name: '🧱 Structures',
-                    value: biome.structures
-                      ? biome.structures
-                          .map((structure) => capitalCase(structure))
-                          .join(', ')
-                      : italic('None'),
-                  },
-                  {
-                    name: '🟫 Blocks',
-                    value: biome.blocks
-                      ? biome.blocks
-                          .map((block) => capitalCase(block))
-                          .join(', ')
-                      : italic('None'),
-                  },
-                  {
-                    name: '🎨 Colors',
-                    value: biome.colors
-                      ? Object.entries(biome.colors)
-                          .map(
-                            ([key, value]) =>
-                              `${capitalCase(key)}: ${applyKeywordColor(
-                                value,
-                              )}`,
-                          )
-                          .join('\n')
-                      : italic('Unknown'),
                   },
                 ]);
 
@@ -1662,7 +1941,13 @@ module.exports = {
 
                 return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
-                    name: `${minecraftEdition} Effect Lists (${mcData.effectsArray.length})`,
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.effect.pagination',
+                      {
+                        edition: minecraftEdition,
+                        total: count(mcData.effectsArray),
+                      },
+                    ),
                     iconURL: minecraftLogo,
                   })
                   .setDescriptions(responses)
@@ -1675,7 +1960,9 @@ module.exports = {
               };
 
               if (!Object.keys(effect).length) {
-                throw `No effect found with name ${inlineCode(name)}.`;
+                throw t('global.error.minecraftEffect', {
+                  effect: inlineCode(name),
+                });
               }
 
               embed
@@ -1693,15 +1980,22 @@ module.exports = {
                 .setAuthor({ name: `💫 ${effect.displayName}` })
                 .setFields([
                   {
-                    name: '✨ Particle',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.effect.embed.particle',
+                    ),
                     value: effect.particle
                       ? applyKeywordColor(effect.particle)
-                      : italic('None'),
+                      : italic(t('misc.none')),
                     inline: true,
                   },
                   {
-                    name: '🔣 Type',
-                    value: effect.type === 'good' ? 'Positive' : 'Negative',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.effect.embed.type',
+                    ),
+                    value:
+                      effect.type === 'good'
+                        ? t('misc.positive')
+                        : t('misc.negative'),
                     inline: true,
                   },
                 ]);
@@ -1716,7 +2010,13 @@ module.exports = {
 
                 return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
-                    name: `${minecraftEdition} Enchantment Lists (${mcData.enchantmentsArray.length})`,
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.enchantment.pagination',
+                      {
+                        edition: minecraftEdition,
+                        total: count(mcData.enchantmentsArray),
+                      },
+                    ),
                     iconURL: minecraftLogo,
                   })
                   .setDescriptions(responses)
@@ -1733,7 +2033,9 @@ module.exports = {
               };
 
               if (!Object.keys(enchantment).length) {
-                throw `No enchantment found with name ${inlineCode(name)}.`;
+                throw t('global.error.minecraftEnchantment', {
+                  enchantment: inlineCode(name),
+                });
               }
 
               embed
@@ -1741,42 +2043,60 @@ module.exports = {
                 .setAuthor({ name: `🪧 ${enchantment.displayName}` })
                 .setFields([
                   {
-                    name: '✨ Maximum Level',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.enchantment.embed.level',
+                    ),
                     value: stringify(enchantment.maxLevel),
                     inline: true,
                   },
                   {
-                    name: '🏴‍☠️ Treasure Only',
-                    value: enchantment.treasureOnly ? 'Yes' : 'No',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.enchantment.embed.treasure',
+                    ),
+                    value: enchantment.treasureOnly
+                      ? t('misc.yes')
+                      : t('misc.no'),
                     inline: true,
                   },
                   {
-                    name: '🤬 Curse',
-                    value: enchantment.curse ? 'Yes' : 'No',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.enchantment.embed.curse',
+                    ),
+                    value: enchantment.curse ? t('misc.yes') : t('misc.no'),
                     inline: true,
                   },
                   {
-                    name: '🔍 Discoverable',
-                    value: enchantment.discoverable ? 'Yes' : 'No',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.enchantment.embed.discoverable',
+                    ),
+                    value: enchantment.discoverable
+                      ? t('misc.yes')
+                      : t('misc.no'),
                     inline: true,
                   },
                   {
-                    name: '↔️ Tradeable',
-                    value: enchantment.tradeable ? 'Yes' : 'No',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.enchantment.embed.tradeable',
+                    ),
+                    value: enchantment.tradeable ? t('misc.yes') : t('misc.no'),
                     inline: true,
                   },
                   {
-                    name: '⚖️ Weight',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.enchantment.embed.weight',
+                    ),
                     value: `${enchantment.weight}`,
                     inline: true,
                   },
                   {
-                    name: '🚫 Incompatible With',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.enchantment.embed.incompatible',
+                    ),
                     value: enchantment.exclude.length
                       ? enchantment.exclude
                           .map((exc) => capitalCase(exc))
                           .join(', ')
-                      : italic('None'),
+                      : italic(t('misc.none')),
                   },
                 ]);
 
@@ -1790,7 +2110,13 @@ module.exports = {
 
                 return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
-                    name: `${minecraftEdition} Entity Lists (${mcData.entitiesArray.length})`,
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.entity.pagination',
+                      {
+                        edition: minecraftEdition,
+                        total: count(mcData.entitiesArray),
+                      },
+                    ),
                     iconURL: minecraftLogo,
                   })
                   .setDescriptions(responses)
@@ -1807,7 +2133,9 @@ module.exports = {
               };
 
               if (!Object.keys(entity).length) {
-                throw `No entity found with name ${inlineCode(name)}.`;
+                throw t('global.error.minecraftEntity', {
+                  entity: inlineCode(name),
+                });
               }
 
               embed
@@ -1833,12 +2161,16 @@ module.exports = {
                 case 'water_creature':
                   embed.setFields([
                     {
-                      name: '❤️ Health Points',
+                      name: t(
+                        'command.info.subcommandGroup.minecraft.entity.embed.hp',
+                      ),
                       value: `${entity.hp} (❤️x${entity.hp / 2})`,
                       inline: true,
                     },
                     {
-                      name: '🐣 Spawn',
+                      name: t(
+                        'command.info.subcommandGroup.minecraft.entity.embed.spawn',
+                      ),
                       value: entity.spawns
                         ? entity.spawns
                             .map((spawn) => {
@@ -1847,10 +2179,12 @@ module.exports = {
                                 : spawn;
                             })
                             .join(', ')
-                        : italic('Unknown'),
+                        : italic(t('misc.unknown')),
                     },
                     {
-                      name: '⛏️ Usable Item',
+                      name: t(
+                        'command.info.subcommandGroup.minecraft.entity.embed.items',
+                      ),
                       value: entity.usableItems
                         ? entity.usableItems
                             .map((item) =>
@@ -1860,7 +2194,7 @@ module.exports = {
                               ),
                             )
                             .join(', ')
-                        : italic('None'),
+                        : italic(t('misc.none')),
                     },
                   ]);
                   break;
@@ -1871,7 +2205,9 @@ module.exports = {
                   if (entity.hp) {
                     embed.addFields([
                       {
-                        name: '❤️ Health Points',
+                        name: t(
+                          'command.info.subcommandGroup.minecraft.entity.embed.hp',
+                        ),
                         value: `${entity.hp} (❤️x${entity.hp / 2})`,
                         inline: true,
                       },
@@ -1881,11 +2217,13 @@ module.exports = {
                   if (entity.stackSize) {
                     embed.addFields([
                       {
-                        name: '📦 Stackable',
+                        name: t(
+                          'command.info.subcommandGroup.minecraft.entity.embed.stackable',
+                        ),
                         value:
                           entity.stackSize > 0
-                            ? `Yes (${entity.stackSize})`
-                            : 'No',
+                            ? `${t('misc.yes')} (${entity.stackSize})`
+                            : t('misc.no'),
                         inline: true,
                       },
                     ]);
@@ -1894,8 +2232,10 @@ module.exports = {
                   if (typeof entity.flammable !== 'undefined') {
                     embed.addFields([
                       {
-                        name: '🔥 Flammable',
-                        value: entity.flammable ? 'Yes' : 'No',
+                        name: t(
+                          'command.info.subcommandGroup.minecraft.entity.embed.flammable',
+                        ),
+                        value: entity.flammable ? t('misc.yes') : t('misc.no'),
                         inline: true,
                       },
                     ]);
@@ -1904,8 +2244,10 @@ module.exports = {
                   if (typeof entity.renewable !== 'undefined') {
                     embed.addFields([
                       {
-                        name: '🆕 Renewable',
-                        value: entity.renewable ? 'Yes' : 'No',
+                        name: t(
+                          'command.info.subcommandGroup.minecraft.entity.embed.renewable',
+                        ),
+                        value: entity.renewable ? t('misc.yes') : t('misc.no'),
                         inline: true,
                       },
                     ]);
@@ -1923,7 +2265,13 @@ module.exports = {
 
                 return await generatePagination({ interaction, limit: 10 })
                   .setAuthor({
-                    name: `${minecraftEdition} Food Lists (${mcData.foodsArray.length})`,
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.food.pagination',
+                      {
+                        edition: minecraftEdition,
+                        total: count(mcData.foodsArray),
+                      },
+                    ),
                     iconURL: minecraftLogo,
                   })
                   .setDescriptions(responses)
@@ -1938,7 +2286,9 @@ module.exports = {
               };
 
               if (!Object.keys(food).length) {
-                throw `No food found with name ${inlineCode(name)}.`;
+                throw t('global.error.minecraftFood', {
+                  food: inlineCode(name),
+                });
               }
 
               embed
@@ -1957,18 +2307,26 @@ module.exports = {
                 .setAuthor({ name: `🍎 ${food.displayName}` })
                 .addFields([
                   {
-                    name: '📦 Stackable',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.food.embed.stackable',
+                    ),
                     value:
-                      food.stackSize > 0 ? `Yes (${food.stackSize})` : 'No',
+                      food.stackSize > 0
+                        ? `${t('misc.yes')} (${food.stackSize})`
+                        : t('misc.no'),
                     inline: true,
                   },
                   {
-                    name: '🆕 Renewable',
-                    value: food.renewable ? 'Yes' : 'No',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.food.embed.renewable',
+                    ),
+                    value: food.renewable ? t('misc.yes') : t('misc.no'),
                     inline: true,
                   },
                   {
-                    name: '❤️‍🩹 Restores',
+                    name: t(
+                      'command.info.subcommandGroup.minecraft.food.embed.fp',
+                    ),
                     value: `${food.foodPoints} (🍗x${food.foodPoints / 2})`,
                     inline: true,
                   },
@@ -1995,7 +2353,12 @@ module.exports = {
                   .map(({ name }, i) => `${bold(`${i + 1}.`)} ${name}`);
 
                 return await generatePagination({ interaction, limit: 10 })
-                  .setAuthor({ name: '🏢 VTuber Affiliation Lists' })
+                  .setAuthor({
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.affiliation.pagination',
+                      { total: count(affiliations) },
+                    ),
+                  })
                   .setDescriptions(responses)
                   .render();
               }
@@ -2005,9 +2368,9 @@ module.exports = {
               );
 
               if (!org) {
-                throw `No affiliation found with name ${inlineCode(
-                  affiliation,
-                )} or maybe the data isn't available yet.`;
+                throw t('global.error.vtuberAffiliation', {
+                  affiliation: inlineCode(affiliation),
+                });
               }
 
               const channels = await holodex.getChannels({
@@ -2041,72 +2404,91 @@ module.exports = {
                 return generateEmbed({ interaction, loop: true, i, arr })
                   .setThumbnail(photo ?? null)
                   .setAuthor({
-                    name: `${
-                      aff
-                        ? aff.includes('Independents')
-                          ? `🧑‍💻 ${aff.slice(0, -1)} Vtubers`
-                          : aff
-                        : ''
-                    }'s YouTube Channel Lists`,
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.affiliation.embed.author',
+                      {
+                        type: aff
+                          ? aff.includes('Independents')
+                            ? `🧑‍💻 ${aff.slice(0, -1)} Vtubers`
+                            : aff
+                          : '',
+                      },
+                    ),
                     iconURL: aff?.logoURL,
                   })
                   .setFields([
                     {
-                      name: '🔤 Name',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.affiliation.embed.field.name',
+                      ),
                       value: english_name || name,
                       inline: true,
                     },
                     {
-                      name: '🔤 Channel Name',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.affiliation.embed.field.chName',
+                      ),
                       value: `${hyperlink(
                         name,
                         `https://youtube.com/channel/${id}`,
-                      )}${inactive ? ' (Inactive)' : ''}`,
+                      )}${inactive ? ` (${t('misc.inactive')})` : ''}`,
                       inline: true,
                     },
                     {
-                      name: '👥 Group',
-                      value: group || italic('None'),
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.affiliation.embed.field.group',
+                      ),
+                      value: group || italic(t('misc.none')),
                       inline: true,
                     },
                     {
-                      name: '🌐 Twitter',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.affiliation.embed.field.twitter',
+                      ),
                       value: twitter
                         ? hyperlink(
                             `@${twitter}`,
                             `https://twitter.com/${twitter}`,
                           )
-                        : italic('None'),
+                        : italic(t('misc.none')),
                       inline: true,
                     },
                     {
-                      name: '🔢 VOD Count',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.affiliation.embed.field.vod',
+                      ),
                       value: video_count
-                        ? count({ total: video_count, data: 'video' })
-                        : italic('Unknown'),
+                        ? count(video_count, 'video')
+                        : italic(t('misc.unknown')),
                       inline: true,
                     },
                     {
-                      name: '🔢 Subscriber Count',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.affiliation.embed.field.subs',
+                      ),
                       value: subscriber_count
-                        ? count({ total: subscriber_count, data: 'subscriber' })
-                        : italic('Unknown'),
+                        ? count(subscriber_count, 'subscriber')
+                        : italic(t('misc.unknown')),
                       inline: true,
                     },
                     {
-                      name: '🔢 Clip Count',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.affiliation.embed.field.clip',
+                      ),
                       value: clip_count
-                        ? count({ total: clip_count, data: 'video' })
-                        : italic('Unknown'),
+                        ? count(clip_count, 'video')
+                        : italic(t('misc.unknown')),
                       inline: true,
                     },
                     {
-                      name: '🗣️ Top Topic',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.affiliation.embed.field.topics',
+                      ),
                       value: top_topics
                         ? top_topics
                             .map((topic) => transformCase(topic))
                             .join(', ')
-                        : italic('None'),
+                        : italic(t('misc.none')),
                       inline: true,
                     },
                   ]);
@@ -2120,9 +2502,9 @@ module.exports = {
               const id = options.getString('id', true);
 
               const item = await holodex.getChannel(id).catch(() => {
-                throw `No channel found with ID ${inlineCode(
-                  id,
-                )} or maybe the data isn't available yet.`;
+                throw t('global.error.vtuberChannel', {
+                  channelID: inlineCode(id),
+                });
               });
 
               const {
@@ -2147,87 +2529,112 @@ module.exports = {
                 .setDescription(truncate(description, 4096))
                 .setThumbnail(photo ?? null)
                 .setAuthor({
-                  name: `${org?.includes('Independents') ? '🧑‍💻 ' : ''}${
-                    english_name || name
-                  }'s YouTube Channel Information`,
+                  name: t(
+                    'command.info.subcommandGroup.vtuber.channel.embed.author',
+                    {
+                      type: `${org?.includes('Independents') ? '🧑‍💻 ' : ''}${
+                        english_name || name
+                      }`,
+                    },
+                  ),
                   iconURL: affiliations.find(
                     (aff) => aff.name.toLowerCase() === org?.toLowerCase(),
                   )?.logoURL,
                 })
                 .setFields([
                   {
-                    name: '🔤 Channel Name',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.channel.embed.field.chName',
+                    ),
                     value: `${hyperlink(
                       name,
                       `https://youtube.com/channel/${channelID}`,
-                    )}${inactive ? ' (Inactive)' : ''}`,
+                    )}${inactive ? ` (${t('misc.inactive')})` : ''}`,
                     inline: true,
                   },
                   {
-                    name: '📆 Channel Created At',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.channel.embed.field.created',
+                    ),
                     value: published_at
                       ? time(
                           new Date(published_at),
                           TimestampStyles.RelativeTime,
                         )
-                      : italic('Unknown'),
+                      : italic(t('misc.unknown')),
                     inline: true,
                   },
                   {
-                    name: '🏢 Affiliation',
-                    value: org || italic('Unknown'),
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.channel.embed.field.affiliation',
+                    ),
+                    value: org || italic(t('misc.unknown')),
                     inline: true,
                   },
                   {
-                    name: '👥 Group',
-                    value: suborg?.substring(2) || italic('None'),
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.channel.embed.field.group',
+                    ),
+                    value: suborg?.substring(2) || italic(t('misc.none')),
                     inline: true,
                   },
                   {
-                    name: '🌐 Twitter',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.channel.embed.field.twitter',
+                    ),
                     value: twitter
                       ? hyperlink(
                           `@${twitter}`,
                           `https://twitter.com/${twitter}`,
                         )
-                      : italic('Unknown'),
+                      : italic(t('misc.unknown')),
                     inline: true,
                   },
                   {
-                    name: '🔢 View Count',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.channel.embed.field.view',
+                    ),
                     value: view_count
-                      ? count({ total: view_count, data: 'view' })
-                      : italic('Unknown'),
+                      ? count(view_count, 'view')
+                      : italic(t('misc.unknown')),
                     inline: true,
                   },
                   {
-                    name: '🔢 VOD Count',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.channel.embed.field.vod',
+                    ),
                     value: video_count
-                      ? count({ total: video_count, data: 'video' })
-                      : italic('Unknown'),
+                      ? count(video_count, 'video')
+                      : italic(t('misc.unknown')),
                     inline: true,
                   },
                   {
-                    name: '🔢 Subscriber Count',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.channel.embed.field.subs',
+                    ),
                     value: subscriber_count
-                      ? count({ total: subscriber_count, data: 'subscriber' })
-                      : italic('Unknown'),
+                      ? count(subscriber_count, 'subscriber')
+                      : italic(t('misc.unknown')),
                     inline: true,
                   },
                   {
-                    name: '🔢 Clip Count',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.channel.embed.field.clip',
+                    ),
                     value: clip_count
-                      ? count({ total: clip_count, data: 'video' })
-                      : italic('Unknown'),
+                      ? count(clip_count, 'video')
+                      : italic(t('misc.unknown')),
                     inline: true,
                   },
                   {
-                    name: '🗣️ Top Topics',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.channel.embed.field.topics',
+                    ),
                     value: top_topics
                       ? top_topics
                           .map((topic) => transformCase(topic))
                           .join(', ')
-                      : italic('None'),
+                      : italic(t('misc.none')),
                     inline: true,
                   },
                 ]);
@@ -2270,42 +2677,49 @@ module.exports = {
                   })
                     .setThumbnail(photo ?? null)
                     .setAuthor({
-                      name: "✂️ VTuber Clipper's YouTube Channel Lists",
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.clipper.embed.author.many',
+                      ),
                     })
                     .setFields([
                       {
-                        name: '🔤 Channel Name',
+                        name: t(
+                          'command.info.subcommandGroup.vtuber.clipper.embed.field.chName',
+                        ),
                         value: `${hyperlink(
                           name,
                           `https://youtube.com/channel/${id}`,
-                        )}${inactive ? ' (Inactive)' : ''}`,
+                        )}${inactive ? ` (${t('misc.inactive')})` : ''}`,
                         inline: true,
                       },
                       {
-                        name: '🌐 Twitter',
+                        name: t(
+                          'command.info.subcommandGroup.vtuber.clipper.embed.field.twitter',
+                        ),
                         value: twitter
                           ? hyperlink(
                               `@${twitter}`,
                               `https://twitter.com/${twitter}`,
                             )
-                          : italic('None'),
+                          : italic(t('misc.unknown')),
                         inline: true,
                       },
                       {
-                        name: '🔢 VOD Count',
+                        name: t(
+                          'command.info.subcommandGroup.vtuber.clipper.embed.field.vod',
+                        ),
                         value: video_count
-                          ? count({ total: video_count, data: 'video' })
-                          : italic('Unknown'),
+                          ? count(video_count, 'video')
+                          : italic(t('misc.unknown')),
                         inline: true,
                       },
                       {
-                        name: '🔢 Subscriber Count',
+                        name: t(
+                          'command.info.subcommandGroup.vtuber.clipper.embed.field.subs',
+                        ),
                         value: subscriber_count
-                          ? count({
-                              total: subscriber_count,
-                              data: 'subscriber',
-                            })
-                          : italic('Unknown'),
+                          ? count(subscriber_count, 'subscriber')
+                          : italic(t('misc.unknown')),
                         inline: true,
                       },
                     ]);
@@ -2317,9 +2731,7 @@ module.exports = {
               }
 
               const item = await holodex.getChannel(channelID).catch(() => {
-                throw `No channel found with ID ${inlineCode(
-                  channelID,
-                )} or maybe the data isn't available yet.`;
+                throw t('global.error.vtuberClipper', { channelID });
               });
 
               const {
@@ -2338,55 +2750,72 @@ module.exports = {
               embed
                 .setDescription(truncate(description, 4096))
                 .setThumbnail(photo ?? null)
-                .setAuthor({ name: `✂️ ${name}'s YouTube Channel Information` })
+                .setAuthor({
+                  name: t(
+                    'command.info.subcommandGroup.vtuber.clipper.embed.single',
+                    { channel: name },
+                  ),
+                })
                 .setFields([
                   {
-                    name: '🔤 Channel Name',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.clipper.embed.field.chName',
+                    ),
                     value: `${hyperlink(
                       name,
                       `https://youtube.com/channel/${id}`,
-                    )}${inactive ? ' (Inactive)' : ''}`,
+                    )}${inactive ? ` (${t('misc.inactive')})` : ''}`,
                     inline: true,
                   },
                   {
-                    name: '📆 Channel Created At',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.clipper.embed.field.created',
+                    ),
                     value: published_at
                       ? time(
                           new Date(published_at),
                           TimestampStyles.RelativeTime,
                         )
-                      : italic('Unknown'),
+                      : italic(t('misc.unknown')),
                     inline: true,
                   },
                   {
-                    name: '🌐 Twitter',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.clipper.embed.field.twitter',
+                    ),
                     value: twitter
                       ? hyperlink(
                           `@${twitter}`,
                           `https://twitter.com/${twitter}`,
                         )
-                      : italic('Unknown'),
+                      : italic(t('misc.unknown')),
                     inline: true,
                   },
                   {
-                    name: '🔢 View Count',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.clipper.embed.field.view',
+                    ),
                     value: view_count
-                      ? count({ total: view_count, data: 'view' })
-                      : italic('Unknown'),
+                      ? count(view_count, 'view')
+                      : italic(t('misc.unknown')),
                     inline: true,
                   },
                   {
-                    name: '🔢 VOD Count',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.clipper.embed.field.vod',
+                    ),
                     value: video_count
-                      ? count({ total: video_count, data: 'video' })
-                      : italic('Unknown'),
+                      ? count(video_count, 'video')
+                      : italic(t('misc.unknown')),
                     inline: true,
                   },
                   {
-                    name: '🔢 Subscriber Count',
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.clipper.embed.field.subs',
+                    ),
                     value: subscriber_count
-                      ? count({ total: subscriber_count, data: 'subscriber' })
-                      : italic('Unknown'),
+                      ? count(subscriber_count, 'subscriber')
+                      : italic(t('misc.unknown')),
                     inline: true,
                   },
                 ]);
@@ -2403,9 +2832,9 @@ module.exports = {
               );
 
               if (affiliation && !org) {
-                throw `No affiliation found with name ${inlineCode(
-                  affiliation,
-                )} or maybe the data isn't available yet.`;
+                throw t('global.error.vtuberLive.affiliation', {
+                  affiliation: inlineCode(affiliation),
+                });
               }
 
               const videosParam = {
@@ -2433,9 +2862,9 @@ module.exports = {
                 const videos = await holodex.getLiveVideos(videosParam);
 
                 if (!videos.length) {
-                  throw `No channel found with ID ${inlineCode(
-                    channelID,
-                  )} or maybe the channel doesn't live right now.`;
+                  throw t('global.error.vtuberLive.channelLive', {
+                    channelID: inlineCode(channelID),
+                  });
                 }
 
                 const embeds = videos.map((item, i, arr) => {
@@ -2461,16 +2890,23 @@ module.exports = {
                     )
                     .setThumbnail(photo ?? null)
                     .setAuthor({
-                      name: `${aff?.includes('Independents') ? '🧑‍💻' : ''} ${
-                        english_name || name
-                      }'s YouTube Stream Lists`,
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.author.many',
+                        {
+                          type: `${aff?.includes('Independents') ? '🧑‍💻 ' : ''}${
+                            english_name || name
+                          }`,
+                        },
+                      ),
                       iconURL: affiliations.find(
                         (a) => a.name.toLowerCase() === aff?.toLowerCase(),
                       )?.logoURL,
                     })
                     .setFields([
                       {
-                        name: '🔤 Title',
+                        name: t(
+                          'command.info.subcommandGroup.vtuber.live.embed.field.title',
+                        ),
                         value: hyperlink(
                           title,
                           `https://youtube.com/watch?v=${id}`,
@@ -2478,17 +2914,21 @@ module.exports = {
                         inline: true,
                       },
                       {
-                        name: '📆 Published At',
+                        name: t(
+                          'command.info.subcommandGroup.vtuber.live.embed.field.published',
+                        ),
                         value: published_at
                           ? time(
                               new Date(published_at),
                               TimestampStyles.RelativeTime,
                             )
-                          : italic('Uknown'),
+                          : italic(t('misc.unknown')),
                         inline: true,
                       },
                       {
-                        name: '📆 Streamed At',
+                        name: t(
+                          'command.info.subcommandGroup.vtuber.live.embed.field.streamed',
+                        ),
                         value: time(
                           new Date(available_at),
                           TimestampStyles.RelativeTime,
@@ -2496,20 +2936,29 @@ module.exports = {
                         inline: true,
                       },
                       {
-                        name: '🔢 Live Viewers Count',
-                        value: `${live_viewers?.toLocaleString()} watching now`,
+                        name: t(
+                          'command.info.subcommandGroup.vtuber.live.embed.field.liveView.name',
+                        ),
+                        value: t(
+                          'command.info.subcommandGroup.vtuber.live.embed.field.liveView.value',
+                          { total: live_viewers ? count(live_viewers) : 0 },
+                        ),
                         inline: true,
                       },
                       {
-                        name: '🗣️ Topic',
+                        name: t(
+                          'command.info.subcommandGroup.vtuber.live.embed.field.topic',
+                        ),
                         value: topic_id
                           ? transformCase(topic_id)
-                          : italic('Unknown'),
+                          : italic(t('misc.unknown')),
                         inline: true,
                       },
                       {
-                        name: '🏢 Affiliation',
-                        value: aff ?? italic('Unknown'),
+                        name: t(
+                          'command.info.subcommandGroup.vtuber.live.embed.field.affiliation',
+                        ),
+                        value: aff ?? italic(t('misc.unknown')),
                         inline: true,
                       },
                     ]);
@@ -2523,7 +2972,9 @@ module.exports = {
               const videos = await holodex.getLiveVideosByChannelId(channelID);
 
               if (!videos.length) {
-                throw `No channel found with ID ${inlineCode(channelID)}.`;
+                throw t('global.error.vtuberLive.channel', {
+                  channelID: inlineCode(channelID),
+                });
               }
 
               const liveVideos = videos.filter(
@@ -2531,7 +2982,7 @@ module.exports = {
               );
 
               if (!liveVideos.length) {
-                throw "Channel doesn't live right now.";
+                throw t('global.error.vtuberLive.live');
               }
 
               if (liveVideos.length === 1) {
@@ -2552,16 +3003,23 @@ module.exports = {
                   )
                   .setThumbnail(photo ?? null)
                   .setAuthor({
-                    name: `${aff?.includes('Independents') ? '🧑‍💻' : ''} ${
-                      english_name || name
-                    }'s YouTube Stream Information`,
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.live.embed.author.single',
+                      {
+                        type: `${aff?.includes('Independents') ? '🧑‍💻 ' : ''}${
+                          english_name || name
+                        }`,
+                      },
+                    ),
                     iconURL: affiliations.find(
                       (a) => a.name.toLowerCase() === aff?.toLowerCase(),
                     )?.logoURL,
                   })
                   .setFields([
                     {
-                      name: '🔤 Title',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.title',
+                      ),
                       value: hyperlink(
                         title,
                         `https://youtube.com/watch?v=${id}`,
@@ -2569,17 +3027,21 @@ module.exports = {
                       inline: true,
                     },
                     {
-                      name: '📆 Published At',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.published',
+                      ),
                       value: published_at
                         ? time(
                             new Date(published_at),
                             TimestampStyles.RelativeTime,
                           )
-                        : italic('Unknown'),
+                        : italic(t('misc.unknown')),
                       inline: true,
                     },
                     {
-                      name: '📆 Streamed At',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.streamed',
+                      ),
                       value: time(
                         new Date(available_at),
                         TimestampStyles.RelativeTime,
@@ -2587,20 +3049,29 @@ module.exports = {
                       inline: true,
                     },
                     {
-                      name: '🔢 Live Viewers Count',
-                      value: `${live_viewers?.toLocaleString()} watching now`,
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.liveView.name',
+                      ),
+                      value: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.liveView.value',
+                        { total: live_viewers ? count(live_viewers) : 0 },
+                      ),
                       inline: true,
                     },
                     {
-                      name: '🗣️ Topic',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.topic',
+                      ),
                       value: topic_id
                         ? transformCase(topic_id)
-                        : italic('Unknown'),
+                        : italic(t('misc.unknown')),
                       inline: true,
                     },
                     {
-                      name: '🏢 Affiliation',
-                      value: aff ?? italic('Unknown'),
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.affiliation',
+                      ),
+                      value: aff ?? italic(t('misc.unknown')),
                       inline: true,
                     },
                   ]);
@@ -2635,7 +3106,9 @@ module.exports = {
                   })
                   .setFields([
                     {
-                      name: '🔤 Title',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.title',
+                      ),
                       value: hyperlink(
                         title,
                         `https://youtube.com/watch?v=${id}`,
@@ -2643,17 +3116,21 @@ module.exports = {
                       inline: true,
                     },
                     {
-                      name: '📆 Published At',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.published',
+                      ),
                       value: published_at
                         ? time(
                             new Date(published_at),
                             TimestampStyles.RelativeTime,
                           )
-                        : italic('Unknown'),
+                        : italic(t('misc.unknown')),
                       inline: true,
                     },
                     {
-                      name: '📆 Streamed At',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.streamed',
+                      ),
                       value: time(
                         new Date(available_at),
                         TimestampStyles.RelativeTime,
@@ -2661,20 +3138,29 @@ module.exports = {
                       inline: true,
                     },
                     {
-                      name: '🔢 Live Viewers Count',
-                      value: `${live_viewers?.toLocaleString()} watching now`,
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.liveView.name',
+                      ),
+                      value: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.liveView.value',
+                        { total: live_viewers ? count(live_viewers) : 0 },
+                      ),
                       inline: true,
                     },
                     {
-                      name: '🗣️ Topic',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.topic',
+                      ),
                       value: topic_id
                         ? transformCase(topic_id)
-                        : italic('Unknown'),
+                        : italic(t('misc.unknown')),
                       inline: true,
                     },
                     {
-                      name: '🏢 Affiliation',
-                      value: aff ?? italic('Unknown'),
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.live.embed.field.affiliation',
+                      ),
+                      value: aff ?? italic(t('misc.unknown')),
                       inline: true,
                     },
                   ]);
@@ -2697,9 +3183,9 @@ module.exports = {
               );
 
               if (!videos.length) {
-                throw `No channel found with ID ${inlineCode(
-                  channelID,
-                )} or maybe the channel doesn't have any video.`;
+                throw t('global.error.vtuberLive.video', {
+                  channelID: inlineCode(channelID),
+                });
               }
 
               const embeds = videos.map((item, i, arr) => {
@@ -2726,16 +3212,23 @@ module.exports = {
                   )
                   .setThumbnail(photo ?? null)
                   .setAuthor({
-                    name: `${aff?.includes('Independents') ? '🧑‍💻' : ''} ${
-                      english_name || name
-                    }'s YouTube Video Lists`,
+                    name: t(
+                      'command.info.subcommandGroup.vtuber.video.embed.author',
+                      {
+                        type: `${aff?.includes('Independents') ? '🧑‍💻 ' : ''}${
+                          english_name || name
+                        }`,
+                      },
+                    ),
                     iconURL: affiliations.find(
                       (a) => a.name.toLowerCase() === aff?.toLowerCase(),
                     )?.logoURL,
                   })
                   .setFields([
                     {
-                      name: '🔤 Title',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.video.embed.field.title',
+                      ),
                       value: hyperlink(
                         title,
                         `https://youtube.com/watch?v=${id}`,
@@ -2743,32 +3236,43 @@ module.exports = {
                       inline: true,
                     },
                     {
-                      name: '📊 Status',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.video.embed.field.status',
+                      ),
                       value: capitalCase(
                         status === VideoStatus.Past ? 'archived' : status,
                       ),
                       inline: true,
                     },
                     {
-                      name: '⏳ Duration',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.video.embed.field.duration',
+                      ),
                       value:
                         status !== VideoStatus.Upcoming
-                          ? moment.duration(duration, 's').humanize()
-                          : italic('Unknown'),
+                          ? moment
+                              .duration(duration, 's')
+                              .locale(code)
+                              .humanize()
+                          : italic(t('misc.unknown')),
                       inline: true,
                     },
                     {
-                      name: '📆 Published At',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.video.embed.field.published',
+                      ),
                       value: published_at
                         ? time(
                             new Date(published_at),
                             TimestampStyles.RelativeTime,
                           )
-                        : italic('Unknown'),
+                        : italic(t('misc.unknown')),
                       inline: true,
                     },
                     {
-                      name: '📆 Streamed At',
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.video.embed.field.streamed',
+                      ),
                       value: time(
                         new Date(available_at),
                         TimestampStyles.RelativeTime,
@@ -2780,8 +3284,13 @@ module.exports = {
                 if (status === VideoStatus.Live) {
                   newEmbed.addFields([
                     {
-                      name: '🔢 Live Viewers Count',
-                      value: `${live_viewers.toLocaleString()} watching now`,
+                      name: t(
+                        'command.info.subcommandGroup.vtuber.video.embed.field.liveView.name',
+                      ),
+                      value: t(
+                        'command.info.subcommandGroup.vtuber.video.embed.field.liveView.value',
+                        { total: live_viewers ? count(live_viewers) : 0 },
+                      ),
                       inline: true,
                     },
                   ]);
@@ -2826,7 +3335,9 @@ module.exports = {
           )
           .catch((err) => {
             if (err.response?.status === 404) {
-              throw `No user found with username ${cleanUsername}.`;
+              throw t('global.error.instgramUser', {
+                username: inlineCode(cleanUsername),
+              });
             }
 
             throw err;
@@ -2836,13 +3347,13 @@ module.exports = {
           .setDescription(bio || null)
           .setThumbnail(photo_profile)
           .setAuthor({
-            name: 'Instagram Account Information',
+            name: t('command.info.subcommand.instagram.embed.author'),
             iconURL:
               'https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png',
           })
           .setFields([
             {
-              name: '🔤 Username',
+              name: t('command.info.subcommand.instagram.embed.field.username'),
               value: hyperlink(
                 username,
                 `https://instagram.com/${username.replace('@', '')}`,
@@ -2850,23 +3361,27 @@ module.exports = {
               inline: true,
             },
             {
-              name: '🔤 Full Name',
-              value: fullname || italic('None'),
+              name: t('command.info.subcommand.instagram.embed.field.fullName'),
+              value: fullname || italic(t('misc.none')),
               inline: true,
             },
             {
-              name: '🔢 Posts Count',
-              value: posts.toLocaleString(),
+              name: t('command.info.subcommand.instagram.embed.field.posts'),
+              value: count(posts),
               inline: true,
             },
             {
-              name: '🔢 Following',
-              value: following.toLocaleString(),
+              name: t(
+                'command.info.subcommand.instagram.embed.field.following',
+              ),
+              value: count(following),
               inline: true,
             },
             {
-              name: '🔢 Followers',
-              value: followers.toLocaleString(),
+              name: t(
+                'command.info.subcommand.instagram.embed.field.followers',
+              ),
+              value: count(followers),
               inline: true,
             },
           ]);
@@ -2895,7 +3410,9 @@ module.exports = {
           .get(`https://registry.npmjs.com/${nameQuery}`)
           .catch((err) => {
             if (err.response?.status === 404) {
-              throw `No package found with name ${inlineCode(nameQuery)}.`;
+              throw t('global.error.npmPackage', {
+                package: inlineCode(nameQuery),
+              });
             }
 
             throw err;
@@ -2910,7 +3427,7 @@ module.exports = {
           const rest = maintainerArr.length - 10;
 
           maintainerArr = maintainerArr.slice(0, 10);
-          maintainerArr.push(italic(`...and ${rest} more.`));
+          maintainerArr.push(italic(t('misc.more', { total: count(rest) })));
         }
 
         let versionArr =
@@ -2923,7 +3440,7 @@ module.exports = {
           const rest = versionArr.length - 10;
 
           versionArr = versionArr.slice(0, 10);
-          versionArr.push(italic(`...and ${rest} more.`));
+          versionArr.push(italic(t('misc.more', { total: count(rest) })));
         }
 
         const version = tags && versions[tags.latest];
@@ -2938,13 +3455,13 @@ module.exports = {
           const rest = dependencies.length - 10;
 
           dependencies = dependencies.slice(0, 10);
-          dependencies.push(italic(`...and ${rest} more.`));
+          dependencies.push(italic(t('misc.more', { total: count(rest) })));
         }
 
         const cleanedURL = repository.url?.replace('git+', '');
 
         embed.setAuthor({
-          name: `${name}'s NPM Information`,
+          name: t('command.info.subcommand.npm.embed.author', { name }),
           url: homepage,
           iconURL:
             'https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Npm-logo.svg/320px-Npm-logo.svg.png',
@@ -2952,56 +3469,61 @@ module.exports = {
         embed.setDescription(description);
         embed.setFields([
           {
-            name: '👑 Author',
+            name: t('command.info.subcommand.npm.embed.field.author'),
             value: author
               ? author.url
                 ? hyperlink(
                     `${author.name}${author.email ? ` (${author.email})` : ''}`,
                   )
                 : `${author.name}${author.email ? ` (${author.email})` : ''}`
-              : italic('Unknown'),
+              : italic(t('misc.unknown')),
             inline: true,
           },
           {
-            name: '📆 Created At',
+            name: t('command.info.subcommand.npm.embed.field.created'),
             value: time(new Date(created), TimestampStyles.RelativeTime),
             inline: true,
           },
           {
-            name: '📆 Updated At',
+            name: t('command.info.subcommand.npm.embed.field.updated'),
             value: time(new Date(modified), TimestampStyles.RelativeTime),
             inline: true,
           },
           {
-            name: '🔠 Keyword',
-            value: keywords ? keywords.join(', ') : italic('Unknown'),
+            name: t('command.info.subcommand.npm.embed.field.keyword'),
+            value: keywords ? keywords.join(', ') : italic(t('misc.unknown')),
             inline: true,
           },
           {
-            name: '📜 License',
-            value: license ?? italic('Unknown'),
+            name: t('command.info.subcommand.npm.embed.field.license'),
+            value: license ?? italic(t('misc.unknown')),
             inline: true,
           },
           {
-            name: '🗄️ Repository',
+            name: t('command.info.subcommand.npm.embed.field.repository'),
             value: cleanedURL
               ? cleanedURL.startsWith('git://')
                 ? cleanedURL.replace('git://', 'https://').replace('.git', '')
                 : [...cleanedURL].slice(0, cleanedURL.lastIndexOf('.')).join('')
-              : italic('Unknown'),
+              : italic(t('misc.unknown')),
             inline: true,
           },
-          { name: '🧑‍💻 Maintainer', value: maintainerArr.join('\n') },
           {
-            name: '🔖 Version',
-            value: versionArr ? versionArr.join('\n') : italic('Unknown'),
+            name: t('command.info.subcommand.npm.embed.field.maintainer'),
+            value: maintainerArr.join('\n'),
           },
           {
-            name: '📦 Dependency',
+            name: t('command.info.subcommand.npm.embed.field.version'),
+            value: versionArr
+              ? versionArr.join('\n')
+              : italic(t('misc.unknown')),
+          },
+          {
+            name: t('command.info.subcommand.npm.embed.field.dependency'),
             value:
               dependencies && dependencies.length
                 ? dependencies.join('\n')
-                : italic('None'),
+                : italic(t('misc.none')),
           },
         ]);
 
@@ -3021,7 +3543,9 @@ module.exports = {
             if (err) throw err;
 
             if (!result.length) {
-              throw `No information found in ${inlineCode(locationTarget)}.`;
+              throw t('global.error.weather', {
+                location: inlineCode(locationTarget),
+              });
             }
 
             const [
@@ -3043,18 +3567,32 @@ module.exports = {
             embed
               .setThumbnail(imageUrl)
               .setAuthor({
-                name: `🌦️ ${name} Weather Information`,
+                name: t('command.info.subcommand.weather.embed.author', {
+                  name,
+                }),
               })
               .setFields([
                 {
-                  name: '🌡️ Temperature',
+                  name: t(
+                    'command.info.subcommand.weather.embed.field.temperature',
+                  ),
                   value: `${temperature}°${degreetype}`,
                   inline: true,
                 },
-                { name: '💧 Humidity', value: `${humidity}%`, inline: true },
-                { name: '💨 Wind', value: winddisplay, inline: true },
                 {
-                  name: '📊 Status',
+                  name: t(
+                    'command.info.subcommand.weather.embed.field.humidity',
+                  ),
+                  value: `${humidity}%`,
+                  inline: true,
+                },
+                {
+                  name: t('command.info.subcommand.weather.embed.field.wind'),
+                  value: winddisplay,
+                  inline: true,
+                },
+                {
+                  name: t('command.info.subcommand.weather.embed.field.status'),
                   value: `${day} ${observationtime.slice(
                     0,
                     observationtime.length - 3,
@@ -3062,14 +3600,20 @@ module.exports = {
                   inline: true,
                 },
                 {
-                  name: '📈 Forecast',
+                  name: t(
+                    'command.info.subcommand.weather.embed.field.forecast',
+                  ),
                   value: forecast
                     .map(
                       ({ day: forecastDay, high, low, precip, skytextday }) =>
-                        `${bold(
-                          forecastDay,
-                        )}\nStatus: ${skytextday}\nRange: ${low}°${degreetype} - ${high}°${degreetype}\nPrecipitation: ${
-                          !precip ? italic('Unknown') : `${precip}%`
+                        `${bold(forecastDay)}\n${t(
+                          'misc.status',
+                        )}: ${skytextday}\n${t(
+                          'misc.range',
+                        )}: ${low}°${degreetype} - ${high}°${degreetype}\n${t(
+                          'misc.precipitation',
+                        )}: ${
+                          !precip ? italic(t('misc.unknown')) : `${precip}%`
                         }`,
                     )
                     .join('\n\n'),

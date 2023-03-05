@@ -1,0 +1,90 @@
+{
+  "command": {
+    "calc": {
+      "description": "🧮 Comando de calculadora.",
+      "embed": {
+        "author": "🧮 Resultado del Cálculo",
+        "field": {
+          "operation": "🔢 Operación",
+          "result": "🔢 Resultado"
+        }
+      },
+      "pagination": {
+        "author": "➗ Listas de Símbolos Matemáticos Admitidos ({{total}})"
+      },
+      "subcommand": {
+        "list": {
+          "description": "➗ Muestra los símbolos matemáticos disponibles."
+        },
+        "run": {
+          "description": "🧮 Calcular una operación matemática",
+          "option": {
+            "operation": {
+              "description": "🔢 La operación a calcular."
+            }
+          }
+        }
+      }
+    },
+    "convert": {
+      "embed": {
+        "author": "💲 Resultado de Conversión de Moneda"
+      },
+      "pagination": {
+        "author": "💲 Listas de Códigos de Moneda Admitidos ({{total}})"
+      }
+    }
+  },
+  "global": {
+    "constant": {
+      "math": {
+        "plus": "Operador de suma",
+        "minus": "Operador de resta",
+        "obelus": "Operador de división",
+        "times": "Operador de multiplicación",
+        "modulo": "Operador de módulo",
+        "parentheses": "Paréntesis",
+        "sigma": "Suma",
+        "capitalPi": "Producto",
+        "variable": "Variable para Sumatoria o Producto",
+        "piConstant": "Constante matemática π (Pi)",
+        "eConstant": "constante matemática e (Euler)",
+        "combination": "Operador de combinación",
+        "permutation": "Operador de permutación",
+        "factorial": "Operador factorial",
+        "logarithmic": "Función logarítmica con base 10",
+        "natural": "Función de logaritmo natural con base e (Euler)",
+        "power": "Función de potencia con dos operadores",
+        "caret": "Operador de potencia",
+        "squareRoot": "Función √ (raíz cuadrada)",
+        "sine": "Función seno",
+        "cosine": "Función coseno",
+        "tangent": "Función tangente",
+        "arcsine": "Función arcoseno",
+        "arccosine": "Función arcocoseno",
+        "arctangent": "Función arcotangente",
+        "hyperbolicSine": "Función seno hiperbólico",
+        "hyperbolicCosine": "Función coseno hiperbólico",
+        "hyperbolicArcsine": "Función arcoseno hiperbólico",
+        "hyperbolicArccosine": "Función arococoseno hiperbólicon",
+        "hyperbolicArctangent": "Función arcotangente hiperbólico"
+      }
+    },
+    "embed": {
+      "footer": "{{botUsername}} | Página {{pageNumber}} de {{totalPages}}"
+    },
+    "error": {
+      "guild": "El gremio no existe.",
+      "member": "El miembro no existe.",
+      "currency": "Proporcione un {{link}} válido."
+    },
+    "pagination": {
+      "footer": "{{botUsername}} | Página {pageNumber} de {totalPages}"
+    }
+  },
+  "misc": {
+    "eg": "p.ej.",
+    "returns": "devuelve",
+    "currency": "código de moneda ISO 4217"
+  }
+}

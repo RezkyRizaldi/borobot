@@ -1,3 +1,4 @@
+const { availableLocales } = require('./availableLocales');
 const { extraMcData } = require('./extraMcData');
 const { languages } = require('./languages');
 const { math } = require('./math');
@@ -34,6 +35,7 @@ const {
   waifuChoices,
   youtubeDownloadTypeChoices,
 } = require('./slashCommandOptionChoices');
+const { supportedMIMETypes } = require('./supportedMIMETypes');
 const { units } = require('./units');
 const { vtuberAffiliation } = require('./vtuberData');
 
@@ -43,6 +45,7 @@ module.exports = {
   animeSearchOrderChoices,
   animeSearchStatusChoices,
   animeSearchTypeChoices,
+  availableLocales,
   banChoices,
   banTempChoices,
   channelCreateChoices: guildChannels,
@@ -65,6 +68,7 @@ module.exports = {
   serverMuteChoices,
   serverMuteTempChoices,
   slowmodeChoices,
+  supportedMIMETypes,
   tiktokDownloadTypeChoices,
   timeoutChoices,
   twitterDownloadTypeChoices,

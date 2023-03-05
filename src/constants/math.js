@@ -172,7 +172,7 @@ const math = {
     symbol: 'atanh',
     description: 'Hyperbolic arctangent function',
     example: 'atanh 1',
-    result: 'Infinity',
+    result: '∞',
   },
 };
 

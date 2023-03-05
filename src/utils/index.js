@@ -34,6 +34,7 @@ const groupMessageByType = require('./groupMessageByType');
 const isAlphabeticLetter = require('./isAlphabeticLetter');
 const isNumericString = require('./isNumericString');
 const isValidURL = require('./isValidURL');
+const loadFiles = require('./loadFiles');
 const serverMute = require('./serverMute');
 const transformCase = require('./transformCase');
 const truncate = require('./truncate');
@@ -75,6 +76,7 @@ module.exports = {
   isAlphabeticLetter,
   isNumericString,
   isValidURL,
+  loadFiles,
   serverMute,
   transformCase,
   truncate,

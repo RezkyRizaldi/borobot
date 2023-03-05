@@ -1,4 +1,3 @@
-/** @type {{ [name: String]: String }} */
 const newsCountries = {
   ae: 'Afghanistan',
   ar: 'Argentina',

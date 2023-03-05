@@ -1,6 +1,7 @@
 const AnimeImages = require('anime-images-api');
-const axios = require('axios').default;
+const axios = require('axios');
 const { SlashCommandBuilder } = require('discord.js');
+const { changeLanguage, t } = require('i18next');
 const nekoClient = require('nekos.life');
 
 const { waifuChoices } = require('@/constants');
@@ -35,15 +36,18 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { member, options } = interaction;
-    const embed = generateEmbed({ interaction, type: 'member' });
+    /** @type {{ locale: import('discord.js').Locale, member: ?import('discord.js').GuildMember, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
+    const { locale, member, options } = interaction;
     const images = new AnimeImages();
     const neko = new nekoClient();
 
     await interaction.deferReply();
 
-    if (!member) throw "Member doesn't exist.";
+    await changeLanguage(locale);
+
+    if (!member) throw t('global.error.member');
+
+    const embed = generateEmbed({ interaction, type: 'member' });
 
     return {
       loli: async () => {
@@ -61,7 +65,9 @@ module.exports = {
 
         embed
           .setAuthor({
-            name: `${member.user.username} Got a Loli`,
+            name: t('command.gacha.subcommand.loli.embed', {
+              username: member.user.username,
+            }),
             iconURL: member.displayAvatarURL(),
           })
           .setImage(`attachment://${img.name}`);
@@ -83,7 +89,9 @@ module.exports = {
 
         embed
           .setAuthor({
-            name: `${member.user.username} Got a Milf`,
+            name: t('command.gacha.subcommand.milf.embed', {
+              username: member.user.username,
+            }),
             iconURL: member.displayAvatarURL(),
           })
           .setImage(`attachment://${img.name}`);
@@ -100,7 +108,9 @@ module.exports = {
 
             embed
               .setAuthor({
-                name: `${member.user.username} Got a Waifu`,
+                name: t('command.gacha.subcommand.waifu.embed', {
+                  username: member.user.username,
+                }),
                 iconURL: member.displayAvatarURL(),
               })
               .setImage(url);
@@ -117,7 +127,9 @@ module.exports = {
 
             embed
               .setAuthor({
-                name: `${member.user.username} Got a Waifu`,
+                name: t('command.gacha.subcommand.waifu.embed', {
+                  username: member.user.username,
+                }),
                 iconURL: member.displayAvatarURL(),
               })
               .setImage(pfp);
@@ -129,7 +141,9 @@ module.exports = {
 
             embed
               .setAuthor({
-                name: `${member.user.username} Got a Waifu`,
+                name: t('command.gacha.subcommand.waifu.embed', {
+                  username: member.user.username,
+                }),
                 iconURL: member.displayAvatarURL(),
               })
               .setImage(url);

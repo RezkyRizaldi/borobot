@@ -1,9 +1,12 @@
 const { translate } = require('@vitalets/google-translate-api');
 const { bold, SlashCommandBuilder } = require('discord.js');
+const createHttpProxyAgent = require('http-proxy-agent');
+const { changeLanguage, t } = require('i18next');
 const wait = require('node:timers/promises').setTimeout;
 
 const { languages } = require('@/constants');
 const {
+  count,
   generatePagination,
   getLanguage,
   getTranslateFlag,
@@ -48,9 +51,11 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    const { options } = interaction;
+    const { locale, options } = interaction;
 
     await interaction.deferReply();
+
+    await changeLanguage(locale);
 
     const embed = generateEmbed({ interaction });
 
@@ -67,7 +72,9 @@ module.exports = {
 
         await generatePagination({ interaction, limit: 10 })
           .setAuthor({
-            name: `🌐 Translation Locale Lists (${locales.length.toLocaleString()})`,
+            name: t('command.translate.subcommand.list.pagination', {
+              total: count(locales),
+            }),
           })
           .setDescriptions(responses)
           .render();
@@ -76,7 +83,8 @@ module.exports = {
         const text = options.getString('text', true);
         const from = options.getString('from');
         const to = options.getString('to', true);
-        const translateOptions = { to };
+        const agent = createHttpProxyAgent('http://103.178.43.102:8181');
+        const translateOptions = { to, agent };
 
         if (from) Object.assign(translateOptions, { from });
 
@@ -84,20 +92,28 @@ module.exports = {
 
         const result = await translate(text, translateOptions);
 
-        embed.setAuthor({ name: '📑 Translation Result' }).setFields([
-          {
-            name: `From ${getLanguage(languages, result.raw.src)}${
-              from ? '' : ' - Detected'
-            } ${getTranslateFlag(languages[result.raw.src])}`,
-            value: result.raw.sentences[0].orig,
-          },
-          {
-            name: `To ${getLanguage(languages, to)} ${getTranslateFlag(
-              languages[to.toLowerCase()],
-            )}`,
-            value: result.text,
-          },
-        ]);
+        embed
+          .setAuthor({
+            name: t('command.translate.subcommand.run.embed.author'),
+          })
+          .setFields([
+            {
+              name: t('command.translate.subcommand.run.embed.field.from', {
+                from: `${getLanguage(languages, result.raw.src)}${
+                  from ? '' : ` - ${t('misc.detected')}`
+                } ${getTranslateFlag(languages[result.raw.src])}`,
+              }),
+              value: result.raw.sentences[0].orig,
+            },
+            {
+              name: t('command.translate.subcommand.run.embed.field.from', {
+                to: `${getLanguage(languages, to)} ${getTranslateFlag(
+                  languages[to.toLowerCase()],
+                )}`,
+              }),
+              value: result.text,
+            },
+          ]);
 
         await interaction.editReply({ embeds: [embed] });
       },

@@ -1,0 +1,1002 @@
+{
+  "command": {
+    "ban": {
+      "subcommand": {
+        "list": "🚫 Banned User Lists ({{total}})"
+      }
+    },
+    "calc": {
+      "description": "🧮 Calculator command.",
+      "embed": {
+        "author": "🧮 Calculation Result",
+        "field": {
+          "operation": "🔢 Operation",
+          "result": "🔢 Result"
+        }
+      },
+      "pagination": "➗ Supported Mathematical Symbol Lists ({{total}})",
+      "subcommand": {
+        "list": {
+          "description": "➗ Displays supported math symbols."
+        },
+        "run": {
+          "description": "🧮 Calculate a math operation.",
+          "option": {
+            "operation": {
+              "description": "🔢 The operation to be calculated."
+            }
+          }
+        }
+      }
+    },
+    "channel": {
+      "subcommand": {
+        "info": {
+          "embed": {
+            "author": "ℹ️ {{channel}}'s Channel Information",
+            "field": {
+              "createdAt": "📆 Created At",
+              "type": "🔣 Type",
+              "category": "📁 Category",
+              "position": "🔢 Position",
+              "topic": "🗣️ Topic",
+              "message": "💬 Message Count",
+              "pinned": "📌 Pinned Message Count",
+              "nsfw": "⚠️ NSFW",
+              "slowmode": "🐌 Slowmode",
+              "extra": {
+                "name": "➕ Extra",
+                "value": "{{type}} Channel"
+              },
+              "threads": "💭 Threads",
+              "permissions": "🔐 Permissions",
+              "createdBy": "👤 Created By",
+              "channel": "#️⃣ Channel",
+              "memberThread": "👥 Member Count in Thread",
+              "status": "📊 Status",
+              "memberVoice": "👥 Member Count in Voice",
+              "messageVoice": "💬 Message Count in Voice",
+              "bitrate": "⚡ Bitrate",
+              "userLimit": "👥 User Limit",
+              "videoQuality": "🎥 Video Quality",
+              "region": "🌐 Region Override",
+              "channels": "#️⃣ Channels",
+              "memberStage": "👥 Member Count in Stage",
+              "post": "📋 Post Guidelines",
+              "emoji": "😀 Default Reaction Emoji",
+              "tags": "🏷️ Tags"
+            }
+          }
+        },
+        "list": {
+          "pagination": "{{guild}} Channel Lists ({{total}})"
+        }
+      }
+    },
+    "convert": {
+      "subcommandGroup": {
+        "currency": {
+          "embed": "💲 Currency Conversion Result",
+          "pagination": "💲 Supported Currency Code Lists ({{total}})"
+        },
+        "unit": {
+          "embed": "♾️ SI Unit Conversion Result",
+          "pagination": "📄 SI Unit Lists ({{total}})"
+        }
+      }
+    },
+    "gacha": {
+      "subcommand": {
+        "loli": {
+          "embed": "{{username}} Got a Loli"
+        },
+        "milf": {
+          "embed": "{{username}} Got a Milf"
+        },
+        "waifu": {
+          "embed": "{{username}} Got a Waifu"
+        }
+      }
+    },
+    "generate": {
+      "subcommand": {
+        "shortlink": {
+          "embed": {
+            "author": "🔗 Shortened URL Result",
+            "description": "Here's your generated shorten URL: {{result}}."
+          }
+        },
+        "qrcode": {
+          "embed": {
+            "author": "🖼️ QR Code Result",
+            "description": "Here's your generated QR Code."
+          }
+        }
+      },
+      "subcommandGroup": {
+        "filters": {
+          "embed": "🖼️ Applied Filter Result"
+        }
+      }
+    },
+    "info": {
+      "subcommand": {
+        "instagram": {
+          "embed": {
+            "author": "Instagram Account Information",
+            "field": {
+              "username": "🔤 Username",
+              "fullName": "🔤 Full Name",
+              "posts": "🔢 Posts Count",
+              "following": "🔢 Following",
+              "followers": "🔢 Followers"
+            }
+          }
+        },
+        "npm": {
+          "embed": {
+            "author": "{{name}}'s Package Information",
+            "field": {
+              "author": "👑 Author",
+              "created": "📆 Created At",
+              "updated": "📆 Updated At",
+              "keyword": "🔠 Keyword",
+              "license": "📜 License",
+              "repository": "🗄️ Repository",
+              "maintainer": "🧑‍💻 Maintainer",
+              "version": "🔖 Version",
+              "dependency": "📦 Dependency"
+            }
+          }
+        },
+        "weather": {
+          "embed": {
+            "author": "🌦️ {{name}} Weather Information",
+            "field": {
+              "temperature": "🌡️ Temperature",
+              "humidity": "💧 Humidity",
+              "wind": "💨 Wind",
+              "status": "📊 Status",
+              "forecast": "📈 Forecast"
+            }
+          }
+        }
+      },
+      "subcommandGroup": {
+        "covid": {
+          "country": {
+            "embed": {
+              "author": {
+                "many": "🦠 Covid-19 Confirmed Cases",
+                "single": "🦠 Covid-19 Confirmed Cases in {{country}}"
+              },
+              "field": {
+                "country": "🌏 Country",
+                "state": "🗾 Province/State",
+                "lastUpdated": "📆 Last Updated",
+                "confirmed": "✅ Confirmed",
+                "deaths": "☠️ Deaths",
+                "incidentRate": "📋 Incident Rate",
+                "active": "🔴 Active"
+              }
+            }
+          },
+          "latest": {
+            "embed": {
+              "author": "🦠 Covid-19 Latest Cases",
+              "field": {
+                "country": "🌏 Country",
+                "state": "🗾 Province/State",
+                "lastUpdated": "📆 Last Updated",
+                "confirmed": "✅ Confirmed",
+                "deaths": "☠️ Deaths",
+                "fatality": "⚖️ Case Fatality Ratio"
+              }
+            }
+          },
+          "list": {
+            "pagination": "🌏 Covid-19 Country Lists ({{total}})"
+          }
+        },
+        "genshin": {
+          "artifact": {
+            "embed": {
+              "author": "Genshin Impact Artifact Lists ({{total}})",
+              "field": {
+                "rarity": "⭐ Rarity",
+                "piece1": "🎁 1-piece Bonus",
+                "piece2": "🎁 2-piece Bonus",
+                "piece3": "🎁 3-piece Bonus",
+                "piece4": "🎁 4-piece Bonus",
+                "piece5": "🎁 5-piece Bonus"
+              }
+            }
+          },
+          "character": {
+            "embed": {
+              "author": "Genshin Impact Character Lists ({{total}})",
+              "field": {
+                "title": "🔤 Title",
+                "vision": "🪄 Vision",
+                "weapon": "🗡️ Weapon",
+                "nation": "🗺️ Nation",
+                "affiliation": "🏰 Affiliation",
+                "rarity": "⭐ Rarity",
+                "constellation": "✨ Constellation",
+                "birthday": "🎂 Birthday",
+                "dish": "🍽️ Special Dish",
+                "skillTalents": "⚡ Active Talents",
+                "attributes": "- Attributes",
+                "passiveTalents": "⚡ Passive Talents",
+                "constellations": "✨ Constellations",
+                "outfits": "👕 Outfits",
+                "type": "🔣 Type",
+                "price": "💰 Price"
+              }
+            }
+          },
+          "weapon": {
+            "embed": {
+              "author": "Genshin Impact Weapon Lists ({{total}})",
+              "field": {
+                "type": "🔣 Type",
+                "rarity": "⭐ Rarity",
+                "baseAtk": "⚔️ Base ATK",
+                "substat": "🔣 Sub-stat Type",
+                "obtaining": "📥 Obtaining",
+                "passive": "⚡ Passive"
+              }
+            }
+          }
+        },
+        "github": {
+          "user": {
+            "embed": {
+              "author": "{{login}}'s GitHub Account Info",
+              "field": {
+                "name": "🔤 Account Name",
+                "created": "🎊 Account Created",
+                "stats": "📊 Stats",
+                "type": "🔣 Account Type",
+                "company": "🏢 Company",
+                "website": "🌐 Website",
+                "twitter": "👤 Twitter Account",
+                "address": "📌 Address"
+              }
+            }
+          },
+          "repository": {
+            "embed": {
+              "author": "GitHub Repository Search Results",
+              "field": {
+                "name": "🔤 Name",
+                "owner": "👑 Owner",
+                "created": "📆 Created At",
+                "updated": "📆 Updated At",
+                "language": "🔤 Language",
+                "license": "📜 License",
+                "stats": "📊 Stats",
+                "docs": "📖 Docs",
+                "topics": "🗂️ Topics"
+              }
+            }
+          }
+        },
+        "minecraft": {
+          "biome": {
+            "embed": {
+              "temperature": "🌡️ Temperature",
+              "dimension": "🕳️ Dimension",
+              "rainfall": "🌧️ Rainfall",
+              "structures": "🧱 Structures",
+              "blocks": "🟫 Blocks",
+              "colors": "🎨 Colors",
+              "flammable": "🔥 Flammable",
+              "renewable": "🆕 Renewable"
+            },
+            "pagination": "{{edition}} Biome Lists ({{total}})"
+          },
+          "block": {
+            "embed": {
+              "tool": "⛏️ Tool",
+              "hardness": "💪 Hardness",
+              "resistance": "🛡️ Blast Resistance",
+              "stackable": "📦 Stackable",
+              "transparent": "🥃 Transparent",
+              "luminant": "🔦 Luminant",
+              "flammable": "🔥 Flammable",
+              "renewable": "🆕 Renewable"
+            },
+            "pagination": "{{edition}} Block Lists ({{total}})"
+          },
+          "effect": {
+            "embed": {
+              "particle": "✨ Particle",
+              "type": "🔣 Type"
+            },
+            "pagination": "{{edition}} Effect Lists ({{total}})"
+          },
+          "enchantment": {
+            "embed": {
+              "level": "✨ Maximum Level",
+              "treasure": "🏴‍☠️ Treasure Only",
+              "curse": "🤬 Curse",
+              "discoverable": "🔍 Discoverable",
+              "tradeable": "↔️ Tradeable",
+              "weight": "⚖️ Weight",
+              "incompatible": "🚫 Incompatible With"
+            },
+            "pagination": "{{edition}} Enchanment Lists ({{total}})"
+          },
+          "entity": {
+            "embed": {
+              "hp": "❤️ Health Points",
+              "spawn": "🐣 Spawn",
+              "items": "⛏️ Usable Items",
+              "stackable": "📦 Stackable",
+              "flammable": "🔥 Flammable",
+              "renewable": "🆕 Renewable"
+            },
+            "pagination": "{{edition}} Entity Lists ({{total}})"
+          },
+          "food": {
+            "embed": {
+              "stackable": "📦 Stackable",
+              "renewable": "🆕 Renewable",
+              "fp": "❤️‍🩹 Restores"
+            },
+            "pagination": "{{edition}} Food Lists ({{total}})"
+          }
+        },
+        "vtuber": {
+          "affiliation": {
+            "embed": {
+              "author": "{{type}}'s YouTube Channel Lists",
+              "field": {
+                "name": "🔤 Name",
+                "chName": "🔤 Channel Name",
+                "group": "👥 Group",
+                "twitter": "🌐 Twitter",
+                "vod": "🔢 VOD Count",
+                "subs": "🔢 Subscriber Count",
+                "clip": "🔢 Clip Count",
+                "topics": "🗣️ Top Topics"
+              }
+            },
+            "pagination": "🏢 VTuber Affiliation Lists ({{total}})"
+          },
+          "channel": {
+            "embed": {
+              "author": "{{type}}'s YouTube Channel Information",
+              "field": {
+                "chName": "🔤 Channel Name",
+                "created": "📆 Channel Created At",
+                "affiliation": "🏢 Affiliation",
+                "group": "👥 Group",
+                "twitter": "🌐 Twitter",
+                "view": "🔢 View Count",
+                "vod": "🔢 VOD Count",
+                "subs": "🔢 Subscriber Count",
+                "clip": "🔢 Clip Count",
+                "topics": "🗣️ Top Topics"
+              }
+            }
+          },
+          "clipper": {
+            "embed": {
+              "author": {
+                "many": "✂️ VTuber Clipper's YouTube Channel Lists",
+                "single": "✂️ {{channel}}'s YouTube Channel Information"
+              },
+              "field": {
+                "chName": "🔤 Channel Name",
+                "created": "📆 Channel Created At",
+                "twitter": "🌐 Twitter",
+                "view": "🔢 View Count",
+                "vod": "🔢 VOD Count",
+                "subs": "🔢 Subscriber Count"
+              }
+            }
+          },
+          "live": {
+            "embed": {
+              "author": {
+                "many": "{{type}}'s YouTube Streaming Lists",
+                "single": "{{type}}'s YouTube Streaming Information"
+              },
+              "field": {
+                "title": "🔤 Title",
+                "published": "📆 Published At",
+                "streamed": "📆 Streamed At",
+                "liveView": {
+                  "name": "🔢 Live Viewers Count",
+                  "value": "{{total}} watching now"
+                },
+                "topic": "🗣️ Topic",
+                "affiliation": "🏢 Affiliation"
+              }
+            }
+          },
+          "video": {
+            "embed": {
+              "author": "{{type}}'s YouTube Video Lists",
+              "field": {
+                "title": "🔤 Title",
+                "status": "📊 Status",
+                "duration": "⏳ Duration",
+                "published": "📆 Published At",
+                "streamed": "📆 Streamed At",
+                "liveView": {
+                  "name": "🔢 Live Viewers Count",
+                  "value": "{{total}} watching now"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "interact": {
+      "subcommand": {
+        "bite": "{{target}} was bitten by {{member}}!",
+        "blush": "{{target}} was blushed by {{member}}!",
+        "bonk": "{{member}} bonk {{target}}!",
+        "cuddle": "{{member}} cuddles {{target}}!",
+        "feed": "{{member}} feeding {{target}}!",
+        "hug": "{{target}} was hugged by {{member}}!",
+        "lick": "{{member}} licking {{target}}!",
+        "kill": "{{target}} has been killed by {{member}}!",
+        "kiss": "{{member}} is kissing {{target}}!",
+        "pat": "{{member}} is giving a pat for {{target}}!",
+        "punch": "{{target}} was punched by {{member}}!",
+        "slap": "{{target}} was slapped by {{member}}!",
+        "smug": "{{member}} is smuggling to {{target}}!",
+        "tickle": "{{member}} tickled {{target}}!",
+        "wink": "{{member}} is giving a wink for {{target}}!"
+      }
+    },
+    "read": {
+      "subcommand": {
+        "list": "🌐 Image Reader Locale Lists ({{total}})",
+        "run": {
+          "embed": {
+            "author": "🖨️ Detection Result",
+            "field": {
+              "file": "📄 File",
+              "confidence": "🎯 Accuracy Rate",
+              "text": "🔠 Detected Text ({{locale}})"
+            }
+          }
+        }
+      }
+    },
+    "search": {
+      "subcommand": {
+        "manga": {
+          "embed": {
+            "author": "Manga Search Results",
+            "field": {
+              "title": "🔤 Title",
+              "type": "🔣 Type",
+              "volumeChapter": "📚 Volume & Chapter",
+              "stats": "📊 Stats",
+              "status": "⌛ Status",
+              "published": "📆 Published At",
+              "authors": "📝 Authors",
+              "serializations": "📰 Serializations",
+              "genres": "🔠 Genres",
+              "synopsis": "💫 Synopsis"
+            }
+          }
+        }
+      },
+      "subcommandGroup": {
+        "anime": {
+          "info": {
+            "embed": {
+              "author": "Anime Search Results",
+              "field": {
+                "title": "🔤 Title",
+                "type": "🔣 Type",
+                "episode": "🎬 Episode",
+                "stats": "📊 Stats",
+                "status": "⌛ Status",
+                "aired": "📆 Aired",
+                "premiered": "📆 Premiered",
+                "studios": "🏢 Studios",
+                "genres": "🔠 Genres",
+                "synopsis": "💫 Synopsis",
+                "trailer": "🎞️ Trailer"
+              }
+            }
+          },
+          "character": {
+            "embed": {
+              "author": "Anime Character Search Results",
+              "field": {
+                "name": "🔤 Name",
+                "nickname": "🔤 Nickname",
+                "favorite": "❤️ Favorite"
+              }
+            }
+          }
+        },
+        "dictionary": {
+          "kbbi": {
+            "embed": {
+              "author": "📖 KBBI Search Result",
+              "field": {
+                "spelling": "🗣️ Spelling",
+                "root": "🔤 Root",
+                "pronunciation": "🗣️ Pronunciation",
+                "nonstandard": "🔤 Nonstandard form",
+                "variant": "🔤 Variant",
+                "meaning": "❓ Meaning{{num}}"
+              }
+            }
+          },
+          "urban": {
+            "embed": {
+              "definition": "🔤 Definition",
+              "example": "🔤 Example",
+              "rating": "⭐ Rating"
+            }
+          },
+          "mdn": {
+            "embed": "Documentation Search Results"
+          }
+        },
+        "doujindesu": {
+          "embed": {
+            "author": "Doujin Search Result",
+            "field": {
+              "title": "🔤 Title",
+              "chapter": "📄 Chapter",
+              "type": "🔣 Type"
+            }
+          }
+        },
+        "image": {
+          "danbooru": "Danbooru Search Result",
+          "google": "Google Search Result",
+          "konachan": "🌐 Konachan Search Result"
+        },
+        "news": {
+          "list": {
+            "pagination": "🌐 News Country Lists ({{total}})"
+          },
+          "country": {
+            "embed": {
+              "author": "📰 {{country}} News Lists",
+              "field": {
+                "headline": "🔤 Headline",
+                "subheadline": "🔤 Subheadline",
+                "published": "📆 Published At",
+                "author": "✒️ Author",
+                "source": "🔢 Source"
+              }
+            }
+          }
+        },
+        "nhentai": {
+          "embed": {
+            "author": "Doujin Search Result",
+            "field": {
+              "title": "🔤 Title",
+              "page": "📄 Total Page"
+            }
+          }
+        }
+      }
+    },
+    "translate": {
+      "subcommand": {
+        "list": {
+          "pagination": "🌐 Translation Locale Lists ({{total}})"
+        },
+        "run": {
+          "embed": {
+            "author": "📑 Translation Result",
+            "field": {
+              "from": "From {{from}}",
+              "to": "To {{to}}"
+            }
+          }
+        }
+      }
+    }
+  },
+  "global": {
+    "constant": {
+      "math": {
+        "plus": "Addition operator",
+        "minus": "Subtraction operator",
+        "obelus": "Division operator",
+        "times": "Multiplication operator",
+        "modulo": "Modulus operator",
+        "parentheses": "Parenthesis",
+        "sigma": "Summation",
+        "capitalPi": "Product",
+        "variable": "Variable for Summation or Product",
+        "piConstant": "Math constant π (Pi)",
+        "eConstant": "Math constant e (Euler)",
+        "combination": "Combination operator",
+        "permutation": "Permutation operator",
+        "factorial": "Factorial operator",
+        "logarithmic": "Logarithmic function with base 10",
+        "natural": "Natural log function with base e",
+        "power": "Power function with two operators",
+        "caret": "Power operator",
+        "squareRoot": "√ (square root) function",
+        "sine": "Sine function",
+        "cosine": "Cosine function",
+        "tangent": "Tangent function",
+        "arcsine": "Arcsine function",
+        "arccosine": "Arccosine function",
+        "arctangent": "Arctangent function",
+        "hyperbolicSine": "Hyperbolic sine function",
+        "hyperbolicCosine": "Hyperbolic cosine function",
+        "hyperbolicArcsine": "Hyperbolic arcsine function",
+        "hyperbolicArccosine": "Hyperbolic arccosine function",
+        "hyperbolicArctangent": "Hyperbolic arctangent function"
+      }
+    },
+    "embed": {
+      "footer": "{{botUsername}} | Page {{pageNumber}} of {{totalPages}}"
+    },
+    "error": {
+      "alphabetic": "Please specify an alphabetic character.",
+      "animeCharacter": "No anime character found with name {{character}}.",
+      "artifact": "No artifact found with name {{artifact}}.",
+      "ban": {
+        "member": "You don't have appropriate permissions to ban {{- member}}",
+        "noBanned": "This user isn't banned.",
+        "noUser": "No one banned in {{guild}}.",
+        "user": "Could not send a DM to {{- user}}",
+        "yourself": "You can't ban yourself."
+      },
+      "channel": {
+        "category": {
+          "exact": "Can't modify {{- channel}} channel's category since it is a category channel.",
+          "exists": "{{- channel}} is already in {{- parent}} category channel.",
+          "same": "{{- channel}} isn't in the same category with {{- target}}."
+        },
+        "connect": "{{- member}} isn't connected to a voice channel.",
+        "name": "You have to specify a different name to modify.",
+        "notFound": "Channel doesn't exists.",
+        "nsfw": "{{- channel}} nsfw is already being turned {{state}}.",
+        "perm": {
+          "create": "You don't have appropriate permissions to create a channel.",
+          "delete": "You don't have appropriate permissions to delete {{- channel}} channel.",
+          "modify": "You don't have appropriate permissions to modify {{- channel}} channel."
+        },
+        "position": "You have to specify a different position to modify.",
+        "topic": "You have to specify a different topic to modify.",
+        "type": "{{- channel}} isn't in the same type with {{- target}}."
+      },
+      "channels": "{{guild}} doesn't have any channels.",
+      "character": "No character found with name {{character}}.",
+      "country": "No information found for {{country}}.",
+      "currency": "Please provide a valid {{- link}}.",
+      "deafen": "{{- member}} is already being deafen.",
+      "definition": "No definition found with term {{term}}.",
+      "doujin": {
+        "tag": "No doujin found with tag {{tag}}.",
+        "query": "No doujin found with query {{doujin}}."
+      },
+      "githubRepo": "No repository found with name {{repo}}.",
+      "githubUser": "No user found with username {{username}}.",
+      "guild": "Guild doesn't exists.",
+      "image": "No image found with query {{image}}.",
+      "instagramUser": "No user found with username [{username}}.",
+      "kick": {
+        "perm": "You don't have appropiate permissions to kick {{member}}.",
+        "user": "Could not send a DM to {{- user}}",
+        "yourself": "You can't kick yourself."
+      },
+      "language": "{{language}} isn't a supported language code.",
+      "letter": "You have to specify an alphabetic character.",
+      "member": "Member doesn't exists.",
+      "message": {
+        "member": "{{- member}} doesn't have any message in {{- channel}}.",
+        "notFound": "{{- channel}} doesn't have any message.",
+        "perm": "You don't have appropriate permissions to delete messages.",
+        "role": "Members with role {{- role}} doesn't have any message in {{- channel}}."
+      },
+      "messages": "No messages can be deleted.",
+      "mime": "Please upload an image file type.",
+      "minecraftBiome": "No biome found with name {{biome}}.",
+      "minecraftBlock": "No block found with name {{block}}.",
+      "minecraftEffect": "No effect found with name {{effect}}.",
+      "minecraftEnchantment": "No enchantment found with name {{enchantment}}.",
+      "minecraftEntity": "No entity found with name {{entity}}.",
+      "minecraftFood": "No food found with name {{food}}.",
+      "news": "No news found in {{country}}.",
+      "newsCountry": "No country available with name {{country}}.",
+      "noResult": "No result found for {{res}}.",
+      "npmPackage": "No package found with name {{package}}.",
+      "nsfw": "Please use this command in a NSFW Channel.{{- NSFWChannel}}",
+      "nsfwAnime": "No anime found with title {{title}} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.{{- NSFWChannel}}",
+      "nsfwManga": "No manga found with title {{title}} or maybe it's contains NSFW stuff. Try to use this command in a NSFW Channel.{{- NSFWChannel}}",
+      "numeric": "Please enter a valid number.",
+      "role": "Can't find role with name {{role}}.",
+      "unit": "Please provide a valid {{- link}}.",
+      "url": "Please provide a valid URL.",
+      "weapon": "No weapon found with name {{weapon}}.",
+      "weather": "No information found in {{location}}.",
+      "vtuberAffiliation": "No affiliation found with name {{affiliation}} or maybe the data isn't available yet.",
+      "vtuberChannel": "No channel found with ID {{channelID}} or maybe the data isn't available yet.",
+      "vtuberClipper": "No channel found with ID {{channelID}} or maybe the data isn't available yet.",
+      "vtuberLive": {
+        "affiliation": "No affiliation found with name {{affiliation}} or maybe the data isn't available yet.",
+        "channel": "No channel found with ID {{channelID}}.",
+        "channelLive": "No channel found with ID {{channelID}} or maybe the channel doesn't live right now.",
+        "live": "Channel doesn't live right now.",
+        "video": "No channel found with ID {{channelID}} or maybe the channel doesn't have any video."
+      }
+    },
+    "pagination": {
+      "footer": "{{botUsername}} | Page {pageNumber} of {totalPages}"
+    },
+    "success": {
+      "ban": {
+        "channel": "Successfully {{status}} {{member}}.",
+        "channel2": "Successfully {{status}} {{member}} for {{for}}.",
+        "user": "You have been banned from {{from}} for {{reason}}.",
+        "unban": "Congratulations! You have been unbanned from {{from}} for {reason}}."
+      },
+      "channel": {
+        "category": "Successfully {{status}} {{- channel}}'s category to {{- parent}}.",
+        "create": "{{- channel}} created successfully.",
+        "delete": "Channel deleted successfully.",
+        "name": "Successfully {{status}} {{- channel}}'s channel name.",
+        "nsfw": "Successfully {{status}} {{- channel}}'s channel NSFW state.",
+        "position": "Successfully {{status}} {{- channel]}'s channel position.",
+        "topic": "Successfully {{status}} {{- channel}}'s channel topic."
+      },
+      "deafen": "Successfully {{status}} {{- member}}.",
+      "disconnect": "Successfully {{status}} {{- member}}.",
+      "kick": {
+        "channel": "Successfully {{status}} {{- member}}.",
+        "user": "You have been kicked from {{from}} for {{reason}}."
+      }
+    }
+  },
+  "misc": {
+    "active": "active",
+    "active2": "Active",
+    "afk": "AFK Channel",
+    "allowed": "Allowed",
+    "announcement": "Announcement",
+    "archived": "archived",
+    "auto": "Automatic",
+    "auto2": "Auto",
+    "ban": "banned",
+    "by": "by",
+    "click": {
+      "docs": "Click here to view the documentation.",
+      "image": "Click here to view the image file."
+    },
+    "closed": "Closed at",
+    "currency": "ISO 4217 currency code",
+    "deafen": "deafen",
+    "denied": "Denied",
+    "detected": "Detected",
+    "disconnect": "disconnected",
+    "docs": "View Documentation",
+    "eg": "e.g.",
+    "example": "Example",
+    "in": "in",
+    "inactive": "Inactive",
+    "inactivity": "Inactivity duration",
+    "info": "Information",
+    "locked": "Locked at",
+    "kick": "kicked",
+    "members": "All Member",
+    "minecraft": "Minecraft {{type}} Edition",
+    "modify": "modified",
+    "modOnly": "Moderator Only",
+    "more": "...and {{total}} more.",
+    "negative": "Negative",
+    "no": "No",
+    "noAvailable": "No available",
+    "none": "None",
+    "noReason": "No reason",
+    "noTopic": "No topic",
+    "off": "off",
+    "off2": "Off",
+    "on": "on",
+    "partOfSpeech": "Part of Speech",
+    "positive": "Positive",
+    "precipitation": "Precipitation",
+    "private": "Private",
+    "public": "Public",
+    "publicUpdates": "Public Updates",
+    "range": "Range",
+    "returns": "returns",
+    "rules": "Rules",
+    "seconds": "seconds",
+    "slowmode": "Slowmode",
+    "setup": {
+      "servermute": "servermute command setup.",
+      "temp": "Ban temporary duration has passed."
+    },
+    "status": "Status",
+    "submeaning": "Submeaning",
+    "synced": "Synced with",
+    "system": "System",
+    "unban": "unbanned",
+    "unit": "International System of Units (SI)",
+    "unknown": "Unknown",
+    "unlimited": "Unlimited",
+    "widget": "Widget",
+    "yes": "Yes"
+  },
+  "utils": {
+    "languages": {
+      "afrikaans": "Afrikaans",
+      "albanian": "Albanian",
+      "amharic": "Amharic",
+      "arabic": "Arabic",
+      "armenian": "Armenian",
+      "assamese": "Assamese",
+      "auto": "Automatic",
+      "aymara": "Aymara",
+      "azerbaijani": "Azerbaijani",
+      "azerbaijaniCyrillic": "Azerbaijani - Cyrillic",
+      "basque": "Basque",
+      "bambara": "Bambara",
+      "belarusian": "Belarusian",
+      "bengali": "Bengali",
+      "bhojpuri": "Bhojpuri",
+      "bosnian": "Bosnian",
+      "bulgarian": "Bulgarian",
+      "burmese": "Burmese",
+      "catalan": "Catalan; Valencian",
+      "catalan2": "Catalan",
+      "cebuano": "Cebuano",
+      "chichewa": "Chichewa",
+      "chineseSimplified": "Chinese - Simplified",
+      "chineseSimplified2": "Chinese (Simplified)",
+      "chineseTraditional": "Chinese - Traditional",
+      "chineseTraditional2": "Chinese (Traditional)",
+      "cherokee": "Cherokee",
+      "corsican": "Corsican",
+      "croatian": "Croatian",
+      "czech": "Czech",
+      "danish": "Danish",
+      "dhivehi": "Dhivehi",
+      "dogri": "Dogri",
+      "dutch": "Dutch; Flemish",
+      "dutch2": "Dutch",
+      "dzongkha": "Dzongkha",
+      "english": "English",
+      "englishMiddle": "English, Middle (1100-1500)",
+      "esperanto": "Esperanto",
+      "estonian": "Estonian",
+      "ewe": "Ewe",
+      "filipino": "Filipino",
+      "finnish": "Finnish",
+      "french": "French",
+      "frenchMiddle": "French, Middle (ca. 1400-1600)",
+      "frisian": "Frisian",
+      "galician": "Galician",
+      "georgian": "Georgian",
+      "georgianOld": "Georgian - Old",
+      "german": "German",
+      "germanFracture": "German Fracture",
+      "greek": "Greek",
+      "greekAncient": "Greek, Ancient (-1453)",
+      "greekModern": "Greek, Modern (1453-)",
+      "guarani": "Guarani",
+      "gujarati": "Gujarati",
+      "haitian": "Haitian; Haitian Creole",
+      "haitianCreole": "Haitian Creole",
+      "hausa": "Hausa",
+      "hebrew": "Hebrew",
+      "hindi": "Hindi",
+      "hmong": "Hmong",
+      "hungarian": "Hungarian",
+      "icelandic": "Icelandic",
+      "igbo": "Igbo",
+      "ilocano": "Ilocano",
+      "indonesian": "Indonesian",
+      "inuktitut": "Inuktitut",
+      "irish": "Irish",
+      "italian": "Italian",
+      "italianOld": "Italian - Old",
+      "japanese": "Japanese",
+      "javanese": "Javanese",
+      "kannada": "Kannada",
+      "kazakh": "Kazakh",
+      "khmer": "Central Khmer",
+      "khmer2": "Khmer",
+      "kinyarwanda": "Kinyarwanda",
+      "kirghiz": "Kirghiz; Kyrgyz",
+      "konkani": "Konkani",
+      "korean": "Korean",
+      "kurdish": "Kurdish",
+      "kurdishKurmanji": "Kurdish (Kurmanji)",
+      "kurdishSorani": "Kurdish (Sorani)",
+      "kyrgyz": "Kyrgyz",
+      "lao": "Lao",
+      "latin": "Latin",
+      "latvian": "Latvian",
+      "lithuanian": "Lithuanian",
+      "luganda": "Luganda",
+      "luxembourgish": "Luxembourgish",
+      "macedonian": "Macedonian",
+      "maithili": "Maithili",
+      "malagasy": "Malagasy",
+      "malay": "Malay",
+      "malayalam": "Malayalam",
+      "maltese": "Maltese",
+      "maori": "Maori",
+      "marathi": "Marathi",
+      "meiteilonManipuri": "Meiteilon (Manipuri)",
+      "mizo": "Mizo",
+      "mongolian": "Mongolian",
+      "myanmar": "Myanmar (Burmese)",
+      "nepali": "Nepali",
+      "norwegian": "Norwegian",
+      "odia": "Odia (Oriya)",
+      "oriya": "Oriya",
+      "oromo": "Oromo",
+      "pashto": "Pashto",
+      "panjabi": "Panjabi; Punjabi",
+      "persian": "Persian",
+      "polish": "Polish",
+      "punjabi": "Punjabi",
+      "portuguese": "Portuguese",
+      "pushto": "Pushto; Pashto",
+      "quechua": "Quechua",
+      "romanian": "Romanian; Moldavian; Moldovan",
+      "romanian2": "Romanian",
+      "russian": "Russian",
+      "samoan": "Samoan",
+      "sanskrit": "Sanskrit",
+      "scotsGaelic": "Scots Gaelic",
+      "sepedi": "Sepedi",
+      "serbian": "Serbian",
+      "serbianLatin": "Serbian - Latin",
+      "sesotho": "Sesotho",
+      "shona": "Shona",
+      "sindhi": "Sindhi",
+      "sinhala": "Sinhala",
+      "slovak": "Slovak",
+      "slovenian": "Slovenian",
+      "somali": "Somali",
+      "spanish": "Spanish; Castilian",
+      "spanish2": "Spanish",
+      "spanishOld": "Spanish; Castilian - Old",
+      "sundanese": "Sundanese",
+      "swahili": "Swahili",
+      "swedish": "Swedish",
+      "syriac": "Syriac",
+      "tagalog": "Tagalog",
+      "tajik": "Tajik",
+      "tamil": "Tamil",
+      "tatar": "Tatar",
+      "telugu": "Telugu",
+      "thai": "Thai",
+      "tibetan": "Tibetan",
+      "tigrinya": "Tigrinya",
+      "tsonga": "Tsonga",
+      "turkish": "Turkish",
+      "turkmen": "Turkmen",
+      "twi": "Twi",
+      "uighur": "Uighur; Uyghur",
+      "ukrainian": "Ukrainian",
+      "urdu": "Urdu",
+      "uyghur": "Uyghur",
+      "uzbek": "Uzbek",
+      "uzbekCyrillic": "Uzbek - Cyrillic",
+      "vietnamese": "Vietnamese",
+      "welsh": "Welsh",
+      "xhosa": "Xhosa",
+      "yiddish": "Yiddish",
+      "yoruba": "Yoruba",
+      "zulu": "Zulu"
+    }
+  }
+}

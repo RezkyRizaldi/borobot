@@ -25,8 +25,7 @@ module.exports = {
    * @param {import('discord.js').ChatInputCommandInteraction} interaction
    */
   async execute(interaction) {
-    /** @type {{ client: import('discord.js').Client<true>, guild: ?import('discord.js').Guild, options: Omit<import('discord.js').CommandInteractionOptionResolver<import('discord.js').CacheType>, 'getMessage' | 'getFocused'> }} */
-    const { client, guild, options } = interaction;
+    const { client, guild, locale, options } = interaction;
 
     if (!guild) return;
 
@@ -34,20 +33,22 @@ module.exports = {
 
     const command = options.getString('command');
 
-    const commands = await guild.commands.fetch().then((cmds) =>
-      cmds
-        .filter((cmd) => cmd.name !== 'help')
-        .mapValues((cmd) => ({
-          ...cmd,
-          description:
-            cmd.name === 'Avatar'
-              ? "🖼️ Get the member's avatar."
-              : cmd.name === 'User Info'
-              ? 'ℹ️ Get information about a member.'
-              : cmd.description,
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    );
+    const commands = await guild.commands
+      .fetch({ locale, withLocalizations: true })
+      .then((cmds) =>
+        cmds
+          .filter((cmd) => cmd.name !== 'help')
+          .mapValues((cmd) => ({
+            ...cmd,
+            description:
+              cmd.name === 'Avatar'
+                ? "🖼️ Get the member's avatar."
+                : cmd.name === 'User Info'
+                ? 'ℹ️ Get information about a member.'
+                : cmd.description,
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      );
 
     if (!command) {
       return await generatePagination({ interaction })

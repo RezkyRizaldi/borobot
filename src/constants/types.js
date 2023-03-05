@@ -1144,4 +1144,42 @@
  * @property {String} answer
  */
 
+/**
+ * @typedef {Object} Command
+ * @property {import('discord.js').SlashCommandBuilder} [data]
+ * @property {String} [type]
+ * @property {(interaction: import('discord.js').ChatInputCommandInteraction) => Promise<void>} [execute]
+ */
+
+/**
+ * @typedef {Object} Component
+ * @property {{ name?: String }} [data]
+ * @property {(interaction: import('discord.js').RepliableInteraction) => Promise<void>} [execute]
+ */
+
+/**
+ * @typedef {Object} Event
+ * @property {String} [name]
+ * @property {Boolean} [once]
+ * @property {(...args) => Promise<void>} [execute]
+ */
+
+/**
+ * @typedef {Object} BorobotClient
+ * @property {import('discord.js').Collection<String, Command>} commands
+ * @property {import('discord.js').Collection<String, Component>} components
+ * @property {import('discord.js').Collection<String, import('pagination.djs').Pagination>} paginations
+ * @property {import('discord.js').RESTPostAPIChatInputApplicationCommandsJSONBody[]} commandArray
+ * @property {import('distube').DisTube} distube
+ * @property {import('discord-together').DiscordTogether<{[x: string]: string}>} discordTogether
+ * @property {() => Promise<void>} handleLanguage
+ * @property {() => Promise<void>} handleEvents
+ * @property {() => Promise<void>} handleComponents
+ * @property {() => Promise<void>} handleCommands
+ */
+
+/**
+ * @typedef {import('discord.js').Client & BorobotClient} Client
+ */
+
 exports.unused = {};

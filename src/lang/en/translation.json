@@ -1,0 +1,90 @@
+{
+  "command": {
+    "calc": {
+      "description": "🧮 Calculator command.",
+      "embed": {
+        "author": "🧮 Calculation Result",
+        "field": {
+          "operation": "🔢 Operation",
+          "result": "🔢 Result"
+        }
+      },
+      "pagination": {
+        "author": "➗ Supported Mathematical Symbol Lists ({{total}})"
+      },
+      "subcommand": {
+        "list": {
+          "description": "➗ Displays supported math symbols."
+        },
+        "run": {
+          "description": "🧮 Calculate a math operation.",
+          "option": {
+            "operation": {
+              "description": "🔢 The operation to be calculated."
+            }
+          }
+        }
+      }
+    },
+    "convert": {
+      "embed": {
+        "author": "💲 Currency Conversion Result"
+      },
+      "pagination": {
+        "author": "💲 Supported Currency Code Lists ({{total}})"
+      }
+    }
+  },
+  "global": {
+    "constant": {
+      "math": {
+        "plus": "Addition operator",
+        "minus": "Subtraction operator",
+        "obelus": "Division operator",
+        "times": "Multiplication operator",
+        "modulo": "Modulus operator",
+        "parentheses": "Parenthesis",
+        "sigma": "Summation",
+        "capitalPi": "Product",
+        "variable": "Variable for Summation or Product",
+        "piConstant": "Math constant π (Pi)",
+        "eConstant": "Math constant e (Euler)",
+        "combination": "Combination operator",
+        "permutation": "Permutation operator",
+        "factorial": "Factorial operator",
+        "logarithmic": "Logarithmic function with base 10",
+        "natural": "Natural log function with base e",
+        "power": "Power function with two operators",
+        "caret": "Power operator",
+        "squareRoot": "√ (square root) function",
+        "sine": "Sine function",
+        "cosine": "Cosine function",
+        "tangent": "Tangent function",
+        "arcsine": "Arcsine function",
+        "arccosine": "Arccosine function",
+        "arctangent": "Arctangent function",
+        "hyperbolicSine": "Hyperbolic sine function",
+        "hyperbolicCosine": "Hyperbolic cosine function",
+        "hyperbolicArcsine": "Hyperbolic arcsine function",
+        "hyperbolicArccosine": "Hyperbolic arccosine function",
+        "hyperbolicArctangent": "Hyperbolic arctangent function"
+      }
+    },
+    "embed": {
+      "footer": "{{botUsername}} | Page {{pageNumber}} of {{totalPages}}"
+    },
+    "error": {
+      "guild": "Guild doesn't exists.",
+      "member": "Member doesn't exist.",
+      "currency": "Please provide a valid {{- link}}."
+    },
+    "pagination": {
+      "footer": "{{botUsername}} | Page {pageNumber} of {totalPages}"
+    }
+  },
+  "misc": {
+    "eg": "e.g.",
+    "returns": "returns",
+    "currency": "ISO 4217 currency code"
+  }
+}
