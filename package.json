@@ -1,7 +1,7 @@
 {
   "name": "borobot",
-  "version": "1.39.0",
-  "description": "A simple Discord Bot build with Discord.js",
+  "version": "2.0.0-beta",
+  "description": "A minimalist multi-purpose Discord bot. Treat you more than just friend.",
   "displayName": "Borobot",
   "bugs": {
     "email": "rezkyrizaldi30@gmail.com",
@@ -17,7 +17,7 @@
     "test": "npm run lint && npm run prettier"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=16.9.0"
   },
   "keywords": [
     "discord.js",
