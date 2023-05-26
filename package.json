@@ -68,7 +68,7 @@
     "file-type": "^18.2.1",
     "glob": "^10.0.0",
     "holodex.js": "^2.0.5",
-    "http-proxy-agent": "^6.0.0",
+    "http-proxy-agent": "^7.0.0",
     "i18next": "^22.4.10",
     "i18next-fs-backend": "^2.1.1",
     "libsodium-wrappers": "^0.7.11",
