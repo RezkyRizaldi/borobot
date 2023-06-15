@@ -69,7 +69,7 @@
     "glob": "^10.0.0",
     "holodex.js": "^2.0.5",
     "http-proxy-agent": "^7.0.0",
-    "i18next": "^22.4.10",
+    "i18next": "^23.0.1",
     "i18next-fs-backend": "^2.1.1",
     "libsodium-wrappers": "^0.7.11",
     "math-expression-evaluator": "^2.0.2",
