@@ -150,7 +150,7 @@ module.exports = {
 
             await interaction.editReply({ embeds: [embed] });
           },
-        }[options.getString('type', true)]()),
+        })[options.getString('type', true)](),
     }[options.getSubcommand()]();
   },
 };
