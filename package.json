@@ -78,7 +78,7 @@
     "mongoose": "^7.4.3",
     "nekos.life": "^3.0.0",
     "newsapi": "^2.4.1",
-    "openai": "^3.3.0",
+    "openai": "^4.0.0",
     "ordinal": "^1.0.3",
     "pagination.djs": "^4.0.12",
     "pluralize": "^8.0.0",
