@@ -52,7 +52,7 @@
     "axios": "^1.4.0",
     "canvas": "^2.11.2",
     "chalk": "^4.1.2",
-    "change-case": "^4.1.2",
+    "change-case": "^5.0.2",
     "color-convert": "^2.0.1",
     "convert": "^4.13.1",
     "ctk-anime-scraper": "^3.5.0",
