@@ -65,7 +65,7 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "ffmpeg-static": "^5.1.0",
-    "file-type": "^18.5.0",
+    "file-type": "^19.0.0",
     "glob": "^10.3.3",
     "holodex.js": "^2.0.5",
     "http-proxy-agent": "^7.0.0",
