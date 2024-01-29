@@ -99,7 +99,7 @@
   "devDependencies": {
     "eslint": "^8.47.0",
     "eslint-plugin-simple-import-sort": "^10.0.0",
-    "husky": "^8.0.3",
+    "husky": "^9.0.6",
     "lint-staged": "^15.0.1",
     "module-alias": "^2.2.3",
     "nodemon": "^3.0.1",
