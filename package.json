@@ -54,7 +54,7 @@
     "chalk": "^4.1.2",
     "change-case": "^5.0.2",
     "color-convert": "^2.0.1",
-    "convert": "^4.13.1",
+    "convert": "^5.0.0",
     "ctk-anime-scraper": "^3.5.0",
     "currency-converter-lt": "^2.0.0",
     "discord-api-types": "^0.37.53",
