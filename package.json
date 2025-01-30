@@ -50,7 +50,7 @@
     "anime-images-api": "^2.0.0",
     "ascii-table": "^0.0.9",
     "axios": "^1.4.0",
-    "canvas": "^2.11.2",
+    "canvas": "^3.1.0",
     "chalk": "^4.1.2",
     "change-case": "^5.0.2",
     "color-convert": "^2.0.1",
